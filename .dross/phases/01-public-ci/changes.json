@@ -51,6 +51,21 @@
         }
       ]
     },
+    "t-12": {
+      "files": [
+        ".gitleaks.toml"
+      ],
+      "commit": "03e5342",
+      "completed_at": "2026-11-11T13:25:36.224168Z",
+      "landmarks": [
+        {
+          "feature": "secret scanning",
+          "symbol": "allowlists",
+          "loc": ".gitleaks.toml:60",
+          "what": "exact-path line-anchored allowlist for dross survivor ids in tests.json"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "scripts/workflow-policy.ts",
@@ -324,6 +339,27 @@
           "severity": "NOTE",
           "criterion": "c-3",
           "text": "The [[rules]] regex does not catch quoted table keys such as [[\"rules\"]] or [\"rules\".allowlist]. These are valid TOML, but unlikely to be written by accident.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-12": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "No test runs gitleaks against a real high-entropy line in tests.json, so the second test_contract line is only enforced structurally. gitleaks-config.spec would fail if the entry became file-wide (no AND, no regexes, or `.*`), but it would not catch a regex that is too broad but non-trivial, such as `Key`.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "By design, any value in this file shaped as \"Key\": \"\u003c16 lowercase hex\u003e\" is allowlisted, including a real secret in that shape. This is acceptable for dross survivor ids. The regex also assumes LF line endings: a CRLF-written tests.json would make `,?$` miss, so the allowlist would not apply and the hits would be reported again.",
           "resolution": "non-blocking, left"
         }
       ]
