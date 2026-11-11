@@ -1,6 +1,6 @@
 {
   "phase": "01-public-ci",
-  "generated_at": "2026-11-11T13:19:06.509782Z",
+  "generated_at": "2026-11-11T13:28:01.643264Z",
   "languages": [
     {
       "name": "typescript",
@@ -196,22 +196,22 @@
           {
             "File": "scripts/workflow-policy.ts",
             "Line": 42,
-            "Op": "EqualityOperator",
-            "Snippet": "v.length \u003e 2",
-            "Origin": "in-hunk",
-            "Key": "5f56b59d1dedc3f5",
-            "Lifecycle": "accepted",
-            "Note": "Only differs on an empty quoted value (uses: \"\" / contents: ''), which GitHub rejects (empty action ref / permission level). Both versions still report a violation on that line; only the echoed value text differs. Hand-replayed 2026-11-11."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
             "Op": "ConditionalExpression",
             "Snippet": "true",
             "Origin": "in-hunk",
             "Key": "cfaa815ed2c7edc3",
             "Lifecycle": "accepted",
             "Note": "Equivalent on valid YAML: length\u003e=2 -\u003e true only differs for a 1-char value that is a lone quote, i.e. an unterminated quoted scalar GitHub cannot parse. Hand-replayed 2026-11-11: no corpus difference."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 42,
+            "Op": "EqualityOperator",
+            "Snippet": "v.length \u003e 2",
+            "Origin": "in-hunk",
+            "Key": "5f56b59d1dedc3f5",
+            "Lifecycle": "accepted",
+            "Note": "Only differs on an empty quoted value (uses: \"\" / contents: ''), which GitHub rejects (empty action ref / permission level). Both versions still report a violation on that line; only the echoed value text differs. Hand-replayed 2026-11-11."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -277,7 +277,7 @@
             "File": "scripts/workflow-policy.ts",
             "Line": 119,
             "Op": "Regex",
-            "Snippet": "/^-\\s/",
+            "Snippet": "/^-\\S*/",
             "Origin": "in-hunk",
             "Key": "84b59b0fb1208785",
             "Lifecycle": "accepted",
@@ -287,7 +287,7 @@
             "File": "scripts/workflow-policy.ts",
             "Line": 119,
             "Op": "Regex",
-            "Snippet": "/^-\\S*/",
+            "Snippet": "/^-\\s/",
             "Origin": "in-hunk",
             "Key": "84b59b0fb1208785",
             "Lifecycle": "accepted",
@@ -405,16 +405,6 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 240,
-            "Op": "LogicalOperator",
-            "Snippet": "import.meta.main \u0026\u0026 process.argv[1] !== undefined \u0026\u0026 resolve(process.argv[1]) === fileURLToPath(import.meta.url)",
-            "Origin": "in-hunk",
-            "Key": "06d68ad207bce430",
-            "Lifecycle": "accepted",
-            "Note": "Entry-guard fallback for Node \u003c 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs \u0026\u0026 is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
             "Line": 242,
             "Op": "ConditionalExpression",
             "Snippet": "false",
@@ -422,6 +412,16 @@
             "Key": "ccc4f75d4212c263",
             "Lifecycle": "accepted",
             "Note": "CLI entry guard, unreachable in-process. 'false' (gate never runs) is killed by workflow-policy.spec 'runs as a separate process' (hand-replayed: mutant exits 0 on the unpinned dir, test expects 1). 'true' is equivalent when run as a script; it differs only when the module is imported (by its spec)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 240,
+            "Op": "LogicalOperator",
+            "Snippet": "import.meta.main \u0026\u0026 process.argv[1] !== undefined \u0026\u0026 resolve(process.argv[1]) === fileURLToPath(import.meta.url)",
+            "Origin": "in-hunk",
+            "Key": "06d68ad207bce430",
+            "Lifecycle": "accepted",
+            "Note": "Entry-guard fallback for Node \u003c 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs \u0026\u0026 is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
           },
           {
             "File": "src/lib/server/testing/temp-dir.ts",
@@ -1584,19 +1584,19 @@
       ".dross/phases/01-public-ci/changes.json": [
         {
           "start": 1,
-          "end": 690
+          "end": 728
         }
       ],
       ".dross/phases/01-public-ci/plan.toml": [
         {
           "start": 1,
-          "end": 151
+          "end": 162
         }
       ],
       ".dross/phases/01-public-ci/spec.toml": [
         {
           "start": 1,
-          "end": 68
+          "end": 73
         }
       ],
       ".dross/phases/01-public-ci/tests.json": [
@@ -1608,7 +1608,7 @@
       ".dross/phases/01-public-ci/verify.toml": [
         {
           "start": 1,
-          "end": 158
+          "end": 170
         }
       ],
       ".dross/project.toml": [
@@ -1656,7 +1656,7 @@
       ".gitleaks.toml": [
         {
           "start": 1,
-          "end": 59
+          "end": 69
         }
       ],
       ".node-version": [
@@ -1990,6 +1990,6 @@
     "source": "git+changes"
   },
   "measured_on": "local",
-  "measured_commit": "68d4283ef193232b96b5e42e386b064dd6ecf889",
-  "measured_tree": "293e2551ff728e185025b4b9ce1415668962f869"
+  "measured_commit": "dc1757368b4ed07b5844e2b1279622fa9782b064",
+  "measured_tree": "3138fb884ecfea44cf480dbd3c867cff4e6f4149"
 }

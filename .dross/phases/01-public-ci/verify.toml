@@ -1,11 +1,11 @@
 [verify]
   phase = "01-public-ci"
-  generated_at = 2026-11-11T13:19:06.509782Z
+  generated_at = 2026-11-11T13:28:01.643264Z
   verdict = "pass"
   finalized = true
-  finalized_at = 2026-11-11T13:20:21.727486Z
-  measured_commit = "68d4283ef193232b96b5e42e386b064dd6ecf889"
-  measured_tree = "293e2551ff728e185025b4b9ce1415668962f869"
+  finalized_at = 2026-11-11T13:29:26.092504Z
+  measured_commit = "dc1757368b4ed07b5844e2b1279622fa9782b064"
+  measured_tree = "3138fb884ecfea44cf480dbd3c867cff4e6f4149"
 
 [summary]
   mutation_status = "measured"
@@ -38,44 +38,44 @@
 [[criterion]]
   id = "c-1"
   status = "covered"
-  tests = ["scripts/rulesets.spec.ts:describe('ci.yml steps') it('static runs lint, typecheck and the workflow policy')", "scripts/rulesets.spec.ts:describe('ci.yml steps') it('test runs the unit and e2e suites')", "scripts/rulesets.spec.ts:describe('ci.yml steps') it('no gate step can pass while failing: no continue-on-error, only if: failure() on the report upload')", "scripts/rulesets.spec.ts:it('ci.yml produces the five gate checks')", "live (commit 2cf09e5): probe PR red proofs - prettier violation -> static red; failing e2e expect -> test (linux|macos|windows) red", "live (commit 46ab8bd): vitest timeouts -> test (windows) red, run 43017499095"]
-  notes = "Exact run commands pinned per job; red-on-failure observed live for lint, vitest and e2e (commit bodies, not re-run). Attempt-4 FLAG resolved by t-11 (fe33624): the new test rejects any continue-on-error and any if: other than the single failure() (incl. '- if:' first-key and job-level forms). Re-checked this run in memory against ci.yml variants: continue-on-error, step if: always(), '- if: false', job-level if, failure() moved off the upload step -> all red; baseline green; dross test 933/933 green."
+  tests = ["scripts/rulesets.spec.ts:describe('ci.yml steps') it('static runs lint, typecheck and the workflow policy')", "scripts/rulesets.spec.ts:describe('ci.yml steps') it('test runs the unit and e2e suites')", "scripts/rulesets.spec.ts:describe('ci.yml steps') it('no gate step can pass while failing: no continue-on-error, only if: failure() on the report upload')", "scripts/rulesets.spec.ts:it('ci.yml produces the five gate checks')", "live (commit 2cf09e5): probe PR red proofs - prettier violation -> static red; failing e2e expect -> all three test jobs red", "live (commit 46ab8bd): vitest timeouts -> test (windows) red, run 43017499095"]
+  notes = "Unchanged since attempt 5 (ci.yml and rulesets.spec untouched by t-12). Live red proofs read from the 2cf09e5 / 46ab8bd commit bodies this run (not re-run). dross test 935/935 green this run."
 
 [[criterion]]
   id = "c-2"
   status = "covered"
-  tests = [".github/workflows/ci.yml:gitleaks job (checksum-verified 8.30.1, full history, --exit-code 1) on every pull_request", "scripts/rulesets.spec.ts:it('gitleaks scans the full history of HEAD with the repo config and fails on findings')", "scripts/rulesets.spec.ts:it.each('%s: contexts match jobs') - gitleaks is a required context", "live (commit 2cf09e5): fake key pushed to probe PR -> gitleaks red"]
-  notes = "Unchanged since attempt 2; green in this session's dross test (933/933)."
+  tests = [".github/workflows/ci.yml:gitleaks job (checksum-verified 8.30.1, full history, --exit-code 1) on every pull_request", "scripts/rulesets.spec.ts:it('gitleaks scans the full history of HEAD with the repo config and fails on findings')", "scripts/rulesets.spec.ts:it.each('%s: contexts match jobs') - gitleaks is a required context", "live (commit 2cf09e5): fake key pushed to probe PR -> gitleaks red", "live (PR #3): gitleaks check went red on 4 unallowlisted generic-api-key hits in tests.json - the gate failing on a real finding, as c-2 requires"]
+  notes = "Unchanged since attempt 5. PR #3's red gitleaks check is further live evidence the gate fails on unallowlisted findings (per the t-12 task record; not re-observed on GitHub this run)."
 
 [[criterion]]
   id = "c-3"
   status = "covered"
-  tests = ["scripts/gitleaks-config.spec.ts:it.each('entry %i names its rules and only exact anchored files')", "scripts/gitleaks-config.spec.ts:it.each('entry %i: a generic-api-key allowance also pins the value (condition AND)')", "scripts/gitleaks-config.spec.ts:it('has no global allowlist, stopwords or ignore-everything switches')", "scripts/gitleaks-config.spec.ts:it('extends the default rules and has allowlist entries')", ".github/workflows/ci.yml:gitleaks job (zero-findings half, every PR)", "observed 2026-11-11 attempt 1: gitleaks 8.30.1 full history with config -> 0 findings; default rules -> 10"]
-  notes = "Attempt-4 FLAG resolved by t-11 (fe33624): the no-switches test now rejects [[rules]], [rules.*] / [[rules.allowlists]], inline rules = and disabledRules, so no allowlist can sit outside the [[allowlists]] entries the narrowness checks cover. Re-checked this run in memory: each of those appended to .gitleaks.toml -> red; baseline green; dross test 933/933 green."
+  tests = ["scripts/gitleaks-config.spec.ts:it.each('entry %i names its rules and only exact anchored files')", "scripts/gitleaks-config.spec.ts:it.each('entry %i: a generic-api-key allowance also pins the value (condition AND)')", "scripts/gitleaks-config.spec.ts:it('has no global allowlist, stopwords or ignore-everything switches')", "scripts/gitleaks-config.spec.ts:it('extends the default rules and has allowlist entries')", ".github/workflows/ci.yml:gitleaks job (zero-findings half, every PR)", "observed this run: gitleaks 8.30.1 git --log-opts=HEAD --config .gitleaks.toml --exit-code 1 at dc17573 -> exit 0, 37 commits, no leaks"]
+  notes = "t-12 (03e5342) added one [[allowlists]] entry: targetRules generic-api-key, condition AND, exact path ^\\.dross/phases/01-public-ci/tests\\.json$, regexTarget line, regex ^\\s*\"Key\": \"[0-9a-f]{16}\",?$. Both it.each narrowness checks now run over it (933 -> 935, all green). All 39 Key lines in the new tests.json match that line shape."
 
 [[criterion]]
   id = "c-4"
   status = "covered"
   tests = ["scripts/rulesets.spec.ts:it.each('%s: contexts match jobs'), it.each('%s: requires a PR with no approvals'), it.each('%s: active, admin-only bypass'), it('targets main and every milestone branch'), it('main also blocks deletion and force-push; milestones stay deletable')", "live (commit 35cf75a): rulesets 27029811/27029812 applied and read back with exactly the five contexts; probe PR #1 -> mergeStateStatus BLOCKED"]
-  notes = "Unchanged since attempt 2; GitHub-side state taken from the 35cf75a commit body (not re-run)."
+  notes = "Unchanged since attempt 5; GitHub-side state read from the 35cf75a commit body this run (not re-queried)."
 
 [[criterion]]
   id = "c-5"
   status = "covered"
   tests = ["scripts/workflow-policy.spec.ts:describe('exact reports'), describe('unpinned uses'), describe('permissions'), describe('fails closed'), describe('locates'), describe('write-scope allowlist'), describe('cli exit')", "scripts/workflow-policy.spec.ts:describe('edge layouts') it('refuses a lone-CR line after a comment instead of reading through it'), it('reports permissions on a flow-mapping continuation line'), it(\"skips a hyphenated key's block scalar body\")", "scripts/workflow-policy.spec.ts:it('runs as a separate process: exit 1 naming file:line, exit 0 when clean')", "scripts/rulesets.spec.ts:it('static runs lint, typecheck and the workflow policy') - pnpm ci:policy is a gate step"]
-  notes = "Mutation 0.91 over 444 (killed 405, survived 39 incl. 13 no-cov), ranged Stryker 1m17s then --reuse-report. Survivor set identical to attempt 4 (t-11 was spec-only); all 39 under the 33 accepted keys; unclassified_in_scope = 0."
+  notes = "Mutation 0.91 over 444 (killed 405, survived 39 incl. 13 no-cov), ranged Stryker 1m26s (second try; first died in a vite dep-optimizer ENOTEMPTY rename at init) then --reuse-report. Survivor set identical to attempt 5 by File/Line/Op; all 39 under the 33 accepted keys; unclassified_in_scope = 0."
 
 [[criterion]]
   id = "c-6"
   status = "covered"
   tests = ["scripts/readme.spec.ts:it('end user first: the first section is install and use, development comes after')", "scripts/readme.spec.ts:it('install and first watch: releases link, every OS, SmartScreen, adding a watch')", "scripts/readme.spec.ts:it('no self-host: nothing about containers, compose, proxies or server deploys')", "scripts/readme.spec.ts:it('developer commands it lists run natively: admin:create loads .env itself')"]
-  notes = "Each clause has an assertion; green in this session's dross test (933/933)."
+  notes = "Unchanged since attempt 5; green in this run's dross test (935/935)."
 
 [[criterion]]
   id = "c-7"
   status = "covered"
   tests = ["scripts/repo-hygiene.spec.ts:it('docker files removed')", "scripts/repo-hygiene.spec.ts:it('no references to the removed artefacts in any tracked file')", "scripts/repo-hygiene.spec.ts:it('scans the tree: the file list is not empty')"]
-  notes = "Red-proven at t-5 (235b604); green in this session's dross test (933/933)."
+  notes = "Unchanged since attempt 5; green in this run's dross test (935/935)."
 
 [[finding]]
   severity = "NOTE"
@@ -143,28 +143,16 @@
 
 [[finding]]
   severity = "NOTE"
-  text = "Attempt-4 FLAG c-1 (continue-on-error / step-level if: not pinned) RESOLVED by t-11 fe33624: rulesets.spec now rejects any continue-on-error and any if: but the one failure() on the upload step; loophole inputs re-checked red this run."
+  text = "Re-verify (attempt 6) after t-12 (03e5342): the only non-.dross change since attempt 5's measured commit 68d4283 is one .gitleaks.toml [[allowlists]] entry; no production TS changed. Mutation result unchanged (0.91 over 444, same 39 survivors)."
 
 [[finding]]
   severity = "NOTE"
-  text = "Attempt-4 FLAG c-3 ([[rules.allowlists]] / custom rules escape narrowness checks) RESOLVED by t-11 fe33624: gitleaks-config.spec now rejects [[rules]], [rules.*], inline rules = and disabledRules; loophole inputs re-checked red this run."
+  text = "t-12 allowlist is a line-shape, not a fixed value: any line in this one tests.json shaped exactly '\"Key\": \"<16 hex>\"' is allowlisted. Accepted as narrow: the file is dross-generated, the path is exact, the regex is line-anchored. Each later phase's tests.json needs its own entry or a general fix - already recorded as spec deferred 7b806c5ada93c2e7."
 
 [[finding]]
   severity = "NOTE"
-  text = "Text-level residue (not a criterion gap, judged NOTE): quoted keys ('if': in ci.yml, [[\"rules\"]] in .gitleaks.toml) slip the regexes (re-checked: both stay green). Both need a deliberately odd spelling no one writes by accident, and both land in a reviewed PR diff; the criteria are about the gate catching failures and narrow allowlisting, which the plain spellings now pin."
+  text = "Mutation ran as ranged Stryker (dross mutate-scope bug sidestep) over scripts/workflow-policy.ts:1-242, src/lib/server/db/index.ts:1-18, src/lib/server/testing/temp-dir.ts:1-28, src/lib/server/testing/auth-harness.ts:79-82 (1m26s, fresh report 13:27 with exactly those 4 files), then dross verify --reuse-report; spec ranges listed in the leg were not instrumented. Same 444 denominator as attempts 2-5."
 
 [[finding]]
   severity = "NOTE"
-  text = "Upload-step check reads the line after 'if: failure()', so reordering that step's keys (uses before if) turns the test red although the workflow is still correct. Fails safe (false red, never false green); NOTE only."
-
-[[finding]]
-  severity = "NOTE"
-  text = "[extend] path = ... alongside useDefault is not rejected by gitleaks-config.spec (re-checked green). Not judged a gap: the spec pins '[extend]\\nuseDefault = true' and an extended file would have to be added to the repo in a reviewed diff; NOTE for a future hardening pass. No .gitleaksignore exists (fingerprint ignores are per-finding, so not blanket by construction)."
-
-[[finding]]
-  severity = "NOTE"
-  text = "Mutation ran as ranged Stryker (dross mutate-scope bug sidestep) over scripts/workflow-policy.ts:1-242, src/lib/server/db/index.ts:1-18, src/lib/server/testing/temp-dir.ts:1-28, src/lib/server/testing/auth-harness.ts:79-82 (1m17s, fresh report 13:19), then dross verify --reuse-report; spec ranges listed in the leg were not instrumented. Same 444 denominator as attempts 2-4."
-
-[[finding]]
-  severity = "NOTE"
-  text = "Non-interactive run (coordinator in the user's role): resolved FLAGs marked resolved rather than carried; lead option taken throughout. Verdict pass: all 7 covered, 0 unclassified in scope, no BLOCKING, no open FLAG."
+  text = "Non-interactive run (coordinator in the user's role): lead option taken throughout. Verdict pass: all 7 covered, 0 unclassified in scope, no BLOCKING, no open FLAG."
