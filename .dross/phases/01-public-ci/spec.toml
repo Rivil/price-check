@@ -13,7 +13,7 @@ text = "gitleaks runs on every PR and fails the check on any unallowlisted findi
 
 [[criteria]]
 id   = "c-3"
-text = "gitleaks over the full git history reports zero unallowlisted findings; each of the 9 known findings is allowlisted narrowly (inline marker or rule+path), never by blanket directory ignores."
+text = "gitleaks over the full git history reports zero unallowlisted findings; each of the 10 known findings is allowlisted narrowly (inline marker or rule+path), never by blanket directory ignores."
 
 [[criteria]]
 id   = "c-4"
