@@ -16,6 +16,9 @@ export default defineConfig({
 	],
 	test: {
 		expect: { requireAssertions: true },
+		// Windows CI disk I/O is slow: tests that migrate a fresh SQLite file took ~6s on
+		// windows-2025 against the 5s default. Other platforms keep the default.
+		...(process.platform === 'win32' ? { testTimeout: 30_000, hookTimeout: 30_000 } : {}),
 		projects: [
 			{
 				extends: './vite.config.ts',
