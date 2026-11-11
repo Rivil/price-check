@@ -1,6 +1,6 @@
 import { cpSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './client.ts';
@@ -30,8 +30,10 @@ afterEach(() => {
 
 describe('migrateDb', () => {
 	it('migrationsFolder', () => {
-		// resolve(), not a literal: on Windows '/app' resolves to '<drive>:\\app'.
-		expect(migrationsFolder('/app')).toBe(resolve('/app', 'drizzle'));
+		// Shape, not a re-run of resolve(): absolute, ending in app/drizzle (any separator).
+		const folder = migrationsFolder('/app');
+		expect(isAbsolute(folder)).toBe(true);
+		expect(folder).toMatch(/[\\/]app[\\/]drizzle$/);
 		// The tests run from the repo root, where the real migrations live.
 		expect(migrationsFolder()).toBe(MIGRATIONS_FOLDER);
 	});
