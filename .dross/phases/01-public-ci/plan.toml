@@ -147,5 +147,5 @@ files = ["scripts/rulesets.spec.ts", "scripts/gitleaks-config.spec.ts"]
 description = "Verify attempt 4 (894ea94) partial on two FLAGs. Tests only. (1) rulesets.spec: no continue-on-error anywhere in ci.yml, and the only step-level if: is 'if: failure()' on the upload-artifact step. (2) gitleaks-config.spec: no [[rules]] / [rules.*] tables at all, so no custom rule or rule-scoped allowlist can bypass the narrowness checks."
 covers = ["c-1", "c-3"]
 test_contract = ["if continue-on-error or a step-level if: other than failure() on the upload step is added to ci.yml, the rulesets.spec gate-steps test fails", "if .gitleaks.toml gains a [[rules]] table or a [[rules.allowlists]] entry, the gitleaks-config.spec test fails"]
-status = "pending"
+status = "done"
 depends_on = ["t-10"]

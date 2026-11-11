@@ -33,6 +33,22 @@
         }
       ]
     },
+    "t-11": {
+      "files": [
+        "scripts/rulesets.spec.ts",
+        "scripts/gitleaks-config.spec.ts"
+      ],
+      "commit": "fe33624",
+      "completed_at": "2026-11-11T13:16:48.462202Z",
+      "landmarks": [
+        {
+          "feature": "PR gate",
+          "symbol": "gate-step loophole tests",
+          "loc": "scripts/rulesets.spec.ts:120",
+          "what": "no continue-on-error/extra if: on gate steps; no custom or disabled gitleaks rules"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "scripts/workflow-policy.ts",
@@ -239,6 +255,73 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "Test asserts the exact violation list, so it kills the /\\s+#.*$/ -\u003e /\\s+#.*/ mutant: under the mutant the comment strip lets KEY read across the CR and the pinned ref passes with no violation.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-11": {
+      "outcome": "pass",
+      "rounds": 3,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-1",
+          "text": "rulesets.spec gate-steps test regex /^(\\s+)if: (.+)$/gm misses an if: written as the first key of a step ('      - if: always()'), because the leading '- ' is not whitespace; such a step leaves ifs == ['failure()'] and the test passes, so the test_contract 'a step-level if: other than failure() ... is added, the test fails' is unmet for that form (workflow-policy.spec.ts line 52 shows the repo already treats '- if:' as a real shape). Use e.g. /^[\\s-]+if:\\s*(.+)$/gm.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "gitleaks-config.spec rules check /^\\s*\\[\\[?rules[\\].]/m does not catch a top-level inline array 'rules = [{ id = ..., allowlists = [...] }]' or bracket whitespace like '[[ rules ]]', both valid TOML for the same custom rule / rule-scoped allowlist; consider also rejecting /^\\s*rules\\s*=/m and allowing spaces inside the brackets.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The ci.yml if: check runs over the whole file, so it also forbids job-level if: conditions. That is stricter than step-level and fits the intent.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "gitleaks-config.spec still lets a rule be switched off: an `[extend] disabledRules = [\"generic-api-key\"]` line would turn off a whole rule and pass every check (the head test only pins `useDefault = true`). Consider asserting there is no `disabledRules` key.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Both regexes are text-based, so unusual TOML/YAML spellings could slip past them: quoted keys (`[\"rules\"]`, `'if':`) and flow-style YAML mappings. Fine for these hand-maintained files.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The `if:` check also covers job-level `if:` across all of ci.yml. That is stricter than the step-level wording in the test_contract, and right for a gate file.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "The upload-step check reads the line right after 'if: failure()' and expects 'uses: actions/upload-artifact@'. If the step's keys are reordered (uses before if), the test fails even though the gate is still sound. That is safe but brittle.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-3",
+          "text": "The [[rules]] regex does not catch quoted table keys such as [[\"rules\"]] or [\"rules\".allowlist]. These are valid TOML, but unlikely to be written by accident.",
           "resolution": "non-blocking, left"
         }
       ]
