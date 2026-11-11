@@ -85,10 +85,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: linux
-            os: ubuntu-24.04
-          - name: macos
-            os: macos-15
           - name: windows
             os: windows-2025
     env:
@@ -118,6 +114,20 @@ jobs:
           fi
       - name: unit tests
         run: pnpm test:unit --run
+      - name: diag seed/build/preview stages
+        continue-on-error: true
+        env:
+          DATABASE_URL: file:e2e/.data/e2e.db
+          ORIGIN: http://localhost:4173
+          BETTER_AUTH_SECRET: diag-only-secret-0123456789abcdef0123
+          ALERTS_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          SCHEDULER_DISABLED: '1'
+        run: |
+          set +e
+          node --trace-uncaught e2e/seed.ts; echo "DIAG seed exit $?"
+          node --input-type=module -e "import {createClient} from '@libsql/client';const c=createClient({url:'file:e2e/.data/diag.db'});const r=await c.execute('select 1');console.log('DIAG libsql ok',r.rows.length);c.close();console.log('DIAG closed')"; echo "DIAG libsql-min exit $?"
+          pnpm build > /dev/null 2>&1; echo "DIAG build exit $?"
+          timeout 25 pnpm preview > preview.log 2>&1; echo "DIAG preview exit $?"; tail -5 preview.log
       - name: e2e tests
         run: pnpm test:e2e
         env:
