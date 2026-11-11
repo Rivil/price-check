@@ -1,0 +1,59 @@
+# gitleaks config for this public repo (rule r-02).
+#
+# Every allowlist below is narrow: it names the rule, the exact file(s) and,
+# where a value can be pinned, the exact fake value (condition = "AND").
+# No directory globs, no stopwords, no .gitleaksignore. A new secret in any of
+# these files is still reported.
+#
+# Inline `gitleaks:allow` markers can't clear these findings: a history scan
+# reads the commit that introduced them, which has no marker.
+
+title = "price-check gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Recorded Amazon pages: 'k-closure-key' sits inside Amazon's anonymous page-config blob. Not a credential; fixtures stay byte-for-byte (spec decision fixture_findings)."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = [
+  '''^src/lib/server/shops/amazon/fixtures/recorded-plain\.html$''',
+  '''^src/lib/server/shops/amazon/fixtures/recorded-plain2\.html$''',
+  '''^src/lib/server/shops/amazon/fixtures/recorded-deal\.html$''',
+]
+regexTarget = "match"
+regexes = ['''k-closure-key''']
+
+[[allowlists]]
+description = "Fake Resend API keys in tests (made-up 're_' values, never issued by Resend)."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = [
+  '''^src/lib/server/alerts/resend\.spec\.ts$''',
+  '''^src/routes/account/alerts/page\.server\.spec\.ts$''',
+]
+regexTarget = "match"
+regexes = [
+  '''re_AbCdEf12_3456789GhIjKlMnOpQrStUv''',
+  '''re_abc-DEF_12345678''',
+]
+
+[[allowlists]]
+description = "Fake ntfy access token in tests (reverse-alphabet 'tk_' value, never issued by ntfy)."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = [
+  '''^src/lib/server/alerts/ntfy\.spec\.ts$''',
+  '''^src/routes/account/alerts/page\.server\.spec\.ts$''',
+]
+regexTarget = "match"
+regexes = ['''tk_zyxwvutsrqponmlkjihgfedcba987''']
+
+[[allowlists]]
+description = "Self-signed TEST ONLY TLS keys for the SMTP driver tests (see that folder's README). Exact files only; any other key in the folder is still reported."
+targetRules = ["private-key"]
+paths = [
+  '''^src/lib/server/testing/fixtures/smtp-test-localhost\.key$''',
+  '''^src/lib/server/testing/fixtures/smtp-test-untrusted\.key$''',
+]
