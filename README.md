@@ -1,61 +1,57 @@
-# price-check-app
+# price-check
 
-Tracks prices of watched Amazon products over time and alerts you when one drops below your target price.
+A desktop app that watches Amazon product prices for you and sends a notification when one drops to your target price. Every check runs on your own computer, from your own internet connection. There's no account to make and no service in the middle.
 
-amazon.co.uk first; the shop integration is pluggable so other shops can follow.
+amazon.co.uk first. The shop integration is pluggable, so other shops can follow.
 
-**Status:** being turned into a cross-platform desktop app (Electron) that runs on your own machine, so checks go out from your own connection. Until that lands, it runs as a self-hosted server (below).
+This tool fetches public Amazon product pages. Amazon's Conditions of Use restrict automated access, so you run it at your own risk.
 
-This tool fetches public Amazon product pages. Amazon's Conditions of Use restrict automated access; you run it at your own risk.
+## Install and use
 
-## Stack
+> **Not released yet.** The first desktop release is still being built. These steps describe how it will work once it's published.
 
-SvelteKit 3 (adapter-node) · Drizzle ORM on SQLite (libsql) · better-auth · pnpm · Docker.
+Download the file for your computer from the [GitHub Releases page](https://github.com/Rivil/price-check/releases), then:
+
+- **macOS:** open the `.dmg` and drag price-check into Applications. It is signed and notarised, so it opens normally.
+- **Windows:** run the installer (`.exe`). The app isn't signed for Windows, so Microsoft Defender SmartScreen shows a warning the first time. Click **More info**, then **Run anyway**.
+- **Linux:** download the `.AppImage`, make it executable (`chmod +x price-check-*.AppImage`), and run it.
+
+The app updates itself when a new release comes out. Closing the window keeps it running in the tray or menu bar, so your prices keep getting checked.
+
+### Add your first watch
+
+1. Copy the link of a product page on amazon.co.uk.
+2. In price-check, paste the link and set your **target price**.
+3. That's it. The app checks the price every few hours and notifies you when it reaches your target.
 
 ## Development
 
-Everything runs in Docker (`compose.yaml` is the dev stack).
+Built with SvelteKit (Svelte 5, adapter-node), Drizzle ORM on SQLite (libsql), TypeScript and pnpm. Electron packaging is in progress. Everything runs with the native Node toolchain.
 
 ```sh
-cp .env.example .env          # then set BETTER_AUTH_SECRET (32+ random chars)
-                              # and ALERTS_ENCRYPTION_KEY (openssl rand -base64 32)
-docker compose build app
-docker compose run --rm app pnpm db:migrate
-docker compose up app         # http://localhost:5173
+pnpm install
+pnpm exec playwright install chromium   # browser for component and e2e tests
+cp .env.example .env                    # then set BETTER_AUTH_SECRET (32+ random chars)
+                                        # and ALERTS_ENCRYPTION_KEY (openssl rand -base64 32)
+pnpm db:migrate
+pnpm admin:create                       # prompts for email, name and password
+pnpm dev                                # http://localhost:5173
 ```
 
-| Task          | Command                                                     |
-| ------------- | ----------------------------------------------------------- |
-| Test          | `docker compose run --rm app pnpm test`                     |
-| Typecheck     | `docker compose run --rm app pnpm check`                    |
-| Lint          | `docker compose run --rm app pnpm lint`                     |
-| Format        | `docker compose run --rm app pnpm format`                   |
-| Migrate       | `docker compose run --rm app pnpm db:migrate`               |
-| New migration | `docker compose run --rm app pnpm db:generate`              |
-| Prod image    | `docker build --target runtime -t price-check-app:latest .` |
+| Task          | Command                |
+| ------------- | ---------------------- |
+| Unit tests    | `pnpm test:unit --run` |
+| e2e tests     | `pnpm test:e2e`        |
+| Typecheck     | `pnpm check`           |
+| Lint          | `pnpm lint`            |
+| Format        | `pnpm format`          |
+| Migrate       | `pnpm db:migrate`      |
+| New migration | `pnpm db:generate`     |
+| CI policy     | `pnpm ci:policy`       |
 
 Tests never hit live shop sites: shop adapters are tested against recorded HTML fixtures.
 
-## Production
-
-The runtime image serves on port 3000 and keeps its SQLite database in the `/data` volume. Migrations run automatically when the server starts.
-
-Run it behind a TLS reverse proxy (Caddy, Traefik, nginx) that keeps the `Host` header and sets `X-Forwarded-Proto`, and set `ORIGIN` to the public `https://` URL. adapter-node 6 takes the request origin from those headers (defaulting to https), so plain HTTP straight to port 3000 fails SvelteKit's CSRF check on every form POST, including sign-in.
-
-Environment: `BETTER_AUTH_SECRET`, `ALERTS_ENCRYPTION_KEY`, `ORIGIN=https://<public name>`, optional `CHECK_INTERVAL_HOURS`. Behind a single trusted proxy that drops client-supplied `X-Forwarded-For`, also set `ADDRESS_HEADER=X-Forwarded-For` and `XFF_DEPTH=1` so failed sign-ins are rate-limited per real client address. Set those two only behind such a proxy: exposed directly, they would let a client choose its own address.
-
-- `ALERTS_ENCRYPTION_KEY` — base64 of 32 random bytes (`openssl rand -base64 32`) — encrypts saved alert channel credentials. The server refuses to start without it. Losing the key only means re-entering channel credentials on Account → Alerts.
-- `GET /health` is available for probing. It needs no sign-in and answers 200 `{"status":"ok"}` when the database is readable, otherwise 503 `{"status":"unavailable"}`.
-
-First admin, once the container is up:
-
-```sh
-docker exec -it <container> node src/lib/server/cli/admin-create.ts   # prompts for email, name, password
-```
-
-`scripts/image-smoke.sh` (run on the host) builds the image, checks it refuses to start without `ALERTS_ENCRYPTION_KEY`, boots it on an empty volume, checks `/health`, creates an admin, signs in and checks the watchlist loads.
-
-After changing dependencies, run `docker compose run --rm app pnpm install` (deps live in a Docker volume, not the host `node_modules`).
+Every pull request runs lint, typecheck, the workflow policy check, a gitleaks secret scan, and the unit and e2e tests on Linux, macOS and Windows.
 
 ## Licence
 
