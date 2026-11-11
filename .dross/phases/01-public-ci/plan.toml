@@ -1,4 +1,4 @@
-task_seq = 9
+task_seq = 10
 [phase]
 id = "01-public-ci"
 
@@ -127,3 +127,14 @@ covers = ["c-5"]
 test_contract = ["if a multi-line flow-mapping job's continuation line with `permissions: write-all` is not reported at that line, the flow-continuation test fails", "if `- run:  |` (two spaces) or `- run: |  # note` stops being treated as a block scalar (body `echo \"uses: foo\"` reported), the block-scalar spacing tests fail", "if a hyphenated key's block scalar body (`my-input: |`) is checked as YAML, the hyphen-key test fails", "if job-level permissions after indentless steps are misclassified (extra violation on contents: read, or a different message for write-all), the indentless-steps tests fail"]
 status = "done"
 depends_on = ["t-8"]
+
+[[task]]
+id = "t-10"
+wave = 8
+title = "Pin lone-CR comment handling in the policy checker"
+files = ["scripts/workflow-policy.spec.ts"]
+description = "Verify attempt 3 (b027b54): one blocking survivor, scripts/workflow-policy.ts:37 /\\s+#.*$/ -> /\\s+#.*/. A line holding a lone CR (valid YAML line break) after a comment is refused today ('uses reference cannot be classified'); the mutant reads through it. Michal chose (2026-11-11): add a test, no source change. Tests only."
+covers = ["c-5"]
+test_contract = ["if a step line '      - uses: # c\\r          actions/checkout@<40-hex>' is not reported as 'uses reference cannot be classified' at its line, the lone-CR test fails"]
+status = "pending"
+depends_on = ["t-9"]
