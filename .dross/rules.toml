@@ -1,0 +1,23 @@
+[[rule]]
+  id = "r-01"
+  text = "Tests never hit live shop sites — shop adapters are tested against recorded HTML fixtures, and any live fetch goes through the rate-limited adapter client."
+  severity = "hard"
+  created = "2026-11-11"
+
+[[rule]]
+  id = "r-02"
+  text = "Repo is public: recorded fixtures must be scrubbed before commit (requester IP, reviewer names/IDs, session IDs, delivery location) and pass gitleaks."
+  severity = "hard"
+  created = "2026-11-11"
+
+[[rule]]
+  id = "r-03"
+  text = "Never commit private infra details (home hostnames, registry, reverse proxy, deploy paths, real ntfy topics/tokens) to this public repo."
+  severity = "hard"
+  created = "2026-11-11"
+
+[[rule]]
+  id = "r-04"
+  text = "Run pnpm lint as well as tests before committing, because dross test runs vitest only and prettier/eslint failures otherwise first show up in CI."
+  severity = "soft"
+  created = "2026-11-11"
