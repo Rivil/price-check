@@ -571,6 +571,13 @@ describe('edge layouts', () => {
 		expect(report(steps(`${head}          echo "uses: foo"\n`))).toEqual([]);
 	});
 
+	it('refuses a lone-CR line after a comment instead of reading through it', () => {
+		// A lone CR is a YAML line break, but the checker splits on \n only: the comment
+		// strip must stop at the CR and leave the line unclassified (fail closed).
+		const text = steps(`      - uses: # c\r          actions/checkout@${SHA}\n`);
+		expect(report(text)).toEqual([[7, 'uses reference cannot be classified']]);
+	});
+
 	it("skips a hyphenated key's block scalar body", () => {
 		const body =
 			'      - uses: ./local\n        with:\n          my-input: |\n           permissions: write-all\n';
