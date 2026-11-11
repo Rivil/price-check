@@ -1,4 +1,4 @@
-task_seq = 11
+task_seq = 12
 [phase]
 id = "01-public-ci"
 
@@ -149,3 +149,14 @@ covers = ["c-1", "c-3"]
 test_contract = ["if continue-on-error or a step-level if: other than failure() on the upload step is added to ci.yml, the rulesets.spec gate-steps test fails", "if .gitleaks.toml gains a [[rules]] table or a [[rules.allowlists]] entry, the gitleaks-config.spec test fails"]
 status = "done"
 depends_on = ["t-10"]
+
+[[task]]
+id = "t-12"
+wave = 10
+title = "Allowlist dross survivor ids in tests.json for gitleaks"
+files = [".gitleaks.toml"]
+description = "Phase PR #3 gitleaks check failed: 4 generic-api-key hits in .dross/phases/01-public-ci/tests.json (commit a1d6310) — dross survivor ids rendered as JSON \"Key\": \"<16 hex>\". Not secrets. Add one narrow [[allowlists]] entry: targetRules generic-api-key, exact path ^\\.dross/phases/01-public-ci/tests\\.json$, condition AND, regexTarget line, regex anchored to the whole line shape '\"Key\": \"<16 lowercase hex>\"'. Must keep gitleaks-config.spec green (exact path, value-pinned)."
+covers = ["c-2", "c-3"]
+test_contract = ["if gitleaks git --log-opts=HEAD --config .gitleaks.toml over the phase history reports anything, the c-2 gate fails (expected exit 0)", "if a real high-entropy generic-api-key line is added to that tests.json, gitleaks dir still reports it (the entry is line-shape-scoped, not file-wide)"]
+status = "pending"
+depends_on = ["t-11"]
