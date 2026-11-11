@@ -119,6 +119,14 @@ describe('ci.yml steps', () => {
 		);
 	});
 
+	it('no gate step can pass while failing: no continue-on-error, only if: failure() on the report upload', () => {
+		expect(yaml).not.toMatch(/continue-on-error/);
+		const ifs = [...yaml.matchAll(/^[\s-]+if:\s*(.+)$/gm)];
+		expect(ifs.map((m) => m[1].trim())).toEqual(['failure()']);
+		const after = yaml.slice(yaml.indexOf('if: failure()'));
+		expect(after.split('\n')[1]).toMatch(/uses: actions\/upload-artifact@/);
+	});
+
 	it('gitleaks scans the full history of HEAD with the repo config and fails on findings', () => {
 		const block = job('gitleaks');
 		expect(block).toMatch(/fetch-depth: 0/);

@@ -25,6 +25,12 @@ describe('.gitleaks.toml', () => {
 	it('has no global allowlist, stopwords or ignore-everything switches', () => {
 		expect(config).not.toMatch(/^\s*\[allowlist\]/m);
 		expect(config).not.toMatch(/^\s*stopwords\s*=/m);
+		// No custom rules: a [[rules]] table or a rule-scoped allowlist would sit outside
+		// the [[allowlists]] entries these checks cover.
+		expect(config).not.toMatch(/^\s*\[\[?\s*rules\s*[\].]/m);
+		expect(config).not.toMatch(/^\s*rules\s*=/m);
+		// Nor may a default rule be switched off wholesale.
+		expect(config).not.toMatch(/disabledRules/);
 	});
 
 	it.each(entries.map((entry, i) => [i, entry] as const))(
