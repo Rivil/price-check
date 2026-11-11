@@ -1,4 +1,4 @@
-task_seq = 8
+task_seq = 9
 [phase]
 id = "01-public-ci"
 
@@ -116,3 +116,14 @@ covers = ["c-1", "c-3", "c-5"]
 test_contract = ["if an unpinned `uses:` placed after a `run: |` block in a later step is not reported, the workflow-policy.spec block-scalar test fails", "if a quoted `\"uses\":` or `'permissions':` key is not reported, the workflow-policy.spec quoted-key test fails", "if workflow-level `permissions:` with `actions: read` (or any scope other than contents: read) is accepted, the workflow-policy.spec permissions test fails", "if `node scripts/workflow-policy.ts <dir>` exits 0 on a dir holding an unpinned workflow (e.g. entry guard never fires), the separate-process CLI test fails", "if ci.yml's test job stops running `pnpm test:unit --run` or `pnpm test:e2e`, or the static job stops running `pnpm lint`, `pnpm check` or `pnpm ci:policy`, the rulesets.spec steps test fails", "if a .gitleaks.toml allowlist entry gains a directory glob, an unanchored path, loses targetRules, or a generic-api-key entry loses condition AND/regexes, the gitleaks-config.spec test fails"]
 status = "done"
 depends_on = ["t-7"]
+
+[[task]]
+id = "t-9"
+wave = 7
+title = "Kill the last verify survivors (block scalars, indentless steps)"
+files = ["scripts/workflow-policy.spec.ts"]
+description = "Verify attempt 2 (b019924): mutation 0.90 over 444; 6 blocking survivors (4 keys) in scripts/workflow-policy.ts lines 29, 37, 66, 83. workflow-policy.ts is already correct on each killing input — tests only.\nAdd to scripts/workflow-policy.spec.ts one exact-report test per input (corpus from verify attempt 2):\n- :29 BLOCK_SCALAR `$`: a job as a multi-line flow mapping whose continuation line carries `permissions: write-all` → reported at that line (false negative under the mutant).\n- :29 `\\s*` → `\\s`: `- run:  |` (two spaces) with body `echo \"uses: foo\"` → no violations.\n- :37 `\\s+#` → `\\s#`: `- run: |  # note` with body `echo \"uses: foo\"` → no violations.\n- :66 `/^-\\s*/` → `/-\\s*/`: `my-input: |` under with:, body one column deeper reading `permissions: write-all` → no violations.\n- :83 `indent += 2` → `-= 2`: indentless steps (`    - run: echo hi`) then job-level `permissions:` / `contents: read` → none; with `permissions: write-all` → 'job-level permissions: write-all grants every scope'."
+covers = ["c-5"]
+test_contract = ["if a multi-line flow-mapping job's continuation line with `permissions: write-all` is not reported at that line, the flow-continuation test fails", "if `- run:  |` (two spaces) or `- run: |  # note` stops being treated as a block scalar (body `echo \"uses: foo\"` reported), the block-scalar spacing tests fail", "if a hyphenated key's block scalar body (`my-input: |`) is checked as YAML, the hyphen-key test fails", "if job-level permissions after indentless steps are misclassified (extra violation on contents: read, or a different message for write-all), the indentless-steps tests fail"]
+status = "pending"
+depends_on = ["t-8"]
