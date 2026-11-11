@@ -1,6 +1,6 @@
 {
   "phase": "01-public-ci",
-  "generated_at": "2026-11-11T13:11:35.452389Z",
+  "generated_at": "2026-11-11T13:19:06.509782Z",
   "languages": [
     {
       "name": "typescript",
@@ -276,12 +276,12 @@
           {
             "File": "scripts/workflow-policy.ts",
             "Line": 119,
-            "Op": "StringLiteral",
-            "Snippet": "\"Stryker was here!\"",
+            "Op": "Regex",
+            "Snippet": "/^-\\s/",
             "Origin": "in-hunk",
-            "Key": "d59a08fa73af9b01",
+            "Key": "84b59b0fb1208785",
             "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+            "Note": "Equivalent: checkPermissions is only called for path [] or [jobs,\u003cid\u003e] with id != '-', so its entry never starts with '-' (a '- permissions:' line has '-' in its path and goes to the fallback). The dash-stripping regex is a no-op there. Hand-replayed both regex mutants: identical."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -296,12 +296,12 @@
           {
             "File": "scripts/workflow-policy.ts",
             "Line": 119,
-            "Op": "Regex",
-            "Snippet": "/^-\\s/",
+            "Op": "StringLiteral",
+            "Snippet": "\"Stryker was here!\"",
             "Origin": "in-hunk",
-            "Key": "84b59b0fb1208785",
+            "Key": "d59a08fa73af9b01",
             "Lifecycle": "accepted",
-            "Note": "Equivalent: checkPermissions is only called for path [] or [jobs,\u003cid\u003e] with id != '-', so its entry never starts with '-' (a '- permissions:' line has '-' in its path and goes to the fallback). The dash-stripping regex is a no-op there. Hand-replayed both regex mutants: identical."
+            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -508,7 +508,7 @@
           },
           {
             "start": 19,
-            "end": 62,
+            "end": 68,
             "construct": "ExpressionStatement"
           }
         ],
@@ -759,7 +759,7 @@
           },
           {
             "start": 97,
-            "end": 129,
+            "end": 137,
             "construct": "ExpressionStatement"
           }
         ],
@@ -1584,13 +1584,13 @@
       ".dross/phases/01-public-ci/changes.json": [
         {
           "start": 1,
-          "end": 607
+          "end": 690
         }
       ],
       ".dross/phases/01-public-ci/plan.toml": [
         {
           "start": 1,
-          "end": 140
+          "end": 151
         }
       ],
       ".dross/phases/01-public-ci/spec.toml": [
@@ -1602,13 +1602,13 @@
       ".dross/phases/01-public-ci/tests.json": [
         {
           "start": 1,
-          "end": 2005
+          "end": 1995
         }
       ],
       ".dross/phases/01-public-ci/verify.toml": [
         {
           "start": 1,
-          "end": 162
+          "end": 158
         }
       ],
       ".dross/project.toml": [
@@ -1764,7 +1764,7 @@
       "scripts/gitleaks-config.spec.ts": [
         {
           "start": 1,
-          "end": 62
+          "end": 68
         }
       ],
       "scripts/readme.spec.ts": [
@@ -1782,7 +1782,7 @@
       "scripts/rulesets.spec.ts": [
         {
           "start": 1,
-          "end": 129
+          "end": 137
         }
       ],
       "scripts/workflow-policy.spec.ts": [
@@ -1990,6 +1990,6 @@
     "source": "git+changes"
   },
   "measured_on": "local",
-  "measured_commit": "2efc8241fa25748da288f751c78a54dc445676b0",
-  "measured_tree": "c8a5591b35b64a70b78a1431fb01bd5a8ad32621"
+  "measured_commit": "68d4283ef193232b96b5e42e386b064dd6ecf889",
+  "measured_tree": "293e2551ff728e185025b4b9ce1415668962f869"
 }
