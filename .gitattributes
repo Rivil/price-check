@@ -1,1 +1,9 @@
 .dross/** linguist-generated=true
+
+# LF everywhere, so Windows checkouts don't trip prettier --check with CRLF.
+* text=auto eol=lf
+# Byte-exact fixtures: never normalise line endings.
+src/lib/server/shops/**/fixtures/*.html -text
+src/lib/server/testing/fixtures/*.key -text
+src/lib/server/testing/fixtures/*.pem -text
+src/lib/server/testing/fixtures/*.crt -text

@@ -1,0 +1,34 @@
+# Dependency advisory scan (supply-chain checklist N3). Advisory only: not a
+# required check, because a new upstream advisory must not block unrelated PRs.
+# Runs when dependencies change, and weekly to catch new advisories.
+name: audit
+
+on:
+  pull_request:
+    branches: [main, 'milestone/**']
+    paths: [pnpm-lock.yaml, package.json]
+  schedule:
+    - cron: '17 6 * * 1'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  audit:
+    name: audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - name: audit production dependencies
+        run: pnpm audit --audit-level=high --prod

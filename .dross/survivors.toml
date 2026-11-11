@@ -1,0 +1,316 @@
+[[category]]
+  name = "policy-duplicate-key"
+  reason = "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
+
+[[category]]
+  name = "policy-equivalent"
+  reason = "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+
+[[category]]
+  name = "node-pinned"
+  reason = "Entry-guard fallback for Node < 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs && is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
+
+[[category]]
+  name = "temp-dir-redundant-guard"
+  reason = "Equivalent: LOCKED.has(undefined) is false, so dropping the code !== undefined guard cannot change the outcome."
+
+[[category]]
+  name = "test-infra"
+  reason = "Test-harness cleanup body: removing it only leaks a temp directory. src/lib/server/testing/** is excluded from mutation in stryker.config.json; removeTempDir itself is mutation-tested by temp-dir.spec.ts."
+
+[[accepted]]
+  key = "6d1a8890f4b5d82a"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (bad.length)"
+  line = 136
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "09fd27033e018c1b"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (kids.length === 1) return [];"
+  line = 143
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "f73eb9e2ae2e7e8f"
+  file = "scripts/workflow-policy.ts"
+  op = "ArrayDeclaration"
+  text = "return [at(entry.line, 'workflow-level permissions must be exactly one contents: read')];"
+  line = 144
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "bb65550724c8fd68"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "return [at(entry.line, 'workflow-level permissions must be exactly one contents: read')];"
+  line = 144
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "10e5b63000de78a2"
+  file = "scripts/workflow-policy.ts"
+  op = "UpdateOperator"
+  text = "topPermissions++;"
+  line = 184
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "5a393f96c1ee96d6"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (topPermissions > 1)"
+  line = 204
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "278a91605d830357"
+  file = "scripts/workflow-policy.ts"
+  op = "ObjectLiteral"
+  text = "out.push({ file, line: 1, message: 'more than one workflow-level permissions block' });"
+  line = 205
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "e2fd741aea7b5d33"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "out.push({ file, line: 1, message: 'more than one workflow-level permissions block' });"
+  line = 205
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "f8b19e1bf391e805"
+  file = "scripts/workflow-policy.ts"
+  op = "MethodExpression"
+  text = "const v = value.trim();"
+  line = 41
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "3f5b268db0abfa95"
+  file = "scripts/workflow-policy.ts"
+  op = "OptionalChaining"
+  text = "const value = unquote(KEY.exec(entry.text.replace(/^-\\s*/, ''))?.[2] ?? '');"
+  line = 119
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "d59a08fa73af9b01"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "const value = unquote(KEY.exec(entry.text.replace(/^-\\s*/, ''))?.[2] ?? '');"
+  line = 119
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "79d9ae17e1224491"
+  file = "scripts/workflow-policy.ts"
+  op = "ArrayDeclaration"
+  text = "const writable = allowlist[basename(file)] ?? [];"
+  line = 168
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "9c3f2c2a30862629"
+  file = "scripts/workflow-policy.ts"
+  op = "OptionalChaining"
+  text = "const ref = unquote(KEY.exec(bare)?.[2] ?? '');"
+  line = 176
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "8f64c32b532d2f54"
+  file = "scripts/workflow-policy.ts"
+  op = "ArrayDeclaration"
+  text = "out.push(...checkPermissions(file, list, idx, 'workflow', []));"
+  line = 185
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "06d68ad207bce430"
+  file = "scripts/workflow-policy.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 240
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "28c9965c058a3f47"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 241
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "2090775e96ae08a4"
+  file = "scripts/workflow-policy.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 241
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "fb5e408eab689f6a"
+  file = "scripts/workflow-policy.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 241
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "a6c7c332bdc8f29b"
+  file = "src/lib/server/testing/temp-dir.ts"
+  op = "ConditionalExpression"
+  text = "if (platform === 'win32' && code !== undefined && LOCKED.has(code)) return;"
+  line = 25
+  category = "temp-dir-redundant-guard"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "5cb839e7a9f5133c"
+  file = "src/lib/server/testing/auth-harness.ts"
+  op = "BlockStatement"
+  text = "function cleanup() {"
+  line = 79
+  category = "test-infra"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "cfaa815ed2c7edc3"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (v.length >= 2 && (v[0] === '\"' || v[0] === \"'\") && v.at(-1) === v[0]) return v.slice(1, -1);"
+  line = 42
+  accepted_in = "01-public-ci"
+  reason = "Equivalent on valid YAML: length>=2 -> true only differs for a 1-char value that is a lone quote, i.e. an unterminated quoted scalar GitHub cannot parse. Hand-replayed 2026-11-11: no corpus difference."
+
+[[accepted]]
+  key = "5f56b59d1dedc3f5"
+  file = "scripts/workflow-policy.ts"
+  op = "EqualityOperator"
+  text = "if (v.length >= 2 && (v[0] === '\"' || v[0] === \"'\") && v.at(-1) === v[0]) return v.slice(1, -1);"
+  line = 42
+  accepted_in = "01-public-ci"
+  reason = "Only differs on an empty quoted value (uses: \"\" / contents: ''), which GitHub rejects (empty action ref / permission level). Both versions still report a violation on that line; only the echoed value text differs. Hand-replayed 2026-11-11."
+
+[[accepted]]
+  key = "d36fc9c5807f6a52"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (text === '-' || text.startsWith('- ')) {"
+  line = 79
+  accepted_in = "01-public-ci"
+  reason = "Equivalent on valid workflows: a bare '-' item only adds '-' to descendant paths, and in a valid workflow a bare dash sits at depth >=3 (steps, matrix.include) or in a scalar list, where both paths fall to the same branch (uses check is path-free; permissions there is the 'cannot classify' fallback either way). Hand-replayed incl. '-' and '- # comment' items: identical."
+
+[[accepted]]
+  key = "788aa5736ca63182"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "if (text === '-' || text.startsWith('- ')) {"
+  line = 79
+  accepted_in = "01-public-ci"
+  reason = "Equivalent: content is never '' here (empty lines return at line 61), so text === '' is always false; the mutant reduces to the bare-dash case, which is equivalent on valid workflows (see line 79 ConditionalExpression). Hand-replayed: identical."
+
+[[accepted]]
+  key = "6282431a909229b7"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "stack.push({ indent, key: '-' });"
+  line = 80
+  accepted_in = "01-public-ci"
+  reason = "The dash frame key is only compared at path[1] !== '-' (jobs.<id>), reachable only when jobs is a sequence, which GitHub rejects. Elsewhere '' vs '-' in the path changes no branch. Hand-replayed: identical."
+
+[[accepted]]
+  key = "d74ef6aac2054cab"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (key) stack.push({ indent, key });"
+  line = 87
+  accepted_in = "01-public-ci"
+  reason = "Equivalent on valid workflows: an extra null frame is pushed only for non-key lines (scalar list items, '---'), which have no block children in valid YAML, so it is popped by the next sibling/shallower line before any classified key reads the path. Hand-replayed incl. '---' and scalar lists: identical."
+
+[[accepted]]
+  key = "1a2c67cf66b80698"
+  file = "scripts/workflow-policy.ts"
+  op = "EqualityOperator"
+  text = "if (childIndent < 0) childIndent = e.indent;"
+  line = 102
+  accepted_in = "01-public-ci"
+  reason = "Equivalent: once set, childIndent is a child's indent, which is > the parent indent >= 0, so it is never 0; < 0 and <= 0 agree on -1 and on every reachable value."
+
+[[accepted]]
+  key = "84b59b0fb1208785"
+  file = "scripts/workflow-policy.ts"
+  op = "Regex"
+  text = "const value = unquote(KEY.exec(entry.text.replace(/^-\\s*/, ''))?.[2] ?? '');"
+  line = 119
+  accepted_in = "01-public-ci"
+  reason = "Equivalent: checkPermissions is only called for path [] or [jobs,<id>] with id != '-', so its entry never starts with '-' (a '- permissions:' line has '-' in its path and goes to the fallback). The dash-stripping regex is a no-op there. Hand-replayed both regex mutants: identical."
+
+[[accepted]]
+  key = "18eea7e11e40e20c"
+  file = "scripts/workflow-policy.ts"
+  op = "MethodExpression"
+  text = "files = readdirSync(workflowDir)"
+  line = 217
+  accepted_in = "01-public-ci"
+  reason = "No-op where the gate runs: libuv's scandir already returns names in strcmp order on Linux/macOS (observed 2026-11-11: raw APFS order unsorted, fs.readdirSync sorted), and pnpm ci:policy runs on ubuntu-24.04. Only log-line order across files could differ elsewhere; each violation, the count and the exit code are unchanged."
+
+[[accepted]]
+  key = "0d70c943d61850e7"
+  file = "scripts/workflow-policy.ts"
+  op = "Regex"
+  text = "const KEY = /^([A-Za-z0-9_-]+)\\s*:(?:\\s+(.*))?$/;"
+  line = 28
+  accepted_in = "01-public-ci"
+  reason = "Equivalent on LF/CRLF YAML: every KEY value capture goes through unquote() (trim) or an undefined check, and \\s(.*) vs \\s+(.*) match the same lines, differing only in leading whitespace of the capture. They diverge only when a JS line terminator other than LF (lone CR, U+2028/9) follows the colon, a layout neither version models. Hand-replayed incl. multi-space values: identical."
+
+[[accepted]]
+  key = "ccc4f75d4212c263"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) process.exit(runPolicyCli(process.argv[2] ?? '.github/workflows'));"
+  line = 242
+  accepted_in = "01-public-ci"
+  reason = "CLI entry guard, unreachable in-process. 'false' (gate never runs) is killed by workflow-policy.spec 'runs as a separate process' (hand-replayed: mutant exits 0 on the unpinned dir, test expects 1). 'true' is equivalent when run as a script; it differs only when the module is imported (by its spec)."
+
+[[accepted]]
+  key = "285f67993742f4d6"
+  file = "scripts/workflow-policy.ts"
+  op = "LogicalOperator"
+  text = "if (isEntry) process.exit(runPolicyCli(process.argv[2] ?? '.github/workflows'));"
+  line = 242
+  accepted_in = "01-public-ci"
+  reason = "CLI entry guard, unreachable in-process. '?? -> &&' makes a given dir argument check .github/workflows instead: killed by workflow-policy.spec 'runs as a separate process' (hand-replayed: exits 0 on the unpinned dir, test expects 1). With no argument it fails closed (exit 1)."
+
+[[accepted]]
+  key = "0890f1b1660ea113"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "if (isEntry) process.exit(runPolicyCli(process.argv[2] ?? '.github/workflows'));"
+  line = 242
+  accepted_in = "01-public-ci"
+  reason = "CLI default dir, unreachable in-process and fails closed: with '' as the default, pnpm ci:policy (no argument, as CI runs it) exits 1 'no workflow files' (hand-replayed), turning the static check red on the next PR; it cannot let a violation pass. Not killed by the separate-process test, which always passes a dir."

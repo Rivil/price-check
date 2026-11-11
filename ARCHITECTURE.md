@@ -66,7 +66,6 @@ Channel settings are stored under AES-256-GCM with a dedicated ALERTS_ENCRYPTION
 
 - encryptSecret — src/lib/server/alerts/crypto.ts:70
 - init — src/hooks.server.ts:27
-- image-smoke.sh — scripts/image-smoke.sh:62
 
 _introduced alert-channels · 70c444a_
 
@@ -159,10 +158,9 @@ _introduced app-design · 2f29576_
 
 ### Health probe
 
-A public GET /health reads every schema table and answers 200 or 503 with no detail, retrying a locked database for about 1s; image-smoke.sh checks it in the production image on a fresh volume.
+A public GET /health reads every schema table and answers 200 or 503 with no detail, retrying a locked database for about 1s.
 
 - healthResponse — src/lib/server/health.ts:53
-- image-smoke.sh — scripts/image-smoke.sh:78
 - retry deadline — src/lib/server/health.spec.ts:137
 
 _introduced health · 8bb016d_

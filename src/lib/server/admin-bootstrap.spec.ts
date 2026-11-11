@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,6 +10,7 @@ import { createAuth } from './auth-factory.ts';
 import { createDb } from './db/client.ts';
 import { account, user } from './db/schema.ts';
 import { createAuthHarness, type AuthHarness } from './testing/auth-harness.ts';
+import { removeTempDir } from './testing/temp-dir.ts';
 
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 const CLI = 'src/lib/server/cli/admin-create.ts';
@@ -155,7 +156,7 @@ describe('bootstrapAdmin', () => {
 					db.$client.close();
 				}
 			} finally {
-				rmSync(dir, { recursive: true, force: true });
+				removeTempDir(dir);
 			}
 		},
 		CLI_TIMEOUT_MS

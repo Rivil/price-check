@@ -1,0 +1,158 @@
+[verify]
+  phase = "01-public-ci"
+  generated_at = 2026-11-11T13:28:01.643264Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-11-11T13:29:26.092504Z
+  measured_commit = "dc1757368b4ed07b5844e2b1279622fa9782b064"
+  measured_tree = "3138fb884ecfea44cf480dbd3c867cff4e6f4149"
+
+[summary]
+  mutation_status = "measured"
+  measured_on = "local"
+  mutation_score = 0.9121621621621622
+  mutants_killed = 405
+  mutants_survived = 39
+  mutants_not_covered = 13
+  mutants_no_block = 0
+  mutants_test_gap = 0
+  mutants_in_scope = 444
+  unclassified_in_scope = 0
+  criteria_total = 7
+  criteria_covered = 7
+  criteria_uncovered = 0
+
+  [[summary.leg]]
+    language = "typescript"
+    tool = "stryker"
+    killed = 405
+    survived = 39
+    timeout = 0
+    in_scope = 444
+    score = 0.9121621621621622
+    file_count = 25
+    measured_on = "local"
+    ranges = ["playwright.config.ts:4-31 (ExportDefaultDeclaration)", "scripts/gitleaks-config.spec.ts:1-3 (hunk)", "scripts/gitleaks-config.spec.ts:11-15 (FunctionDeclaration list)", "scripts/gitleaks-config.spec.ts:16-17 (VariableDeclaration value)", "scripts/gitleaks-config.spec.ts:18-18 (hunk)", "scripts/gitleaks-config.spec.ts:19-68 (ExpressionStatement)", "scripts/gitleaks-config.spec.ts:4-4 (ImportDeclaration)", "scripts/gitleaks-config.spec.ts:5-5 (ImportDeclaration)", "scripts/gitleaks-config.spec.ts:6-6 (hunk)", "scripts/gitleaks-config.spec.ts:7-7 (VariableDeclaration config)", "scripts/gitleaks-config.spec.ts:8-8 (VariableDeclaration)", "scripts/gitleaks-config.spec.ts:9-10 (hunk)", "scripts/readme.spec.ts:1-2 (hunk)", "scripts/readme.spec.ts:10-11 (hunk)", "scripts/readme.spec.ts:12-18 (VariableDeclaration sections)", "scripts/readme.spec.ts:19-19 (hunk)", "scripts/readme.spec.ts:20-55 (ExpressionStatement)", "scripts/readme.spec.ts:3-3 (ImportDeclaration)", "scripts/readme.spec.ts:4-4 (ImportDeclaration)", "scripts/readme.spec.ts:5-5 (hunk)", "scripts/readme.spec.ts:6-6 (VariableDeclaration readme)", "scripts/readme.spec.ts:7-9 (VariableDeclaration pkg)", "scripts/repo-hygiene.spec.ts:1-2 (hunk)", "scripts/repo-hygiene.spec.ts:10-11 (hunk)", "scripts/repo-hygiene.spec.ts:12-21 (FunctionDeclaration repoRoot)", "scripts/repo-hygiene.spec.ts:22-22 (hunk)", "scripts/repo-hygiene.spec.ts:23-23 (VariableDeclaration root)", "scripts/repo-hygiene.spec.ts:24-25 (hunk)", "scripts/repo-hygiene.spec.ts:26-46 (FunctionDeclaration trackedFiles)", "scripts/repo-hygiene.spec.ts:3-3 (ImportDeclaration)", "scripts/repo-hygiene.spec.ts:4-4 (ImportDeclaration)", "scripts/repo-hygiene.spec.ts:47-48 (hunk)", "scripts/repo-hygiene.spec.ts:49-54 (VariableDeclaration REMOVED)", "scripts/repo-hygiene.spec.ts:5-5 (ImportDeclaration)", "scripts/repo-hygiene.spec.ts:55-61 (VariableDeclaration FORBIDDEN)", "scripts/repo-hygiene.spec.ts:6-6 (ImportDeclaration)", "scripts/repo-hygiene.spec.ts:62-68 (VariableDeclaration EXEMPT)", "scripts/repo-hygiene.spec.ts:69-69 (hunk)", "scripts/repo-hygiene.spec.ts:7-7 (ImportDeclaration)", "scripts/repo-hygiene.spec.ts:70-96 (ExpressionStatement)", "scripts/repo-hygiene.spec.ts:8-8 (hunk)", "scripts/repo-hygiene.spec.ts:9-9 (VariableDeclaration here)", "scripts/rulesets.spec.ts:1-3 (hunk)", "scripts/rulesets.spec.ts:10-16 (TSTypeAliasDeclaration Ruleset)", "scripts/rulesets.spec.ts:17-17 (hunk)", "scripts/rulesets.spec.ts:18-21 (VariableDeclaration rulesets)", "scripts/rulesets.spec.ts:22-23 (hunk)", "scripts/rulesets.spec.ts:24-35 (FunctionDeclaration ciCheckNames)", "scripts/rulesets.spec.ts:36-36 (hunk)", "scripts/rulesets.spec.ts:37-37 (VariableDeclaration ACTIONS_APP)", "scripts/rulesets.spec.ts:38-38 (VariableDeclaration expected)", "scripts/rulesets.spec.ts:39-39 (hunk)", "scripts/rulesets.spec.ts:4-4 (ImportDeclaration)", "scripts/rulesets.spec.ts:40-94 (ExpressionStatement)", "scripts/rulesets.spec.ts:5-5 (ImportDeclaration)", "scripts/rulesets.spec.ts:6-6 (hunk)", "scripts/rulesets.spec.ts:7-7 (VariableDeclaration read)", "scripts/rulesets.spec.ts:8-8 (hunk)", "scripts/rulesets.spec.ts:9-9 (TSTypeAliasDeclaration Rule)", "scripts/rulesets.spec.ts:95-96 (hunk)", "scripts/rulesets.spec.ts:97-137 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:1-1 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:10-11 (hunk)", "scripts/workflow-policy.spec.ts:105-105 (hunk)", "scripts/workflow-policy.spec.ts:106-130 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:12-18 (FunctionDeclaration workflow)", "scripts/workflow-policy.spec.ts:131-131 (hunk)", "scripts/workflow-policy.spec.ts:132-146 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:147-147 (hunk)", "scripts/workflow-policy.spec.ts:148-168 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:169-169 (hunk)", "scripts/workflow-policy.spec.ts:170-215 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:19-19 (hunk)", "scripts/workflow-policy.spec.ts:2-2 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:20-21 (VariableDeclaration messages)", "scripts/workflow-policy.spec.ts:216-219 (hunk)", "scripts/workflow-policy.spec.ts:22-22 (hunk)", "scripts/workflow-policy.spec.ts:220-550 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:23-69 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:3-3 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:4-4 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:5-5 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:551-553 (hunk)", "scripts/workflow-policy.spec.ts:554-597 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:6-6 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:7-7 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:70-70 (hunk)", "scripts/workflow-policy.spec.ts:71-104 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:8-8 (hunk)", "scripts/workflow-policy.spec.ts:9-9 (VariableDeclaration SHA)", "scripts/workflow-policy.ts:1-13 (hunk)", "scripts/workflow-policy.ts:109-109 (hunk)", "scripts/workflow-policy.ts:110-154 (FunctionDeclaration checkPermissions)", "scripts/workflow-policy.ts:14-14 (ImportDeclaration)", "scripts/workflow-policy.ts:15-15 (ImportDeclaration)", "scripts/workflow-policy.ts:155-156 (hunk)", "scripts/workflow-policy.ts:157-207 (FunctionDeclaration checkWorkflow)", "scripts/workflow-policy.ts:16-16 (ImportDeclaration)", "scripts/workflow-policy.ts:17-17 (hunk)", "scripts/workflow-policy.ts:18-18 (TSTypeAliasDeclaration Violation)", "scripts/workflow-policy.ts:19-20 (hunk)", "scripts/workflow-policy.ts:208-209 (hunk)", "scripts/workflow-policy.ts:21-21 (VariableDeclaration WRITE_SCOPE_ALLOWLIST)", "scripts/workflow-policy.ts:210-235 (FunctionDeclaration runPolicyCli)", "scripts/workflow-policy.ts:22-22 (hunk)", "scripts/workflow-policy.ts:23-23 (TSTypeAliasDeclaration Entry)", "scripts/workflow-policy.ts:236-238 (hunk)", "scripts/workflow-policy.ts:239-241 (VariableDeclaration isEntry)", "scripts/workflow-policy.ts:24-24 (TSTypeAliasDeclaration Frame)", "scripts/workflow-policy.ts:242-242 (IfStatement)", "scripts/workflow-policy.ts:25-25 (hunk)", "scripts/workflow-policy.ts:26-26 (VariableDeclaration SHA_REF)", "scripts/workflow-policy.ts:27-27 (VariableDeclaration DOCKER_DIGEST)", "scripts/workflow-policy.ts:28-28 (VariableDeclaration KEY)", "scripts/workflow-policy.ts:29-29 (VariableDeclaration BLOCK_SCALAR)", "scripts/workflow-policy.ts:30-31 (hunk)", "scripts/workflow-policy.ts:32-32 (VariableDeclaration PERMISSIONS_KEY)", "scripts/workflow-policy.ts:33-33 (VariableDeclaration USES_KEY)", "scripts/workflow-policy.ts:34-34 (hunk)", "scripts/workflow-policy.ts:35-38 (FunctionDeclaration stripComment)", "scripts/workflow-policy.ts:39-39 (hunk)", "scripts/workflow-policy.ts:40-44 (FunctionDeclaration unquote)", "scripts/workflow-policy.ts:45-46 (hunk)", "scripts/workflow-policy.ts:47-69 (FunctionDeclaration entries)", "scripts/workflow-policy.ts:70-71 (hunk)", "scripts/workflow-policy.ts:72-90 (FunctionDeclaration withPaths)", "scripts/workflow-policy.ts:91-92 (hunk)", "scripts/workflow-policy.ts:93-108 (FunctionDeclaration children)", "src/lib/server/admin-bootstrap.spec.ts:13-13 (ImportDeclaration)", "src/lib/server/admin-bootstrap.spec.ts:2-2 (ImportDeclaration)", "src/lib/server/admin-bootstrap.spec.ts:39-164 (ExpressionStatement)", "src/lib/server/alerts/backfill.spec.ts:13-13 (ImportDeclaration)", "src/lib/server/alerts/backfill.spec.ts:2-2 (ImportDeclaration)", "src/lib/server/alerts/backfill.spec.ts:81-84 (ExpressionStatement)", "src/lib/server/cli/adapter-check.ts:1-2 (hunk)", "src/lib/server/cli/admin-create.ts:1-2 (hunk)", "src/lib/server/db/check-failure.schema.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/db/check-failure.schema.spec.ts:10-10 (ImportDeclaration)", "src/lib/server/db/check-failure.schema.spec.ts:73-162 (ExpressionStatement)", "src/lib/server/db/index.spec.ts:1-2 (hunk)", "src/lib/server/db/index.spec.ts:14-14 (hunk)", "src/lib/server/db/index.spec.ts:15-20 (ExpressionStatement)", "src/lib/server/db/index.spec.ts:21-21 (hunk)", "src/lib/server/db/index.spec.ts:22-39 (ExpressionStatement)", "src/lib/server/db/index.spec.ts:3-3 (ImportDeclaration)", "src/lib/server/db/index.spec.ts:4-4 (hunk)", "src/lib/server/db/index.spec.ts:5-5 (VariableDeclaration createDb)", "src/lib/server/db/index.spec.ts:6-6 (hunk)", "src/lib/server/db/index.spec.ts:7-13 (FunctionDeclaration load)", "src/lib/server/db/index.ts:1-1 (ImportDeclaration)", "src/lib/server/db/index.ts:10-11 (hunk)", "src/lib/server/db/index.ts:12-16 (VariableDeclaration buildTimeDb)", "src/lib/server/db/index.ts:17-17 (hunk)", "src/lib/server/db/index.ts:18-18 (VariableDeclaration db)", "src/lib/server/db/index.ts:3-3 (ImportDeclaration)", "src/lib/server/db/index.ts:5-7 (hunk)", "src/lib/server/db/index.ts:8-8 (IfStatement)", "src/lib/server/db/migrate.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:10-10 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:26-29 (ExpressionStatement)", "src/lib/server/db/migrate.spec.ts:3-3 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:31-140 (ExpressionStatement)", "src/lib/server/db/watch.schema.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/db/watch.schema.spec.ts:10-10 (ImportDeclaration)", "src/lib/server/db/watch.schema.spec.ts:89-138 (ExpressionStatement)", "src/lib/server/health.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/health.spec.ts:10-10 (ImportDeclaration)", "src/lib/server/health.spec.ts:60-65 (ExpressionStatement)", "src/lib/server/health.ts:10-10 (hunk)", "src/lib/server/testing/auth-harness.ts:11-11 (ImportDeclaration)", "src/lib/server/testing/auth-harness.ts:31-85 (FunctionDeclaration createAuthHarness)", "src/lib/server/testing/auth-harness.ts:4-4 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:11-11 (hunk)", "src/lib/server/testing/temp-dir.spec.ts:12-42 (ExpressionStatement)", "src/lib/server/testing/temp-dir.spec.ts:2-2 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:3-3 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:4-4 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:5-5 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:6-6 (hunk)", "src/lib/server/testing/temp-dir.spec.ts:7-10 (VariableDeclaration failing)", "src/lib/server/testing/temp-dir.ts:1-4 (hunk)", "src/lib/server/testing/temp-dir.ts:10-10 (hunk)", "src/lib/server/testing/temp-dir.ts:11-28 (FunctionDeclaration removeTempDir)", "src/lib/server/testing/temp-dir.ts:5-5 (ImportDeclaration)", "src/lib/server/testing/temp-dir.ts:6-6 (hunk)", "src/lib/server/testing/temp-dir.ts:7-7 (VariableDeclaration REMOVE_RETRIES)", "src/lib/server/testing/temp-dir.ts:8-8 (VariableDeclaration REMOVE_RETRY_DELAY_MS)", "src/lib/server/testing/temp-dir.ts:9-9 (VariableDeclaration LOCKED)", "src/routes/layout.e2e.ts:118-157 (ExpressionStatement)", "vite.config.ts:6-48 (ExportDefaultDeclaration)"]
+    whole_file = ["e2e/accounts.ts — file-absent-from-hunks", "e2e/seed.ts — file-absent-from-hunks"]
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["scripts/rulesets.spec.ts:describe('ci.yml steps') it('static runs lint, typecheck and the workflow policy')", "scripts/rulesets.spec.ts:describe('ci.yml steps') it('test runs the unit and e2e suites')", "scripts/rulesets.spec.ts:describe('ci.yml steps') it('no gate step can pass while failing: no continue-on-error, only if: failure() on the report upload')", "scripts/rulesets.spec.ts:it('ci.yml produces the five gate checks')", "live (commit 2cf09e5): probe PR red proofs - prettier violation -> static red; failing e2e expect -> all three test jobs red", "live (commit 46ab8bd): vitest timeouts -> test (windows) red, run 43017499095"]
+  notes = "Unchanged since attempt 5 (ci.yml and rulesets.spec untouched by t-12). Live red proofs read from the 2cf09e5 / 46ab8bd commit bodies this run (not re-run). dross test 935/935 green this run."
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = [".github/workflows/ci.yml:gitleaks job (checksum-verified 8.30.1, full history, --exit-code 1) on every pull_request", "scripts/rulesets.spec.ts:it('gitleaks scans the full history of HEAD with the repo config and fails on findings')", "scripts/rulesets.spec.ts:it.each('%s: contexts match jobs') - gitleaks is a required context", "live (commit 2cf09e5): fake key pushed to probe PR -> gitleaks red", "live (PR #3): gitleaks check went red on 4 unallowlisted generic-api-key hits in tests.json - the gate failing on a real finding, as c-2 requires"]
+  notes = "Unchanged since attempt 5. PR #3's red gitleaks check is further live evidence the gate fails on unallowlisted findings (per the t-12 task record; not re-observed on GitHub this run)."
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["scripts/gitleaks-config.spec.ts:it.each('entry %i names its rules and only exact anchored files')", "scripts/gitleaks-config.spec.ts:it.each('entry %i: a generic-api-key allowance also pins the value (condition AND)')", "scripts/gitleaks-config.spec.ts:it('has no global allowlist, stopwords or ignore-everything switches')", "scripts/gitleaks-config.spec.ts:it('extends the default rules and has allowlist entries')", ".github/workflows/ci.yml:gitleaks job (zero-findings half, every PR)", "observed this run: gitleaks 8.30.1 git --log-opts=HEAD --config .gitleaks.toml --exit-code 1 at dc17573 -> exit 0, 37 commits, no leaks"]
+  notes = "t-12 (03e5342) added one [[allowlists]] entry: targetRules generic-api-key, condition AND, exact path ^\\.dross/phases/01-public-ci/tests\\.json$, regexTarget line, regex ^\\s*\"Key\": \"[0-9a-f]{16}\",?$. Both it.each narrowness checks now run over it (933 -> 935, all green). All 39 Key lines in the new tests.json match that line shape."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["scripts/rulesets.spec.ts:it.each('%s: contexts match jobs'), it.each('%s: requires a PR with no approvals'), it.each('%s: active, admin-only bypass'), it('targets main and every milestone branch'), it('main also blocks deletion and force-push; milestones stay deletable')", "live (commit 35cf75a): rulesets 27029811/27029812 applied and read back with exactly the five contexts; probe PR #1 -> mergeStateStatus BLOCKED"]
+  notes = "Unchanged since attempt 5; GitHub-side state read from the 35cf75a commit body this run (not re-queried)."
+
+[[criterion]]
+  id = "c-5"
+  status = "covered"
+  tests = ["scripts/workflow-policy.spec.ts:describe('exact reports'), describe('unpinned uses'), describe('permissions'), describe('fails closed'), describe('locates'), describe('write-scope allowlist'), describe('cli exit')", "scripts/workflow-policy.spec.ts:describe('edge layouts') it('refuses a lone-CR line after a comment instead of reading through it'), it('reports permissions on a flow-mapping continuation line'), it(\"skips a hyphenated key's block scalar body\")", "scripts/workflow-policy.spec.ts:it('runs as a separate process: exit 1 naming file:line, exit 0 when clean')", "scripts/rulesets.spec.ts:it('static runs lint, typecheck and the workflow policy') - pnpm ci:policy is a gate step"]
+  notes = "Mutation 0.91 over 444 (killed 405, survived 39 incl. 13 no-cov), ranged Stryker 1m26s (second try; first died in a vite dep-optimizer ENOTEMPTY rename at init) then --reuse-report. Survivor set identical to attempt 5 by File/Line/Op; all 39 under the 33 accepted keys; unclassified_in_scope = 0."
+
+[[criterion]]
+  id = "c-6"
+  status = "covered"
+  tests = ["scripts/readme.spec.ts:it('end user first: the first section is install and use, development comes after')", "scripts/readme.spec.ts:it('install and first watch: releases link, every OS, SmartScreen, adding a watch')", "scripts/readme.spec.ts:it('no self-host: nothing about containers, compose, proxies or server deploys')", "scripts/readme.spec.ts:it('developer commands it lists run natively: admin:create loads .env itself')"]
+  notes = "Unchanged since attempt 5; green in this run's dross test (935/935)."
+
+[[criterion]]
+  id = "c-7"
+  status = "covered"
+  tests = ["scripts/repo-hygiene.spec.ts:it('docker files removed')", "scripts/repo-hygiene.spec.ts:it('no references to the removed artefacts in any tracked file')", "scripts/repo-hygiene.spec.ts:it('scans the tree: the file list is not empty')"]
+  notes = "Unchanged since attempt 5; green in this run's dross test (935/935)."
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .gitattributes: no mutation adapter for .gitattributes"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .github/rulesets/main.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .github/rulesets/milestone.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .github/workflows/audit.yml: no mutation adapter for .yml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .github/workflows/ci.yml: no mutation adapter for .yml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .gitleaks.toml: no mutation adapter for .toml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .node-version: no mutation adapter for .node-version"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped ARCHITECTURE.md: no mutation adapter for .md"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped README.md: no mutation adapter for .md"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped package.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped stryker.config.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tsconfig.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .dockerignore: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped Dockerfile: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped compose.yaml: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped scripts/image-smoke.sh: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "Re-verify (attempt 6) after t-12 (03e5342): the only non-.dross change since attempt 5's measured commit 68d4283 is one .gitleaks.toml [[allowlists]] entry; no production TS changed. Mutation result unchanged (0.91 over 444, same 39 survivors)."
+
+[[finding]]
+  severity = "NOTE"
+  text = "t-12 allowlist is a line-shape, not a fixed value: any line in this one tests.json shaped exactly '\"Key\": \"<16 hex>\"' is allowlisted. Accepted as narrow: the file is dross-generated, the path is exact, the regex is line-anchored. Each later phase's tests.json needs its own entry or a general fix - already recorded as spec deferred 7b806c5ada93c2e7."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Mutation ran as ranged Stryker (dross mutate-scope bug sidestep) over scripts/workflow-policy.ts:1-242, src/lib/server/db/index.ts:1-18, src/lib/server/testing/temp-dir.ts:1-28, src/lib/server/testing/auth-harness.ts:79-82 (1m26s, fresh report 13:27 with exactly those 4 files), then dross verify --reuse-report; spec ranges listed in the leg were not instrumented. Same 444 denominator as attempts 2-5."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Non-interactive run (coordinator in the user's role): lead option taken throughout. Verdict pass: all 7 covered, 0 unclassified in scope, no BLOCKING, no open FLAG."

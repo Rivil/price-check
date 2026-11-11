@@ -1,0 +1,728 @@
+{
+  "phase": "01-public-ci",
+  "pr": 3,
+  "base": "milestone/v0.1",
+  "base_commit": "614dee71bf63aad3b36ddf3843976f92f717ec90",
+  "status": "shipped",
+  "tasks": {
+    "t-1": {
+      "files": [
+        ".gitleaks.toml"
+      ],
+      "commit": "7b5f8db",
+      "completed_at": "2026-11-11T10:56:17.657246Z",
+      "landmarks": [
+        {
+          "feature": "secret scanning",
+          "symbol": "allowlists",
+          "loc": ".gitleaks.toml:15",
+          "what": "narrow rule+path+value gitleaks allowlists for the 10 triaged non-secret findings"
+        }
+      ]
+    },
+    "t-10": {
+      "files": [
+        "scripts/workflow-policy.spec.ts"
+      ],
+      "commit": "a800907",
+      "completed_at": "2026-11-11T13:09:31.453196Z",
+      "landmarks": [
+        {
+          "feature": "CI supply-chain policy",
+          "symbol": "lone-CR test",
+          "loc": "scripts/workflow-policy.spec.ts:600",
+          "what": "pins fail-closed handling of a lone CR after a comment"
+        }
+      ]
+    },
+    "t-11": {
+      "files": [
+        "scripts/rulesets.spec.ts",
+        "scripts/gitleaks-config.spec.ts"
+      ],
+      "commit": "fe33624",
+      "completed_at": "2026-11-11T13:16:48.462202Z",
+      "landmarks": [
+        {
+          "feature": "PR gate",
+          "symbol": "gate-step loophole tests",
+          "loc": "scripts/rulesets.spec.ts:120",
+          "what": "no continue-on-error/extra if: on gate steps; no custom or disabled gitleaks rules"
+        }
+      ]
+    },
+    "t-12": {
+      "files": [
+        ".gitleaks.toml"
+      ],
+      "commit": "03e5342",
+      "completed_at": "2026-11-11T13:25:36.224168Z",
+      "landmarks": [
+        {
+          "feature": "secret scanning",
+          "symbol": "allowlists",
+          "loc": ".gitleaks.toml:60",
+          "what": "exact-path line-anchored allowlist for dross survivor ids in tests.json"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "scripts/workflow-policy.ts",
+        "scripts/workflow-policy.spec.ts",
+        "package.json",
+        "vite.config.ts",
+        "stryker.config.json",
+        "tsconfig.json"
+      ],
+      "commit": "0469aad",
+      "completed_at": "2026-11-11T11:04:14.715641Z",
+      "landmarks": [
+        {
+          "feature": "CI supply-chain policy",
+          "symbol": "checkWorkflow",
+          "loc": "scripts/workflow-policy.ts:157",
+          "what": "fail-closed line-based check that workflow actions are SHA-pinned and permissions are contents: read"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "README.md",
+        "scripts/readme.spec.ts",
+        "package.json"
+      ],
+      "commit": "19df497",
+      "completed_at": "2026-11-11T11:06:13.421836Z",
+      "landmarks": [
+        {
+          "feature": "project documentation",
+          "symbol": "README",
+          "loc": "README.md:9",
+          "what": "end-user-first README pinned by scripts/readme.spec.ts; admin:create loads .env natively"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/audit.yml",
+        ".node-version",
+        ".gitattributes",
+        "playwright.config.ts"
+      ],
+      "commit": "65f69d2",
+      "completed_at": "2026-11-11T11:09:11.285747Z",
+      "landmarks": [
+        {
+          "feature": "PR gate",
+          "symbol": "ci workflow",
+          "loc": ".github/workflows/ci.yml:11",
+          "what": "SHA-pinned 3-OS PR gate: static+gitleaks gate vitest+e2e on linux/macos/windows"
+        }
+      ]
+    },
+    "t-5": {
+      "files": [
+        "Dockerfile",
+        "compose.yaml",
+        ".dockerignore",
+        "scripts/image-smoke.sh",
+        "ARCHITECTURE.md",
+        "src/lib/server/health.ts",
+        "src/lib/server/cli/admin-create.ts",
+        "src/lib/server/cli/adapter-check.ts",
+        "scripts/repo-hygiene.spec.ts"
+      ],
+      "commit": "235b604",
+      "completed_at": "2026-11-11T11:11:22.291167Z",
+      "landmarks": [
+        {
+          "feature": "repository hygiene",
+          "symbol": "repo hygiene spec",
+          "loc": "scripts/repo-hygiene.spec.ts:70",
+          "what": "Docker deploy artefacts removed; spec fails if they or references to them return"
+        }
+      ]
+    },
+    "t-6": {
+      "files": [
+        ".github/workflows/ci.yml",
+        "playwright.config.ts",
+        "e2e/seed.ts",
+        "e2e/accounts.ts",
+        "vite.config.ts",
+        "src/lib/server/testing/temp-dir.ts",
+        "src/lib/server/testing/temp-dir.spec.ts",
+        "src/lib/server/testing/auth-harness.ts",
+        "src/lib/server/admin-bootstrap.spec.ts",
+        "src/lib/server/alerts/backfill.spec.ts",
+        "src/lib/server/db/check-failure.schema.spec.ts",
+        "src/lib/server/db/migrate.spec.ts",
+        "src/lib/server/db/watch.schema.spec.ts",
+        "src/lib/server/health.spec.ts",
+        "src/routes/layout.e2e.ts",
+        "src/lib/server/db/index.ts",
+        "src/lib/server/db/index.spec.ts"
+      ],
+      "commit": "46ab8bd",
+      "completed_at": "2026-11-11T12:18:28.523519Z",
+      "landmarks": [
+        {
+          "feature": "cross-platform test suite",
+          "symbol": "removeTempDir",
+          "loc": "src/lib/server/testing/temp-dir.ts:11",
+          "what": "suite green on linux/macos/windows CI: win32 lock-tolerant cleanup, no db client during build, win32 timeouts"
+        }
+      ]
+    },
+    "t-7": {
+      "files": [
+        ".github/rulesets/main.json",
+        ".github/rulesets/milestone.json",
+        "scripts/rulesets.spec.ts"
+      ],
+      "commit": "35cf75a",
+      "completed_at": "2026-11-11T12:25:57.102918Z",
+      "landmarks": [
+        {
+          "feature": "PR gate",
+          "symbol": "ci: main ruleset",
+          "loc": ".github/rulesets/main.json:1",
+          "what": "rulesets require the five CI checks on main and milestone/*, admin-only bypass"
+        }
+      ]
+    },
+    "t-8": {
+      "files": [
+        "scripts/workflow-policy.spec.ts",
+        "scripts/rulesets.spec.ts",
+        "scripts/gitleaks-config.spec.ts"
+      ],
+      "commit": "e57a701",
+      "completed_at": "2026-11-11T12:45:39.055649Z",
+      "landmarks": [
+        {
+          "feature": "CI supply-chain policy",
+          "symbol": "exact reports",
+          "loc": "scripts/workflow-policy.spec.ts:225",
+          "what": "exact line/message tests for every policy path plus ci.yml-steps and gitleaks-allowlist narrowness specs"
+        }
+      ]
+    },
+    "t-9": {
+      "files": [
+        "scripts/workflow-policy.spec.ts"
+      ],
+      "commit": "45098a1",
+      "completed_at": "2026-11-11T12:58:31.308168Z",
+      "landmarks": [
+        {
+          "feature": "CI supply-chain policy",
+          "symbol": "edge layouts",
+          "loc": "scripts/workflow-policy.spec.ts:560",
+          "what": "pins block-scalar, flow-mapping and indentless-step classification"
+        }
+      ]
+    }
+  },
+  "reviews": {
+    "t-1": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "The test_contract checks (full-history scan exits 0, deleting any one entry makes it exit 1, a new key appended to a listed file is still reported, a new key in the fixtures folder is still reported) are not saved anywhere in the diff as a script or CI step. The only evidence they passed is the author's own run, and nothing re-checks them if the config changes.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "The k-closure-key entry only works through gitleaks' base64 decoding: the literal string is not in recorded-plain/plain2/deal.html, and line 9695 is a 'k+b64' blob. If a future gitleaks version or a --max-decode-depth setting changes how decoded matches are reported, the allowlist could silently stop applying or the finding could show up in a different form.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The pinned fake-value regexes are not anchored and are matched against the whole match text. A real key would only be hidden if it contained one of these exact made-up strings, so the risk is negligible.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "page.server.spec.ts is listed in both the Resend and the ntfy entries. That is correct, since line 470 holds the re_ value and line 32 the tk_ value, so each entry is still needed.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-10": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Test asserts the exact violation list, so it kills the /\\s+#.*$/ -\u003e /\\s+#.*/ mutant: under the mutant the comment strip lets KEY read across the CR and the pinned ref passes with no violation.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-11": {
+      "outcome": "pass",
+      "rounds": 3,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-1",
+          "text": "rulesets.spec gate-steps test regex /^(\\s+)if: (.+)$/gm misses an if: written as the first key of a step ('      - if: always()'), because the leading '- ' is not whitespace; such a step leaves ifs == ['failure()'] and the test passes, so the test_contract 'a step-level if: other than failure() ... is added, the test fails' is unmet for that form (workflow-policy.spec.ts line 52 shows the repo already treats '- if:' as a real shape). Use e.g. /^[\\s-]+if:\\s*(.+)$/gm.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "gitleaks-config.spec rules check /^\\s*\\[\\[?rules[\\].]/m does not catch a top-level inline array 'rules = [{ id = ..., allowlists = [...] }]' or bracket whitespace like '[[ rules ]]', both valid TOML for the same custom rule / rule-scoped allowlist; consider also rejecting /^\\s*rules\\s*=/m and allowing spaces inside the brackets.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The ci.yml if: check runs over the whole file, so it also forbids job-level if: conditions. That is stricter than step-level and fits the intent.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "gitleaks-config.spec still lets a rule be switched off: an `[extend] disabledRules = [\"generic-api-key\"]` line would turn off a whole rule and pass every check (the head test only pins `useDefault = true`). Consider asserting there is no `disabledRules` key.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Both regexes are text-based, so unusual TOML/YAML spellings could slip past them: quoted keys (`[\"rules\"]`, `'if':`) and flow-style YAML mappings. Fine for these hand-maintained files.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The `if:` check also covers job-level `if:` across all of ci.yml. That is stricter than the step-level wording in the test_contract, and right for a gate file.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "The upload-step check reads the line right after 'if: failure()' and expects 'uses: actions/upload-artifact@'. If the step's keys are reordered (uses before if), the test fails even though the gate is still sound. That is safe but brittle.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-3",
+          "text": "The [[rules]] regex does not catch quoted table keys such as [[\"rules\"]] or [\"rules\".allowlist]. These are valid TOML, but unlikely to be written by accident.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-12": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "No test runs gitleaks against a real high-entropy line in tests.json, so the second test_contract line is only enforced structurally. gitleaks-config.spec would fail if the entry became file-wide (no AND, no regexes, or `.*`), but it would not catch a regex that is too broad but non-trivial, such as `Key`.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "By design, any value in this file shaped as \"Key\": \"\u003c16 lowercase hex\u003e\" is allowlisted, including a real secret in that shape. This is acceptable for dross survivor ids. The regex also assumes LF line endings: a CRLF-written tests.json would make `,?$` miss, so the allowlist would not apply and the hits would be reported again.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-2": {
+      "outcome": "pass",
+      "rounds": 3,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "The CLI entry in /Users/rivil/Development/price-check-app/scripts/workflow-policy.ts is gated on `if (import.meta.main)`. On a Node that strips types but lacks import.meta.main (24.0-24.1, and any line without the backport), the guard is undefined: `pnpm ci:policy` checks nothing and exits 0, so the policy passes when it should fail. Pin a CI Node version that has import.meta.main, or compare against `process.argv[1]`, so the gate cannot pass without running.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Many reject cases only assert `not.toEqual([])`, not the specific message or line. That meets the contract, but some message-specific mutants (e.g. the read-all/write-all vs flow-style branches) may survive Stryker.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-5",
+          "text": "entries() sets scalarIndent to the dash column for '- key: |' / '- key: \u003e-' lines, so later sibling keys of the same step (indent+2) are dropped as block-scalar body. '- name: \u003e-\\n    Checkout\\n  uses: actions/checkout@v4' yields zero violations: an unpinned action passes silently, which breaks the 'fails closed' design. Use the key column (indent+2 for dash entries) as scalarIndent and add a test for a step whose first key is a block scalar followed by uses:.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "runPolicyCli catches any readdir/stat error (e.g. a dangling *.yml symlink) as 'no workflow files'. It still exits 1, but the message can mislead.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "eslint and prettier configs have no ignore covering scripts/, so pnpm lint already covers the new files; tsconfig include and the vitest server project are extended as described.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "Failing closed has a cost: any single-line value that contains a `uses:` or `permissions:` substring is reported as a violation, e.g. `run: grep -rn \"uses:\" .github` or a quoted step name with `permissions:` in it. That is safe, but a future workflow may need such lines moved into a block scalar.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "In runPolicyCli, if statSync throws on any entry (e.g. a dangling symlink named *.yml), the catch empties the file list and the message says 'no workflow files'. It still exits 1, but the message is misleading.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-3": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "README states things about the unreleased app as facts: the macOS build is 'signed and notarised', the app updates itself, and closing the window keeps it in the tray. Nothing in this diff backs these up; the 'Not released yet' note softens them, but they may be wrong when the first release ships.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "README says every PR runs lint, typecheck, policy, gitleaks and unit/e2e tests on Linux, macOS and Windows. That depends on sibling CI tasks in this phase and is only accurate once they land.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The fourth test pins that admin:create loads .env itself, which keeps the native-toolchain instructions honest beyond what the test_contract requires.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-4": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The accepted plan amendment says to set PLAYWRIGHT_BROWSERS_PATH at workflow level, but ci.yml sets it in the test job's env. It has the same effect, since only the test job installs browsers, but it differs from the amendment as written. It is also an absolute ${{ github.workspace }} path, not a workspace-relative one; on Windows that gives mixed separators (D:\\a\\...\\x/.playwright-browsers), which should still work.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The browser cache lives in .playwright-browsers inside the checkout. Playwright's testMatch '**/*.e2e.{ts,js}' has no testDir, so discovery walks that tree of browser binaries on every OS. Setting testDir: 'e2e' or a testIgnore would avoid both the slowdown and any stray matches.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "audit.yml has no install step, so the 'frozen lockfile' hardening has nothing to apply to. pnpm audit reads pnpm-lock.yaml directly, so this is acceptable.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The .gitattributes rule for src/lib/server/testing/fixtures/*.crt matches no tracked file today. It is harmless.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The e2e step sets CI: 'true', which GitHub Actions already sets. It does no harm and makes the forbidOnly dependency explicit.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "test_contract items 2 and 5 (test.only failing locally, and no line-ending renormalisation diff) are manual checks that this diff cannot show. The config they depend on is present.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-5": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-7",
+          "text": "The fallback filesystem walk in repo-hygiene.spec.ts only kicks in when git lists nothing. It skips just .git, node_modules, .svelte-kit, build, .stryker-tmp and reports, so it would also scan untracked or ignored files (.env, test-results, playwright-report) and read binaries as utf8. That could give false hits, and statSync throws on a broken symlink.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Under Stryker, .stryker-tmp sits inside the repo, so git rev-parse returns the real repo root and the scan checks the real tracked tree, not the sandbox copy. That still meets the 'not vacuous' intent.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The reworded admin-create.ts header claim that pnpm admin:create loads .env is correct: package.json runs node --env-file-if-exists=.env.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-6": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-1",
+          "text": "The task description says 'each fix gets its own commit and test', but the Windows timeout bump has no test. A config timeout is hard to test directly, so the proof will be test (windows) going green on the probe PR's head. Record that check run as the evidence.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "A blanket 30s testTimeout/hookTimeout on win32 is 6x the default and applies to every test, not just the ones that migrate a SQLite file. A real hang or slowdown on Windows would now take up to 30s per test to surface. Raising the timeout only on the slow migrate tests would keep the bump narrower.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The timeout also changes for local runs on Windows machines, not just CI. The comment only mentions windows-2025 CI; harmless, but worth knowing.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-7": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-4",
+          "text": "ciCheckNames only collects jobs with an explicit `name:` at 4-space indent. A ci.yml job added without `name:` (its check name would be the job id) is not detected, so the 'ci.yml job missing from the required list' half of the contexts-match test can be bypassed. Consider also collecting job ids under `jobs:` and using the id when a job has no name.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The 'requires a PR with no approvals' test pins only three of the seven pull_request parameters. A change to dismiss_stale_reviews_on_push, require_code_owner_review, require_last_push_approval or required_review_thread_resolution would go unnoticed.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-4",
+          "text": "The live proofs cannot be verified from the diff: gh api apply/PUT, the rules/branches and rulesets/\u003cid\u003e read-backs, default_workflow_permissions=read, allow_auto_merge, the dross protect --check notes, and the probe PR BLOCKED/green cycle with cleanup. The coordinator should confirm them from the task notes.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-4",
+          "text": "The live proofs in the test_contract (gh api read-backs of rules/branches/main and milestone/v0.1, ruleset bypass/enforcement read-back, default_workflow_permissions = read, dross protect --check output, probe PR BLOCKED/green cycle, then closing the probe and deleting its branch) can't be seen in a diff; they need to be in the task notes. The static spec only covers what is committed to the JSON.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ciCheckNames is a regex-based YAML reader that relies on exact indentation (2-space job ids, 4-space name, 10-space matrix '- name:' entries). If ci.yml is reformatted it fails loudly through the 'ci.yml produces the five gate checks' test rather than passing silently, which is acceptable.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The deletion/force-push test checks only that milestone.json has no deletion rule. It doesn't check whether milestone.json has non_fast_forward, which the record also leaves out, so this matches the spec.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-8": {
+      "outcome": "pass",
+      "rounds": 3,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "spec",
+          "severity": "BLOCKING",
+          "criterion": "c-5",
+          "text": "test_contract says a quoted 'permissions': key that goes unreported fails the quoted-key test, but only a double-quoted \"permissions\": key is tested; no test uses a single-quoted 'permissions': key, so PERMISSIONS_KEY (workflow-policy.ts line 32) could drop the single quote from its character classes and every test would still pass",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "gitleaks-config.spec only checks the text before the first [[allowlists]] for a global [allowlist] table. One added at the end of the file lands inside the last entry's split text, where list(entry, 'paths') reads only the first paths key, so the global table's paths are never checked. Checking `config` instead of `head` would catch it",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "The path-narrowness check rejects .*, *, .+ and a trailing /$, but accepts other wildcard patterns such as ^dir/[^/]+\\.html$ or ^dir/\\w+$. The task asks for exact file paths only, so it would be stricter to reject unescaped regex metacharacters ([, +, ?, |, (, \\w and similar)",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The CLI test uses spawnSync instead of the execFileSync the description names. It is equivalent here: it checks the exit status and stderr, and .node-version 24.14.0 supports type stripping and import.meta.main",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "scripts/workflow-policy.ts is listed in the task's files but unchanged, as the description allows when no real bug is found",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "gitleaks-config.spec list() stops its array capture at the first ']', so a path containing a character class (e.g. '''^src/fixtures/[^/]+$''') is cut off and silently left out of the anchored-exact-path check; a directory-wide pattern placed after an exact path in the same entry would pass. Match up to the closing ']' on its own line, or count unterminated ''' strings and fail on them.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The CLI process test uses spawnSync where the description says execFileSync; it checks the same things (status 1 with file:line in stderr, status 0 when clean).",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "workflow-policy.ts is listed in the task files but is unchanged, which matches the tests-only instruction.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "Description item 1 says to replace the bare `not.toEqual([])` reject assertions, but the old ones are still in workflow-policy.spec.ts (lines 80, 90, 128, 155, 160, 161, 166). The new 'exact reports' block pins most of those cases by message and line, but not all of them: 'nested permissions block', 'a flow-style jobs map' and the top-level extra-scope case are still only checked as 'some violation'.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "Two branches in workflow-policy.ts have no test pinning their message: 'workflow-level permissions must be exactly one contents: read' (line 144, e.g. a duplicate contents: read) and 'more than one workflow-level permissions block' (line 205). Mutants there probably still survive, which could hold down the mutation score at re-verify.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "The ci.yml steps test pins the exact run commands, so `|| true` or a moved step is caught. It does not catch `continue-on-error: true` on those steps, but the record does not claim that.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The CLI test uses spawnSync rather than the execFileSync the description names. It is equivalent and asserts the exit status directly.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-3",
+          "text": "gitleaks-config.spec.ts splits only on top-level `[[allowlists]]`. A `[[rules.allowlists]]` entry or a custom `[[rules]]` block added later would not be checked.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-9": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "The flow-continuation test pins the exact message \"job-level permissions: 'write-all, steps: [ { run: echo } ] }' is not an allowed form\". That message comes from the line reader's naive split of flow mappings. The contract only requires a report at that line, so any later improvement to flow-mapping handling will need this expectation updated.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    }
+  }
+}

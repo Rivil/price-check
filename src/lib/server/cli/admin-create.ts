@@ -1,5 +1,5 @@
-// pnpm admin:create — one-off first-admin bootstrap (run via
-// `docker compose run --rm app pnpm admin:create`). Runs under Node type
+// pnpm admin:create — one-off first-admin bootstrap (`pnpm admin:create`,
+// which loads .env itself). Runs under Node type
 // stripping: no $app/* imports, explicit .ts extensions, erasable syntax only.
 import { createInterface } from 'node:readline';
 import { Writable } from 'node:stream';

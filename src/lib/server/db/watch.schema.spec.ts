@@ -1,4 +1,4 @@
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -7,6 +7,7 @@ import { createAuthHarness, MIGRATIONS_FOLDER, type AuthHarness } from '../testi
 import { createDb } from './client.ts';
 import { migrateDb } from './migrate.ts';
 import { user, watch } from './schema.ts';
+import { removeTempDir } from '../testing/temp-dir.ts';
 
 let h: AuthHarness;
 let alice: string;
@@ -131,7 +132,7 @@ describe('0008 drop alerted_at', () => {
 			expect(columns.rows.map((r) => String(r.name))).not.toContain('alerted_at');
 		} finally {
 			db.$client.close();
-			rmSync(dir, { recursive: true, force: true });
+			removeTempDir(dir);
 		}
 	});
 });

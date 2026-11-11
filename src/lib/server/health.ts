@@ -7,7 +7,7 @@ import type { Db } from './db/client.ts';
 import * as schema from './db/schema.ts';
 import { formatError } from './error-log.ts';
 
-// Well under the 5s compose timeout (decision busy_read).
+// Well under a typical 5s health-probe timeout (decision busy_read).
 const BUSY_RETRY_WINDOW_MS = 1000;
 const BUSY_RETRY_DELAY_MS = 100;
 
