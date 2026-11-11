@@ -161,6 +161,21 @@
           "what": "exact line/message tests for every policy path plus ci.yml-steps and gitleaks-allowlist narrowness specs"
         }
       ]
+    },
+    "t-9": {
+      "files": [
+        "scripts/workflow-policy.spec.ts"
+      ],
+      "commit": "45098a1",
+      "completed_at": "2026-11-11T12:58:31.308168Z",
+      "landmarks": [
+        {
+          "feature": "CI supply-chain policy",
+          "symbol": "edge layouts",
+          "loc": "scripts/workflow-policy.spec.ts:560",
+          "what": "pins block-scalar, flow-mapping and indentless-step classification"
+        }
+      ]
     }
   },
   "reviews": {
@@ -542,6 +557,20 @@
           "severity": "NOTE",
           "criterion": "c-3",
           "text": "gitleaks-config.spec.ts splits only on top-level `[[allowlists]]`. A `[[rules.allowlists]]` entry or a custom `[[rules]]` block added later would not be checked.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-9": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "The flow-continuation test pins the exact message \"job-level permissions: 'write-all, steps: [ { run: echo } ] }' is not an allowed form\". That message comes from the line reader's naive split of flow mappings. The contract only requires a report at that line, so any later improvement to flow-mapping handling will need this expectation updated.",
           "resolution": "non-blocking, left"
         }
       ]
