@@ -1,6 +1,6 @@
 {
   "phase": "01-public-ci",
-  "generated_at": "2026-11-11T13:00:35.320588Z",
+  "generated_at": "2026-11-11T13:11:35.452389Z",
   "languages": [
     {
       "name": "typescript",
@@ -34,11 +34,11 @@
       ],
       "mutation": {
         "Tool": "stryker",
-        "Killed": 404,
-        "Survived": 40,
+        "Killed": 405,
+        "Survived": 39,
         "Timeout": 0,
         "Errors": 0,
-        "Score": 0.9099099099099099,
+        "Score": 0.9121621621621622,
         "Surviving": [
           {
             "File": "scripts/workflow-policy.ts",
@@ -195,16 +195,6 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 37,
-            "Op": "Regex",
-            "Snippet": "/\\s+#.*/",
-            "Origin": "in-hunk",
-            "Key": "60af5d3e5e82a87c",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
             "Line": 42,
             "Op": "EqualityOperator",
             "Snippet": "v.length \u003e 2",
@@ -235,16 +225,6 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 80,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "6282431a909229b7",
-            "Lifecycle": "accepted",
-            "Note": "The dash frame key is only compared at path[1] !== '-' (jobs.\u003cid\u003e), reachable only when jobs is a sequence, which GitHub rejects. Elsewhere '' vs '-' in the path changes no branch. Hand-replayed: identical."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
             "Line": 79,
             "Op": "StringLiteral",
             "Snippet": "\"\"",
@@ -252,6 +232,16 @@
             "Key": "788aa5736ca63182",
             "Lifecycle": "accepted",
             "Note": "Equivalent: content is never '' here (empty lines return at line 61), so text === '' is always false; the mutant reduces to the bare-dash case, which is equivalent on valid workflows (see line 79 ConditionalExpression). Hand-replayed: identical."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 80,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "6282431a909229b7",
+            "Lifecycle": "accepted",
+            "Note": "The dash frame key is only compared at path[1] !== '-' (jobs.\u003cid\u003e), reachable only when jobs is a sequence, which GitHub rejects. Elsewhere '' vs '-' in the path changes no branch. Hand-replayed: identical."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -286,6 +276,16 @@
           {
             "File": "scripts/workflow-policy.ts",
             "Line": 119,
+            "Op": "StringLiteral",
+            "Snippet": "\"Stryker was here!\"",
+            "Origin": "in-hunk",
+            "Key": "d59a08fa73af9b01",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 119,
             "Op": "Regex",
             "Snippet": "/^-\\S*/",
             "Origin": "in-hunk",
@@ -302,16 +302,6 @@
             "Key": "84b59b0fb1208785",
             "Lifecycle": "accepted",
             "Note": "Equivalent: checkPermissions is only called for path [] or [jobs,\u003cid\u003e] with id != '-', so its entry never starts with '-' (a '- permissions:' line has '-' in its path and goes to the fallback). The dash-stripping regex is a no-op there. Hand-replayed both regex mutants: identical."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 119,
-            "Op": "StringLiteral",
-            "Snippet": "\"Stryker was here!\"",
-            "Origin": "in-hunk",
-            "Key": "d59a08fa73af9b01",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -916,7 +906,7 @@
           },
           {
             "start": 554,
-            "end": 590,
+            "end": 597,
             "construct": "ExpressionStatement"
           }
         ],
@@ -1594,13 +1584,13 @@
       ".dross/phases/01-public-ci/changes.json": [
         {
           "start": 1,
-          "end": 579
+          "end": 607
         }
       ],
       ".dross/phases/01-public-ci/plan.toml": [
         {
           "start": 1,
-          "end": 129
+          "end": 140
         }
       ],
       ".dross/phases/01-public-ci/spec.toml": [
@@ -1612,13 +1602,13 @@
       ".dross/phases/01-public-ci/tests.json": [
         {
           "start": 1,
-          "end": 2045
+          "end": 2005
         }
       ],
       ".dross/phases/01-public-ci/verify.toml": [
         {
           "start": 1,
-          "end": 186
+          "end": 162
         }
       ],
       ".dross/project.toml": [
@@ -1798,7 +1788,7 @@
       "scripts/workflow-policy.spec.ts": [
         {
           "start": 1,
-          "end": 590
+          "end": 597
         }
       ],
       "scripts/workflow-policy.ts": [
@@ -2000,6 +1990,6 @@
     "source": "git+changes"
   },
   "measured_on": "local",
-  "measured_commit": "686d6646e2143bced9c0e78e22cd47c0d56626e7",
-  "measured_tree": "01baef9709a664f8a30e8a2725d464c3478a7160"
+  "measured_commit": "2efc8241fa25748da288f751c78a54dc445676b0",
+  "measured_tree": "c8a5591b35b64a70b78a1431fb01bd5a8ad32621"
 }
