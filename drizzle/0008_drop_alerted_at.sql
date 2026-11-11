@@ -1,0 +1,1 @@
+ALTER TABLE `watch` DROP COLUMN `alerted_at`;

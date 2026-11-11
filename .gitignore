@@ -1,0 +1,72 @@
+# dross machine-local position + version state — deliberately untracked: no
+# ordinary commit carries a copy, so nothing can replay one over the live file.
+# (On refs cut before this line landed, dross itself refuses the switch — git
+# overwrites an *ignored* file without complaint.) Locked state_tracking.
+.dross/state.json
+
+# dross machine-local config — host allowlist additions and the standalone-quick
+# base branch. MUST stay untracked: a committed copy would let a cloned repo
+# authorize its own API host, which is the loop the derived allowlist avoids.
+# dross refuses to read this file if git reports it tracked.
+.dross/local.toml
+
+# dross memory-advisor state — the turn cache, and the memory-dir snapshot taken
+# before each applied prune. Machine-local: it mirrors this machine's
+# ~/.claude, and a snapshot is a copy of private memory.
+.dross/memory/
+
+# mutation reports dross verify's tools write into the work tree (gremlins).
+# Not ignored, a report would count as a change to the tree a verdict
+# measured, and every pass would read stale at ship.
+reports/gremlins/
+
+# mutation reports dross verify's tools write into the work tree (stryker).
+# Not ignored, a report would count as a change to the tree a verdict
+# measured, and every pass would read stale at ship.
+reports/mutation/
+
+# mutation reports dross verify's tools write into the work tree (Stryker.NET).
+# Not ignored, a report would count as a change to the tree a verdict
+# measured, and every pass would read stale at ship.
+StrykerOutput/
+
+# Stryker's sandbox copies of the project, made per run (stryker.config.json tempDirName).
+.stryker-tmp/
+
+# --- SvelteKit scaffold (sv 1.1.1) ---
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+# Playwright
+test-results
+# SQLite
+*.db
+
+# CI pnpm store (cache path must sit inside the project dir)
+.pnpm-store/
+
+# dross handoff — local working memory, not tracked
+.dross/handoff.md
+
+# Session handoff — local working notes, never committed
+HANDOFF.md

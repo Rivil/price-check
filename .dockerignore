@@ -1,0 +1,13 @@
+node_modules
+build
+.svelte-kit
+.git
+.dross
+.env
+.env.*
+!.env.example
+*.db
+test-results
+playwright-report
+reports
+.stryker-tmp

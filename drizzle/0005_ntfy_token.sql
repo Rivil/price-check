@@ -1,0 +1,1 @@
+ALTER TABLE `alert_channel` ADD `ntfy_token` text;

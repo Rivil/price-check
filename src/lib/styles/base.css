@@ -1,0 +1,146 @@
+/*
+ * App-wide base styles. Every colour is a var() from tokens.css, so both schemes
+ * (prefers-color-scheme) restyle the whole app; pages add layout only.
+ */
+:root {
+	color-scheme: light dark;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--font-sans);
+	font-size: var(--text-base);
+	line-height: var(--line-height);
+	/* Long titles, emails and URLs wrap instead of widening the page (c-4). */
+	overflow-wrap: anywhere;
+}
+
+main {
+	max-width: 44rem;
+	margin-inline: auto;
+	padding: var(--space-5) var(--space-4) var(--space-6);
+}
+
+h1,
+h2 {
+	line-height: 1.25;
+	margin-block: var(--space-6) var(--space-3);
+}
+
+h1 {
+	font-size: var(--text-xl);
+	margin-block-start: 0;
+}
+
+h2 {
+	font-size: var(--text-lg);
+}
+
+p {
+	margin-block: var(--space-2);
+}
+
+a {
+	color: var(--accent);
+	text-underline-offset: 0.15em;
+}
+
+:focus-visible {
+	outline: var(--focus-width) solid var(--focus);
+	outline-offset: var(--focus-width);
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+code {
+	font-family: var(--font-mono);
+	font-size: var(--text-sm);
+	overflow-wrap: anywhere;
+}
+
+/* Forms */
+
+form {
+	margin-block: var(--space-3);
+}
+
+label {
+	display: block;
+	margin-block-end: var(--space-3);
+}
+
+input,
+button,
+select,
+textarea {
+	font: inherit;
+}
+
+input,
+select,
+textarea {
+	background: var(--surface);
+	color: var(--text);
+	border: var(--border-width) solid var(--border);
+	border-radius: var(--radius);
+	padding: var(--space-2) var(--space-3);
+}
+
+input:not([type='checkbox'], [type='radio']),
+select,
+textarea {
+	display: block;
+	width: 100%;
+	margin-block-start: var(--space-1);
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+	accent-color: var(--accent);
+	inline-size: 1.125rem;
+	block-size: 1.125rem;
+	vertical-align: middle;
+}
+
+/* Every button, destructive ones included, is the one accent button. */
+button {
+	background: var(--accent);
+	color: var(--accent-text);
+	border: var(--border-width) solid var(--accent);
+	border-radius: var(--radius);
+	padding: var(--space-2) var(--space-4);
+	cursor: pointer;
+}
+
+/* Messages */
+
+[role='alert'],
+.failure {
+	color: var(--danger);
+}
+
+/* Tables */
+
+table {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+th,
+td {
+	text-align: start;
+	padding: var(--space-2) var(--space-3);
+	border-block-end: var(--border-width) solid var(--border);
+	overflow-wrap: anywhere;
+}

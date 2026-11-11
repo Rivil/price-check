@@ -1,0 +1,22 @@
+# Dev stack (runtime.mode = docker). Production image: docker build --target runtime .
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    image: price-check-app:dev
+    env_file: .env
+    environment:
+      DATABASE_URL: file:/data/dev.db
+      ORIGIN: http://localhost:5173
+    ports:
+      - '5173:5173'
+    volumes:
+      - .:/app
+      # Linux-native deps live in a volume, never the host's macOS node_modules.
+      - node_modules:/app/node_modules
+      - app-data:/data
+
+volumes:
+  node_modules:
+  app-data:
