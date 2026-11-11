@@ -1,6 +1,6 @@
 {
   "phase": "01-public-ci",
-  "generated_at": "2026-11-11T12:33:46.191332Z",
+  "generated_at": "2026-11-11T12:54:02.985002Z",
   "languages": [
     {
       "name": "typescript",
@@ -9,6 +9,7 @@
         "e2e/accounts.ts",
         "e2e/seed.ts",
         "playwright.config.ts",
+        "scripts/gitleaks-config.spec.ts",
         "scripts/readme.spec.ts",
         "scripts/repo-hygiene.spec.ts",
         "scripts/rulesets.spec.ts",
@@ -33,65 +34,12 @@
       ],
       "mutation": {
         "Tool": "stryker",
-        "Killed": 298,
-        "Survived": 146,
+        "Killed": 399,
+        "Survived": 45,
         "Timeout": 0,
         "Errors": 0,
-        "Score": 0.6711711711711712,
+        "Score": 0.8986486486486487,
         "Surviving": [
-          {
-            "File": "src/lib/server/testing/temp-dir.ts",
-            "Line": 25,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "a6c7c332bdc8f29b",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: LOCKED.has(undefined) is false, so dropping the code !== undefined guard cannot change the outcome."
-          },
-          {
-            "File": "src/lib/server/testing/auth-harness.ts",
-            "Line": 79,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "inherited",
-            "Key": "5cb839e7a9f5133c",
-            "Lifecycle": "accepted",
-            "Note": "Test-harness cleanup body: removing it only leaks a temp directory. src/lib/server/testing/** is excluded from mutation in stryker.config.json; removeTempDir itself is mutation-tested by temp-dir.spec.ts."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 36,
-            "Op": "StringLiteral",
-            "Snippet": "\"Stryker was here!\"",
-            "NotCovered": true,
-            "Origin": "in-hunk",
-            "Key": "02788cf93ee63054",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 128,
-            "Op": "ArrayDeclaration",
-            "Snippet": "[]",
-            "NotCovered": true,
-            "Origin": "in-hunk",
-            "Key": "74bbcd260d71fb71",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 128,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "NotCovered": true,
-            "Origin": "in-hunk",
-            "Key": "8d1d092db5b26057",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
           {
             "File": "scripts/workflow-policy.ts",
             "Line": 144,
@@ -116,17 +64,6 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 176,
-            "Op": "StringLiteral",
-            "Snippet": "\"Stryker was here!\"",
-            "NotCovered": true,
-            "Origin": "in-hunk",
-            "Key": "7b1b1d6d2e98a420",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
             "Line": 205,
             "Op": "ObjectLiteral",
             "Snippet": "{}",
@@ -146,39 +83,6 @@
             "Key": "e2fd741aea7b5d33",
             "Lifecycle": "accepted",
             "Note": "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 206,
-            "Op": "ArithmeticOperator",
-            "Snippet": "a.line + b.line",
-            "NotCovered": true,
-            "Origin": "in-hunk",
-            "Key": "5ffb4b1db7e2f9b3",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 212,
-            "Op": "ArrowFunction",
-            "Snippet": "() =\u003e undefined",
-            "NotCovered": true,
-            "Origin": "in-hunk",
-            "Key": "c847fe40215ffbd5",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 212,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "NotCovered": true,
-            "Origin": "in-hunk",
-            "Key": "66a59694bb1663b2",
-            "Lifecycle": "in-diff",
-            "Note": ""
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -265,8 +169,8 @@
             "NotCovered": true,
             "Origin": "in-hunk",
             "Key": "285f67993742f4d6",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "CLI entry guard, unreachable in-process. '?? -\u003e \u0026\u0026' makes a given dir argument check .github/workflows instead: killed by workflow-policy.spec 'runs as a separate process' (hand-replayed: exits 0 on the unpinned dir, test expects 1). With no argument it fails closed (exit 1)."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -276,16 +180,26 @@
             "NotCovered": true,
             "Origin": "in-hunk",
             "Key": "0890f1b1660ea113",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "CLI default dir, unreachable in-process and fails closed: with '' as the default, pnpm ci:policy (no argument, as CI runs it) exits 1 'no workflow files' (hand-replayed), turning the static check red on the next PR; it cannot let a violation pass. Not killed by the separate-process test, which always passes a dir."
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 36,
+            "Line": 41,
             "Op": "MethodExpression",
-            "Snippet": "text.endsWith('#')",
+            "Snippet": "value",
             "Origin": "in-hunk",
-            "Key": "8e23387c772eb5da",
+            "Key": "f8b19e1bf391e805",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 37,
+            "Op": "Regex",
+            "Snippet": "/\\s#.*$/",
+            "Origin": "in-hunk",
+            "Key": "60af5d3e5e82a87c",
             "Lifecycle": "in-diff",
             "Note": ""
           },
@@ -301,83 +215,13 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 37,
-            "Op": "Regex",
-            "Snippet": "/\\s#.*$/",
-            "Origin": "in-hunk",
-            "Key": "60af5d3e5e82a87c",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 41,
-            "Op": "MethodExpression",
-            "Snippet": "value",
-            "Origin": "in-hunk",
-            "Key": "f8b19e1bf391e805",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 36,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "a0b7316649b156e0",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "cfaa815ed2c7edc3",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "EqualityOperator",
-            "Snippet": "v.length \u003c 2",
-            "Origin": "in-hunk",
-            "Key": "5f56b59d1dedc3f5",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "LogicalOperator",
-            "Snippet": "v[0] === '\"' \u0026\u0026 v[0] === \"'\"",
-            "Origin": "in-hunk",
-            "Key": "479342c8db3f1018",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
             "Line": 42,
             "Op": "ConditionalExpression",
             "Snippet": "true",
             "Origin": "in-hunk",
             "Key": "cfaa815ed2c7edc3",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "cfaa815ed2c7edc3",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "Equivalent on valid YAML: length\u003e=2 -\u003e true only differs for a 1-char value that is a lone quote, i.e. an unterminated quoted scalar GitHub cannot parse. Hand-replayed 2026-11-11: no corpus difference."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -386,188 +230,8 @@
             "Snippet": "v.length \u003e 2",
             "Origin": "in-hunk",
             "Key": "5f56b59d1dedc3f5",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "d8ce6faafcc5a111",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "cfaa815ed2c7edc3",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "d8ce6faafcc5a111",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "UnaryOperator",
-            "Snippet": "+1",
-            "Origin": "in-hunk",
-            "Key": "32b7099ecf006b61",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "EqualityOperator",
-            "Snippet": "v.at(-1) !== v[0]",
-            "Origin": "in-hunk",
-            "Key": "5f56b59d1dedc3f5",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "MethodExpression",
-            "Snippet": "v",
-            "Origin": "in-hunk",
-            "Key": "3a9755c02839c297",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "UnaryOperator",
-            "Snippet": "+1",
-            "Origin": "in-hunk",
-            "Key": "32b7099ecf006b61",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "cfaa815ed2c7edc3",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 50,
-            "Op": "UnaryOperator",
-            "Snippet": "+1",
-            "Origin": "in-hunk",
-            "Key": "21a9a51f5ddba572",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 53,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "bd45f82e4156c06c",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 53,
-            "Op": "MethodExpression",
-            "Snippet": "raw",
-            "Origin": "in-hunk",
-            "Key": "756fab0368223638",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 53,
-            "Op": "StringLiteral",
-            "Snippet": "\"Stryker was here!\"",
-            "Origin": "in-hunk",
-            "Key": "283a9bdd476947f7",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 55,
-            "Op": "EqualityOperator",
-            "Snippet": "scalarIndent \u003e 0",
-            "Origin": "in-hunk",
-            "Key": "7727b8be32c4c1af",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 57,
-            "Op": "UnaryOperator",
-            "Snippet": "+1",
-            "Origin": "in-hunk",
-            "Key": "c8daa6b9adbcc445",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 59,
-            "Op": "Regex",
-            "Snippet": "/\\s*\\t/",
-            "Origin": "in-hunk",
-            "Key": "4e61952fea90351e",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 59,
-            "Op": "Regex",
-            "Snippet": "/^\\S*\\t/",
-            "Origin": "in-hunk",
-            "Key": "4e61952fea90351e",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 61,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "cbe4fe1a52db675b",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 61,
-            "Op": "StringLiteral",
-            "Snippet": "\"Stryker was here!\"",
-            "Origin": "in-hunk",
-            "Key": "f7b60eeed7cae1ca",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "Only differs on an empty quoted value (uses: \"\" / contents: ''), which GitHub rejects (empty action ref / permission level). Both versions still report a violation on that line; only the echoed value text differs. Hand-replayed 2026-11-11."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -581,23 +245,13 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 66,
-            "Op": "Regex",
-            "Snippet": "/^-\\s/",
-            "Origin": "in-hunk",
-            "Key": "b1ebc5b02f20beea",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
             "Line": 79,
             "Op": "ConditionalExpression",
             "Snippet": "false",
             "Origin": "in-hunk",
             "Key": "d36fc9c5807f6a52",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "Equivalent on valid workflows: a bare '-' item only adds '-' to descendant paths, and in a valid workflow a bare dash sits at depth \u003e=3 (steps, matrix.include) or in a scalar list, where both paths fall to the same branch (uses check is path-free; permissions there is the 'cannot classify' fallback either way). Hand-replayed incl. '-' and '- # comment' items: identical."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -606,18 +260,8 @@
             "Snippet": "\"\"",
             "Origin": "in-hunk",
             "Key": "788aa5736ca63182",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 80,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "b62cd6077b6bc269",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: content is never '' here (empty lines return at line 61), so text === '' is always false; the mutant reduces to the bare-dash case, which is equivalent on valid workflows (see line 79 ConditionalExpression). Hand-replayed: identical."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -626,8 +270,8 @@
             "Snippet": "\"\"",
             "Origin": "in-hunk",
             "Key": "6282431a909229b7",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "The dash frame key is only compared at path[1] !== '-' (jobs.\u003cid\u003e), reachable only when jobs is a sequence, which GitHub rejects. Elsewhere '' vs '-' in the path changes no branch. Hand-replayed: identical."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -641,53 +285,13 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 81,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "368f657e00758614",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
             "Line": 87,
             "Op": "ConditionalExpression",
             "Snippet": "true",
             "Origin": "in-hunk",
             "Key": "d74ef6aac2054cab",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 100,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "c08d41f9c3711501",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 100,
-            "Op": "EqualityOperator",
-            "Snippet": "i \u003c= list.length",
-            "Origin": "in-hunk",
-            "Key": "af528a9749a8b31b",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 102,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "fbe355c1b062982d",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "Equivalent on valid workflows: an extra null frame is pushed only for non-key lines (scalar list items, '---'), which have no block children in valid YAML, so it is popped by the next sibling/shallower line before any classified key reads the path. Hand-replayed incl. '---' and scalar lists: identical."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -696,58 +300,8 @@
             "Snippet": "childIndent \u003c= 0",
             "Origin": "in-hunk",
             "Key": "1a2c67cf66b80698",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 104,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "4fcc71f0cc7e5ce7",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 104,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "4fcc71f0cc7e5ce7",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 104,
-            "Op": "LogicalOperator",
-            "Snippet": "e.indent !== childIndent \u0026\u0026 !m",
-            "Origin": "in-hunk",
-            "Key": "a44f1c572e2d35af",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 118,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "be76c68af956d1a4",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 120,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "8a839396e99a1090",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: once set, childIndent is a child's indent, which is \u003e the parent indent \u003e= 0, so it is never 0; \u003c 0 and \u003c= 0 agree on -1 and on every reachable value."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -756,18 +310,8 @@
             "Snippet": "/^-\\s/",
             "Origin": "in-hunk",
             "Key": "84b59b0fb1208785",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 119,
-            "Op": "OptionalChaining",
-            "Snippet": "KEY.exec(entry.text.replace(/^-\\s*/, ''))[2]",
-            "Origin": "in-hunk",
-            "Key": "3f5b268db0abfa95",
             "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+            "Note": "Equivalent: checkPermissions is only called for path [] or [jobs,\u003cid\u003e] with id != '-', so its entry never starts with '-' (a '- permissions:' line has '-' in its path and goes to the fallback). The dash-stripping regex is a no-op there. Hand-replayed both regex mutants: identical."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -776,28 +320,8 @@
             "Snippet": "/^-\\S*/",
             "Origin": "in-hunk",
             "Key": "84b59b0fb1208785",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 119,
-            "Op": "Regex",
-            "Snippet": "/-\\s*/",
-            "Origin": "in-hunk",
-            "Key": "84b59b0fb1208785",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 120,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "8a839396e99a1090",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: checkPermissions is only called for path [] or [jobs,\u003cid\u003e] with id != '-', so its entry never starts with '-' (a '- permissions:' line has '-' in its path and goes to the fallback). The dash-stripping regex is a no-op there. Hand-replayed both regex mutants: identical."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -811,243 +335,13 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 120,
-            "Op": "EqualityOperator",
-            "Snippet": "level !== 'workflow'",
+            "Line": 119,
+            "Op": "OptionalChaining",
+            "Snippet": "KEY.exec(entry.text.replace(/^-\\s*/, ''))[2]",
             "Origin": "in-hunk",
-            "Key": "6c46de91059dfbd4",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 120,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "c8bd82ef81e8c66a",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 120,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "c8bd82ef81e8c66a",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 120,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "c8bd82ef81e8c66a",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 124,
-            "Op": "LogicalOperator",
-            "Snippet": "value === 'read-all' \u0026\u0026 value === 'write-all'",
-            "Origin": "in-hunk",
-            "Key": "3795aa6975490792",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 124,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "8ee679ece688525e",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 124,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "8ee679ece688525e",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 124,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "8ee679ece688525e",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 124,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "452121dba625f353",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 124,
-            "Op": "EqualityOperator",
-            "Snippet": "value !== 'read-all'",
-            "Origin": "in-hunk",
-            "Key": "7d874ca286563c69",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 124,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "8ee679ece688525e",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 126,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "9fc7665dd60b416f",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 126,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "9fc7665dd60b416f",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 126,
-            "Op": "MethodExpression",
-            "Snippet": "value.endsWith('{')",
-            "Origin": "in-hunk",
-            "Key": "100148bff49d2b79",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 125,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "81432fc0f88cecd9",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 126,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "81bdc2a65e9fd2cf",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 124,
-            "Op": "EqualityOperator",
-            "Snippet": "value !== 'write-all'",
-            "Origin": "in-hunk",
-            "Key": "7d874ca286563c69",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 124,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "452121dba625f353",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 127,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "836f2d5a212ba740",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 132,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "98fb6707a0984859",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 134,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "15c93f73458569b0",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 134,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "b99f61c976248acd",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 134,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "1c9c31140f4583c7",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 135,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "c33692a6b84ed442",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Key": "3f5b268db0abfa95",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -1061,16 +355,6 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 140,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "e39627f9f05b766d",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
             "Line": 143,
             "Op": "ConditionalExpression",
             "Snippet": "true",
@@ -1078,46 +362,6 @@
             "Key": "09fd27033e018c1b",
             "Lifecycle": "accepted",
             "Note": "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 150,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "31022fdb6c47c3ae",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 163,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "84659972b4d41f7c",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 151,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "6ecf818ccc4e8fe6",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 166,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "600760f6663a5b3d",
-            "Lifecycle": "in-diff",
-            "Note": ""
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -1131,26 +375,6 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 173,
-            "Op": "Regex",
-            "Snippet": "/-\\s*/",
-            "Origin": "in-hunk",
-            "Key": "39bcf2043c88804d",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 173,
-            "Op": "Regex",
-            "Snippet": "/^-\\s/",
-            "Origin": "in-hunk",
-            "Key": "39bcf2043c88804d",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
             "Line": 176,
             "Op": "OptionalChaining",
             "Snippet": "KEY.exec(bare)[2]",
@@ -1158,16 +382,6 @@
             "Key": "9c3f2c2a30862629",
             "Lifecycle": "accepted",
             "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 180,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "ea5357c56440b804",
-            "Lifecycle": "in-diff",
-            "Note": ""
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -1182,82 +396,12 @@
           {
             "File": "scripts/workflow-policy.ts",
             "Line": 185,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "64a39b4ea4db5a45",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 185,
             "Op": "ArrayDeclaration",
             "Snippet": "[\"Stryker was here\"]",
             "Origin": "in-hunk",
             "Key": "8f64c32b532d2f54",
             "Lifecycle": "accepted",
             "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 188,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "b952d15b561d1625",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 189,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "24cf3e627b9e0792",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 190,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "60264ab1253535f9",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 190,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "4e7a1d60586aa26e",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 194,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "a9e64a0a81b205eb",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 206,
-            "Op": "ArrowFunction",
-            "Snippet": "() =\u003e undefined",
-            "Origin": "in-hunk",
-            "Key": "96c317a6d0cdfe0f",
-            "Lifecycle": "in-diff",
-            "Note": ""
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -1271,103 +415,13 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 206,
-            "Op": "MethodExpression",
-            "Snippet": "out",
-            "Origin": "in-hunk",
-            "Key": "9593c2c4c4f7eb6b",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
             "Line": 217,
             "Op": "MethodExpression",
             "Snippet": "readdirSync(workflowDir).filter(name =\u003e /\\.ya?ml$/.test(name)).map(name =\u003e join(workflowDir, name)).filter(path =\u003e statSync(path).isFile())",
             "Origin": "in-hunk",
             "Key": "18eea7e11e40e20c",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 218,
-            "Op": "Regex",
-            "Snippet": "/\\.ya?ml/",
-            "Origin": "in-hunk",
-            "Key": "e1b4a1b111fd4e65",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 233,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "a1815f5b0f6f2e78",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 26,
-            "Op": "Regex",
-            "Snippet": "/^[A-Za-z0-9_.-]+\\/[A-Za-z0-9_.-]+(\\/[^@\\s]+)?@[0-9a-f]{40}/",
-            "Origin": "in-hunk",
-            "Key": "ad7b98ee6755effe",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 26,
-            "Op": "Regex",
-            "Snippet": "/[A-Za-z0-9_.-]+\\/[A-Za-z0-9_.-]+(\\/[^@\\s]+)?@[0-9a-f]{40}$/",
-            "Origin": "in-hunk",
-            "Key": "ad7b98ee6755effe",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 27,
-            "Op": "Regex",
-            "Snippet": "/docker:\\/\\/[^@\\s]+@sha256:[0-9a-f]{64}$/",
-            "Origin": "in-hunk",
-            "Key": "3a97eeafab718551",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 27,
-            "Op": "Regex",
-            "Snippet": "/^docker:\\/\\/[^@\\s]+@sha256:[0-9a-f]{64}/",
-            "Origin": "in-hunk",
-            "Key": "3a97eeafab718551",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 28,
-            "Op": "Regex",
-            "Snippet": "/([A-Za-z0-9_-]+)\\s*:(?:\\s+(.*))?$/",
-            "Origin": "in-hunk",
-            "Key": "0d70c943d61850e7",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 28,
-            "Op": "Regex",
-            "Snippet": "/^([A-Za-z0-9_-]+)\\s*:(?:\\s+(.*))?/",
-            "Origin": "in-hunk",
-            "Key": "0d70c943d61850e7",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "No-op where the gate runs: libuv's scandir already returns names in strcmp order on Linux/macOS (observed 2026-11-11: raw APFS order unsorted, fs.readdirSync sorted), and pnpm ci:policy runs on ubuntu-24.04. Only log-line order across files could differ elsewhere; each violation, the count and the exit code are unchanged."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -1376,18 +430,8 @@
             "Snippet": "/^([A-Za-z0-9_-]+)\\s*:(?:\\s(.*))?$/",
             "Origin": "in-hunk",
             "Key": "0d70c943d61850e7",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 28,
-            "Op": "Regex",
-            "Snippet": "/^([A-Za-z0-9_-]+)\\S*:(?:\\s+(.*))?$/",
-            "Origin": "in-hunk",
-            "Key": "0d70c943d61850e7",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "Equivalent on LF/CRLF YAML: every KEY value capture goes through unquote() (trim) or an undefined check, and \\s(.*) vs \\s+(.*) match the same lines, differing only in leading whitespace of the capture. They diverge only when a JS line terminator other than LF (lone CR, U+2028/9) follows the colon, a layout neither version models. Hand-replayed incl. multi-space values: identical."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -1411,83 +455,13 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 29,
-            "Op": "Regex",
-            "Snippet": "/:\\s*[|\u003e][^-+0-9]*$/",
+            "Line": 242,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
             "Origin": "in-hunk",
-            "Key": "f82a50f48ff16b8c",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 32,
-            "Op": "Regex",
-            "Snippet": "/(^|[\\s{,-])[^\"']?permissions[\"']?\\s*:/",
-            "Origin": "in-hunk",
-            "Key": "c20c90b889750ffc",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 32,
-            "Op": "Regex",
-            "Snippet": "/(^|[\\s{,-])[\"']?permissions[^\"']?\\s*:/",
-            "Origin": "in-hunk",
-            "Key": "c20c90b889750ffc",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 32,
-            "Op": "Regex",
-            "Snippet": "/(^|[\\s{,-])[\"']?permissions[\"']?\\S*:/",
-            "Origin": "in-hunk",
-            "Key": "c20c90b889750ffc",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 33,
-            "Op": "Regex",
-            "Snippet": "/([\\s{,-])[\"']?uses[\"']?\\s*:/",
-            "Origin": "in-hunk",
-            "Key": "7da5851615d26a30",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 33,
-            "Op": "Regex",
-            "Snippet": "/(^|[\\s{,-])[^\"']?uses[\"']?\\s*:/",
-            "Origin": "in-hunk",
-            "Key": "7da5851615d26a30",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 33,
-            "Op": "Regex",
-            "Snippet": "/(^|[\\s{,-])[\"']?uses[^\"']?\\s*:/",
-            "Origin": "in-hunk",
-            "Key": "7da5851615d26a30",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 33,
-            "Op": "Regex",
-            "Snippet": "/(^|[\\s{,-])[\"']?uses[\"']?\\S*:/",
-            "Origin": "in-hunk",
-            "Key": "7da5851615d26a30",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Key": "ccc4f75d4212c263",
+            "Lifecycle": "accepted",
+            "Note": "CLI entry guard, unreachable in-process. 'false' (gate never runs) is killed by workflow-policy.spec 'runs as a separate process' (hand-replayed: mutant exits 0 on the unpinned dir, test expects 1). 'true' is equivalent when run as a script; it differs only when the module is imported (by its spec)."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -1503,24 +477,34 @@
             "File": "scripts/workflow-policy.ts",
             "Line": 242,
             "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "ccc4f75d4212c263",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 242,
-            "Op": "ConditionalExpression",
             "Snippet": "false",
             "Origin": "in-hunk",
             "Key": "ccc4f75d4212c263",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Lifecycle": "accepted",
+            "Note": "CLI entry guard, unreachable in-process. 'false' (gate never runs) is killed by workflow-policy.spec 'runs as a separate process' (hand-replayed: mutant exits 0 on the unpinned dir, test expects 1). 'true' is equivalent when run as a script; it differs only when the module is imported (by its spec)."
+          },
+          {
+            "File": "src/lib/server/testing/temp-dir.ts",
+            "Line": 25,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "a6c7c332bdc8f29b",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: LOCKED.has(undefined) is false, so dropping the code !== undefined guard cannot change the outcome."
+          },
+          {
+            "File": "src/lib/server/testing/auth-harness.ts",
+            "Line": 79,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "inherited",
+            "Key": "5cb839e7a9f5133c",
+            "Lifecycle": "accepted",
+            "Note": "Test-harness cleanup body: removing it only leaks a temp directory. src/lib/server/testing/** is excluded from mutation in stryker.config.json; removeTempDir itself is mutation-tested by temp-dir.spec.ts."
           }
         ],
-        "NotCovered": 20
+        "NotCovered": 13
       },
       "measured_on": "local",
       "ranges": {
@@ -1529,6 +513,63 @@
             "start": 4,
             "end": 31,
             "construct": "ExportDefaultDeclaration"
+          }
+        ],
+        "scripts/gitleaks-config.spec.ts": [
+          {
+            "start": 1,
+            "end": 3,
+            "construct": "hunk"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "VariableDeclaration config"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "VariableDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 10,
+            "construct": "hunk"
+          },
+          {
+            "start": 11,
+            "end": 15,
+            "construct": "FunctionDeclaration list"
+          },
+          {
+            "start": 16,
+            "end": 17,
+            "construct": "VariableDeclaration value"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 62,
+            "construct": "ExpressionStatement"
           }
         ],
         "scripts/readme.spec.ts": [
@@ -1770,6 +811,16 @@
             "start": 40,
             "end": 94,
             "construct": "ExpressionStatement"
+          },
+          {
+            "start": 95,
+            "end": 96,
+            "construct": "hunk"
+          },
+          {
+            "start": 97,
+            "end": 129,
+            "construct": "ExpressionStatement"
           }
         ],
         "scripts/workflow-policy.spec.ts": [
@@ -1801,91 +852,111 @@
           {
             "start": 6,
             "end": 6,
-            "construct": "hunk"
+            "construct": "ImportDeclaration"
           },
           {
             "start": 7,
             "end": 7,
-            "construct": "VariableDeclaration SHA"
+            "construct": "ImportDeclaration"
           },
           {
             "start": 8,
-            "end": 9,
+            "end": 8,
             "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "VariableDeclaration SHA"
           },
           {
             "start": 10,
-            "end": 16,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 18,
             "construct": "FunctionDeclaration workflow"
           },
           {
-            "start": 17,
-            "end": 17,
-            "construct": "hunk"
-          },
-          {
-            "start": 18,
+            "start": 19,
             "end": 19,
-            "construct": "VariableDeclaration messages"
+            "construct": "hunk"
           },
           {
             "start": 20,
-            "end": 20,
+            "end": 21,
+            "construct": "VariableDeclaration messages"
+          },
+          {
+            "start": 22,
+            "end": 22,
             "construct": "hunk"
           },
           {
-            "start": 21,
-            "end": 67,
+            "start": 23,
+            "end": 69,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 68,
-            "end": 68,
+            "start": 70,
+            "end": 70,
             "construct": "hunk"
           },
           {
-            "start": 69,
-            "end": 102,
+            "start": 71,
+            "end": 104,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 103,
-            "end": 103,
+            "start": 105,
+            "end": 105,
             "construct": "hunk"
           },
           {
-            "start": 104,
-            "end": 128,
+            "start": 106,
+            "end": 130,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 129,
-            "end": 129,
+            "start": 131,
+            "end": 131,
             "construct": "hunk"
           },
           {
-            "start": 130,
-            "end": 144,
+            "start": 132,
+            "end": 146,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 145,
-            "end": 145,
+            "start": 147,
+            "end": 147,
             "construct": "hunk"
           },
           {
-            "start": 146,
-            "end": 166,
+            "start": 148,
+            "end": 168,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 167,
-            "end": 167,
+            "start": 169,
+            "end": 169,
             "construct": "hunk"
           },
           {
-            "start": 168,
-            "end": 213,
+            "start": 170,
+            "end": 215,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 216,
+            "end": 219,
+            "construct": "hunk"
+          },
+          {
+            "start": 220,
+            "end": 550,
             "construct": "ExpressionStatement"
           }
         ],
@@ -2508,7 +1579,10 @@
       ".dross/phases/01-public-ci/changes.json",
       ".dross/phases/01-public-ci/plan.toml",
       ".dross/phases/01-public-ci/spec.toml",
+      ".dross/phases/01-public-ci/tests.json",
+      ".dross/phases/01-public-ci/verify.toml",
       ".dross/project.toml",
+      ".dross/survivors.toml",
       ".gitattributes",
       ".github/rulesets/main.json",
       ".github/rulesets/milestone.json",
@@ -2524,6 +1598,7 @@
       "e2e/seed.ts",
       "package.json",
       "playwright.config.ts",
+      "scripts/gitleaks-config.spec.ts",
       "scripts/image-smoke.sh",
       "scripts/readme.spec.ts",
       "scripts/repo-hygiene.spec.ts",
@@ -2559,13 +1634,13 @@
       ".dross/phases/01-public-ci/changes.json": [
         {
           "start": 1,
-          "end": 428
+          "end": 550
         }
       ],
       ".dross/phases/01-public-ci/plan.toml": [
         {
           "start": 1,
-          "end": 106
+          "end": 118
         }
       ],
       ".dross/phases/01-public-ci/spec.toml": [
@@ -2574,10 +1649,28 @@
           "end": 68
         }
       ],
+      ".dross/phases/01-public-ci/tests.json": [
+        {
+          "start": 1,
+          "end": 2946
+        }
+      ],
+      ".dross/phases/01-public-ci/verify.toml": [
+        {
+          "start": 1,
+          "end": 666
+        }
+      ],
       ".dross/project.toml": [
         {
           "start": 3,
           "end": 3
+        }
+      ],
+      ".dross/survivors.toml": [
+        {
+          "start": 1,
+          "end": 199
         }
       ],
       ".gitattributes": [
@@ -2718,6 +1811,12 @@
           "end": 29
         }
       ],
+      "scripts/gitleaks-config.spec.ts": [
+        {
+          "start": 1,
+          "end": 62
+        }
+      ],
       "scripts/readme.spec.ts": [
         {
           "start": 1,
@@ -2733,13 +1832,13 @@
       "scripts/rulesets.spec.ts": [
         {
           "start": 1,
-          "end": 94
+          "end": 129
         }
       ],
       "scripts/workflow-policy.spec.ts": [
         {
           "start": 1,
-          "end": 213
+          "end": 550
         }
       ],
       "scripts/workflow-policy.ts": [
@@ -2941,6 +2040,6 @@
     "source": "git+changes"
   },
   "measured_on": "local",
-  "measured_commit": "fb3f96109ad242550d81beeb56eb547e390bae01",
-  "measured_tree": "7c56aaa6cc524690cdc07db3208ab2a11d3472ca"
+  "measured_commit": "b88968a7347368f1777ee8e99ff8924ac0023748",
+  "measured_tree": "6c45783f43832cb21f3e664f1fe5cd418f853f3b"
 }
