@@ -548,3 +548,43 @@ describe('exact reports', () => {
 		});
 	});
 });
+
+// Verify attempt 2 (2026-11-11): the last surviving mutants, each killed by one of
+// these inputs. The checker already reports them correctly; these pin it.
+describe('edge layouts', () => {
+	const TOP = 'permissions:\n  contents: read\n';
+	const report = (text: string) => checkWorkflow('ci.yml', text).map((v) => [v.line, v.message]);
+	const steps = (body: string) =>
+		`${TOP}jobs:\n  a:\n    runs-on: ubuntu-latest\n    steps:\n${body}`;
+
+	it('reports permissions on a flow-mapping continuation line', () => {
+		const text = `${TOP}jobs:\n  a: { runs-on: ubuntu-latest, name: "x:>y",\n       permissions: write-all, steps: [ { run: echo } ] }\n`;
+		expect(report(text)).toEqual([
+			[5, "job-level permissions: 'write-all, steps: [ { run: echo } ] }' is not an allowed form"]
+		]);
+	});
+
+	it.each([
+		['two spaces before the indicator', '      - run:  |\n'],
+		['a trailing comment after the indicator', '      - run: |  # note\n']
+	])('treats a block scalar with %s as a scalar', (_name, head) => {
+		expect(report(steps(`${head}          echo "uses: foo"\n`))).toEqual([]);
+	});
+
+	it("skips a hyphenated key's block scalar body", () => {
+		const body =
+			'      - uses: ./local\n        with:\n          my-input: |\n           permissions: write-all\n';
+		expect(report(steps(body))).toEqual([]);
+	});
+
+	it.each([
+		['contents: read', '    permissions:\n      contents: read\n', []],
+		[
+			'write-all',
+			'    permissions: write-all\n',
+			[[8, 'job-level permissions: write-all grants every scope']]
+		]
+	] as const)('classifies job-level %s after indentless steps', (_name, perm, expected) => {
+		expect(report(steps(`    - run: echo hi\n${perm}`))).toEqual(expected);
+	});
+});
