@@ -4,6 +4,9 @@ import { E2E_ALERTS_KEY, E2E_DATABASE_URL, E2E_ORIGIN, E2E_SECRET } from './e2e/
 export default defineConfig({
 	// Every e2e file shares the one seeded database, so run them serially.
 	workers: 1,
+	// In CI a stray test.only must fail the run, and a flaky test must not pass on retry.
+	forbidOnly: !!process.env.CI,
+	retries: 0,
 	fullyParallel: false,
 	use: { baseURL: E2E_ORIGIN },
 	webServer: {
