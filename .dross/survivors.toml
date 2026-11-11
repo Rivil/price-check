@@ -1,0 +1,199 @@
+[[category]]
+  name = "policy-duplicate-key"
+  reason = "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
+
+[[category]]
+  name = "policy-equivalent"
+  reason = "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+
+[[category]]
+  name = "node-pinned"
+  reason = "Entry-guard fallback for Node < 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs && is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
+
+[[category]]
+  name = "temp-dir-redundant-guard"
+  reason = "Equivalent: LOCKED.has(undefined) is false, so dropping the code !== undefined guard cannot change the outcome."
+
+[[category]]
+  name = "test-infra"
+  reason = "Test-harness cleanup body: removing it only leaks a temp directory. src/lib/server/testing/** is excluded from mutation in stryker.config.json; removeTempDir itself is mutation-tested by temp-dir.spec.ts."
+
+[[accepted]]
+  key = "6d1a8890f4b5d82a"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (bad.length)"
+  line = 136
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "09fd27033e018c1b"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (kids.length === 1) return [];"
+  line = 143
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "f73eb9e2ae2e7e8f"
+  file = "scripts/workflow-policy.ts"
+  op = "ArrayDeclaration"
+  text = "return [at(entry.line, 'workflow-level permissions must be exactly one contents: read')];"
+  line = 144
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "bb65550724c8fd68"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "return [at(entry.line, 'workflow-level permissions must be exactly one contents: read')];"
+  line = 144
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "10e5b63000de78a2"
+  file = "scripts/workflow-policy.ts"
+  op = "UpdateOperator"
+  text = "topPermissions++;"
+  line = 184
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "5a393f96c1ee96d6"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (topPermissions > 1)"
+  line = 204
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "278a91605d830357"
+  file = "scripts/workflow-policy.ts"
+  op = "ObjectLiteral"
+  text = "out.push({ file, line: 1, message: 'more than one workflow-level permissions block' });"
+  line = 205
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "e2fd741aea7b5d33"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "out.push({ file, line: 1, message: 'more than one workflow-level permissions block' });"
+  line = 205
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "f8b19e1bf391e805"
+  file = "scripts/workflow-policy.ts"
+  op = "MethodExpression"
+  text = "const v = value.trim();"
+  line = 41
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "3f5b268db0abfa95"
+  file = "scripts/workflow-policy.ts"
+  op = "OptionalChaining"
+  text = "const value = unquote(KEY.exec(entry.text.replace(/^-\\s*/, ''))?.[2] ?? '');"
+  line = 119
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "d59a08fa73af9b01"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "const value = unquote(KEY.exec(entry.text.replace(/^-\\s*/, ''))?.[2] ?? '');"
+  line = 119
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "79d9ae17e1224491"
+  file = "scripts/workflow-policy.ts"
+  op = "ArrayDeclaration"
+  text = "const writable = allowlist[basename(file)] ?? [];"
+  line = 168
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "9c3f2c2a30862629"
+  file = "scripts/workflow-policy.ts"
+  op = "OptionalChaining"
+  text = "const ref = unquote(KEY.exec(bare)?.[2] ?? '');"
+  line = 176
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "8f64c32b532d2f54"
+  file = "scripts/workflow-policy.ts"
+  op = "ArrayDeclaration"
+  text = "out.push(...checkPermissions(file, list, idx, 'workflow', []));"
+  line = 185
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "06d68ad207bce430"
+  file = "scripts/workflow-policy.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 240
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "28c9965c058a3f47"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 241
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "2090775e96ae08a4"
+  file = "scripts/workflow-policy.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 241
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "fb5e408eab689f6a"
+  file = "scripts/workflow-policy.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 241
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "a6c7c332bdc8f29b"
+  file = "src/lib/server/testing/temp-dir.ts"
+  op = "ConditionalExpression"
+  text = "if (platform === 'win32' && code !== undefined && LOCKED.has(code)) return;"
+  line = 25
+  category = "temp-dir-redundant-guard"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "5cb839e7a9f5133c"
+  file = "src/lib/server/testing/auth-harness.ts"
+  op = "BlockStatement"
+  text = "function cleanup() {"
+  line = 79
+  category = "test-infra"
+  accepted_in = "01-public-ci"

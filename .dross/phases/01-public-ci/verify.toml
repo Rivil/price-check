@@ -1,0 +1,666 @@
+[verify]
+  phase = "01-public-ci"
+  generated_at = 2026-11-11T12:33:46.191332Z
+  verdict = "fail"
+  finalized = true
+  finalized_at = 2026-11-11T12:35:08.823084Z
+  measured_commit = "fb3f96109ad242550d81beeb56eb547e390bae01"
+  measured_tree = "7c56aaa6cc524690cdc07db3208ab2a11d3472ca"
+
+[summary]
+  mutation_status = "measured"
+  measured_on = "local"
+  mutation_score = 0.6711711711711712
+  mutants_killed = 298
+  mutants_survived = 146
+  mutants_not_covered = 20
+  mutants_no_block = 0
+  mutants_test_gap = 0
+  mutants_in_scope = 444
+  unclassified_in_scope = 122
+  criteria_total = 7
+  criteria_covered = 4
+  criteria_uncovered = 3
+
+  [[summary.leg]]
+    language = "typescript"
+    tool = "stryker"
+    killed = 298
+    survived = 146
+    timeout = 0
+    in_scope = 444
+    score = 0.6711711711711712
+    file_count = 24
+    measured_on = "local"
+    ranges = ["playwright.config.ts:4-31 (ExportDefaultDeclaration)", "scripts/readme.spec.ts:1-2 (hunk)", "scripts/readme.spec.ts:10-11 (hunk)", "scripts/readme.spec.ts:12-18 (VariableDeclaration sections)", "scripts/readme.spec.ts:19-19 (hunk)", "scripts/readme.spec.ts:20-55 (ExpressionStatement)", "scripts/readme.spec.ts:3-3 (ImportDeclaration)", "scripts/readme.spec.ts:4-4 (ImportDeclaration)", "scripts/readme.spec.ts:5-5 (hunk)", "scripts/readme.spec.ts:6-6 (VariableDeclaration readme)", "scripts/readme.spec.ts:7-9 (VariableDeclaration pkg)", "scripts/repo-hygiene.spec.ts:1-2 (hunk)", "scripts/repo-hygiene.spec.ts:10-11 (hunk)", "scripts/repo-hygiene.spec.ts:12-21 (FunctionDeclaration repoRoot)", "scripts/repo-hygiene.spec.ts:22-22 (hunk)", "scripts/repo-hygiene.spec.ts:23-23 (VariableDeclaration root)", "scripts/repo-hygiene.spec.ts:24-25 (hunk)", "scripts/repo-hygiene.spec.ts:26-46 (FunctionDeclaration trackedFiles)", "scripts/repo-hygiene.spec.ts:3-3 (ImportDeclaration)", "scripts/repo-hygiene.spec.ts:4-4 (ImportDeclaration)", "scripts/repo-hygiene.spec.ts:47-48 (hunk)", "scripts/repo-hygiene.spec.ts:49-54 (VariableDeclaration REMOVED)", "scripts/repo-hygiene.spec.ts:5-5 (ImportDeclaration)", "scripts/repo-hygiene.spec.ts:55-61 (VariableDeclaration FORBIDDEN)", "scripts/repo-hygiene.spec.ts:6-6 (ImportDeclaration)", "scripts/repo-hygiene.spec.ts:62-68 (VariableDeclaration EXEMPT)", "scripts/repo-hygiene.spec.ts:69-69 (hunk)", "scripts/repo-hygiene.spec.ts:7-7 (ImportDeclaration)", "scripts/repo-hygiene.spec.ts:70-96 (ExpressionStatement)", "scripts/repo-hygiene.spec.ts:8-8 (hunk)", "scripts/repo-hygiene.spec.ts:9-9 (VariableDeclaration here)", "scripts/rulesets.spec.ts:1-3 (hunk)", "scripts/rulesets.spec.ts:10-16 (TSTypeAliasDeclaration Ruleset)", "scripts/rulesets.spec.ts:17-17 (hunk)", "scripts/rulesets.spec.ts:18-21 (VariableDeclaration rulesets)", "scripts/rulesets.spec.ts:22-23 (hunk)", "scripts/rulesets.spec.ts:24-35 (FunctionDeclaration ciCheckNames)", "scripts/rulesets.spec.ts:36-36 (hunk)", "scripts/rulesets.spec.ts:37-37 (VariableDeclaration ACTIONS_APP)", "scripts/rulesets.spec.ts:38-38 (VariableDeclaration expected)", "scripts/rulesets.spec.ts:39-39 (hunk)", "scripts/rulesets.spec.ts:4-4 (ImportDeclaration)", "scripts/rulesets.spec.ts:40-94 (ExpressionStatement)", "scripts/rulesets.spec.ts:5-5 (ImportDeclaration)", "scripts/rulesets.spec.ts:6-6 (hunk)", "scripts/rulesets.spec.ts:7-7 (VariableDeclaration read)", "scripts/rulesets.spec.ts:8-8 (hunk)", "scripts/rulesets.spec.ts:9-9 (TSTypeAliasDeclaration Rule)", "scripts/workflow-policy.spec.ts:1-1 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:10-16 (FunctionDeclaration workflow)", "scripts/workflow-policy.spec.ts:103-103 (hunk)", "scripts/workflow-policy.spec.ts:104-128 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:129-129 (hunk)", "scripts/workflow-policy.spec.ts:130-144 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:145-145 (hunk)", "scripts/workflow-policy.spec.ts:146-166 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:167-167 (hunk)", "scripts/workflow-policy.spec.ts:168-213 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:17-17 (hunk)", "scripts/workflow-policy.spec.ts:18-19 (VariableDeclaration messages)", "scripts/workflow-policy.spec.ts:2-2 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:20-20 (hunk)", "scripts/workflow-policy.spec.ts:21-67 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:3-3 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:4-4 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:5-5 (ImportDeclaration)", "scripts/workflow-policy.spec.ts:6-6 (hunk)", "scripts/workflow-policy.spec.ts:68-68 (hunk)", "scripts/workflow-policy.spec.ts:69-102 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:7-7 (VariableDeclaration SHA)", "scripts/workflow-policy.spec.ts:8-9 (hunk)", "scripts/workflow-policy.ts:1-13 (hunk)", "scripts/workflow-policy.ts:109-109 (hunk)", "scripts/workflow-policy.ts:110-154 (FunctionDeclaration checkPermissions)", "scripts/workflow-policy.ts:14-14 (ImportDeclaration)", "scripts/workflow-policy.ts:15-15 (ImportDeclaration)", "scripts/workflow-policy.ts:155-156 (hunk)", "scripts/workflow-policy.ts:157-207 (FunctionDeclaration checkWorkflow)", "scripts/workflow-policy.ts:16-16 (ImportDeclaration)", "scripts/workflow-policy.ts:17-17 (hunk)", "scripts/workflow-policy.ts:18-18 (TSTypeAliasDeclaration Violation)", "scripts/workflow-policy.ts:19-20 (hunk)", "scripts/workflow-policy.ts:208-209 (hunk)", "scripts/workflow-policy.ts:21-21 (VariableDeclaration WRITE_SCOPE_ALLOWLIST)", "scripts/workflow-policy.ts:210-235 (FunctionDeclaration runPolicyCli)", "scripts/workflow-policy.ts:22-22 (hunk)", "scripts/workflow-policy.ts:23-23 (TSTypeAliasDeclaration Entry)", "scripts/workflow-policy.ts:236-238 (hunk)", "scripts/workflow-policy.ts:239-241 (VariableDeclaration isEntry)", "scripts/workflow-policy.ts:24-24 (TSTypeAliasDeclaration Frame)", "scripts/workflow-policy.ts:242-242 (IfStatement)", "scripts/workflow-policy.ts:25-25 (hunk)", "scripts/workflow-policy.ts:26-26 (VariableDeclaration SHA_REF)", "scripts/workflow-policy.ts:27-27 (VariableDeclaration DOCKER_DIGEST)", "scripts/workflow-policy.ts:28-28 (VariableDeclaration KEY)", "scripts/workflow-policy.ts:29-29 (VariableDeclaration BLOCK_SCALAR)", "scripts/workflow-policy.ts:30-31 (hunk)", "scripts/workflow-policy.ts:32-32 (VariableDeclaration PERMISSIONS_KEY)", "scripts/workflow-policy.ts:33-33 (VariableDeclaration USES_KEY)", "scripts/workflow-policy.ts:34-34 (hunk)", "scripts/workflow-policy.ts:35-38 (FunctionDeclaration stripComment)", "scripts/workflow-policy.ts:39-39 (hunk)", "scripts/workflow-policy.ts:40-44 (FunctionDeclaration unquote)", "scripts/workflow-policy.ts:45-46 (hunk)", "scripts/workflow-policy.ts:47-69 (FunctionDeclaration entries)", "scripts/workflow-policy.ts:70-71 (hunk)", "scripts/workflow-policy.ts:72-90 (FunctionDeclaration withPaths)", "scripts/workflow-policy.ts:91-92 (hunk)", "scripts/workflow-policy.ts:93-108 (FunctionDeclaration children)", "src/lib/server/admin-bootstrap.spec.ts:13-13 (ImportDeclaration)", "src/lib/server/admin-bootstrap.spec.ts:2-2 (ImportDeclaration)", "src/lib/server/admin-bootstrap.spec.ts:39-164 (ExpressionStatement)", "src/lib/server/alerts/backfill.spec.ts:13-13 (ImportDeclaration)", "src/lib/server/alerts/backfill.spec.ts:2-2 (ImportDeclaration)", "src/lib/server/alerts/backfill.spec.ts:81-84 (ExpressionStatement)", "src/lib/server/cli/adapter-check.ts:1-2 (hunk)", "src/lib/server/cli/admin-create.ts:1-2 (hunk)", "src/lib/server/db/check-failure.schema.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/db/check-failure.schema.spec.ts:10-10 (ImportDeclaration)", "src/lib/server/db/check-failure.schema.spec.ts:73-162 (ExpressionStatement)", "src/lib/server/db/index.spec.ts:1-2 (hunk)", "src/lib/server/db/index.spec.ts:14-14 (hunk)", "src/lib/server/db/index.spec.ts:15-20 (ExpressionStatement)", "src/lib/server/db/index.spec.ts:21-21 (hunk)", "src/lib/server/db/index.spec.ts:22-39 (ExpressionStatement)", "src/lib/server/db/index.spec.ts:3-3 (ImportDeclaration)", "src/lib/server/db/index.spec.ts:4-4 (hunk)", "src/lib/server/db/index.spec.ts:5-5 (VariableDeclaration createDb)", "src/lib/server/db/index.spec.ts:6-6 (hunk)", "src/lib/server/db/index.spec.ts:7-13 (FunctionDeclaration load)", "src/lib/server/db/index.ts:1-1 (ImportDeclaration)", "src/lib/server/db/index.ts:10-11 (hunk)", "src/lib/server/db/index.ts:12-16 (VariableDeclaration buildTimeDb)", "src/lib/server/db/index.ts:17-17 (hunk)", "src/lib/server/db/index.ts:18-18 (VariableDeclaration db)", "src/lib/server/db/index.ts:3-3 (ImportDeclaration)", "src/lib/server/db/index.ts:5-7 (hunk)", "src/lib/server/db/index.ts:8-8 (IfStatement)", "src/lib/server/db/migrate.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:10-10 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:26-29 (ExpressionStatement)", "src/lib/server/db/migrate.spec.ts:3-3 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:31-140 (ExpressionStatement)", "src/lib/server/db/watch.schema.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/db/watch.schema.spec.ts:10-10 (ImportDeclaration)", "src/lib/server/db/watch.schema.spec.ts:89-138 (ExpressionStatement)", "src/lib/server/health.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/health.spec.ts:10-10 (ImportDeclaration)", "src/lib/server/health.spec.ts:60-65 (ExpressionStatement)", "src/lib/server/health.ts:10-10 (hunk)", "src/lib/server/testing/auth-harness.ts:11-11 (ImportDeclaration)", "src/lib/server/testing/auth-harness.ts:31-85 (FunctionDeclaration createAuthHarness)", "src/lib/server/testing/auth-harness.ts:4-4 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:11-11 (hunk)", "src/lib/server/testing/temp-dir.spec.ts:12-42 (ExpressionStatement)", "src/lib/server/testing/temp-dir.spec.ts:2-2 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:3-3 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:4-4 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:5-5 (ImportDeclaration)", "src/lib/server/testing/temp-dir.spec.ts:6-6 (hunk)", "src/lib/server/testing/temp-dir.spec.ts:7-10 (VariableDeclaration failing)", "src/lib/server/testing/temp-dir.ts:1-4 (hunk)", "src/lib/server/testing/temp-dir.ts:10-10 (hunk)", "src/lib/server/testing/temp-dir.ts:11-28 (FunctionDeclaration removeTempDir)", "src/lib/server/testing/temp-dir.ts:5-5 (ImportDeclaration)", "src/lib/server/testing/temp-dir.ts:6-6 (hunk)", "src/lib/server/testing/temp-dir.ts:7-7 (VariableDeclaration REMOVE_RETRIES)", "src/lib/server/testing/temp-dir.ts:8-8 (VariableDeclaration REMOVE_RETRY_DELAY_MS)", "src/lib/server/testing/temp-dir.ts:9-9 (VariableDeclaration LOCKED)", "src/routes/layout.e2e.ts:118-157 (ExpressionStatement)", "vite.config.ts:6-48 (ExportDefaultDeclaration)"]
+    whole_file = ["e2e/accounts.ts — file-absent-from-hunks", "e2e/seed.ts — file-absent-from-hunks"]
+
+[[criterion]]
+  id = "c-1"
+  status = "weak"
+  tests = [".github/workflows/ci.yml:static (lint, typecheck) + test matrix (unit tests, e2e tests) on pull_request to main and milestone/**", "scripts/rulesets.spec.ts:it('ci.yml produces the five gate checks')", "live (commit 2cf09e5): probe PR red proofs - prettier violation -> static red, tests skipped; failing e2e expect -> test (linux|macos|windows) red", "live (commit 46ab8bd): vitest timeouts -> test (windows) red, run 43017499095"]
+  notes = "Runtime claim proven red on GitHub for lint, vitest and e2e (pnpm check red never observed, same job as lint). But no in-repo test pins ci.yml's step list: deleting the e2e, unit, check or lint step leaves every local test green and all five required checks still reporting. rulesets.spec.ts parses ci.yml for job names only."
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = [".github/workflows/ci.yml:gitleaks job (checksum-verified 8.30.1, full history of HEAD, --exit-code 1) on every pull_request", "scripts/rulesets.spec.ts:it('ci.yml produces the five gate checks') + it.each('%s: contexts match jobs') - gitleaks is a required context", "live (commit 2cf09e5): fake key pushed to probe PR -> gitleaks red"]
+  notes = "Removing or renaming the job fails rulesets.spec.ts; an unallowlisted finding was observed failing the check on GitHub."
+
+[[criterion]]
+  id = "c-3"
+  status = "weak"
+  tests = [".gitleaks.toml:4 [[allowlists]] (rule + exact anchored paths + AND-pinned fake values; key files rule+path)", "observed this session: gitleaks 8.30.1 git --log-opts=HEAD --config .gitleaks.toml --redact -> exit 0, 0 findings; default rules only -> exit 1, 10 findings (3 recorded fixtures, 2 resend.spec, 2 page.server.spec, 1 ntfy.spec, 2 TEST key files)", ".github/workflows/ci.yml:gitleaks job keeps the zero-findings half enforced on every PR"]
+  notes = "Zero unallowlisted findings is enforced by the CI job. The narrowness half ('never blanket directory ignores', each entry load-bearing) is pinned by nothing: a later directory glob or stopword would pass CI. Same gap the t-1 reviewer flagged (test_contract checks not saved as a script or test)."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["scripts/rulesets.spec.ts:it.each('%s: contexts match jobs'), it.each('%s: requires a PR with no approvals'), it.each('%s: active, admin-only bypass'), it('targets main and every milestone branch'), it('main also blocks deletion and force-push; milestones stay deletable')", "live (commit 35cf75a): rulesets 27029811/27029812 applied; rules/branches/{main,milestone/v0.1} read back with exactly the five contexts; probe PR #1 ready with prettier violation -> mergeStateStatus BLOCKED, static failing"]
+  notes = "In-repo ruleset bodies pinned to ci.yml's checks; GitHub-side state proven by read-back and a BLOCKED probe (taken from the commit body, not re-run)."
+
+[[criterion]]
+  id = "c-5"
+  status = "weak"
+  tests = ["scripts/workflow-policy.spec.ts:describe('unpinned uses'), describe('permissions'), describe('fails closed'), describe('write-scope allowlist'), describe('cli exit')", ".github/workflows/ci.yml:static 'workflow policy' step runs pnpm ci:policy", "observed this session: node scripts/workflow-policy.ts on a dir with an @v4 action -> exit 1 naming file:line; pnpm ci:policy on the repo -> 2 files, 0 violations, exit 0"]
+  notes = "Mutation score 0.67 over 444; 122 survivors in scripts/workflow-policy.ts undispositioned. Hand-replayed on a scratch copy, three of them let a real violation pass silently (0 violations where the original reports 1): line 57 (-1 -> +1: every line after the first block scalar is skipped, so an unpinned uses: after a run: | step passes), line 33 USES_KEY quote handling (a quoted \"uses\": key with a tag ref passes; line 32 PERMISSIONS_KEY has the same mutants), line 135 (k.key === 'contents' -> true: workflow-level permissions: actions: read passes). Most reject tests assert only not.toEqual([]), so message and branch mutants survive."
+
+[[criterion]]
+  id = "c-6"
+  status = "covered"
+  tests = ["scripts/readme.spec.ts:it('end user first: the first section is install and use, development comes after')", "scripts/readme.spec.ts:it('install and first watch: releases link, every OS, SmartScreen, adding a watch')", "scripts/readme.spec.ts:it('no self-host: nothing about containers, compose, proxies or server deploys')", "scripts/readme.spec.ts:it('developer commands it lists run natively: admin:create loads .env itself')"]
+  notes = "Each clause of c-6 has an assertion; green in this session's dross test run."
+
+[[criterion]]
+  id = "c-7"
+  status = "covered"
+  tests = ["scripts/repo-hygiene.spec.ts:it('docker files removed')", "scripts/repo-hygiene.spec.ts:it('no references to the removed artefacts in any tracked file')", "scripts/repo-hygiene.spec.ts:it('scans the tree: the file list is not empty')"]
+  notes = "Red-proven at t-5 (commit 235b604); green in this session's dross test run."
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:36 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:128 (ArrayDeclaration)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:128 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:176 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:206 (ArithmeticOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:212 (ArrowFunction)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:212 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:242 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:242 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:36 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:37 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:37 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:36 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (UnaryOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (UnaryOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:42 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:50 (UnaryOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:53 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:53 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:53 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:55 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:57 (UnaryOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:59 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:59 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:61 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:61 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:66 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:66 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:79 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:79 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:80 (ObjectLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:80 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:83 (AssignmentOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:81 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:87 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:100 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:100 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:102 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:102 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:104 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:104 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:104 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:118 (ObjectLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:120 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:119 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:119 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:119 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:120 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:120 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:120 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:120 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:120 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:124 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:124 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:124 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:124 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:124 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:124 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:124 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:126 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:126 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:126 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:125 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:126 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:124 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:124 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:127 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:132 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:134 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:134 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:134 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:135 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:140 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:150 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:163 (ObjectLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:151 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:166 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:173 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:173 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:180 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:185 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:188 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:189 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:190 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:190 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:194 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:206 (ArrowFunction)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:206 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:217 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:218 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:233 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:26 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:26 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:27 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:27 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:28 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:28 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:28 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:28 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:29 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:29 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:29 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:32 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:32 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:32 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:33 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:33 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:33 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:33 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:242 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/workflow-policy.ts:242 (ConditionalExpression)"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .gitattributes: no mutation adapter for .gitattributes"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .github/rulesets/main.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .github/rulesets/milestone.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .github/workflows/audit.yml: no mutation adapter for .yml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .github/workflows/ci.yml: no mutation adapter for .yml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .gitleaks.toml: no mutation adapter for .toml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .node-version: no mutation adapter for .node-version"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped ARCHITECTURE.md: no mutation adapter for .md"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped README.md: no mutation adapter for .md"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped package.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped stryker.config.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tsconfig.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .dockerignore: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped Dockerfile: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped compose.yaml: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped scripts/image-smoke.sh: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "c-5: scripts/workflow-policy.ts has proven false negatives under surviving mutants (hand-replayed on a scratch copy: original 1 violation, mutant 0): :57 an unpinned uses: after any run: | step is skipped; :32/:33 a quoted \"uses\": / \"permissions\": key escapes the catch-all; :135 workflow-level permissions: actions: read passes. 122 survivors in this file are undispositioned; this phase's own logic escapes its tests."
+
+[[finding]]
+  severity = "FLAG"
+  text = "c-1: no in-repo test pins ci.yml's step list (pnpm lint, pnpm check, pnpm test:unit --run, pnpm test:e2e). rulesets.spec.ts's ciCheckNames already parses ci.yml and could assert them."
+
+[[finding]]
+  severity = "FLAG"
+  text = "c-3: the narrowness contract of .gitleaks.toml (no directory globs/stopwords, each entry load-bearing, a new key in a listed file still reported) is checked by nothing that re-runs (t-1 review FLAG)."
+
+[[finding]]
+  severity = "FLAG"
+  text = "c-5: scripts/workflow-policy.ts:242 isEntry -> false survives: if the CLI guard stopped firing, pnpm ci:policy would check nothing and exit 0 with every test green. In-process Stryker cannot kill it; a subprocess test (node scripts/workflow-policy.ts <bad dir> exits 1) would pin the real file, after which the Stryker residue can be accepted. Observed working by hand this session."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Mutation measured with the ranged-Stryker sidestep: installed dross 6d2bf2bb still passes changed spec/e2e/config files to stryker --mutate (mutationCandidates only skips .dross/). Ran `pnpm exec stryker run --mutate scripts/workflow-policy.ts:1-242,src/lib/server/db/index.ts:1-18,src/lib/server/testing/temp-dir.ts:1-28,src/lib/server/testing/auth-harness.ts:79-82` (1m19s, host, Node 24.14.0), then `dross verify --reuse-report`. The leg's ranges list spec/config files that were NOT instrumented."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Dropped from mutation: playwright.config.ts, vite.config.ts (runner config; vite.config.ts is the vitest config Stryker itself loads), e2e/accounts.ts, e2e/seed.ts (Playwright-only, the vitest server project cannot reach them). auth-harness.ts narrowed to its changed cleanup (79-82) because src/lib/server/testing/** is excluded in stryker.config.json; temp-dir.ts kept whole since it has its own spec. adapter-check.ts, admin-create.ts, health.ts changes are comment-only (no mutants)."
+
+[[finding]]
+  severity = "NOTE"
+  text = "20 survivors accepted into .dross/survivors.toml: policy-duplicate-key (136, 143, 144x2, 184, 204, 205x2: reachable only via a duplicate YAML key GitHub rejects), policy-equivalent (41, 119x2, 168, 176, 185), node-pinned (240, 241x3 keys / 7 mutants: Node < 24.2 fallback, .node-version pins 24.14.0), temp-dir-redundant-guard (temp-dir.ts:25), test-infra (auth-harness.ts:79)."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Observed locally this session: dross test PASS 67 files / 856 tests; pnpm lint exit 0; pnpm check 0 errors 0 warnings. Playwright e2e not run locally: its CI runs on three OSes are taken from commit 2cf09e5/46ab8bd bodies, not re-run."
+
+[[finding]]
+  severity = "NOTE"
+  text = "c-1/c-2/c-4 GitHub evidence is taken from commit bodies 2cf09e5, 46ab8bd and 35cf75a as instructed; nothing was re-run against GitHub."
