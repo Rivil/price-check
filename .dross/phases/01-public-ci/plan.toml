@@ -136,5 +136,5 @@ files = ["scripts/workflow-policy.spec.ts"]
 description = "Verify attempt 3 (b027b54): one blocking survivor, scripts/workflow-policy.ts:37 /\\s+#.*$/ -> /\\s+#.*/. A line holding a lone CR (valid YAML line break) after a comment is refused today ('uses reference cannot be classified'); the mutant reads through it. Michal chose (2026-11-11): add a test, no source change. Tests only."
 covers = ["c-5"]
 test_contract = ["if a step line '      - uses: # c\\r          actions/checkout@<40-hex>' is not reported as 'uses reference cannot be classified' at its line, the lone-CR test fails"]
-status = "pending"
+status = "done"
 depends_on = ["t-9"]

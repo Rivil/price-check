@@ -18,6 +18,21 @@
         }
       ]
     },
+    "t-10": {
+      "files": [
+        "scripts/workflow-policy.spec.ts"
+      ],
+      "commit": "a800907",
+      "completed_at": "2026-11-11T13:09:31.453196Z",
+      "landmarks": [
+        {
+          "feature": "CI supply-chain policy",
+          "symbol": "lone-CR test",
+          "loc": "scripts/workflow-policy.spec.ts:600",
+          "what": "pins fail-closed handling of a lone CR after a comment"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "scripts/workflow-policy.ts",
@@ -211,6 +226,19 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "page.server.spec.ts is listed in both the Resend and the ntfy entries. That is correct, since line 470 holds the re_ value and line 32 the tk_ value, so each entry is still needed.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-10": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Test asserts the exact violation list, so it kills the /\\s+#.*$/ -\u003e /\\s+#.*/ mutant: under the mutant the comment strip lets KEY read across the CR and the pinned ref passes with no violation.",
           "resolution": "non-blocking, left"
         }
       ]
