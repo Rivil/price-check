@@ -92,3 +92,38 @@ describe('rulesets', () => {
 		expect(types(rulesets.milestone)).not.toContain('deletion');
 	});
 });
+
+// c-1: the gate checks only mean something if their jobs run the right commands.
+describe('ci.yml steps', () => {
+	const yaml = read('.github/workflows/ci.yml');
+	/** The text of one job, from its id line to the next job id. */
+	const job = (id: string) => {
+		const jobs = yaml.slice(yaml.indexOf('\njobs:\n'));
+		const start = jobs.search(new RegExp(`^ {2}${id}:\\s*$`, 'm'));
+		expect(start, `job ${id}`).toBeGreaterThan(-1);
+		const rest = jobs.slice(start + 1);
+		const next = rest.search(/^ {2}[\w-]+:\s*$/m);
+		return next === -1 ? rest : rest.slice(0, next);
+	};
+	const runs = (block: string) => [...block.matchAll(/^\s+run: (.+)$/gm)].map((m) => m[1].trim());
+
+	it('static runs lint, typecheck and the workflow policy', () => {
+		expect(runs(job('static'))).toEqual(
+			expect.arrayContaining(['pnpm lint', 'pnpm check', 'pnpm ci:policy'])
+		);
+	});
+
+	it('test runs the unit and e2e suites', () => {
+		expect(runs(job('test'))).toEqual(
+			expect.arrayContaining(['pnpm test:unit --run', 'pnpm test:e2e'])
+		);
+	});
+
+	it('gitleaks scans the full history of HEAD with the repo config and fails on findings', () => {
+		const block = job('gitleaks');
+		expect(block).toMatch(/fetch-depth: 0/);
+		expect(block).toMatch(/gitleaks" git --log-opts=HEAD --config \.gitleaks\.toml/);
+		expect(block).toMatch(/--exit-code 1/);
+		expect(block).toMatch(/sha256sum -c --strict/);
+	});
+});

@@ -1,7 +1,9 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { checkWorkflow, runPolicyCli, WRITE_SCOPE_ALLOWLIST } from './workflow-policy.ts';
 
 const SHA = 'a'.repeat(40);
@@ -209,5 +211,340 @@ describe('cli exit', () => {
 		);
 		expect(runPolicyCli(dir, log)).toBe(1);
 		expect(runPolicyCli(dir, log, { 'release.yml': ['contents'] })).toBe(0);
+	});
+});
+
+// Verify (2026-11-11) left survivors behind tests that only asserted "some violation".
+// These pin the exact line and message for each path, plus the false negatives the
+// mutants exposed.
+describe('exact reports', () => {
+	const PIN = `actions/checkout@${SHA}`;
+	const NOT_PINNED = (ref: string) =>
+		`uses: '${ref}' is not pinned to a full commit SHA (or sha256 digest)`;
+	const UNCLASSIFIED_USES = 'uses reference cannot be classified';
+	const MISPLACED = 'permissions in a place the policy cannot classify';
+	const MISSING = 'workflow-level permissions block is missing (need contents: read)';
+	const TOP = 'permissions:\n  contents: read\n';
+
+	/** [line, message] pairs, in reported order. */
+	const report = (text: string, allowlist?: Record<string, readonly string[]>, file = 'ci.yml') =>
+		checkWorkflow(file, text, allowlist).map((v) => [v.line, v.message]);
+	const lineOf = (text: string, needle: string) =>
+		text.split('\n').findIndex((l) => l.includes(needle)) + 1;
+	/** A workflow whose only job has the given steps block (6-space step indent). */
+	const steps = (body: string) =>
+		`name: ci\non: pull_request\n${TOP}jobs:\n  build:\n    runs-on: ubuntu-24.04\n    steps:\n${body}`;
+
+	it('carries file, line and message on every violation', () => {
+		const text = steps('      - uses: actions/checkout@v4\n');
+		expect(checkWorkflow('w/ci.yml', text)).toEqual([
+			{ file: 'w/ci.yml', line: lineOf(text, '@v4'), message: NOT_PINNED('actions/checkout@v4') }
+		]);
+	});
+
+	describe('uses refs', () => {
+		it.each([
+			['a ref with a space before owner/repo', 'foo bar/baz@' + SHA],
+			['a 41-hex ref', 'actions/checkout@' + SHA + 'a'],
+			['a docker digest with a prefix', `x docker://alpine@sha256:${'b'.repeat(64)}`],
+			['a docker digest with a suffix', `docker://alpine@sha256:${'b'.repeat(64)}x`],
+			['mismatched quotes', `"${PIN}'`]
+		])('rejects %s, quoting the ref', (_name, ref) => {
+			const text = steps(`      - uses: ${ref}\n`);
+			expect(report(text)).toEqual([[lineOf(text, 'uses:'), NOT_PINNED(ref)]]);
+		});
+
+		it.each([
+			['double quotes', `"${PIN}"`],
+			['single quotes', `'${PIN}'`]
+		])('unquotes a pinned ref in %s', (_name, ref) => {
+			expect(report(steps(`      - uses: ${ref}\n`))).toEqual([]);
+		});
+
+		it('reports the unquoted ref of a quoted unpinned one', () => {
+			const text = steps('      - uses: "actions/checkout@v4"\n');
+			expect(report(text)).toEqual([[lineOf(text, 'uses:'), NOT_PINNED('actions/checkout@v4')]]);
+		});
+
+		it('reports an empty uses:', () => {
+			const text = steps('      - uses:\n');
+			expect(report(text)).toEqual([[lineOf(text, 'uses:'), NOT_PINNED('')]]);
+		});
+
+		it('reads a uses: key with a space before the colon', () => {
+			const text = steps('      - uses : actions/checkout@v4\n');
+			expect(report(text)).toEqual([[lineOf(text, 'uses'), NOT_PINNED('actions/checkout@v4')]]);
+		});
+
+		it('keeps a hyphenated ref intact when uses: is not the first key of a step', () => {
+			const text = steps('      - name: x\n        uses: my-org/my-action@v4\n');
+			expect(report(text)).toEqual([[lineOf(text, 'uses:'), NOT_PINNED('my-org/my-action@v4')]]);
+		});
+
+		it('keeps the ref intact after a dash with extra spaces', () => {
+			const text = steps('      -   uses: actions/checkout@v4\n');
+			expect(report(text)).toEqual([[lineOf(text, 'uses:'), NOT_PINNED('actions/checkout@v4')]]);
+		});
+
+		it.each([
+			['no space after the colon', '      - uses:actions/checkout@v4\n'],
+			['flow style', '      - { uses: actions/checkout@v4 }\n'],
+			['a double-quoted key in a list item', `      - "uses": ${PIN}\n`],
+			['a single-quoted key in a list item', `      - 'uses': ${PIN}\n`],
+			['a quoted key with a space before the colon', `      - "uses" : ${PIN}\n`],
+			['a quoted key starting a line', `      - name: x\n        "uses": ${PIN}\n`]
+		])('cannot classify %s', (_name, body) => {
+			const text = steps(body);
+			expect(report(text)).toEqual([[lineOf(text, 'uses'), UNCLASSIFIED_USES]]);
+		});
+	});
+
+	describe('block scalars and comments', () => {
+		const hidden = '          uses: actions/checkout@v4 permissions: write-all\n';
+
+		it('still checks a later step after a run: | block', () => {
+			const text = steps(`      - run: |\n${hidden}      - uses: actions/checkout@v4\n`);
+			expect(report(text)).toEqual([
+				[
+					text.split('\n').lastIndexOf('      - uses: actions/checkout@v4') + 1,
+					NOT_PINNED('actions/checkout@v4')
+				]
+			]);
+		});
+
+		it.each([
+			['a |- chomping indicator', '      - run: |-\n'],
+			['a >+ chomping indicator', '      - run: >+\n']
+		])('skips the body of %s', (_name, head) => {
+			expect(report(steps(`${head}${hidden}`))).toEqual([]);
+		});
+
+		it('keeps skipping the body across a whitespace-only line', () => {
+			expect(report(steps(`      - run: |\n${hidden}  \n${hidden}`))).toEqual([]);
+		});
+
+		it('skips the body of a top-level block scalar', () => {
+			const text = `name: ci\nrun-name: >\n  uses: actions/checkout@v4\n${TOP}on: pull_request\njobs:\n  build:\n    runs-on: x\n`;
+			expect(report(text)).toEqual([]);
+		});
+
+		it('checks a sibling after a dash with extra spaces before a block scalar', () => {
+			const text = steps(
+				`      -   run: |\n            echo hi\n          uses: actions/checkout@v4\n`
+			);
+			expect(report(text)).toEqual([[lineOf(text, 'uses:'), NOT_PINNED('actions/checkout@v4')]]);
+		});
+
+		it('checks an indented first line', () => {
+			const text = `    uses: actions/checkout@v4\n${TOP}`;
+			expect(report(text)).toEqual([[1, NOT_PINNED('actions/checkout@v4')]]);
+		});
+
+		it('ignores a comment line that mentions uses:', () => {
+			expect(report(steps(`      # uses: actions/checkout@v4\n      - uses: ${PIN}\n`))).toEqual(
+				[]
+			);
+		});
+
+		it('ignores a column-0 comment between jobs', () => {
+			const text = `on: pull_request\n${TOP}jobs:\n  a:\n    runs-on: x\n# note\n  b:\n    permissions: {}\n    runs-on: x\n`;
+			expect(report(text)).toEqual([]);
+		});
+	});
+
+	describe('tabs', () => {
+		it('reports a tab after leading spaces', () => {
+			const text = steps('      - run: x\n  \tname: y\n');
+			expect(checkWorkflow('ci.yml', text)).toContainEqual({
+				file: 'ci.yml',
+				line: lineOf(text, '\tname'),
+				message: 'tab indentation cannot be classified'
+			});
+		});
+
+		it('allows a tab inside a value', () => {
+			expect(report(steps('      - run: echo "a\tb"\n'))).toEqual([]);
+		});
+	});
+
+	describe('permissions', () => {
+		const wf = (top: string) => `on: pull_request\n${top}jobs:\n  build:\n    runs-on: x\n`;
+		const job = (perm: string) =>
+			`on: pull_request\n${TOP}jobs:\n  build:\n    runs-on: x\n${perm}`;
+
+		it.each([
+			[
+				'read-all',
+				'permissions: read-all\n',
+				'workflow-level permissions: read-all grants every scope'
+			],
+			[
+				'write-all',
+				'permissions: write-all\n',
+				'workflow-level permissions: write-all grants every scope'
+			],
+			[
+				'flow',
+				'permissions: { contents: read }\n',
+				'workflow-level flow-style permissions cannot be verified; use a block'
+			],
+			[
+				'a scalar',
+				'permissions: write\n',
+				"workflow-level permissions: 'write' is not an allowed form"
+			],
+			[
+				'{}',
+				'permissions: {}\n',
+				'workflow-level flow-style permissions cannot be verified; use a block'
+			],
+			[
+				'actions: read',
+				'permissions:\n  actions: read\n',
+				'workflow-level permissions must be exactly contents: read, found actions: read'
+			],
+			[
+				'contents: none',
+				'permissions:\n  contents: none\n',
+				'workflow-level permissions must be exactly contents: read, found contents: none'
+			]
+		])('workflow-level %s', (_name, top, message) => {
+			const text = wf(top);
+			const line = lineOf(text, top.includes('\n  ') ? top.split('\n')[1].trim() : 'permissions:');
+			expect(report(text)).toEqual([[line, message]]);
+		});
+
+		it.each([
+			['a misindented sibling', 'permissions:\n  contents: read\n    actions: write\n'],
+			['a list child', 'permissions:\n  - contents\n'],
+			['an empty block', 'permissions:\n']
+		])('workflow-level block with %s cannot be classified', (_name, top) => {
+			const text = wf(top);
+			expect(report(text)).toEqual([
+				[lineOf(text, 'permissions:'), 'workflow-level permissions block cannot be classified']
+			]);
+		});
+
+		it('reads a permissions block at the end of the file', () => {
+			expect(report(`on: pull_request\njobs:\n  build:\n    runs-on: x\n${TOP}`)).toEqual([]);
+		});
+
+		it.each([
+			[
+				'write-all',
+				'    permissions: write-all\n',
+				'job-level permissions: write-all grants every scope'
+			],
+			[
+				'flow',
+				'    permissions: { contents: write }\n',
+				'job-level flow-style permissions cannot be verified; use a block'
+			],
+			[
+				'pull-requests: write',
+				'    permissions:\n      pull-requests: write\n',
+				'job-level permissions may not grant pull-requests: write'
+			]
+		])('job-level %s', (_name, perm, message) => {
+			const text = job(perm);
+			const line = lineOf(
+				text,
+				perm.includes('\n      ') ? perm.split('\n')[1].trim() : perm.trimEnd()
+			);
+			expect(report(text)).toEqual([[line, message]]);
+		});
+
+		it('an allowlisted workflow may only write, not grant other values', () => {
+			const allow = { 'release.yml': ['packages'] };
+			const text = job('    permissions:\n      packages: read\n');
+			expect(report(text, allow, 'release.yml')).toEqual([
+				[lineOf(text, 'packages: read'), 'job-level permissions may not grant packages: read']
+			]);
+		});
+
+		it.each([
+			[
+				'inside a step',
+				steps(`      - uses: ${PIN}\n        with:\n          permissions: write\n`)
+			],
+			[
+				'under on:',
+				`on:\n  push:\n    permissions: write-all\n${TOP}jobs:\n  build:\n    runs-on: x\n`
+			],
+			['in a jobs list item', `on: pull_request\n${TOP}jobs:\n  - permissions: write-all\n`]
+		])('misplaced %s', (_name, text) => {
+			expect(report(text)).toEqual([[lineOf(text, 'permissions: write'), MISPLACED]]);
+		});
+
+		it.each([
+			['double', '"permissions"'],
+			['single', "'permissions'"],
+			['spaced double', '"permissions" ']
+		])(
+			'a %s-quoted top-level permissions key is misplaced, and the real block missing',
+			(_q, key) => {
+				const text = `on: pull_request\n${key}: write-all\njobs:\n  build:\n    runs-on: x\n`;
+				expect(report(text)).toEqual([
+					[1, MISSING],
+					[2, MISPLACED]
+				]);
+			}
+		);
+
+		it('finds a job-level block in a later job after a job with steps', () => {
+			const text = `on: pull_request\n${TOP}jobs:\n  a:\n    steps:\n      - uses: ${PIN}\n        with:\n          x: y\n  b:\n    permissions:\n      contents: write\n`;
+			expect(report(text)).toEqual([
+				[lineOf(text, 'contents: write'), 'job-level permissions may not grant contents: write']
+			]);
+		});
+
+		it('sorts violations by line', () => {
+			const text = steps('      - uses: actions/checkout@v4\n').replace(TOP, '');
+			expect(report(text)).toEqual([
+				[1, MISSING],
+				[lineOf(text, '@v4'), NOT_PINNED('actions/checkout@v4')]
+			]);
+		});
+	});
+
+	describe('cli', () => {
+		let dir = '';
+		afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+		it('logs to stderr by default, one line per violation plus a summary', () => {
+			dir = mkdtempSync(join(tmpdir(), 'workflow-policy-'));
+			writeFileSync(join(dir, 'ci.yml'), steps('      - uses: actions/checkout@v4\n'));
+			const write = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+			try {
+				expect(runPolicyCli(dir)).toBe(1);
+				const out = write.mock.calls.map((c) => String(c[0]));
+				expect(out).toContain(`${join(dir, 'ci.yml')}:9: ${NOT_PINNED('actions/checkout@v4')}\n`);
+				expect(out).toContain('ci:policy: 1 workflow file(s), 1 violation(s)\n');
+			} finally {
+				write.mockRestore();
+			}
+		});
+
+		it('reads only *.yml / *.yaml files', () => {
+			dir = mkdtempSync(join(tmpdir(), 'workflow-policy-'));
+			writeFileSync(join(dir, 'ci.yml'), steps(`      - uses: ${PIN}\n`));
+			writeFileSync(join(dir, 'README.md'), 'uses: actions/checkout@v4\n');
+			writeFileSync(join(dir, 'ci.yml.bak'), 'uses: actions/checkout@v4\n');
+			const lines: string[] = [];
+			expect(runPolicyCli(dir, (l) => lines.push(l))).toBe(0);
+			expect(lines).toEqual(['ci:policy: 1 workflow file(s), 0 violation(s)']);
+		});
+
+		it('runs as a separate process: exit 1 naming file:line, exit 0 when clean', () => {
+			dir = mkdtempSync(join(tmpdir(), 'workflow-policy-'));
+			const script = fileURLToPath(new URL('./workflow-policy.ts', import.meta.url));
+			writeFileSync(join(dir, 'ci.yml'), steps('      - uses: actions/checkout@v4\n'));
+			const bad = spawnSync(process.execPath, [script, dir], { encoding: 'utf8' });
+			expect(bad.status).toBe(1);
+			expect(bad.stderr).toContain(`ci.yml:9: ${NOT_PINNED('actions/checkout@v4')}`);
+			writeFileSync(join(dir, 'ci.yml'), steps(`      - uses: ${PIN}\n`));
+			const good = spawnSync(process.execPath, [script, dir], { encoding: 'utf8' });
+			expect(good.status).toBe(0);
+		});
 	});
 });
