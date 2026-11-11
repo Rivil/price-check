@@ -1,6 +1,6 @@
 {
   "phase": "01-public-ci",
-  "generated_at": "2026-11-11T12:54:02.985002Z",
+  "generated_at": "2026-11-11T13:00:35.320588Z",
   "languages": [
     {
       "name": "typescript",
@@ -34,11 +34,11 @@
       ],
       "mutation": {
         "Tool": "stryker",
-        "Killed": 399,
-        "Survived": 45,
+        "Killed": 404,
+        "Survived": 40,
         "Timeout": 0,
         "Errors": 0,
-        "Score": 0.8986486486486487,
+        "Score": 0.9099099099099099,
         "Surviving": [
           {
             "File": "scripts/workflow-policy.ts",
@@ -197,31 +197,11 @@
             "File": "scripts/workflow-policy.ts",
             "Line": 37,
             "Op": "Regex",
-            "Snippet": "/\\s#.*$/",
-            "Origin": "in-hunk",
-            "Key": "60af5d3e5e82a87c",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 37,
-            "Op": "Regex",
             "Snippet": "/\\s+#.*/",
             "Origin": "in-hunk",
             "Key": "60af5d3e5e82a87c",
             "Lifecycle": "in-diff",
             "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 42,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "cfaa815ed2c7edc3",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent on valid YAML: length\u003e=2 -\u003e true only differs for a 1-char value that is a lone quote, i.e. an unterminated quoted scalar GitHub cannot parse. Hand-replayed 2026-11-11: no corpus difference."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -235,13 +215,13 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 66,
-            "Op": "Regex",
-            "Snippet": "/-\\s*/",
+            "Line": 42,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
             "Origin": "in-hunk",
-            "Key": "b1ebc5b02f20beea",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Key": "cfaa815ed2c7edc3",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent on valid YAML: length\u003e=2 -\u003e true only differs for a 1-char value that is a lone quote, i.e. an unterminated quoted scalar GitHub cannot parse. Hand-replayed 2026-11-11: no corpus difference."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -255,16 +235,6 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 79,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "788aa5736ca63182",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: content is never '' here (empty lines return at line 61), so text === '' is always false; the mutant reduces to the bare-dash case, which is equivalent on valid workflows (see line 79 ConditionalExpression). Hand-replayed: identical."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
             "Line": 80,
             "Op": "StringLiteral",
             "Snippet": "\"\"",
@@ -275,13 +245,13 @@
           },
           {
             "File": "scripts/workflow-policy.ts",
-            "Line": 83,
-            "Op": "AssignmentOperator",
-            "Snippet": "indent -= 2",
+            "Line": 79,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
             "Origin": "in-hunk",
-            "Key": "b4c645b76c23e1ed",
-            "Lifecycle": "in-diff",
-            "Note": ""
+            "Key": "788aa5736ca63182",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: content is never '' here (empty lines return at line 61), so text === '' is always false; the mutant reduces to the bare-dash case, which is equivalent on valid workflows (see line 79 ConditionalExpression). Hand-replayed: identical."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -306,12 +276,12 @@
           {
             "File": "scripts/workflow-policy.ts",
             "Line": 119,
-            "Op": "Regex",
-            "Snippet": "/^-\\s/",
+            "Op": "OptionalChaining",
+            "Snippet": "KEY.exec(entry.text.replace(/^-\\s*/, ''))[2]",
             "Origin": "in-hunk",
-            "Key": "84b59b0fb1208785",
+            "Key": "3f5b268db0abfa95",
             "Lifecycle": "accepted",
-            "Note": "Equivalent: checkPermissions is only called for path [] or [jobs,\u003cid\u003e] with id != '-', so its entry never starts with '-' (a '- permissions:' line has '-' in its path and goes to the fallback). The dash-stripping regex is a no-op there. Hand-replayed both regex mutants: identical."
+            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -326,20 +296,20 @@
           {
             "File": "scripts/workflow-policy.ts",
             "Line": 119,
-            "Op": "StringLiteral",
-            "Snippet": "\"Stryker was here!\"",
+            "Op": "Regex",
+            "Snippet": "/^-\\s/",
             "Origin": "in-hunk",
-            "Key": "d59a08fa73af9b01",
+            "Key": "84b59b0fb1208785",
             "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+            "Note": "Equivalent: checkPermissions is only called for path [] or [jobs,\u003cid\u003e] with id != '-', so its entry never starts with '-' (a '- permissions:' line has '-' in its path and goes to the fallback). The dash-stripping regex is a no-op there. Hand-replayed both regex mutants: identical."
           },
           {
             "File": "scripts/workflow-policy.ts",
             "Line": 119,
-            "Op": "OptionalChaining",
-            "Snippet": "KEY.exec(entry.text.replace(/^-\\s*/, ''))[2]",
+            "Op": "StringLiteral",
+            "Snippet": "\"Stryker was here!\"",
             "Origin": "in-hunk",
-            "Key": "3f5b268db0abfa95",
+            "Key": "d59a08fa73af9b01",
             "Lifecycle": "accepted",
             "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
           },
@@ -432,26 +402,6 @@
             "Key": "0d70c943d61850e7",
             "Lifecycle": "accepted",
             "Note": "Equivalent on LF/CRLF YAML: every KEY value capture goes through unquote() (trim) or an undefined check, and \\s(.*) vs \\s+(.*) match the same lines, differing only in leading whitespace of the capture. They diverge only when a JS line terminator other than LF (lone CR, U+2028/9) follows the colon, a layout neither version models. Hand-replayed incl. multi-space values: identical."
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 29,
-            "Op": "Regex",
-            "Snippet": "/:\\s[|\u003e][-+0-9]*$/",
-            "Origin": "in-hunk",
-            "Key": "f82a50f48ff16b8c",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/workflow-policy.ts",
-            "Line": 29,
-            "Op": "Regex",
-            "Snippet": "/:\\s*[|\u003e][-+0-9]*/",
-            "Origin": "in-hunk",
-            "Key": "f82a50f48ff16b8c",
-            "Lifecycle": "in-diff",
-            "Note": ""
           },
           {
             "File": "scripts/workflow-policy.ts",
@@ -957,6 +907,16 @@
           {
             "start": 220,
             "end": 550,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 551,
+            "end": 553,
+            "construct": "hunk"
+          },
+          {
+            "start": 554,
+            "end": 590,
             "construct": "ExpressionStatement"
           }
         ],
@@ -1634,13 +1594,13 @@
       ".dross/phases/01-public-ci/changes.json": [
         {
           "start": 1,
-          "end": 550
+          "end": 579
         }
       ],
       ".dross/phases/01-public-ci/plan.toml": [
         {
           "start": 1,
-          "end": 118
+          "end": 129
         }
       ],
       ".dross/phases/01-public-ci/spec.toml": [
@@ -1652,13 +1612,13 @@
       ".dross/phases/01-public-ci/tests.json": [
         {
           "start": 1,
-          "end": 2946
+          "end": 2045
         }
       ],
       ".dross/phases/01-public-ci/verify.toml": [
         {
           "start": 1,
-          "end": 666
+          "end": 186
         }
       ],
       ".dross/project.toml": [
@@ -1670,7 +1630,7 @@
       ".dross/survivors.toml": [
         {
           "start": 1,
-          "end": 199
+          "end": 316
         }
       ],
       ".gitattributes": [
@@ -1838,7 +1798,7 @@
       "scripts/workflow-policy.spec.ts": [
         {
           "start": 1,
-          "end": 550
+          "end": 590
         }
       ],
       "scripts/workflow-policy.ts": [
@@ -2040,6 +2000,6 @@
     "source": "git+changes"
   },
   "measured_on": "local",
-  "measured_commit": "b88968a7347368f1777ee8e99ff8924ac0023748",
-  "measured_tree": "6c45783f43832cb21f3e664f1fe5cd418f853f3b"
+  "measured_commit": "686d6646e2143bced9c0e78e22cd47c0d56626e7",
+  "measured_tree": "01baef9709a664f8a30e8a2725d464c3478a7160"
 }
