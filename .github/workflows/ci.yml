@@ -124,10 +124,12 @@ jobs:
           SCHEDULER_DISABLED: '1'
         run: |
           set +e
-          node --trace-uncaught e2e/seed.ts; echo "DIAG seed exit $?"
-          node --input-type=module -e "import {createClient} from '@libsql/client';const c=createClient({url:'file:e2e/.data/diag.db'});const r=await c.execute('select 1');console.log('DIAG libsql ok',r.rows.length);c.close();console.log('DIAG closed')"; echo "DIAG libsql-min exit $?"
-          pnpm build > /dev/null 2>&1; echo "DIAG build exit $?"
-          timeout 25 pnpm preview > preview.log 2>&1; echo "DIAG preview exit $?"; tail -5 preview.log
+          node e2e/seed.ts >/dev/null
+          for i in 1 2 3 4 5; do pnpm build >/dev/null 2>&1; echo "DIAG baseline build $i exit $?"; done
+          printf "%s\n" "import { building } from '\$app/environment';" "import { DATABASE_URL } from '\$app/env/private';" "import { createDb, type Db } from './client.ts';" "if (!building && !DATABASE_URL) throw new Error('DATABASE_URL is not set');" "export const db: Db = building ? (undefined as unknown as Db) : createDb(DATABASE_URL);" > src/lib/server/db/index.ts
+          cat src/lib/server/db/index.ts
+          for i in 1 2 3 4 5; do pnpm build >/dev/null 2>&1; echo "DIAG guarded build $i exit $?"; done
+          git checkout -- src/lib/server/db/index.ts
       - name: e2e tests
         run: pnpm test:e2e
         env:
