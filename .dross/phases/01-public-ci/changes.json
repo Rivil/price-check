@@ -144,6 +144,23 @@
           "what": "rulesets require the five CI checks on main and milestone/*, admin-only bypass"
         }
       ]
+    },
+    "t-8": {
+      "files": [
+        "scripts/workflow-policy.spec.ts",
+        "scripts/rulesets.spec.ts",
+        "scripts/gitleaks-config.spec.ts"
+      ],
+      "commit": "e57a701",
+      "completed_at": "2026-11-11T12:45:39.055649Z",
+      "landmarks": [
+        {
+          "feature": "CI supply-chain policy",
+          "symbol": "exact reports",
+          "loc": "scripts/workflow-policy.spec.ts:225",
+          "what": "exact line/message tests for every policy path plus ci.yml-steps and gitleaks-allowlist narrowness specs"
+        }
+      ]
     }
   },
   "reviews": {
@@ -420,6 +437,111 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The deletion/force-push test checks only that milestone.json has no deletion rule. It doesn't check whether milestone.json has non_fast_forward, which the record also leaves out, so this matches the spec.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-8": {
+      "outcome": "pass",
+      "rounds": 3,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "spec",
+          "severity": "BLOCKING",
+          "criterion": "c-5",
+          "text": "test_contract says a quoted 'permissions': key that goes unreported fails the quoted-key test, but only a double-quoted \"permissions\": key is tested; no test uses a single-quoted 'permissions': key, so PERMISSIONS_KEY (workflow-policy.ts line 32) could drop the single quote from its character classes and every test would still pass",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "gitleaks-config.spec only checks the text before the first [[allowlists]] for a global [allowlist] table. One added at the end of the file lands inside the last entry's split text, where list(entry, 'paths') reads only the first paths key, so the global table's paths are never checked. Checking `config` instead of `head` would catch it",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "The path-narrowness check rejects .*, *, .+ and a trailing /$, but accepts other wildcard patterns such as ^dir/[^/]+\\.html$ or ^dir/\\w+$. The task asks for exact file paths only, so it would be stricter to reject unescaped regex metacharacters ([, +, ?, |, (, \\w and similar)",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The CLI test uses spawnSync instead of the execFileSync the description names. It is equivalent here: it checks the exit status and stderr, and .node-version 24.14.0 supports type stripping and import.meta.main",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "scripts/workflow-policy.ts is listed in the task's files but unchanged, as the description allows when no real bug is found",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-3",
+          "text": "gitleaks-config.spec list() stops its array capture at the first ']', so a path containing a character class (e.g. '''^src/fixtures/[^/]+$''') is cut off and silently left out of the anchored-exact-path check; a directory-wide pattern placed after an exact path in the same entry would pass. Match up to the closing ']' on its own line, or count unterminated ''' strings and fail on them.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The CLI process test uses spawnSync where the description says execFileSync; it checks the same things (status 1 with file:line in stderr, status 0 when clean).",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "workflow-policy.ts is listed in the task files but is unchanged, which matches the tests-only instruction.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "Description item 1 says to replace the bare `not.toEqual([])` reject assertions, but the old ones are still in workflow-policy.spec.ts (lines 80, 90, 128, 155, 160, 161, 166). The new 'exact reports' block pins most of those cases by message and line, but not all of them: 'nested permissions block', 'a flow-style jobs map' and the top-level extra-scope case are still only checked as 'some violation'.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "Two branches in workflow-policy.ts have no test pinning their message: 'workflow-level permissions must be exactly one contents: read' (line 144, e.g. a duplicate contents: read) and 'more than one workflow-level permissions block' (line 205). Mutants there probably still survive, which could hold down the mutation score at re-verify.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "The ci.yml steps test pins the exact run commands, so `|| true` or a moved step is caught. It does not catch `continue-on-error: true` on those steps, but the record does not claim that.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The CLI test uses spawnSync rather than the execFileSync the description names. It is equivalent and asserts the exit status directly.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 3,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-3",
+          "text": "gitleaks-config.spec.ts splits only on top-level `[[allowlists]]`. A `[[rules.allowlists]]` entry or a custom `[[rules]]` block added later would not be checked.",
           "resolution": "non-blocking, left"
         }
       ]
