@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { and, eq } from 'drizzle-orm';
@@ -10,6 +10,7 @@ import { alertChannel, notifyChannel, priceDropDelivery, user } from '../db/sche
 import { MIGRATIONS_FOLDER } from '../testing/auth-harness.ts';
 import { backfillLegacyNtfy } from './backfill.ts';
 import { channelsFor, listChannels, loadChannelConfig, saveChannel } from './channels.ts';
+import { removeTempDir } from '../testing/temp-dir.ts';
 
 // Encryption fails on demand for one user, to prove the others still move.
 // nonError throws a plain object instead, as a non-Error rejection would arrive.
@@ -79,7 +80,7 @@ beforeEach(() => {
 });
 afterEach(() => {
 	db.$client.close();
-	rmSync(dir, { recursive: true, force: true });
+	removeTempDir(dir);
 });
 
 describe('backfillLegacyNtfy', () => {

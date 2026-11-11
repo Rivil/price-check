@@ -1,12 +1,13 @@
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './client.ts';
 import { migrateDb, migrationsFolder } from './migrate.ts';
 import { notifyChannel, priceDropDelivery, user } from './schema.ts';
 import { MIGRATIONS_FOLDER } from '../testing/auth-harness.ts';
+import { removeTempDir } from '../testing/temp-dir.ts';
 
 let dir: string;
 let db: Db;
@@ -24,12 +25,15 @@ beforeEach(() => {
 });
 afterEach(() => {
 	db.$client.close();
-	rmSync(dir, { recursive: true, force: true });
+	removeTempDir(dir);
 });
 
 describe('migrateDb', () => {
 	it('migrationsFolder', () => {
-		expect(migrationsFolder('/app')).toBe('/app/drizzle');
+		// Shape, not a re-run of resolve(): absolute, ending in app/drizzle (any separator).
+		const folder = migrationsFolder('/app');
+		expect(isAbsolute(folder)).toBe(true);
+		expect(folder).toMatch(/[\\/]app[\\/]drizzle$/);
 		// The tests run from the repo root, where the real migrations live.
 		expect(migrationsFolder()).toBe(MIGRATIONS_FOLDER);
 	});

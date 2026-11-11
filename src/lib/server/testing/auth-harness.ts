@@ -1,13 +1,14 @@
 // Test-only: a real better-auth instance over a fresh, migrated temp-FILE SQLite
 // database. Never :memory: — libsql opens a new connection per transaction, and
 // an in-memory database is per-connection, so transactional writes would vanish.
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { migrate } from 'drizzle-orm/libsql/migrator';
 import { createAuth } from '../auth-factory.ts';
 import { createDb } from '../db/client.ts';
+import { removeTempDir } from './temp-dir.ts';
 
 export const MIGRATIONS_FOLDER = fileURLToPath(new URL('../../../../drizzle', import.meta.url));
 export const HARNESS_BASE_URL = 'http://localhost:3000';
@@ -77,7 +78,7 @@ export async function createAuthHarness() {
 
 	function cleanup() {
 		db.$client.close();
-		rmSync(dir, { recursive: true, force: true });
+		removeTempDir(dir);
 	}
 
 	return { auth, db, url, file, createUser, signIn, request, cleanup };
