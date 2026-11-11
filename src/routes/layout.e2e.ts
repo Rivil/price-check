@@ -138,10 +138,17 @@ test('no sideways scroll tooltip', async ({ browser }) => {
 
 			await tooltip.scrollIntoViewIfNeeded();
 			const box = await tooltip.boundingBox();
-			expect(box!.x, 'tooltip left of the viewport').toBeGreaterThanOrEqual(0);
-			expect(box!.x + box!.width, 'tooltip right of the viewport').toBeLessThanOrEqual(PHONE.width);
-			expect(box!.y, 'tooltip above the viewport').toBeGreaterThanOrEqual(0);
-			expect(box!.y + box!.height, 'tooltip below the viewport').toBeLessThanOrEqual(PHONE.height);
+			// Font metrics differ per OS, so edges land on fractional pixels while scrolling
+			// snaps to whole ones (Linux CI: bottom at 800.19 of 800). Allow under 1px.
+			const SUBPIXEL = 1;
+			expect(box!.x, 'tooltip left of the viewport').toBeGreaterThanOrEqual(-SUBPIXEL);
+			expect(box!.x + box!.width, 'tooltip right of the viewport').toBeLessThanOrEqual(
+				PHONE.width + SUBPIXEL
+			);
+			expect(box!.y, 'tooltip above the viewport').toBeGreaterThanOrEqual(-SUBPIXEL);
+			expect(box!.y + box!.height, 'tooltip below the viewport').toBeLessThanOrEqual(
+				PHONE.height + SUBPIXEL
+			);
 			await expectNoOverflow(page);
 		}
 	} finally {

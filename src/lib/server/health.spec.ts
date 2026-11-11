@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DrizzleQueryError } from 'drizzle-orm';
@@ -7,6 +7,7 @@ import { createDb, type Db } from './db/client.ts';
 import { migrateDb } from './db/migrate.ts';
 import { healthResponse } from './health.ts';
 import { MIGRATIONS_FOLDER } from './testing/auth-harness.ts';
+import { removeTempDir } from './testing/temp-dir.ts';
 
 let dir: string;
 let opened: Db[];
@@ -60,7 +61,7 @@ afterEach(() => {
 	vi.useRealTimers();
 	vi.restoreAllMocks();
 	for (const db of opened) db.$client.close();
-	rmSync(dir, { recursive: true, force: true });
+	removeTempDir(dir);
 });
 
 describe('healthResponse', () => {

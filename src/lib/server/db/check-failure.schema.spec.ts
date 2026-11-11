@@ -1,4 +1,4 @@
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { eq } from 'drizzle-orm';
@@ -7,6 +7,7 @@ import { createAuthHarness, MIGRATIONS_FOLDER, type AuthHarness } from '../testi
 import { createDb, type Db } from './client.ts';
 import { migrateDb } from './migrate.ts';
 import { checkFailure, user, watch } from './schema.ts';
+import { removeTempDir } from '../testing/temp-dir.ts';
 
 const CHECKED_AT = new Date(1_700_000_000_000);
 const CREATED_AT = new Date(1_690_000_000_000);
@@ -89,7 +90,7 @@ describe('0006 backfill', () => {
 	});
 	afterEach(() => {
 		db.$client.close();
-		rmSync(dir, { recursive: true, force: true });
+		removeTempDir(dir);
 	});
 
 	const addWatch = (id: string, values: Partial<typeof watch.$inferInsert>) =>
