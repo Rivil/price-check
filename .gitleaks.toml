@@ -57,3 +57,13 @@ paths = [
   '''^src/lib/server/testing/fixtures/smtp-test-localhost\.key$''',
   '''^src/lib/server/testing/fixtures/smtp-test-untrusted\.key$''',
 ]
+
+[[allowlists]]
+description = "dross verify records mutation-survivor ids as JSON \"Key\": \"<16 hex>\"; generic-api-key reads that as a key. Exact file, exact line shape only."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = [
+  '''^\.dross/phases/01-public-ci/tests\.json$''',
+]
+regexTarget = "line"
+regexes = ['''^\s*"Key": "[0-9a-f]{16}",?$''']
