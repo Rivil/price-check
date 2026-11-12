@@ -35,6 +35,27 @@
           "what": "403s any request whose Host header is not localhost/127.0.0.1 (DNS-rebinding guard)"
         }
       ]
+    },
+    "t-3": {
+      "files": [
+        "src/routes/+layout.svelte",
+        "src/routes/+layout.server.ts",
+        "src/routes/layout.server.spec.ts",
+        "src/lib/nav.ts",
+        "src/lib/nav.spec.ts",
+        "src/lib/components/SiteFooter.svelte",
+        "src/lib/components/SiteFooter.svelte.spec.ts"
+      ],
+      "commit": "32275bd",
+      "completed_at": "2026-11-12T08:30:54.384074Z",
+      "landmarks": [
+        {
+          "feature": "site chrome",
+          "symbol": "SiteFooter",
+          "loc": "src/lib/components/SiteFooter.svelte:9",
+          "what": "always-on header (Watchlist+Alerts only, no Sign out) and footer Source link to the public repo for AGPL-3.0 §13"
+        }
+      ]
     }
   },
   "reviews": {
@@ -83,6 +104,35 @@
           "severity": "NOTE",
           "criterion": "c-7",
           "text": "The reject table goes past the contract with 'localhost:0', 'localhost:65536' and leading/trailing-space rows, so the port-range check and anchoring are actually exercised",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-3": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-4",
+          "text": "Existing e2e specs still assert the removed header surface (Sign out button, Account link): src/routes/header.e2e.ts, focus.e2e.ts, login/login.e2e.ts, account/password/change-password.e2e.ts, admin/users/admin-users.e2e.ts. They will fail after this change unless a sibling task removes or updates them; none is in this task's file list.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-4",
+          "text": "ARCHITECTURE.md:151 still describes a header with Account, Admin for admins, and a POST Sign out; it is now stale.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/routes/account/password/+page.svelte still exists on disk, so the 'every nav link resolves to a route' test would not yet catch a leftover Account -\u003e /account/password link until the sibling route-removal task deletes it. The self-check test probes /account/nonexistent, not /account/password, despite its name.",
           "resolution": "non-blocking, left"
         }
       ]
