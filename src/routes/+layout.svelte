@@ -4,46 +4,40 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import favicon from '#lib/assets/favicon.svg';
+	import SiteFooter from '#lib/components/SiteFooter.svelte';
 	import { navItems } from '#lib/nav.ts';
 	import type { LayoutProps } from './$types';
 
-	let { data, children }: LayoutProps = $props();
+	let { children }: LayoutProps = $props();
 
 	// Server-rendered from the request URL, so aria-current is right before hydration.
-	const items = $derived(
-		data.nav ? navItems({ pathname: page.url.pathname, isAdmin: data.nav.isAdmin }) : []
-	);
+	const items = $derived(navItems({ pathname: page.url.pathname }));
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{#if data.nav}
-	<header class="site-header">
-		<div class="bar">
-			<!-- Plain text, not a heading: each page owns its one h1. -->
-			<span class="brand">Amazon price check</span>
-			<nav aria-label="Main">
-				<ul>
-					{#each items as item (item.href)}
-						<li>
-							<a href={resolve(item.href)} aria-current={item.current}>{item.label}</a>
-						</li>
-					{/each}
+<header class="site-header">
+	<div class="bar">
+		<!-- Plain text, not a heading: each page owns its one h1. -->
+		<span class="brand">Amazon price check</span>
+		<nav aria-label="Main">
+			<ul>
+				{#each items as item (item.href)}
 					<li>
-						<!-- A POST, never a GET link: logout must not be prefetchable (sign_out_control). -->
-						<form method="post" action="/logout">
-							<button class="link">Sign out</button>
-						</form>
+						<a href={resolve(item.href)} aria-current={item.current}>{item.label}</a>
 					</li>
-				</ul>
-			</nav>
-		</div>
-	</header>
-{/if}
+				{/each}
+			</ul>
+		</nav>
+	</div>
+</header>
 
 {@render children()}
+
+<!-- Outside any {#if}: error pages carry the Source link too (AGPL-3.0 §13). -->
+<SiteFooter />
 
 <style>
 	.site-header {
@@ -86,23 +80,5 @@
 	a[aria-current='page'] {
 		font-weight: 600;
 		color: var(--text);
-	}
-
-	form {
-		margin: 0;
-	}
-
-	/* Sign out looks like the links beside it; it keeps the global focus outline. */
-	.link {
-		background: none;
-		border: none;
-		border-radius: 0;
-		padding: 0;
-		color: var(--accent);
-		font: inherit;
-	}
-
-	.link:hover {
-		text-decoration: underline;
 	}
 </style>
