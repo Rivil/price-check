@@ -6,8 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDb, type Db } from './db/client.ts';
 import { migrateDb } from './db/migrate.ts';
 import { healthResponse } from './health.ts';
-import { MIGRATIONS_FOLDER } from './testing/auth-harness.ts';
 import { removeTempDir } from './testing/temp-dir.ts';
+import { createTestDb, MIGRATIONS_FOLDER } from './testing/test-db.ts';
 
 let dir: string;
 let opened: Db[];
@@ -80,6 +80,16 @@ describe('healthResponse', () => {
 		const garbage = freshFile();
 		writeFileSync(garbage, 'this is not a database\n'.repeat(200));
 		await expectUnavailable(await healthResponse(open(garbage)));
+	});
+
+	it('closed client', async () => {
+		const t = await createTestDb();
+		expect((await healthResponse(t.db)).status).toBe(200);
+
+		t.dispose();
+
+		await expectUnavailable(await healthResponse(t.db));
+		expect(logLines()).toEqual(['[health] read failed: DrizzleQueryError']);
 	});
 
 	it('every table', async () => {
