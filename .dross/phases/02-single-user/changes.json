@@ -2,5 +2,52 @@
   "phase": "02-single-user",
   "base": "milestone/v0.1",
   "base_commit": "c052445532d73841dfac9e7d364766b5fc5b79d9",
-  "tasks": {}
+  "tasks": {
+    "t-1": {
+      "files": [
+        "src/lib/server/testing/test-db.ts",
+        "src/lib/server/testing/test-db.spec.ts",
+        "src/lib/server/health.spec.ts"
+      ],
+      "commit": "c5fd8f4",
+      "completed_at": "2026-11-12T08:26:34.578812Z",
+      "landmarks": [
+        {
+          "feature": "test database harness",
+          "symbol": "createTestDb",
+          "loc": "src/lib/server/testing/test-db.ts:24",
+          "what": "fresh migrated temp-file SQLite per call with dispose() closing the client and removing the dir"
+        }
+      ]
+    }
+  },
+  "reviews": {
+    "t-1": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "health.spec 'closed client' calls createTestDb() outside the spec's opened/afterEach cleanup; if the 200 assertion fails before t.dispose(), that client and its temp dir leak for the rest of the run",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "MIGRATIONS_FOLDER is now defined identically in test-db.ts, auth-harness.ts and cli/admin-create.ts; the record expects auth-harness to be deleted in t-7, which leaves two copies",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "test-db.spec's MIGRATIONS_FOLDER === migrationsFolder() assertion depends on vitest running from the repo root; that is intended here but will break if the test cwd changes",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    }
+  }
 }

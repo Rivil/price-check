@@ -16,7 +16,7 @@ test_contract = [
   '''if the harness points at a stale or wrong migrations folder, test-db.spec's 'fresh harness DB has __drizzle_migrations row count === journal entry count' fails''',
   '''if health.spec no longer 503s on a closed client after switching harness, health.spec fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-2"
