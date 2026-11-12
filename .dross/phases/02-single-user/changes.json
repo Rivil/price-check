@@ -19,6 +19,22 @@
           "what": "fresh migrated temp-file SQLite per call with dispose() closing the client and removing the dir"
         }
       ]
+    },
+    "t-2": {
+      "files": [
+        "src/lib/server/local-request.ts",
+        "src/lib/server/local-request.spec.ts"
+      ],
+      "commit": "7d337c3",
+      "completed_at": "2026-11-12T08:28:33.651619Z",
+      "landmarks": [
+        {
+          "feature": "local request guard",
+          "symbol": "createLocalRequestHandle",
+          "loc": "src/lib/server/local-request.ts:28",
+          "what": "403s any request whose Host header is not localhost/127.0.0.1 (DNS-rebinding guard)"
+        }
+      ]
     }
   },
   "reviews": {
@@ -45,6 +61,28 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "test-db.spec's MIGRATIONS_FOLDER === migrationsFolder() assertion depends on vitest running from the repo root; that is intended here but will break if the test cwd changes",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-2": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "Ports with leading zeros (e.g. 'localhost:00080') are accepted as port 80; harmless for a loopback guard, but this case is untested",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "The reject table goes past the contract with 'localhost:0', 'localhost:65536' and leading/trailing-space rows, so the port-range check and anchoring are actually exercised",
           "resolution": "non-blocking, left"
         }
       ]

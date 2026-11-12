@@ -33,7 +33,7 @@ test_contract = [
   '''if the handle reads event.url instead of the Host header, the test with event.url = http://localhost/ and Host 'evil.example' fails (expects 403 and resolve never called)''',
   '''if X-Forwarded-Host: localhost with Host evil.example is let through, or '/health' with a foreign Host is exempted, the handle tests fail (both expect 403)''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-3"
