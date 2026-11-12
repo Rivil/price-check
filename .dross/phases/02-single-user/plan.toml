@@ -1,0 +1,209 @@
+task_seq = 13
+[phase]
+id = "02-single-user"
+
+[[task]]
+id            = "t-1"
+wave          = 1
+title         = "Add migrated temp-DB test harness"
+files         = ["src/lib/server/testing/test-db.ts", "src/lib/server/testing/test-db.spec.ts", "src/lib/server/health.spec.ts"]
+description   = '''
+New createTestDb(): temp dir + createDb + migrateDb on the real drizzle/ folder; dispose() closes the client then removeTempDir (best-effort on win32, libsql keeps the file locked). Exports MIGRATIONS_FOLDER. health.spec switches its import off auth-harness. Specs move onto this harness in t-4/t-5 so auth-harness can be deleted in t-7.
+'''
+covers        = ["c-5"]
+test_contract = [
+  '''if two createTestDb() calls share a file, or after dispose() db.$client.execute does not reject as closed (and, non-win32, the temp dir still exists), test-db.spec fails''',
+  '''if the harness points at a stale or wrong migrations folder, test-db.spec's 'fresh harness DB has __drizzle_migrations row count === journal entry count' fails''',
+  '''if health.spec no longer 503s on a closed client after switching harness, health.spec fails''',
+]
+status        = "pending"
+
+[[task]]
+id            = "t-2"
+wave          = 1
+title         = "Add loopback Host guard module"
+files         = ["src/lib/server/local-request.ts", "src/lib/server/local-request.spec.ts"]
+description   = '''
+New pure isLoopbackHost(host: string | null) + createLocalRequestHandle(): reads event.request.headers.get('host') only (never event.url — adapter-node builds that from ORIGIN), answers 403 text without calling resolve. Hostname case-insensitive; port optional and must be 1-65535 digits. No $app imports.
+'''
+covers        = ["c-7"]
+test_contract = [
+  '''if isLoopbackHost rejects any of 'localhost', 'localhost:4173', '127.0.0.1', '127.0.0.1:65535', 'LocalHost:80', the accept table in local-request.spec fails''',
+  '''if isLoopbackHost accepts any of null, '', 'evil.example', 'evil.example:4173', 'localhost.evil.example', 'evil.com:localhost', '127.0.0.1.nip.io', 'localhost.', '[::1]', '[::1]:4173', '0.0.0.0', '127.0.0.2', 'localhost:', 'localhost:abc', 'localhost:123456', 'user@localhost', 'localhost, evil.com', the reject table fails (a startsWith/includes implementation fails the look-alike rows)''',
+  '''if the handle reads event.url instead of the Host header, the test with event.url = http://localhost/ and Host 'evil.example' fails (expects 403 and resolve never called)''',
+  '''if X-Forwarded-Host: localhost with Host evil.example is let through, or '/health' with a foreign Host is exempted, the handle tests fail (both expect 403)''',
+]
+status        = "pending"
+
+[[task]]
+id            = "t-3"
+wave          = 1
+title         = "Strip auth from header; add Source footer"
+files         = ["src/routes/+layout.svelte", "src/routes/+layout.server.ts", "src/routes/layout.server.spec.ts", "src/lib/nav.ts", "src/lib/nav.spec.ts", "src/lib/components/SiteFooter.svelte", "src/lib/components/SiteFooter.svelte.spec.ts"]
+description   = '''
+Header always rendered (no data.nav gate), Watchlist + Alerts only, no Sign out form; navItems loses isAdmin and the Account item. Delete +layout.server.ts and layout.server.spec.ts (the only non-auth importer of access.ts). New SiteFooter with a 'Source' link to https://github.com/Rivil/price-check, rendered by +layout.svelte outside any {#if} so error pages get it.
+'''
+covers        = ["c-4"]
+test_contract = [
+  '''if navItems({ pathname: '/' }) hrefs are not exactly ['/', '/account/alerts'] with labels exactly ['Watchlist', 'Alerts'], nav.spec fails''',
+  '''if any navItems() href has no matching src/routes/<href>/+page.svelte on disk (e.g. a leftover Account -> /account/password), nav.spec's 'every nav link resolves to a route' test fails''',
+  '''if SiteFooter does not render exactly one link named 'Source' with href === 'https://github.com/Rivil/price-check' (trailing slash, .git or http:// fail) inside a contentinfo landmark, SiteFooter.svelte.spec fails''',
+]
+status        = "pending"
+
+[[task]]
+id            = "t-4"
+wave          = 2
+depends_on    = ["t-1"]
+title         = "Unscope alert channels: migration 0009 and consumers"
+files         = ["src/lib/server/db/channel.schema.ts", "src/lib/server/db/schema.ts", "src/lib/server/db/alert.schema.ts", "src/lib/server/db/alert.schema.spec.ts", "src/lib/server/db/channel.schema.spec.ts", "drizzle/0009_single_user_channels.sql", "drizzle/meta/0009_snapshot.json", "drizzle/meta/_journal.json", "src/lib/server/db/migrate.spec.ts", "src/lib/server/alerts/crypto.ts", "src/lib/server/alerts/crypto.spec.ts", "src/lib/server/alerts/channels.ts", "src/lib/server/alerts/channels.spec.ts", "src/lib/server/alerts/alerts.ts", "src/lib/server/alerts/alerts.spec.ts", "src/lib/server/alerts/live.spec.ts", "src/lib/server/alerts/backfill.ts", "src/lib/server/alerts/backfill.spec.ts", "src/lib/server/scheduler.spec.ts", "src/hooks.server.ts", "src/hooks.server.spec.ts", "src/routes/account/alerts/+page.server.ts", "src/routes/account/alerts/page.server.spec.ts", "src/routes/account/alerts/+page.svelte", "src/routes/account/alerts/page.svelte.spec.ts"]
+description   = '''
+notify_channel loses user_id (PK = kind, no user FK); price_drop_delivery loses user_id (FK (kind) -> notify_channel). drizzle-kit-generated table rebuild in 0009; drop legacy alert_channel; hand-append a delete of config_enc IS NULL channels + their deliveries. channelAad(kind) = ['alert-channel', kind]; channels API and alertAfter* lose the user arg; logs name the kind only. Delete backfill.ts, so hooks init drops the backfill step (auth handles stay until t-6). Alerts page: no signedIn/401, loginEmail removed (email cards start with an empty recipient). watch keeps user_id in this task, so specs inserting watches still create a user row. Large by necessity: schema, libs, route and specs must land together to keep the commit green (panel disagreement 2; fallback is merging with t-5).
+'''
+covers        = ["c-1", "c-5"]
+test_contract = [
+  '''if the 0009 notify_channel rebuild cascades deliveries, migrate.spec 'upgrade 0008->0009' fails (one user's 2 watches, 5 price_points, 1 encrypted channel, 1 delivery must keep identical counts and ids)''',
+  '''if 0009 is skipped (bad journal 'when') or leaves user_id, migrate.spec's PRAGMA table_info(notify_channel)/(price_drop_delivery) assertion fails''',
+  '''if a DB where alice and bob both have an 'ntfy' channel migrates instead of rejecting, or is left changed (last __drizzle_migrations row not still 0008), migrate.spec 'multi-user DB rejected and untouched' fails''',
+  '''if a 0008 notify_channel with config_enc NULL or its delivery survives 0009, or alert_channel remains in sqlite_master, migrate.spec fails''',
+  '''if a second notify_channel of kind 'ntfy' inserts, deleting a channel leaves its deliveries, or a delivery for a kind with no channel inserts, channel.schema.spec fails''',
+  '''if channelAad('ntfy') !== '["alert-channel","ntfy"]' or a blob sealed for 'ntfy' opens as 'smtp', crypto.spec fails''',
+  '''if a channel saved on client A cannot be read with the same file + key on client B, channels.spec 'survives reopen' fails; if a legacy-AAD or wrong-key row throws instead of being flagged undecryptable (and skipped by channelsFor, with no topic/token in logs), channels.spec fails''',
+  '''if an at-target watch with an enabled ntfy channel sends other than exactly once (and once more only after the target changes or the channel is re-added), or a disabled channel sends, alerts.spec fails''',
+  '''if account/alerts load({ locals: {} }) returns 401, does not return three null cards, or still returns a loginEmail key, page.server.spec fails''',
+  '''if hooks init order is not ['key', 'migrated', 'scheduler'] (backfill gone), hooks.server.spec fails''',
+]
+status        = "pending"
+
+[[task]]
+id            = "t-5"
+wave          = 3
+depends_on    = ["t-4"]
+title         = "Unscope watches: migration 0010 and consumers"
+files         = ["src/lib/server/db/watch.schema.ts", "drizzle/0010_single_user_watches.sql", "drizzle/meta/0010_snapshot.json", "drizzle/meta/_journal.json", "src/lib/server/db/migrate.spec.ts", "src/lib/server/db/watch.schema.spec.ts", "src/lib/server/db/price-point.schema.spec.ts", "src/lib/server/db/check-failure.schema.spec.ts", "src/lib/server/watches.ts", "src/lib/server/watches.spec.ts", "src/lib/server/checks.ts", "src/lib/server/checks.spec.ts", "src/lib/server/sparklines.ts", "src/lib/server/sparklines.spec.ts", "src/lib/server/scheduler.spec.ts", "src/lib/server/alerts/alerts.spec.ts", "src/lib/server/alerts/live.spec.ts", "src/routes/+page.server.ts", "src/routes/page.server.spec.ts", "src/routes/watches/[id]/+page.server.ts", "src/routes/watches/[id]/page.server.spec.ts"]
+description   = '''
+watch loses user_id and its user FK/index; unique (shop, product_id). drizzle-kit-generated rebuild in 0010. Every watch/check/sparkline function drops its userId parameter; PRODUCT_RACE matches the new constraint message. / and watches/[id] drop every locals.user read and error(401). All specs move from auth-harness to test-db.ts.
+'''
+covers        = ["c-1", "c-5"]
+test_contract = [
+  '''if the 0010 watch rebuild cascades, migrate.spec 'upgrade 0009->0010' fails (3 watches, 5 price_points, 2 check_failures, 1 delivery keep identical counts and ids); PRAGMA table_info(watch) must have no user_id''',
+  '''if a DB where alice and bob both watch B0X migrates instead of rejecting, or is left changed (last migration not still 0009), migrate.spec fails''',
+  '''if a watch + price point + channel are not all returned by listWatches/priceHistory/listChannels after closing the client and createDb + migrateDb on the same file, migrate.spec 'restart keeps data' fails''',
+  '''if rows inserted after the first migrateDb do not survive a second migrateDb on a new client, or __drizzle_migrations count changes, migrate.spec 'idempotent restart' fails''',
+  '''if a second watch with the same (shop, product_id) inserts, the same product_id on another shop is rejected, or deleting a watch leaves price_point/check_failure/price_drop_delivery rows, the schema specs fail''',
+  '''if Promise.all of two addWatch() for the same URL (stubbed check) yields two rows or different ids (PRODUCT_RACE still expecting watch.user_id), watches.spec fails; unknown-id getWatch/priceHistory/failureHistory/deleteWatch/checkNow must return null/[]/[]/false/not-found without throwing''',
+  '''if sparklines omits points from a second watch or includes points older than 30 days, sparklines.spec fails''',
+  '''if / load({ locals: {} }) on a fresh test DB does not resolve { watches: [] } or throws a 401 HttpError or Redirect, page.server.spec fails; ?/add with a fake shop then load must list it (no live fetch, r-01)''',
+  '''if watches/[id] load with locals {} on a seeded id does not return the watch view, an unknown id is not 404, or ?/delete then load is not 404, its page.server.spec fails''',
+]
+status        = "pending"
+
+[[task]]
+id            = "t-6"
+wave          = 3
+depends_on    = ["t-2", "t-4"]
+title         = "Rewire hooks: Host guard, auth handles out"
+files         = ["src/hooks.server.ts", "src/hooks.server.spec.ts"]
+description   = "handle = createLocalRequestHandle() alone: no access handle, no svelteKitHandler, no #lib/server/auth.ts import. access.ts is then imported only by its own spec and accounts.spec, and is deleted with the other auth code in t-7."
+covers        = ["c-1", "c-7"]
+test_contract = ["if the exported handle lets '/health' with Host 'evil.example' through (a /health bypass before the guard), hooks.server.spec fails (expects 403, resolve never called)", "if '/' with Host 'localhost:5173' and no cookie redirects (a surviving /login redirect) or calls resolve other than once, hooks.server.spec fails", "if hooks.server.ts (read ?raw) still imports from 'better-auth' (any subpath) or '#lib/server/auth', hooks.server.spec's direct import assertion fails; init order must stay ['key', 'migrated', 'scheduler']"]
+status        = "pending"
+
+[[task]]
+id            = "t-7"
+wave          = 4
+depends_on    = ["t-3", "t-5", "t-6"]
+title         = "Delete auth routes, libs and tables"
+files         = ["src/routes/login", "src/routes/logout", "src/routes/account/password", "src/routes/admin", "src/routes/no-public-signup.spec.ts", "src/lib/server/access.ts", "src/lib/server/access.spec.ts", "src/lib/server/auth.ts", "src/lib/server/auth-factory.ts", "src/lib/server/auth-factory.spec.ts", "src/lib/server/accounts.ts", "src/lib/server/accounts.spec.ts", "src/lib/server/admin-bootstrap.ts", "src/lib/server/admin-bootstrap.spec.ts", "src/lib/server/login-limiter.ts", "src/lib/server/login-limiter.spec.ts", "src/lib/server/own-password.ts", "src/lib/server/own-password.spec.ts", "src/lib/server/cli/admin-create.ts", "src/lib/server/testing/auth-harness.ts", "src/lib/server/db/auth.schema.ts", "src/lib/server/db/schema.ts", "drizzle/0011_drop_auth.sql", "drizzle/meta/0011_snapshot.json", "drizzle/meta/_journal.json", "src/lib/server/db/migrate.spec.ts", "src/app.d.ts", "src/routes/removed-routes.spec.ts"]
+description   = "Deletes auth routes (login, logout, account/password, admin), auth libs + specs, admin-create CLI, auth-harness and auth.schema; empties Locals in app.d.ts. Also writes destructive migration 0011 (drops the better-auth tables), the new removed-routes.spec and new migrate.spec cases. no-public-signup.spec is deleted (it asserts auth-factory.ts exists) and superseded by removed-routes.spec."
+covers        = ["c-3"]
+test_contract = ["if any +page*/+server* file exists under login, logout, account/password, admin or api/auth, or a root-level rest route ([...x]) exists that would answer those paths, removed-routes.spec fails", "if any non-test file under src/ (import.meta.glob ?raw) imports from 'better-auth' (any subpath) or a deleted module path, or matches /locals\\.user|\\/api\\/auth/, removed-routes.spec fails (import-level only here: src/env.ts still mentions better-auth in a doc link until t-8)", "if an empty DB after migrateDb has tables other than exactly [check_failure, notify_channel, price_drop_delivery, price_point, watch], any user_id column, or any index over user_id, migrate.spec 'install-owned schema' fails; schema.ts must export no user", "if any sqliteTable's getTableConfig column names differ from PRAGMA table_info, migrate.spec 'schema matches snapshot' fails (and pnpm db:generate must emit no new migration)", "if watch, price_point or notify_channel rows do not survive 0011, migrate.spec 'upgrade 0010->0011' fails"]
+status        = "pending"
+
+[[task]]
+id            = "t-8"
+wave          = 5
+depends_on    = ["t-7"]
+title         = "Remove better-auth deps and secret env"
+files         = ["src/env.ts", "src/env.spec.ts", "package.json", "pnpm-lock.yaml", ".env.example", "README.md", "ARCHITECTURE.md", "scripts/readme.spec.ts", "src/routes/removed-routes.spec.ts"]
+description   = '''
+Drop BETTER_AUTH_SECRET; ORIGIN stays declared but optional (passthrough schema; 03-desktop-shell must set ORIGIN=http://127.0.0.1:<port> because adapter-node otherwise assumes https). pnpm remove better-auth (and the auth CLI dep); drop admin:create and auth:schema scripts. README and .env.example lose the secret, ORIGIN and admin steps; readme.spec's 'pnpm admin:create' assertion is replaced.
+'''
+covers        = ["c-2"]
+test_contract = ["if Object.keys(variables).sort() is not exactly [ALERTS_ENCRYPTION_KEY, CHECK_INTERVAL_HOURS, DATABASE_URL, ORIGIN, SCHEDULER_DISABLED], or any key except DATABASE_URL fails to validate undefined -> { value: undefined }, env.spec fails (re-adding a required secret or a required ORIGIN fails it)", "if package.json dependencies/devDependencies contain 'better-auth' or 'auth', scripts contain admin:create or auth:schema, README or .env.example mention BETTER_AUTH_SECRET or admin:create, or .env.example has an ORIGIN line, readme.spec fails", "if any non-test file under src/ mentions better-auth or BETTER_AUTH_SECRET anywhere (full-text, incl. comments and doc links), removed-routes.spec's text scan (extended in this task) fails", "if ARCHITECTURE.md still mentions admin:create, BETTER_AUTH_SECRET or better-auth as current, readme.spec fails"]
+status        = "pending"
+
+[[task]]
+id            = "t-9"
+wave          = 6
+depends_on    = ["t-8"]
+title         = "Reseed e2e as one install; node-server helper"
+files         = ["e2e/seed.ts", "e2e/accounts.ts", "e2e/harness.e2e.ts", "playwright.config.ts", "e2e/node-server.ts", "src/routes/removed-routes.spec.ts"]
+description   = "Seed writes watches/points/failures with no owner (otherPriced, SEEDED_<user> credentials, signIn/submitLogin and E2E_SECRET removed) and saves the design ntfy channel via saveChannel with E2E_ALERTS_KEY. webServer env drops BETTER_AUTH_SECRET and ORIGIN. New e2e/node-server.ts: startNodeServer({ port, dbFile, env }) spawns node build (cwd repo root) with an env built from an allowlist (PATH/SystemRoot/HOME + given vars, never a process.env spread), waits for /health, stop() kills and awaits exit (win32 libsql lock); fails fast if build/index.js is missing. removed-routes.spec's import scan extends to e2e/. Known, accepted (review flag): pnpm check is red from here until t-10/t-11 drop the signIn imports in wave 7, and e2e has had no signal since t-4; both must be green before ship."
+covers        = ["c-2"]
+test_contract = [
+  '''if the fresh seed leaves a user/session table, watch ids differ from Object.values(SEEDED_WATCHES), notify_channel is not exactly one 'ntfy' row openable with E2E_ALERTS_KEY, or seed.ts stops throwing for a non-file: DATABASE_URL, harness.e2e 'fresh seed' fails''',
+  '''if playwright.config's webServer env has a BETTER_AUTH_SECRET or ORIGIN key, harness.e2e 'webServer env' fails''',
+  '''if startNodeServer spreads process.env (a probe child sees BETTER_AUTH_SECRET or ORIGIN without them being passed), harness.e2e 'node-server env' fails''',
+  '''if any file under e2e/ imports better-auth or a deleted module, removed-routes.spec (vitest) fails''',
+]
+status        = "pending"
+
+[[task]]
+id            = "t-10"
+wave          = 7
+depends_on    = ["t-9"]
+title         = "Strip sign-in from page-flow e2e specs"
+files         = ["src/routes/watchlist.e2e.ts", "src/routes/watches/[id]/watch-page.e2e.ts", "src/routes/account/alerts/alerts.e2e.ts", "src/routes/at-target.e2e.ts", "src/routes/chart-a11y.e2e.ts", "src/routes/page.svelte.e2e.ts"]
+description   = '''
+page.goto directly; cross-user ('only mine') cases deleted; counts/ordering re-based on the single merged watchlist. page.svelte.e2e.ts holds only 'demo sign-up page is gone' and is deleted.
+'''
+covers        = ["c-1"]
+test_contract = [
+  '''if page.goto('/') is not 200 with no redirectedFrom, the 'Watchlist' h1 is not visible, or any seeded title (formerly split across users) is missing, watchlist.e2e 'opens without login' fails''',
+  '''if /watches/e2e-page-detail does not load directly with its history, watch-page.e2e fails; if /account/alerts does not load directly showing the seeded topic, alerts.e2e fails; no spec may import signIn''',
+]
+status        = "pending"
+
+[[task]]
+id            = "t-11"
+wave          = 7
+depends_on    = ["t-3", "t-9"]
+title         = "Re-base chrome e2e; footer on every page"
+files         = ["src/routes/header.e2e.ts", "src/routes/layout.e2e.ts", "src/routes/focus.e2e.ts", "src/routes/contrast.e2e.ts", "src/routes/health/health.e2e.ts"]
+description   = '''
+Page lists become '/', a watch page, '/account/alerts' and a 404 page; login/admin/password rows deleted; the footer link joins the focus-order and contrast checks.
+'''
+covers        = ["c-4"]
+test_contract = ["if any of '/', '/watches/<seeded>', '/account/alerts' or '/no-such-page' (404 page) lacks exactly one footer link named 'Source' with href https://github.com/Rivil/price-check, shows a button named /sign out/i, or shows an 'Admin' or 'Account' link, header.e2e fails; every header nav href must GET 200", "if '/healthx' still redirects (was 303 to /login) instead of 404, health.e2e fails", "if the footer link fails contrast in either colour scheme, contrast.e2e fails", "if the footer 'Source' link is not reachable by Tab after the last main-content control on '/', focus.e2e fails", "if layout.e2e still visits /login, /admin/users or /account/password, or the layout checks miss the 404 page, layout.e2e fails"]
+status        = "pending"
+
+[[task]]
+id            = "t-12"
+wave          = 7
+depends_on    = ["t-6", "t-9"]
+title         = "Prove removed routes, CSRF, Host guard over HTTP"
+files         = ["e2e/removed-routes.e2e.ts", "e2e/local-guard.e2e.ts", "e2e/action-endpoints.ts", "src/routes/action-endpoints.spec.ts"]
+description   = '''
+ACTION_ENDPOINTS lists every [path, action]. Removed routes and CSRF run on the preview webServer (built, so Kit's CSRF check is compiled in). Host rows run on `node build` via node-server.ts with raw node:http requests (fetch can't set Host; preview.allowedHosts would 403 foreign Hosts with no hook). Static /_app/immutable/* assets are served before hooks and are out of scope here (routed to 03-desktop-shell).
+'''
+covers        = ["c-3", "c-6", "c-7"]
+test_contract = ["if GET or same-origin POST (urlencoded and JSON, maxRedirects 0) to /login, /logout, /account/password, /admin/users, /admin/users/x/password, /api/auth, /api/auth/get-session, /api/auth/session, /api/auth/sign-in/email or /login/__data.json is anything but exactly 404 with no Location and no Set-Cookie, removed-routes.e2e fails", "if any ACTION_ENDPOINTS entry accepts a POST with Origin https://evil.example (urlencoded, multipart, text/plain), Origin 'null', or no Origin instead of 403, or a follow-up GET shows the seeded watch/channel changed, local-guard.e2e's CSRF block fails; control: /?/add with Origin http://localhost:4173 and an unsupported URL must be 400, not 403 (no live fetch, r-01)", "if a +page.server.ts declares an action missing from ACTION_ENDPOINTS, or vite.config.ts sets csrf.trustedOrigins / disables the origin check, action-endpoints.spec fails", "if node build spawned WITH ORIGIN=http://127.0.0.1:<port> answers Host evil.example on GET '/', '/health', '/account/alerts' or '/watches/<id>/__data.json' with anything but 403, or answers Host '127.0.0.1:<port>' or 'localhost:9' with 403, local-guard.e2e fails", "if a request with no Host header (node:http setHost: false) gets any 2xx response, local-guard.e2e fails (Node 24 answers 400 before hooks; 400 or 403 both pass)", "if node build spawned WITHOUT ORIGIN accepts a POST with Host evil.example and Origin https://evil.example (only the Host guard can 403 it), local-guard.e2e fails"]
+status        = "pending"
+
+[[task]]
+id            = "t-13"
+wave          = 7
+depends_on    = ["t-9"]
+title         = "Prove fresh start, minimal env, restart"
+files         = ["e2e/fresh-install.e2e.ts", "e2e/restart.e2e.ts"]
+description   = '''
+Both spawn `node build` via node-server.ts on their own temp DB file and port. Watches are inserted via createDb (adding through the UI would live-fetch Amazon, r-01); the restart run sets SCHEDULER_DISABLED=1.
+'''
+covers        = ["c-1", "c-2", "c-5"]
+test_contract = [
+  '''if a server spawned with only allowlist + PORT + DATABASE_URL + ALERTS_ENCRYPTION_KEY (while the parent exports BETTER_AUTH_SECRET and ORIGIN) does not answer '/', '/account/alerts' and '/health' with 200, fresh-install.e2e fails; dropping ALERTS_ENCRYPTION_KEY or DATABASE_URL must make the process exit non-zero before ready''',
+  '''if GET '/' on a fresh temp DB (redirect 'manual') is not 200 at pathname '/' with the empty-watchlist text, or there is any input[type=password] or Set-Cookie, fresh-install.e2e fails''',
+  '''if, after server A (ORIGIN=http://127.0.0.1:<port>) saves an ntfy channel via /account/alerts?/save (.invalid host, r-01) and a watch + 2 price_points are inserted, server B on the same file does not list the watch on '/', show both prices on /watches/<id>, and show the topic decrypted on /account/alerts, restart.e2e fails''',
+]
+status        = "pending"
