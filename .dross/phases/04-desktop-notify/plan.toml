@@ -116,7 +116,7 @@ test_contract = [
   '''if installDesktop over a row the user set to {enabled:false, priceDrops:false, checkFailures:true} changes any flag, or a second installDesktop adds a row, desktop.spec 'seed never overwrites' fails''',
   '''if, with no installDesktop, channelKinds() includes 'desktop' or saveChannel(..., 'desktop', ...) succeeds, or the unregister returned by installDesktop leaves 'desktop' in channelKinds(), desktop.spec fails (desktop_only_driver; no cross-spec leak)''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-7"

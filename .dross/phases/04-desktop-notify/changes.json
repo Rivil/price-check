@@ -89,6 +89,22 @@
           "what": "wraps Electron Notification: settle-or-fail results, GC retention, click path routing; APP_ID shared with packaging"
         }
       ]
+    },
+    "t-6": {
+      "files": [
+        "src/lib/server/alerts/desktop.ts",
+        "src/lib/server/alerts/desktop.spec.ts"
+      ],
+      "commit": "c604835",
+      "completed_at": "2026-11-14T15:44:39.322076Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "createDesktopDriver",
+          "loc": "src/lib/server/alerts/desktop.ts:42",
+          "what": "desktop channel driver over the bridged notifier; click opens the watch; installDesktop registers and seeds the row"
+        }
+      ]
     }
   },
   "reviews": {
@@ -211,6 +227,33 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The click spec goes beyond the contract: it also covers backslash protocol-relative paths, relative paths, empty paths and a throwing handler, plus a construction or show() throw mapped to 'failed'.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-6": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "clickPathFor (desktop.ts) catches a watchExists failure and falls back to '/' without logging. The comment states why, so this is not a silent swallow, but a broken DB lookup on click leaves no trace.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "afterEach asserts channelKinds() has no 'desktop' entry after every test, so a missed unregister fails the spec instead of leaking into other specs.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "'seed never overwrites' installs twice over a user-edited row and checks both the flags and the row count, which covers both halves of its contract line.",
           "resolution": "non-blocking, left"
         }
       ]
