@@ -1,0 +1,734 @@
+{
+  "phase": "03-desktop-shell",
+  "base": "milestone/v0.1",
+  "base_commit": "6cd3a06b93a9df48600440bd34d3e5db90138959",
+  "tasks": {
+    "t-1": {
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        ".gitignore",
+        "scripts/build-desktop.ts",
+        "scripts/build-desktop.spec.ts"
+      ],
+      "commit": "981d0d9",
+      "completed_at": "2026-11-14T11:13:50.835424Z",
+      "landmarks": [
+        {
+          "feature": "desktop bundle build",
+          "symbol": "buildDesktop",
+          "loc": "scripts/build-desktop.ts:80",
+          "what": "esbuild bundles src/desktop/main.ts to dist-desktop/main.js (ESM, packages external, #lib inlined) and rejects $app/@libsql/drizzle-orm/libsql imports; electron 45.2.3 + esbuild pinned"
+        }
+      ]
+    },
+    "t-10": {
+      "files": [
+        "playwright.desktop.config.ts",
+        "playwright.config.ts",
+        "tsconfig.json",
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/harness.e2e.ts",
+        "scripts/build-desktop.spec.ts",
+        "package.json"
+      ],
+      "commit": "84ac028",
+      "completed_at": "2026-11-14T11:55:52.16812Z",
+      "landmarks": [
+        {
+          "feature": "desktop e2e harness",
+          "symbol": "launchDesktop",
+          "loc": "e2e/desktop/launch.ts:202",
+          "what": "launches real Electron via Playwright on a temp userData with an allowlisted env; own Playwright config the web suite ignores"
+        }
+      ]
+    },
+    "t-11": {
+      "files": [
+        "e2e/desktop/first-run.e2e.ts",
+        "e2e/desktop/quit-relaunch.e2e.ts"
+      ],
+      "commit": "42f96b3",
+      "completed_at": "2026-11-14T12:00:53.940196Z",
+      "landmarks": [
+        {
+          "feature": "desktop e2e lifecycle proof",
+          "symbol": "quitThroughApp",
+          "loc": "e2e/desktop/quit-relaunch.e2e.ts:50",
+          "what": "real-Electron specs proving first launch on empty userData, key reuse, app.quit exit 0 and immediate relaunch with data intact"
+        }
+      ]
+    },
+    "t-12": {
+      "files": [
+        "e2e/desktop/guard.e2e.ts"
+      ],
+      "commit": "863a5a1",
+      "completed_at": "2026-11-14T12:04:28.561796Z",
+      "landmarks": [
+        {
+          "feature": "local request guard",
+          "symbol": "guard in the app window",
+          "loc": "e2e/desktop/guard.e2e.ts:120",
+          "what": "real Electron proves same-origin window form posts pass while foreign/null/missing Origin and non-loopback Host (immutable assets too) get 403, port loopback-only"
+        }
+      ]
+    },
+    "t-13": {
+      "files": [
+        "e2e/desktop/background.e2e.ts"
+      ],
+      "commit": "b9fb305",
+      "completed_at": "2026-11-14T12:09:09.834214Z",
+      "landmarks": [
+        {
+          "feature": "desktop background running",
+          "symbol": "failureCounts",
+          "loc": "e2e/desktop/background.e2e.ts:111",
+          "what": "real-Electron e2e proving window close keeps serving, resume catch-up pass, single-instance relaunch and tray-only login launch"
+        }
+      ]
+    },
+    "t-14": {
+      "files": [
+        ".github/workflows/ci.yml",
+        "scripts/ci-desktop.spec.ts",
+        ".gitleaks.toml",
+        "scripts/gitleaks-config.spec.ts"
+      ],
+      "commit": "79bbc38",
+      "completed_at": "2026-11-14T12:35:25.859761Z",
+      "notes": "CI fix follow-up: 6cbeecb (build-time DATABASE_URL on the desktop e2e step). Windows desktop e2e still red in run 43594680457.",
+      "landmarks": [
+        {
+          "feature": "public CI",
+          "symbol": "desktop e2e step",
+          "loc": ".github/workflows/ci.yml:140",
+          "what": "three-OS CI runs the Electron e2e suite (Linux under xvfb with the AppArmor userns sysctl) with the Electron zip cached before install"
+        },
+        {
+          "feature": "public CI",
+          "symbol": "desktop e2e step env",
+          "loc": ".github/workflows/ci.yml:152",
+          "what": "build-time DATABASE_URL so the desktop suite's vite build passes SvelteKit env validation in CI"
+        }
+      ]
+    },
+    "t-15": {
+      "files": [
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/harness.e2e.ts",
+        "e2e/desktop/seed-child.ts",
+        "e2e/desktop/guard.e2e.ts",
+        "e2e/desktop/background.e2e.ts",
+        "e2e/desktop/quit-relaunch.e2e.ts",
+        ".gitignore",
+        ".github/workflows/ci.yml",
+        "scripts/ci-desktop.spec.ts"
+      ],
+      "commit": "f0692f9",
+      "completed_at": "2026-11-14T13:05:24.656591Z",
+      "notes": "CI fix follow-up: 252d1de (quit() uses the launch-time child; app.process() threw on a disposed app on Windows). PR #8 run 43597167874: desktop e2e 17/17 on windows-2025 and ubuntu (attempt 1), macOS failed attempt 1 on a pre-existing race in background.e2e.ts windows() (isVisible on a destroyed window during closeWindows), 17/17 on rerun attempt 2.",
+      "landmarks": [
+        {
+          "feature": "desktop e2e harness",
+          "symbol": "launchDesktop",
+          "loc": "e2e/desktop/launch.ts:310",
+          "what": "launches Electron with a resolved app path, does all DB access in the seed-child.ts process, and kills the process tree with taskkill /T /F on win32 so the suite runs on Windows"
+        }
+      ]
+    },
+    "t-16": {
+      "files": [
+        "e2e/desktop/background.e2e.ts"
+      ],
+      "commit": "b34ddc0",
+      "completed_at": "2026-11-14T13:13:36.966599Z",
+      "landmarks": [
+        {
+          "feature": "desktop background e2e",
+          "symbol": "windows",
+          "loc": "e2e/desktop/background.e2e.ts:69",
+          "what": "e2e window probe skips destroyed BrowserWindows so close/single-instance checks are deterministic"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "src/lib/server/scheduler.ts",
+        "src/lib/server/scheduler.spec.ts",
+        "src/lib/server/runtime-bridge.ts",
+        "src/lib/server/runtime-bridge.spec.ts",
+        "src/hooks.server.ts",
+        "src/hooks.server.spec.ts"
+      ],
+      "commit": "5c203f5",
+      "completed_at": "2026-11-14T11:19:03.965747Z",
+      "landmarks": [
+        {
+          "feature": "desktop runtime bridge",
+          "symbol": "publishRuntime",
+          "loc": "src/lib/server/runtime-bridge.ts:21",
+          "what": "server publishes requestPass/stop(drainMs)/closeDb on a globalThis registry symbol for Electron main"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "src/desktop/app-paths.ts",
+        "src/desktop/app-paths.spec.ts",
+        "src/desktop/alerts-key.ts",
+        "src/desktop/alerts-key.spec.ts",
+        "src/desktop/server-env.ts",
+        "src/desktop/server-env.spec.ts"
+      ],
+      "commit": "40971db",
+      "completed_at": "2026-11-14T11:23:51.14697Z",
+      "landmarks": [
+        {
+          "feature": "desktop first-launch bootstrap",
+          "symbol": "loadOrCreateAlertsKey",
+          "loc": "src/desktop/alerts-key.ts:97",
+          "what": "userData paths, a once-only 0600 alerts key via exclusive link, and the server env the adapter handler runs under"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "src/desktop/server.ts",
+        "src/desktop/server.spec.ts",
+        "src/desktop/testing/fake-handler.ts"
+      ],
+      "commit": "e6b1e47",
+      "completed_at": "2026-11-14T11:28:48.806939Z",
+      "landmarks": [
+        {
+          "feature": "desktop http server",
+          "symbol": "startDesktopServer",
+          "loc": "src/desktop/server.ts:67",
+          "what": "127.0.0.1 port-0 node:http wrapper that 403s non-loopback Host, forces X-Forwarded-Proto http, and loads adapter-node handler after env+chdir"
+        }
+      ]
+    },
+    "t-5": {
+      "files": [
+        "src/desktop/window.ts",
+        "src/desktop/window.spec.ts"
+      ],
+      "commit": "453d539",
+      "completed_at": "2026-11-14T11:32:06.28654Z",
+      "landmarks": [
+        {
+          "feature": "desktop app window",
+          "symbol": "createMainWindow",
+          "loc": "src/desktop/window.ts:108",
+          "what": "sandboxed window on the local origin; window.open always denied, off-origin http(s) to default browser, off-origin navigation/redirect prevented; showWindow recreates/restores"
+        }
+      ]
+    },
+    "t-6": {
+      "files": [
+        "src/desktop/login-item.ts",
+        "src/desktop/login-item.spec.ts"
+      ],
+      "commit": "2df5492",
+      "completed_at": "2026-11-14T11:36:31.165205Z",
+      "landmarks": [
+        {
+          "feature": "start at login",
+          "symbol": "createLoginItem",
+          "loc": "src/desktop/login-item.ts:115",
+          "what": "registers once on packaged first launch (Electron API on macOS/Windows; XDG autostart on Linux), detects login launch, tray toggle reads/writes OS state"
+        }
+      ]
+    },
+    "t-7": {
+      "files": [
+        "src/desktop/tray.ts",
+        "src/desktop/tray.spec.ts",
+        "src/desktop/assets/tray-icon.png",
+        "src/desktop/assets/tray-iconTemplate.png"
+      ],
+      "commit": "2497125",
+      "completed_at": "2026-11-14T11:39:40.868494Z",
+      "landmarks": [
+        {
+          "feature": "desktop tray",
+          "symbol": "createTray",
+          "loc": "src/desktop/tray.ts:80",
+          "what": "tray icon with Open/Start at login/Quit menu rebuilt from live OS login-item state after each toggle"
+        }
+      ]
+    },
+    "t-8": {
+      "files": [
+        "src/desktop/lifecycle.ts",
+        "src/desktop/lifecycle.spec.ts"
+      ],
+      "commit": "40cba9a",
+      "completed_at": "2026-11-14T11:44:38.763046Z",
+      "landmarks": [
+        {
+          "feature": "desktop app lifecycle",
+          "symbol": "runDesktop",
+          "loc": "src/desktop/lifecycle.ts:149",
+          "what": "single-instance lock, tray-only login launch, close-to-tray, resume pass, deadline-bounded quit ending in app.exit"
+        }
+      ]
+    },
+    "t-9": {
+      "files": [
+        "src/desktop/main.ts",
+        "src/desktop/boundary.spec.ts",
+        "scripts/build-desktop.spec.ts",
+        "package.json"
+      ],
+      "commit": "096fa5e",
+      "completed_at": "2026-11-14T11:48:49.24573Z",
+      "landmarks": [
+        {
+          "feature": "desktop app startup",
+          "symbol": "runDesktop wiring",
+          "loc": "src/desktop/main.ts:76",
+          "what": "Electron main entry wires real Electron objects into the lifecycle; boundary.spec pins main.ts as the only electron value import"
+        }
+      ]
+    }
+  },
+  "reviews": {
+    "t-1": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-1",
+          "text": "The root package.json postinstall 'install-electron' runs on every pnpm install, including `pnpm install --prod` or any install where devDependencies are skipped. In those cases the electron bin is missing and the install fails with command-not-found. Both CI jobs running `pnpm install --frozen-lockfile` will now also download the Electron binary, around 100 MB per job, unless it is cached. A guard such as an ELECTRON_SKIP_BINARY_DOWNLOAD-style env check, or tolerating a missing bin, would limit this.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Electron 45 has no install script of its own (its package.json has bin install-electron but no scripts.postinstall). So the 'electron' entry in onlyBuiltDependencies does nothing, and the binary actually comes from the root postinstall. The test contract still requires the allowlist, so this is fine as written.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The test contract says onlyBuiltDependencies must be exactly ['electron','esbuild']. The spec's yamlList helper checks this in order, and also rejects dangerouslyAllowAllBuilds, onlyBuiltDependenciesFile and a pnpm.onlyBuiltDependencies override in package.json, which is more than the contract asks.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "`packages: 'external'` already makes electron external. The explicit `external: ['electron']` repeats it, which does no harm.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-10": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-1",
+          "text": "launch.ts attaches its stdout/stderr listeners (collectOutput) only after _electron.launch resolves. If main prints the listening line before then, that output is never seen and waitForListening times out. It depends on Playwright's loader holding back app ready; reading the line through a listener attached at spawn, or Playwright's own process output, would remove the race.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "build-desktop.spec 'playwright config split' calls createFileMatcher from playwright/lib/util. That is an internal module, even though the package exports it, so a Playwright minor bump could rename or reshape it and break this vitest check with no matching change in behaviour.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The 'launcher env' test catches a process.env spread by checking the harness's own env keys against the allowlist (desktop.env). The checks on main's process.env alone would not catch one, because serverEnv overrides DATABASE_URL and the key and drops ORIGIN anyway. Both layers are asserted, so the contract holds.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "e2e/desktop/*.ts is not in tsconfig include; only playwright.desktop.config.ts was added, as the task specified. This matches the existing e2e/ files, which are not included either.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-11": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-1",
+          "text": "The contract's 30s first-window bound is not enforced end to end. launchDesktop waits up to 30s for the listening line, then firstWindow, toHaveURL and toBeVisible each get their own 30s, and the desktop config's test timeout is 90s. A first launch taking 40-90s would still pass first-run.e2e.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-9",
+          "text": "quitThroughApp awaits app.evaluate(({ app }) =\u003e app.quit()). If the main process's shutdown is ever fast enough to close the Playwright connection before the evaluate reply arrives, evaluate rejects and the test fails on a clean quit. Firing the quit without awaiting the evaluate result, or catching a 'closed' rejection, would remove the race.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The test process inserts the watch while launch 1 holds the DB, and the app has no WAL or busy timeout. This is safe only because the scheduler is disabled and the UI is idle at that moment.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The key is only ever compared by hash or decoded length and never printed. The ntfy topic and the watch URL are on .invalid hosts and the scheduler stays disabled, so r-01 and r-03 hold.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-12": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Every 403 case is checked two ways: CSRF refusals must contain Kit's CSRF text, and Host refusals must have the body 'Forbidden'. So a 403 from the wrong layer cannot pass by accident.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The four tests in the 'guard in the app window' block share one app launch. This only works because the desktop config sets workers: 1 and fullyParallel: false, and test 1's saved ntfy channel is part of the 'before' snapshot that test 2 compares against.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-13": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-6",
+          "text": "On macOS and Windows the 'login launch is tray-only' test reads app.getLoginItemSettings() for the unpackaged electron binary, which reflects the host machine's real login-item state; a developer machine that once registered Electron would fail this check for reasons unrelated to the app",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-6",
+          "text": "The login-launch test waits for the 'activate' listener to be attached before asserting no window, which ties the check to lifecycle.ts's startup order and keeps it from passing vacuously while startup is still running",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-14": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The DATABASE_URL added to the desktop e2e step has no test guarding it in ci-desktop.spec; if someone removes it, only a CI run of vite build would catch that. Fine for a CI-only fix.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The value reuses the web e2e's DB path (file:e2e/.data/e2e.db). That's harmless because the build never opens a client and Electron's main replaces it at launch through server-env.ts.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-15": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "e2e/desktop/launch.ts:379 early return in quit() (skip app.close() when the launch-time child has already exited) has no test exercising it; a spec that quits the app itself and then calls close() is the only coverage, and only on Windows CI",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "e2e/desktop/launch.ts:363 catch path still calls app.process(); safe there because app has not been disposed yet, unlike the quit path this diff fixes",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-16": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "e2e/desktop/background.e2e.ts:72 also drops a window whose BrowserWindow is alive but whose webContents is destroyed (e.g. a crashed renderer). closeWindows (line 93) and the windowless asserts (lines 186, 231) expect [], so they could pass with such a window still open. The task only asks for an isDestroyed() check on the window; consider filtering on window.isDestroyed() alone, or reporting a destroyed-webContents window instead of dropping it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "The two test_contract lines (10 consecutive local passes with --repeat-each 10, and PR #8 desktop e2e green on the first attempt on windows-2025, ubuntu and macOS) are run-time checks the diff can't show. Confirm them before marking t-16 done.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-2": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-9",
+          "text": "The 'stopped' guard in tick() makes the 'interval stays armed after stop' assertions vacuous: removing clearInterval from stop() would not fail 'stop drains' or 'ticks every 5 minutes until stopped', since every later tick returns null. A timer-count assertion (e.g. vi.getTimerCount()) would pin the interval teardown itself.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "In hooks.server.ts, closeDb reads db.$client only inside the closure, so publishing during a build never touches the build-time db Proxy.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Once stop() hits its drainMs timeout it resolves with a pass still running, so a quit that calls closeDb next will close the db under that pass. This is the accepted trade-off of the drain bound, and it is logged.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-3": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "alerts-key.spec 'a damaged key created by a competitor mid-write' asserts the path is named but never asserts the error message/stack omits the file contents ('half-writ'); the no-leak check exists only in the 'bad key refused' table",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "server-env.spec 'awkward path' uses process.chdir, which works only because Vitest 4 defaults to the forks pool; switching the server project to pool 'threads' would make it throw",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "databaseUrl's claim that Windows drive letters and backslashes pass through libsql unescaped is exercised only by the POSIX awkward-path test; Windows CI is the only place that path shape gets checked",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-4": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The two 'close with keep-alive' tests start their servers without pushing them onto `started`, so if an assertion fails before `server.close()` the listening server leaks into later tests.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "loadAdapterHandler replaces process.env instead of merging into it. Callers must pass a complete environment, which serverEnv already builds from the inherited env.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The tests go beyond the contract: they also cover a handler that throws (500), next() (404), and a repeated X-Forwarded-Proto header line, and the rawHeaders rewrite stops headersDistinct from bringing the client value back.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-5": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "will-navigate to an off-origin http(s) URL also hands it to shell.openExternal. The task description only says such navigations are prevented, but this matches the external_links decision and is tested.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "The test 'never cancels close' exercises createMainWindow, which registers no 'close' listener, so it can only catch a listener added there. A close listener added in showWindow would still be caught indirectly, because 'creates exactly one new window after the old one was closed' would then fail.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "windowOptions also sets webviewTag:false, beyond the stated preferences. It is a harmless hardening.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-6": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "Description asks the executor to confirm wasOpenedAtLogin still reports on macOS 13+ with the pinned Electron (45.2.3) and record the finding; the recorded finding in login-item.ts says it is unconfirmed. The window-at-login fallback is safe, but tray-only login launch on packaged macOS is still unconfirmed.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "linux ensureRegisteredOnce: if the autostart entry is written but the marker write then fails, the outcome is 'failed' with the entry left in place; the next launch just rewrites it, so this is harmless.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-7": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "toggleLogin computes the new value from a fresh loginItem.isEnabled() call rather than from the clicked item's checked state, so a toggle always flips whatever the OS currently reports; the 'toggles back and forth' and 'policy pin' tests pin this down",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the test 'the macOS file name ends in Template.png' only checks a constant against itself; the real guarantee comes from the darwin icon-path test and the file-exists test",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the RealDeps -\u003e TrayDeps\u003cMenu\u003e assignment in tray.spec.ts is only checked at compile time (pnpm check); vitest alone will not catch drift from Electron's Tray/Menu types",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-8": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "A before-quit that arrives during startup (before running.server/runtime are set, e.g. while startServer is still opening the DB) runs an empty shutdown and calls app.exit(0) right away, so the server and DB are never closed cleanly. Exiting the process releases them, so this is a rare-path risk rather than a bug, but no test covers quitting mid-startup.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "If startServer resolves but readRuntime throws, the listening server is never closed before app.exit(1). Process exit cleans it up, and the 'unpublished runtime' test covers the exit path.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The window-all-closed test spoofs process.platform across win32/linux/darwin, but the handler ignores platform, so the per-platform runs differ only in name. They still guard against a future platform-specific regression.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The realDepsFit compile-time check, which confirms Electron's real App/PowerMonitor/Dialog fit the structural deps, is only enforced by pnpm check, not by vitest.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-9": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "build-desktop.spec 'real entry' matches the identifier `moduleUrl` inside the bundled import() call; esbuild keeps that name today but would rename it on a scope collision, which would fail the test even though the bundle is correct",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ICON_DIR resolves to \u003cappRoot\u003e/src/desktop/assets, so packaging must ship src/desktop/assets alongside dist-desktop; outside this task's scope",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "installAppMenu runs only after runDesktop resolves 'started'; until then macOS shows Electron's default menu, which also has Quit, so no gap in behaviour",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    }
+  }
+}

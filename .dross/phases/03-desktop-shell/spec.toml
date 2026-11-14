@@ -1,0 +1,95 @@
+[phase]
+  id = "03-desktop-shell"
+  title = "03-desktop-shell"
+  milestone = "v0.1"
+
+[[criteria]]
+  id = "c-1"
+  text = "First launch with an empty userData dir opens a window on the empty watchlist: no .env, no env vars, no setup step."
+
+[[criteria]]
+  id = "c-2"
+  text = "The alerts key is generated once on first launch; channel credentials saved before a relaunch still decrypt and send after it."
+  deferred = ["21ac42705d627801"]
+
+[[criteria]]
+  id = "c-3"
+  text = "In the app window, same-origin form POSTs (e.g. adding a watch) succeed; a POST with a foreign Origin still gets 403."
+  deferred = ["a4203acc62a2d602"]
+
+[[criteria]]
+  id = "c-4"
+  text = "The server accepts connections only on 127.0.0.1, and any request with a non-loopback Host gets 403, /_app/immutable/* assets included."
+  deferred = ["87b48a2f75002539"]
+
+[[criteria]]
+  id = "c-5"
+  text = "Closing the window leaves the app running in the tray: the server keeps answering, scheduled checks keep running, and the tray's Open restores the window."
+
+[[criteria]]
+  id = "c-6"
+  text = "First launch registers start-at-login (macOS, Windows, Linux); a login launch shows only the tray, no window; the tray's Start at login toggle removes and restores it."
+
+[[criteria]]
+  id = "c-7"
+  text = "Launching while already running starts no second process or server; the running app shows its window, reopening it if closed."
+
+[[criteria]]
+  id = "c-8"
+  text = "On an OS resume-from-sleep event, a scheduler pass runs immediately, checking every watch that came due during sleep."
+
+[[criteria]]
+  id = "c-9"
+  text = "Quit (tray or app menu) stops the server and scheduler and ends the process; an immediate relaunch, Windows included, opens the same DB with all data intact."
+  deferred = ["b6b94cda0fcf3988"]
+
+[[decisions]]
+  key = "server_port"
+  choice = "Bind 127.0.0.1 on an OS-assigned free port each launch; never a fixed port."
+  why = "A fixed port fails to start whenever another program holds it, and non-technical users cannot fix that. Nothing depends on a stable origin: no auth cookies and no localStorage."
+  locked = true
+
+[[decisions]]
+  key = "desktop_server_wrapper"
+  choice = "Electron main runs its own node:http server that Host-checks every request first, then hands it to adapter-node's handler with the request treated as plain http on the live port. No build-time fixed origin."
+  why = "One wrapper closes both parked gaps: sirv serves /_app/immutable/* before hooks, and adapter-node 6 ignores runtime ORIGIN. A build-time origin cannot know a per-launch port."
+  locked = true
+
+[[decisions]]
+  key = "alerts_key_storage"
+  choice = "Generate 32 random bytes on first launch and store them in a userData file (0600 on POSIX), never in the OS keychain or safeStorage. A present key is never regenerated."
+  why = "The DB sits in the same userData dir, so a keychain protects nothing extra but adds macOS prompts and a Linux keyring dependency. Regenerating the key would make every saved channel credential undecryptable."
+  locked = true
+
+[[decisions]]
+  key = "login_start"
+  choice = "On by default, registered once on first launch and never re-asserted afterwards. Linux uses an XDG autostart entry. A login launch is tray-only. Unpackaged dev and test runs never register."
+  why = "Milestone criterion 2 needs it on with no setup. Re-registering on every launch would undo a user's OS-level opt-out. Electron's login-item API does not cover Linux, and a dev run would register the bare electron binary."
+  locked = true
+
+[[decisions]]
+  key = "window_close"
+  choice = "Closing the window never quits the app; only Quit does. On macOS the Dock icon stays and clicking it reopens the window. Relaunching is the way back on Linux desktops with no tray."
+  why = "Background checks are the product. GNOME without AppIndicator shows no tray icon, so single-instance relaunch must be a working way back to the window."
+  locked = true
+
+[[decisions]]
+  key = "external_links"
+  choice = "The window never navigates away from the local origin. External links and target=_blank open in the default browser, and a new app window is never created."
+  why = "The Amazon, ntfy and Resend links use target=_blank. Inside the app window a shop page has no address bar, so it can pass for the app, and it lacks the user's browser session (Amazon login, basket). The default browser is where buying happens."
+  locked = true
+
+[[deferred]]
+  text = "Ship the per-platform @libsql native binary asar-unpacked in each OS artefact"
+  why = "Packaging concern; 03 runs unpackaged Electron only"
+  target = "05-release"
+
+[[deferred]]
+  text = "Updater quit-and-install must not depend on libsql close() releasing the DB file on Windows; relaunch only after the process has exited"
+  why = "03 c-9 covers quit and relaunch; the updater flow is 05's"
+  target = "05-release"
+
+[[deferred]]
+  text = "Windows app user model ID and Start Menu shortcut, so tray and notifications carry the app's identity"
+  why = "Only matters for notifications and the installer, which belong to 04 and 05"
+  target = "04-desktop-notify"

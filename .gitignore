@@ -43,6 +43,8 @@ node_modules
 .wrangler
 /.svelte-kit
 /build
+# Electron main bundle (pnpm build:desktop); also keeps prettier and eslint off it
+/dist-desktop
 
 # OS
 .DS_Store
@@ -64,6 +66,10 @@ test-results
 
 # CI pnpm store (cache path must sit inside the project dir)
 .pnpm-store/
+# CI Electron zip and Playwright browser caches (ci.yml electron_config_cache,
+# PLAYWRIGHT_BROWSERS_PATH): inside the checkout so actions/cache can restore them
+/.electron-cache/
+/.playwright-browsers/
 
 # dross handoff — local working memory, not tracked
 .dross/handoff.md

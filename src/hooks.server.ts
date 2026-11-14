@@ -6,7 +6,8 @@ import { db } from '#lib/server/db/index.ts';
 import { migrateDb } from '#lib/server/db/migrate.ts';
 import { formatError } from '#lib/server/error-log.ts';
 import { createLocalRequestHandle } from '#lib/server/local-request.ts';
-import { startScheduler } from '#lib/server/scheduler.ts';
+import { closeOnce, publishRuntime } from '#lib/server/runtime-bridge.ts';
+import { startScheduler, type SchedulerControls } from '#lib/server/scheduler.ts';
 import { checkUrl } from '#lib/server/shops/index.ts';
 
 /**
@@ -14,17 +15,25 @@ import { checkUrl } from '#lib/server/shops/index.ts';
  * the server refuses to start, naming the variable but never its value (decision
  * encryption_key) — then brings the database up to date before the first request
  * (a fresh volume has no tables), then re-checks due watches in the background.
+ * Last, it publishes the scheduler and database controls for the desktop main
+ * process (resume runs a pass, quit stops the scheduler and closes the db); with
+ * the scheduler off, requestPass and stop are no-ops, so main never needs to know.
  */
 export const init: ServerInit = async () => {
 	if (!building) {
 		setAlertsKey(parseAlertsKey(ALERTS_ENCRYPTION_KEY));
 		await migrateDb(db);
 	}
-	startScheduler({
+	const scheduler: SchedulerControls = startScheduler({
 		env: { CHECK_INTERVAL_HOURS, SCHEDULER_DISABLED, VITEST: process.env.VITEST },
 		building,
 		db,
 		check: (url) => checkUrl(url)
+	}) ?? { requestPass() {}, stop: async () => {} };
+	publishRuntime({
+		requestPass: scheduler.requestPass,
+		stop: scheduler.stop,
+		closeDb: closeOnce(() => db.$client.close())
 	});
 };
 
