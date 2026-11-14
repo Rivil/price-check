@@ -74,6 +74,24 @@
           "what": "packaged-only update controller: launch + 6 h checks, one notice per downloaded version, install on quit/restart, prerelease pinned off so rc takes final"
         }
       ]
+    },
+    "t-5": {
+      "files": [
+        "src/desktop/lifecycle.ts",
+        "src/desktop/lifecycle.spec.ts",
+        "src/desktop/tray.ts",
+        "src/desktop/tray.spec.ts"
+      ],
+      "commit": "c6d7398",
+      "completed_at": "2026-11-14T19:00:32.822634Z",
+      "landmarks": [
+        {
+          "feature": "auto update",
+          "symbol": "installPending",
+          "loc": "src/desktop/lifecycle.ts:228",
+          "what": "Quit and tray Restart to update install a pending update only after DB close, env scrubbed, predecessor-pid wait on relaunch"
+        }
+      ]
     }
   },
   "reviews": {
@@ -198,6 +216,35 @@
           "severity": "NOTE",
           "criterion": "c-5",
           "text": "the 'error' listener is attached in start() before the first runCheck(), and a test checks listenerCount('error') from inside checkForUpdates",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-5": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "src/desktop/lifecycle.ts lockAfterPredecessor: when predecessorPid is set but isProcessAlive is not wired, it returns false with nothing logged, so an update-started launch quits as 'second-instance' without trace. A console.error for that misconfiguration would make it visible.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "src/desktop/lifecycle.ts waitForExit: the last probe is at 29750 ms, then it sleeps to 30000 ms and gives up without probing again, logging 'outlived' even if the predecessor exited in that last interval. Harmless, because the lock retry that follows decides, but the log can be wrong.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "installPending removes ALERTS_ENCRYPTION_KEY and DATABASE_URL before calling installOnExit, so a failed hand-over still exits with them scrubbed. That is fine because app.exit(0) follows right after.",
           "resolution": "non-blocking, left"
         }
       ]

@@ -89,7 +89,7 @@ test_contract = [
   '''if a lost lock with predecessorPid set quits before isProcessAlive returns false, takes the lock and starts while it is still true, or waits past 30 s, lifecycle.spec fails; with predecessorPid null a lost lock quits at once (the existing second-instance tests keep passing)''',
   '''if the tray menu before setUpdateReady(true) is not exactly Open, Start at login, separator, Quit, or after it lacks exactly one 'Restart to update' item above Quit whose click calls restartToUpdate once, or a second setUpdateReady(true) adds a second item, tray.spec fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-6"
