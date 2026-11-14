@@ -39,6 +39,24 @@
           "what": "electron-builder config (universal mac, per-user NSIS, x64 AppImage, libsql unpacked) and host-only never-publish package CLI with --sign credential gate"
         }
       ]
+    },
+    "t-3": {
+      "files": [
+        "scripts/release-tag.ts",
+        "scripts/release-tag.spec.ts",
+        ".github/environments/release.json",
+        "scripts/environments.spec.ts"
+      ],
+      "commit": "0d932af",
+      "completed_at": "2026-11-14T18:42:39.982087Z",
+      "landmarks": [
+        {
+          "feature": "release pipeline",
+          "symbol": "checkReleaseTag",
+          "loc": "scripts/release-tag.ts:39",
+          "what": "gates v* tags on package.json version and origin/main; release env deploys only from v* tags"
+        }
+      ]
     }
   },
   "reviews": {
@@ -106,6 +124,41 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The tests for refusing --sign also capture process.stdout/stderr and console output, so a leaked secret value would be caught on those paths as well as through the injected stdout/stderr.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-3": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/release-tag.spec.ts 'imports only Node built-ins' uses /^import .* from '([^']+)';$/gm. It does not match a multi-line import `import {\\n a\\n} from 'pkg';` or a side-effect import `import 'pkg';`, so a dependency imported in either form would pass the guard. Matching every `from '...'` / `import '...'` specifier across lines would close the gap.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-4",
+          "text": "The test_contract line saying the executor saw `gh api .../environments/release/deployment-branch-policies` return exactly one {name:'v*', type:'tag'} is an executor observation. It is recorded in the task log, not the diff, so this review cannot confirm it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "release.json carries a 'policies' key that the environments PUT endpoint does not accept. The jq projection in the environments.spec.ts header comment strips it before the PUT and sends it through the separate deployment-branch-policies POST, so this is consistent.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The trailing-newline refusal relies on JS `$` without the m flag matching only at end of input. The TAG regex in scripts/release-tag.ts is not multiline, so 'v0.1.5\\n' is correctly refused, and the refusal table pins this.",
           "resolution": "non-blocking, left"
         }
       ]

@@ -54,7 +54,7 @@ test_contract = [
   '''if release.json has any key matching /secret|CSC_|APPLE_/i, environments.spec fails''',
   '''executor observes `gh api repos/Rivil/price-check/environments/release/deployment-branch-policies` returning exactly one policy {name:'v*', type:'tag'} before committing (output in the task log)''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-4"
