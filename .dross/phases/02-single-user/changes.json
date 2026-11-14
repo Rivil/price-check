@@ -127,6 +127,49 @@
           "what": "handle is the loopback Host guard alone; better-auth session and access handles removed"
         }
       ]
+    },
+    "t-7": {
+      "files": [
+        "src/routes/login",
+        "src/routes/logout",
+        "src/routes/account/password",
+        "src/routes/admin",
+        "src/routes/no-public-signup.spec.ts",
+        "src/lib/server/access.ts",
+        "src/lib/server/access.spec.ts",
+        "src/lib/server/auth.ts",
+        "src/lib/server/auth-factory.ts",
+        "src/lib/server/auth-factory.spec.ts",
+        "src/lib/server/accounts.ts",
+        "src/lib/server/accounts.spec.ts",
+        "src/lib/server/admin-bootstrap.ts",
+        "src/lib/server/admin-bootstrap.spec.ts",
+        "src/lib/server/login-limiter.ts",
+        "src/lib/server/login-limiter.spec.ts",
+        "src/lib/server/own-password.ts",
+        "src/lib/server/own-password.spec.ts",
+        "src/lib/server/cli/admin-create.ts",
+        "src/lib/server/testing/auth-harness.ts",
+        "src/lib/server/db/auth.schema.ts",
+        "src/lib/server/db/schema.ts",
+        "drizzle/0011_drop_auth.sql",
+        "drizzle/meta/0011_snapshot.json",
+        "drizzle/meta/_journal.json",
+        "src/lib/server/db/migrate.spec.ts",
+        "src/app.d.ts",
+        "src/routes/removed-routes.spec.ts",
+        "src/lib/server/shops/no-direct-fetch.spec.ts"
+      ],
+      "commit": "b6cf6a3",
+      "completed_at": "2026-11-14T09:25:32.39852Z",
+      "landmarks": [
+        {
+          "feature": "single-user install",
+          "symbol": "0011_drop_auth",
+          "loc": "drizzle/0011_drop_auth.sql:1",
+          "what": "drops better-auth tables and deletes auth/admin routes and libs so those paths 404"
+        }
+      ]
     }
   },
   "reviews": {
@@ -267,6 +310,47 @@
           "severity": "NOTE",
           "criterion": "c-7",
           "text": "The guard reads the Host header, not event.url, so it holds even when adapter-node builds the URL from ORIGIN. local-request.ts accepts exact loopback names only, with an optional port from 1 to 65535.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-7": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "package.json still defines the admin:create script (node src/lib/server/cli/admin-create.ts) and the auth:schema script (--config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts), both pointing at files this task deletes; the better-auth dependency also remains. Not in this task's file list, so presumably a sibling task (t-8), but they are dangling right now.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "e2e/seed.ts imports the deleted ../src/lib/server/auth-factory.ts and e2e/harness.e2e.ts calls /api/auth/*. The seed was already broken by t-4's schema changes (userId, alertChannel), so the e2e rework presumably belongs to another task.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ARCHITECTURE.md still lists symbols in access.ts, auth-factory.ts, own-password.ts, admin-bootstrap.ts and accounts.ts, and the comment at line 15 of src/lib/server/health.ts still mentions relations exported by auth.schema.ts; all are now stale.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "In migrate.spec, the local variable `schema` inside dump() shadows the new `import * as schema`; it works, but a lint rule against shadowing would flag it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The route-matching and import-scanner fixture tests in removed-routes.spec cover parameter, optional and catch-all routes, layout groups, and every import form, so the scans of the real sources cannot pass by accident.",
           "resolution": "non-blocking, left"
         }
       ]
