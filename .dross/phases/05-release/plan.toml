@@ -1,4 +1,4 @@
-task_seq = 15
+task_seq = 16
 [phase]
 id = "05-release"
 
@@ -248,3 +248,14 @@ covers = ["c-5"]
 test_contract = ["if on darwin the restart-to-update path calls app.exit before the injected native updater signals the update is staged, the lifecycle spec 'macOS waits for Squirrel before exiting' fails", "if the darwin wait has no bound (Squirrel never signals), the lifecycle spec 'macOS install wait times out to a normal quit' fails", "if the win32/linux restart-to-update path changes (no longer exits after shutdown or relaunches before the predecessor exits), the existing t-5 lifecycle specs fail", "if main.ts does not pass process.platform and Electron's native autoUpdater into runDesktop (so the darwin wait has nothing to listen to), the main/boundary spec asserting runDesktop receives a nativeUpdater on darwin fails"]
 status = "done"
 depends_on = ["t-5"]
+
+[[task]]
+id = "t-16"
+wave = 3
+title = "macOS: plain Quit installs without relaunching"
+files = ["src/desktop/updater.ts", "src/desktop/updater.spec.ts", "src/desktop/lifecycle.ts", "src/desktop/lifecycle.spec.ts"]
+description = "Found in t-15 (writer + reviewer, electron-updater 6.8.11): MacUpdater.quitAndInstall ignores its isSilent/isForceRunAfter args; handleUpdateDownloaded calls nativeUpdater.quitAndInstall() when autoRunAppAfterInstall is true (default), else app.quit(). So with an update pending, a plain tray Quit on macOS installs AND relaunches the app. Fix: set autoUpdater.autoRunAppAfterInstall per install intent before quitAndInstall: true only for 'Restart to update', false for a plain Quit (update still installs, app stays closed). Verify against node_modules/electron-updater/out/MacUpdater.js first. win32/linux behaviour unchanged (their quitAndInstall honours isForceRunAfter)."
+covers = ["c-5"]
+test_contract = ["if a plain Quit with a pending update on darwin leaves autoRunAppAfterInstall true at quitAndInstall time, the updater spec 'macOS plain quit installs without relaunch' fails", "if Restart to update on darwin sets autoRunAppAfterInstall false, the updater spec 'macOS restart relaunches after install' fails", "if the win32/linux quitAndInstall arguments for quit vs restart change, the existing t-5/t-15 lifecycle and updater specs fail"]
+status = "pending"
+depends_on = ["t-15"]
