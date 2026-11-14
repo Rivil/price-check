@@ -80,11 +80,13 @@
   locked = true
 
 [[deferred]]
+  id = "f48477c1db646974"
   text = "Ship the per-platform @libsql native binary asar-unpacked in each OS artefact"
   why = "Packaging concern; 03 runs unpackaged Electron only"
   target = "05-release"
 
 [[deferred]]
+  id = "f89d493d2ed2dce7"
   text = "Updater quit-and-install must not depend on libsql close() releasing the DB file on Windows; relaunch only after the process has exited"
   why = "03 c-9 covers quit and relaunch; the updater flow is 05's"
   target = "05-release"
