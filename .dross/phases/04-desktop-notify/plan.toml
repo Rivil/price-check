@@ -18,7 +18,7 @@ test_contract = [
   '''if the notifier key is the same symbol as runtime-bridge's 'price-check.runtime' key (publishing one clobbers the other), notify-bridge.spec fails''',
   '''if notify-bridge.ts gains any import statement (source read ?raw), notify-bridge.spec fails (it is bundled into main, which refuses $app/* and libsql)''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-2"

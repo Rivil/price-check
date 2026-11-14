@@ -2,5 +2,45 @@
   "phase": "04-desktop-notify",
   "base": "milestone/v0.1",
   "base_commit": "15f0c389b7fdc7968ead0cedf08e774c6ab4a84e",
-  "tasks": {}
+  "tasks": {
+    "t-1": {
+      "files": [
+        ".gitleaks.toml",
+        "src/lib/server/notify-bridge.ts",
+        "src/lib/server/notify-bridge.spec.ts"
+      ],
+      "commit": "3b59163",
+      "completed_at": "2026-11-14T15:01:46.747932Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "readNotifier",
+          "loc": "src/lib/server/notify-bridge.ts:33",
+          "what": "globalThis Symbol.for('price-check.notifier') hand-off of main's DesktopNotifier to the server bundle; undefined outside Electron"
+        }
+      ]
+    }
+  },
+  "reviews": {
+    "t-1": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "package.json version bump 0.1.3 -\u003e 0.1.4 is not among the task's declared files (.gitleaks.toml, notify-bridge.ts, notify-bridge.spec.ts); confirm it belongs in this commit",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "notify-bridge.spec's no-import check also covers dynamic import(), require() and re-exports with 'from', which goes beyond the test_contract",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    }
+  }
 }
