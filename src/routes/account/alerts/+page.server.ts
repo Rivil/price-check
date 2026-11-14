@@ -1,4 +1,4 @@
-import { error, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import {
 	describeFailure,
@@ -21,9 +21,10 @@ import { alertsKey } from '#lib/server/alerts/crypto.ts';
 import { db } from '#lib/server/db/index.ts';
 
 // One card per channel type (decision channels_per_type). The ntfy topic link is
-// shown to its owner on this page only (decision topic_url_secrecy); credentials
-// never leave the server — the page learns only whether one is saved (c-7). No
-// result here carries a typed or saved credential, nor a topic inside a message.
+// shown on this page only (decision topic_url_secrecy); credentials never leave the
+// server — the page learns only whether one is saved (c-7). No result here carries
+// a typed or saved credential, nor a topic inside a message. Channels belong to the
+// install, not a user (decision data_scope), so nothing here reads locals.
 
 /** What the page sees of one saved channel; null when that type has none. */
 export type ChannelCard = {
@@ -37,21 +38,14 @@ export type ChannelCard = {
 
 const SAVE_FIRST = 'Save this channel first.';
 
-function signedIn(locals: App.Locals) {
-	const user = locals.user;
-	if (!user) error(401, 'Sign in first');
-	return user;
-}
-
 /** The submitted channel type, or null when it is missing or not a registered type. */
 function kindOf(data: FormData): string | null {
 	const kind = data.get('kind');
 	return typeof kind === 'string' && driverFor(kind) !== undefined ? kind : null;
 }
 
-export const load: PageServerLoad = async ({ locals }) => {
-	const user = signedIn(locals);
-	const saved = await listChannels(db, alertsKey(), user.id);
+export const load: PageServerLoad = async () => {
+	const saved = await listChannels(db, alertsKey());
 	const channels: Record<string, ChannelCard | null> = {};
 	for (const kind of channelKinds()) {
 		const view = saved[kind];
@@ -67,8 +61,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		channels[kind] = view.unreadable ? { ...flags, unreadable: true } : { ...view.view, ...flags };
 	}
 	// What a new card of each type starts ticked, from its driver (not hard-coded on
-	// the page), and the login email the recipient of a new email card — Resend or
-	// SMTP — starts as (decision recipient_default).
+	// the page).
 	const defaults: Record<string, Routing> = {};
 	for (const kind of channelKinds()) {
 		const kinds = driverFor(kind)!.defaultKinds;
@@ -77,12 +70,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 			checkFailures: kinds.includes('check_failed')
 		};
 	}
-	return { channels, defaults, loginEmail: user.email };
+	return { channels, defaults };
 };
 
 export const actions: Actions = {
-	save: async ({ request, locals }) => {
-		const user = signedIn(locals);
+	save: async ({ request }) => {
 		const data = await request.formData();
 		const kind = kindOf(data);
 		if (kind === null) return fail(400, { message: UNKNOWN_KIND_MESSAGE });
@@ -91,7 +83,7 @@ export const actions: Actions = {
 		for (const [name, value] of data) {
 			if (typeof value === 'string') form[name] = value;
 		}
-		const saved = await saveChannel(db, alertsKey(), user.id, kind, form, {
+		const saved = await saveChannel(db, alertsKey(), kind, form, {
 			priceDrops: data.has('price_drops'),
 			checkFailures: data.has('check_failures')
 		});
@@ -99,24 +91,22 @@ export const actions: Actions = {
 		return { saved: kind };
 	},
 
-	enable: async ({ request, locals }) => toggle(request, locals, true),
-	disable: async ({ request, locals }) => toggle(request, locals, false),
+	enable: async ({ request }) => toggle(request, true),
+	disable: async ({ request }) => toggle(request, false),
 
-	remove: async ({ request, locals }) => {
-		const user = signedIn(locals);
+	remove: async ({ request }) => {
 		const kind = kindOf(await request.formData());
 		if (kind === null) return fail(400, { message: UNKNOWN_KIND_MESSAGE });
-		await removeChannel(db, user.id, kind);
+		await removeChannel(db, kind);
 		return { removed: kind };
 	},
 
 	// A test goes out whatever the channel's enabled state and alert kinds.
-	test: async ({ request, locals }) => {
-		const user = signedIn(locals);
+	test: async ({ request }) => {
 		const data = await request.formData();
 		const kind = kindOf(data);
 		if (kind === null) return fail(400, { message: UNKNOWN_KIND_MESSAGE });
-		const config = await loadChannelConfig(db, alertsKey(), user.id, kind);
+		const config = await loadChannelConfig(db, alertsKey(), kind);
 		if (config === null) return fail(400, { testKind: kind, testMessage: SAVE_FIRST });
 
 		let failed: { reason: FailureReason; hint?: FailureHint } | null;
@@ -147,11 +137,10 @@ export const actions: Actions = {
 	}
 };
 
-async function toggle(request: Request, locals: App.Locals, enabled: boolean) {
-	const user = signedIn(locals);
+async function toggle(request: Request, enabled: boolean) {
 	const kind = kindOf(await request.formData());
 	if (kind === null) return fail(400, { message: UNKNOWN_KIND_MESSAGE });
-	if (!(await setEnabled(db, user.id, kind, enabled))) {
+	if (!(await setEnabled(db, kind, enabled))) {
 		return fail(400, { kind, message: SAVE_FIRST });
 	}
 	return enabled ? { enabled: kind } : { disabled: kind };

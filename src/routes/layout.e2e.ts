@@ -1,19 +1,6 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
-import { eq } from 'drizzle-orm';
-import { createDb } from '../lib/server/db/client.ts';
-import { user } from '../lib/server/db/schema.ts';
 import { expectNoOverflow } from '../../e2e/a11y.ts';
-import {
-	E2E_DATABASE_URL,
-	SEEDED_ADMIN,
-	SEEDED_DESIGN,
-	SEEDED_DESIGN_TOPIC_URL,
-	SEEDED_LONG_ACCOUNT,
-	SEEDED_MEMBER,
-	SEEDED_WATCHES,
-	signIn,
-	type Credentials
-} from '../../e2e/accounts.ts';
+import { SEEDED_DESIGN_TOPIC_URL, SEEDED_WATCHES } from '../../e2e/accounts.ts';
 
 // Read-only: pages are only loaded and measured. Seeded image hosts are .invalid
 // and every request to one is aborted, so nothing reaches Amazon (r-01).
@@ -21,22 +8,8 @@ import {
 const PHONE = { width: 375, height: 800 };
 const { layoutLong, chartFull } = SEEDED_WATCHES;
 
-async function longAccountId() {
-	const db = createDb(E2E_DATABASE_URL);
-	try {
-		const [row] = await db
-			.select({ id: user.id })
-			.from(user)
-			.where(eq(user.email, SEEDED_LONG_ACCOUNT.email));
-		return row.id;
-	} finally {
-		db.$client.close();
-	}
-}
-
 async function open(
 	browser: Browser,
-	as: Credentials | null,
 	viewport = PHONE
 ): Promise<{ page: Page; close: () => Promise<void> }> {
 	const context = await browser.newContext({ viewport });
@@ -45,11 +18,10 @@ async function open(
 		(route) => route.abort()
 	);
 	const page = await context.newPage();
-	if (as) await signIn(page, as);
 	return { page, close: () => context.close() };
 }
 
-/** Nothing is hidden to fake a fit, and every header control is inside the viewport. */
+/** Nothing is hidden to fake a fit, and every header and footer control is inside the viewport. */
 async function expectNoClipping(page: Page) {
 	const clipped = await page.evaluate(() =>
 		['html', 'body', 'main']
@@ -66,14 +38,14 @@ async function expectNoClipping(page: Page) {
 
 	const outside = await page.evaluate(() => {
 		const width = document.documentElement.clientWidth;
-		return [...document.querySelectorAll('header a, header button')].flatMap((el) => {
+		return [...document.querySelectorAll('header a, header button, footer a')].flatMap((el) => {
 			const box = el.getBoundingClientRect();
 			return box.left < 0 || box.right > width + 0.5
 				? [`${el.textContent?.trim()} at ${box.left}..${box.right}`]
 				: [];
 		});
 	});
-	expect(outside, 'header control outside the viewport').toEqual([]);
+	expect(outside, 'header or footer control outside the viewport').toEqual([]);
 }
 
 async function check375(page: Page, path: string) {
@@ -82,17 +54,8 @@ async function check375(page: Page, path: string) {
 	await expectNoClipping(page);
 }
 
-test('no sideways scroll /login', async ({ browser }) => {
-	const { page, close } = await open(browser, null);
-	try {
-		await check375(page, '/login');
-	} finally {
-		await close();
-	}
-});
-
 test('no sideways scroll /', async ({ browser }) => {
-	const { page, close } = await open(browser, SEEDED_DESIGN);
+	const { page, close } = await open(browser);
 	try {
 		await page.goto('/');
 		// Not vacuous: the 240-char unbroken title is on the page.
@@ -104,7 +67,7 @@ test('no sideways scroll /', async ({ browser }) => {
 });
 
 test('no sideways scroll /watches/:id', async ({ browser }) => {
-	const { page, close } = await open(browser, SEEDED_DESIGN);
+	const { page, close } = await open(browser);
 	try {
 		await page.goto(`/watches/${layoutLong.id}`);
 		// Scoped: the history timeline repeats the message.
@@ -116,7 +79,7 @@ test('no sideways scroll /watches/:id', async ({ browser }) => {
 });
 
 test('no sideways scroll tooltip', async ({ browser }) => {
-	const { page, close } = await open(browser, SEEDED_MEMBER);
+	const { page, close } = await open(browser);
 	try {
 		await page.goto(`/watches/${chartFull.id}`);
 		const tooltip = page.getByRole('tooltip');
@@ -157,7 +120,7 @@ test('no sideways scroll tooltip', async ({ browser }) => {
 });
 
 test('image fits', async ({ browser }) => {
-	const { page, close } = await open(browser, SEEDED_DESIGN);
+	const { page, close } = await open(browser);
 	try {
 		await page.goto(`/watches/${layoutLong.id}`);
 		const img = page.getByRole('img', { name: layoutLong.title });
@@ -178,7 +141,7 @@ test('image fits', async ({ browser }) => {
 });
 
 test('375 alerts', async ({ browser }) => {
-	const { page, close } = await open(browser, SEEDED_DESIGN);
+	const { page, close } = await open(browser);
 	try {
 		await page.goto('/account/alerts');
 		// Fails as vacuous if another spec replaced the long seeded topic.
@@ -191,40 +154,22 @@ test('375 alerts', async ({ browser }) => {
 	}
 });
 
-test('375 account', async ({ browser }) => {
-	const { page, close } = await open(browser, SEEDED_DESIGN);
+test('no sideways scroll 404', async ({ browser }) => {
+	const { page, close } = await open(browser);
 	try {
-		await check375(page, '/account/password');
-	} finally {
-		await close();
-	}
-});
-
-test('375 admin users', async ({ browser }) => {
-	const { page, close } = await open(browser, SEEDED_ADMIN);
-	try {
-		await page.goto('/admin/users');
-		await expect(page.getByText(SEEDED_LONG_ACCOUNT.email)).toBeVisible();
-		await check375(page, '/admin/users');
-	} finally {
-		await close();
-	}
-});
-
-test('375 reset page', async ({ browser }) => {
-	const { page, close } = await open(browser, SEEDED_ADMIN);
-	try {
-		const path = `/admin/users/${await longAccountId()}/password`;
-		await page.goto(path);
-		await expect(page.getByRole('heading', { level: 1 })).toContainText(SEEDED_LONG_ACCOUNT.name);
-		await check375(page, path);
+		const response = await page.goto('/no-such-page');
+		expect(response?.status()).toBe(404);
+		// Not vacuous: the 404 page renders inside the layout, header and footer included.
+		await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Source', exact: true })).toBeVisible();
+		await check375(page, '/no-such-page');
 	} finally {
 		await close();
 	}
 });
 
 test('column', async ({ browser }) => {
-	const { page, close } = await open(browser, SEEDED_DESIGN, { width: 1280, height: 800 });
+	const { page, close } = await open(browser, { width: 1280, height: 800 });
 	try {
 		await page.goto('/');
 		const m = await page.locator('main').evaluate((el) => {

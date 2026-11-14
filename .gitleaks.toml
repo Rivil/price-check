@@ -64,6 +64,17 @@ targetRules = ["generic-api-key"]
 condition = "AND"
 paths = [
   '''^\.dross/phases/01-public-ci/tests\.json$''',
+  '''^\.dross/phases/02-single-user/tests\.json$''',
 ]
 regexTarget = "line"
 regexes = ['''^\s*"Key": "[0-9a-f]{16}",?$''']
+
+[[allowlists]]
+description = "dross keeps the standing survivor backlog in .dross/survivors.toml as TOML key = \"<16 hex>\" mutant ids; generic-api-key reads that as a key. Exact file, exact line shape only."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = [
+  '''^\.dross/survivors\.toml$''',
+]
+regexTarget = "line"
+regexes = ['''^\s*key = "[0-9a-f]{16}"$''']

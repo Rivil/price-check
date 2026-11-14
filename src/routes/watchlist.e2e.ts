@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { SEEDED_MEMBER, SEEDED_WATCHES, signIn } from '../../e2e/accounts.ts';
+import { SEEDED_WATCHES } from '../../e2e/accounts.ts';
 
 // Every URL submitted here is rejected before any request (unsupported host, or
 // a bad target checked first), so these tests never reach amazon.co.uk (r-01).
@@ -7,7 +7,7 @@ import { SEEDED_MEMBER, SEEDED_WATCHES, signIn } from '../../e2e/accounts.ts';
 const {
 	listPriced,
 	listFailed,
-	otherPriced,
+	pageDelete,
 	failedPriced,
 	cardFresh,
 	cardOverdue,
@@ -20,7 +20,23 @@ function watchItem(page: Page, id: string) {
 }
 
 test.beforeEach(async ({ page }) => {
-	await signIn(page, SEEDED_MEMBER);
+	await page.goto('/');
+});
+
+test('opens without login', async ({ page }) => {
+	// Loaded straight, not via beforeEach: no login screen, no redirect (c-1).
+	const response = await page.goto('/');
+	expect(response?.status()).toBe(200);
+	expect(response?.request().redirectedFrom()).toBeNull();
+	await expect(page.getByRole('heading', { level: 1, name: 'Watchlist' })).toBeVisible();
+
+	// The one install's whole seed, on one list. watch-page.e2e 'delete' may already
+	// have removed its own watch.
+	for (const seeded of Object.values(SEEDED_WATCHES)) {
+		if (seeded.id === pageDelete.id) continue;
+		const label = seeded.title ?? `https://www.amazon.co.uk/dp/${seeded.productId}`;
+		await expect(watchItem(page, seeded.id).getByText(label, { exact: true })).toBeVisible();
+	}
 });
 
 test('list', async ({ page }) => {
@@ -91,12 +107,6 @@ test('card no success', async ({ page }) => {
 	const stale = watchItem(page, cardStale.id);
 	await expect(stale.getByRole('img')).toHaveCount(0);
 	await expect(stale.getByText('No recent prices')).toBeVisible();
-});
-
-test('only mine', async ({ page }) => {
-	await expect(watchItem(page, listPriced.id)).toBeVisible();
-	await expect(watchItem(page, otherPriced.id)).toHaveCount(0);
-	await expect(page.getByText(otherPriced.title)).toHaveCount(0);
 });
 
 test('unsupported', async ({ page }) => {

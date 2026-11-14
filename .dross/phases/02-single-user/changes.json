@@ -1,0 +1,705 @@
+{
+  "phase": "02-single-user",
+  "pr": 6,
+  "base": "milestone/v0.1",
+  "base_commit": "c052445532d73841dfac9e7d364766b5fc5b79d9",
+  "status": "shipped",
+  "tasks": {
+    "t-1": {
+      "files": [
+        "src/lib/server/testing/test-db.ts",
+        "src/lib/server/testing/test-db.spec.ts",
+        "src/lib/server/health.spec.ts"
+      ],
+      "commit": "c5fd8f4",
+      "completed_at": "2026-11-12T08:26:34.578812Z",
+      "landmarks": [
+        {
+          "feature": "test database harness",
+          "symbol": "createTestDb",
+          "loc": "src/lib/server/testing/test-db.ts:24",
+          "what": "fresh migrated temp-file SQLite per call with dispose() closing the client and removing the dir"
+        }
+      ]
+    },
+    "t-10": {
+      "files": [
+        "src/routes/watchlist.e2e.ts",
+        "src/routes/watches/[id]/watch-page.e2e.ts",
+        "src/routes/account/alerts/alerts.e2e.ts",
+        "src/routes/at-target.e2e.ts",
+        "src/routes/chart-a11y.e2e.ts",
+        "src/routes/page.svelte.e2e.ts"
+      ],
+      "commit": "a5877ee",
+      "completed_at": "2026-11-14T09:40:44.756266Z",
+      "landmarks": [
+        {
+          "feature": "single-user access",
+          "symbol": "opens without login",
+          "loc": "src/routes/watchlist.e2e.ts:26",
+          "what": "page-flow e2e specs load /, watch pages and /account/alerts directly with no sign-in; cross-user cases dropped"
+        }
+      ]
+    },
+    "t-11": {
+      "files": [
+        "src/routes/header.e2e.ts",
+        "src/routes/layout.e2e.ts",
+        "src/routes/focus.e2e.ts",
+        "src/routes/contrast.e2e.ts",
+        "src/routes/health/health.e2e.ts"
+      ],
+      "commit": "09d3f45",
+      "completed_at": "2026-11-14T09:44:20.763925Z",
+      "landmarks": [
+        {
+          "feature": "site chrome",
+          "symbol": "source link on every page",
+          "loc": "src/routes/header.e2e.ts:48",
+          "what": "e2e pins footer Source link, no auth chrome and 404 pages across header/layout/focus/contrast specs"
+        }
+      ]
+    },
+    "t-12": {
+      "files": [
+        "e2e/removed-routes.e2e.ts",
+        "e2e/local-guard.e2e.ts",
+        "e2e/action-endpoints.ts",
+        "src/routes/action-endpoints.spec.ts"
+      ],
+      "commit": "5af845c",
+      "completed_at": "2026-11-14T09:51:26.130698Z",
+      "landmarks": [
+        {
+          "feature": "local request guard",
+          "symbol": "ACTION_ENDPOINTS",
+          "loc": "e2e/action-endpoints.ts:9",
+          "what": "every form action listed and proven 403 cross-site; removed routes 404 and Host guard 403 proven over HTTP on preview and node build"
+        }
+      ]
+    },
+    "t-13": {
+      "files": [
+        "e2e/fresh-install.e2e.ts",
+        "e2e/restart.e2e.ts"
+      ],
+      "commit": "f52091a",
+      "completed_at": "2026-11-14T09:59:17.024011Z",
+      "landmarks": [
+        {
+          "feature": "single-user install",
+          "symbol": "data survives a restart on the same database",
+          "loc": "e2e/restart.e2e.ts:49",
+          "what": "node build e2e proves minimal-env fresh start, env-missing exit, and restart persistence"
+        }
+      ]
+    },
+    "t-14": {
+      "files": [
+        "src/lib/server/local-request.spec.ts",
+        "src/lib/server/alerts/alerts.spec.ts",
+        "e2e/restart.e2e.ts"
+      ],
+      "commit": "aa810e8",
+      "completed_at": "2026-11-14T10:10:20.849823Z",
+      "landmarks": [
+        {
+          "feature": "failure alerts",
+          "symbol": "alertAfterFailure",
+          "loc": "src/lib/server/alerts/alerts.spec.ts:973",
+          "what": "tests pin the undecryptable-channel log to deps.log and port-1 loopback acceptance; restart e2e asserts history rows"
+        }
+      ]
+    },
+    "t-15": {
+      "files": [
+        "ARCHITECTURE.md",
+        "src/lib/server/health.ts",
+        "scripts/readme.spec.ts"
+      ],
+      "commit": "00118d3",
+      "completed_at": "2026-11-14T10:12:15.177049Z",
+      "landmarks": [
+        {
+          "feature": "single-user docs",
+          "symbol": "staleArchitecture",
+          "loc": "scripts/readme.spec.ts:33",
+          "what": "ARCHITECTURE.md e2e harness describes the one-install seed; a scan fails on admin/member or auth.schema leftovers"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "src/lib/server/local-request.ts",
+        "src/lib/server/local-request.spec.ts"
+      ],
+      "commit": "7d337c3",
+      "completed_at": "2026-11-12T08:28:33.651619Z",
+      "landmarks": [
+        {
+          "feature": "local request guard",
+          "symbol": "createLocalRequestHandle",
+          "loc": "src/lib/server/local-request.ts:28",
+          "what": "403s any request whose Host header is not localhost/127.0.0.1 (DNS-rebinding guard)"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "src/routes/+layout.svelte",
+        "src/routes/+layout.server.ts",
+        "src/routes/layout.server.spec.ts",
+        "src/lib/nav.ts",
+        "src/lib/nav.spec.ts",
+        "src/lib/components/SiteFooter.svelte",
+        "src/lib/components/SiteFooter.svelte.spec.ts"
+      ],
+      "commit": "32275bd",
+      "completed_at": "2026-11-12T08:30:54.384074Z",
+      "landmarks": [
+        {
+          "feature": "site chrome",
+          "symbol": "SiteFooter",
+          "loc": "src/lib/components/SiteFooter.svelte:9",
+          "what": "always-on header (Watchlist+Alerts only, no Sign out) and footer Source link to the public repo for AGPL-3.0 §13"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "src/lib/server/db/channel.schema.ts",
+        "src/lib/server/db/schema.ts",
+        "src/lib/server/db/alert.schema.ts",
+        "src/lib/server/db/alert.schema.spec.ts",
+        "src/lib/server/db/channel.schema.spec.ts",
+        "drizzle/0009_single_user_channels.sql",
+        "drizzle/meta/0009_snapshot.json",
+        "drizzle/meta/_journal.json",
+        "src/lib/server/db/migrate.spec.ts",
+        "src/lib/server/alerts/crypto.ts",
+        "src/lib/server/alerts/crypto.spec.ts",
+        "src/lib/server/alerts/channels.ts",
+        "src/lib/server/alerts/channels.spec.ts",
+        "src/lib/server/alerts/alerts.ts",
+        "src/lib/server/alerts/alerts.spec.ts",
+        "src/lib/server/alerts/live.spec.ts",
+        "src/lib/server/alerts/backfill.ts",
+        "src/lib/server/alerts/backfill.spec.ts",
+        "src/lib/server/scheduler.spec.ts",
+        "src/hooks.server.ts",
+        "src/hooks.server.spec.ts",
+        "src/routes/account/alerts/+page.server.ts",
+        "src/routes/account/alerts/page.server.spec.ts",
+        "src/routes/account/alerts/+page.svelte",
+        "src/routes/account/alerts/page.svelte.spec.ts",
+        "src/lib/server/db/watch.schema.ts",
+        "drizzle/0010_single_user_watches.sql",
+        "drizzle/meta/0010_snapshot.json",
+        "src/lib/server/db/watch.schema.spec.ts",
+        "src/lib/server/db/price-point.schema.spec.ts",
+        "src/lib/server/db/check-failure.schema.spec.ts",
+        "src/lib/server/watches.ts",
+        "src/lib/server/watches.spec.ts",
+        "src/lib/server/checks.ts",
+        "src/lib/server/checks.spec.ts",
+        "src/lib/server/sparklines.ts",
+        "src/lib/server/sparklines.spec.ts",
+        "src/routes/+page.server.ts",
+        "src/routes/page.server.spec.ts",
+        "src/routes/watches/[id]/+page.server.ts",
+        "src/routes/watches/[id]/page.server.spec.ts"
+      ],
+      "commit": "4d5a234",
+      "completed_at": "2026-11-14T09:10:29.267875Z",
+      "landmarks": [
+        {
+          "feature": "single-user data model",
+          "symbol": "addWatch",
+          "loc": "src/lib/server/watches.ts:54",
+          "what": "channels keyed by kind and watches unique on (shop, product_id) with no user_id; migrations 0009/0010 reject colliding multi-user DBs"
+        }
+      ]
+    },
+    "t-6": {
+      "files": [
+        "src/hooks.server.ts",
+        "src/hooks.server.spec.ts"
+      ],
+      "commit": "e5498e5",
+      "completed_at": "2026-11-14T09:13:00.337362Z",
+      "landmarks": [
+        {
+          "feature": "local request guard",
+          "symbol": "handle",
+          "loc": "src/hooks.server.ts:37",
+          "what": "handle is the loopback Host guard alone; better-auth session and access handles removed"
+        }
+      ]
+    },
+    "t-7": {
+      "files": [
+        "src/routes/login",
+        "src/routes/logout",
+        "src/routes/account/password",
+        "src/routes/admin",
+        "src/routes/no-public-signup.spec.ts",
+        "src/lib/server/access.ts",
+        "src/lib/server/access.spec.ts",
+        "src/lib/server/auth.ts",
+        "src/lib/server/auth-factory.ts",
+        "src/lib/server/auth-factory.spec.ts",
+        "src/lib/server/accounts.ts",
+        "src/lib/server/accounts.spec.ts",
+        "src/lib/server/admin-bootstrap.ts",
+        "src/lib/server/admin-bootstrap.spec.ts",
+        "src/lib/server/login-limiter.ts",
+        "src/lib/server/login-limiter.spec.ts",
+        "src/lib/server/own-password.ts",
+        "src/lib/server/own-password.spec.ts",
+        "src/lib/server/cli/admin-create.ts",
+        "src/lib/server/testing/auth-harness.ts",
+        "src/lib/server/db/auth.schema.ts",
+        "src/lib/server/db/schema.ts",
+        "drizzle/0011_drop_auth.sql",
+        "drizzle/meta/0011_snapshot.json",
+        "drizzle/meta/_journal.json",
+        "src/lib/server/db/migrate.spec.ts",
+        "src/app.d.ts",
+        "src/routes/removed-routes.spec.ts",
+        "src/lib/server/shops/no-direct-fetch.spec.ts"
+      ],
+      "commit": "b6cf6a3",
+      "completed_at": "2026-11-14T09:25:32.39852Z",
+      "landmarks": [
+        {
+          "feature": "single-user install",
+          "symbol": "0011_drop_auth",
+          "loc": "drizzle/0011_drop_auth.sql:1",
+          "what": "drops better-auth tables and deletes auth/admin routes and libs so those paths 404"
+        }
+      ]
+    },
+    "t-8": {
+      "files": [
+        "src/env.ts",
+        "src/env.spec.ts",
+        "package.json",
+        "pnpm-lock.yaml",
+        ".env.example",
+        "README.md",
+        "ARCHITECTURE.md",
+        "scripts/readme.spec.ts",
+        "src/routes/removed-routes.spec.ts"
+      ],
+      "commit": "72ed4b3",
+      "completed_at": "2026-11-14T09:31:02.377397Z",
+      "landmarks": [
+        {
+          "feature": "single-user access",
+          "symbol": "variables.ORIGIN",
+          "loc": "src/env.ts:5",
+          "what": "better-auth and BETTER_AUTH_SECRET removed; ORIGIN optional passthrough env"
+        }
+      ]
+    },
+    "t-9": {
+      "files": [
+        "e2e/seed.ts",
+        "e2e/accounts.ts",
+        "e2e/harness.e2e.ts",
+        "playwright.config.ts",
+        "e2e/node-server.ts",
+        "src/routes/removed-routes.spec.ts"
+      ],
+      "commit": "93a5f70",
+      "completed_at": "2026-11-14T09:36:31.734073Z",
+      "landmarks": [
+        {
+          "feature": "e2e harness",
+          "symbol": "startNodeServer",
+          "loc": "e2e/node-server.ts:80",
+          "what": "spawns node build with an allowlisted env and awaits exit on stop; e2e seed is one ownerless install"
+        }
+      ]
+    }
+  },
+  "reviews": {
+    "t-1": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "health.spec 'closed client' calls createTestDb() outside the spec's opened/afterEach cleanup; if the 200 assertion fails before t.dispose(), that client and its temp dir leak for the rest of the run",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "MIGRATIONS_FOLDER is now defined identically in test-db.ts, auth-harness.ts and cli/admin-create.ts; the record expects auth-harness to be deleted in t-7, which leaves two copies",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "test-db.spec's MIGRATIONS_FOLDER === migrationsFolder() assertion depends on vitest running from the repo root; that is intended here but will break if the test cwd changes",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-10": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "watchlist.e2e 'opens without login' says it loads '/' 'not via beforeEach', but beforeEach has already opened '/'. The second page.goto still checks the server's status and that there was no redirect, so the test still works; only the comment is slightly off.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "layout.e2e.ts, contrast.e2e.ts, header.e2e.ts and focus.e2e.ts still import signIn and SEEDED_MEMBER/SEEDED_DESIGN, which e2e/accounts.ts no longer exports. Those files are outside this task's list, so this is presumably another task's work, but the full e2e suite won't run cleanly until they are fixed.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "alerts.e2e takes a snapshot of the notify_channel rows in beforeAll and puts them back after each test, so later spec files still see the seeded ntfy topic. This is only safe because playwright.config.ts uses workers: 1.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-11": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "contrast.e2e keepingChannels deletes and re-inserts every notify_channel row; with foreign keys on, that cascade-deletes any price_drop_delivery rows, which are not restored. The e2e seed creates none today, so nothing breaks now.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "header.e2e 'no auth chrome' matches 'Admin' and 'Account' without exact:true, so it rejects any link whose name contains those words (case-insensitive). That is stricter than the contract and fine with the current two-link nav.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-12": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-6",
+          "text": "declaredActions in src/routes/action-endpoints.spec.ts is a hand-rolled scanner that does not understand regex literals. A quote or brace inside a regex in an action body would throw it off. It fails loudly (an error or a list mismatch) rather than passing when it shouldn't, so it is safe as written but may need care when actions grow.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-6",
+          "text": "The CSRF block's follow-up check (the ntfy channel still shows 'Enabled') assumes no earlier e2e file has disabled or removed the seeded channel. Today that holds only because e2e/ files run before src/routes/** files with workers: 1. The snapshot comparison done inside the test (toStrictEqual(before)) is the check that does not depend on file order.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "The control test with ORIGIN unset (a matching derived https://\u003cHost\u003e Origin is answered 400) correctly shows that only the Host guard can refuse the rebinding POST.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-13": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "restart.e2e checks '£19.99' on /watches/\u003cid\u003e, but that is also the watch's own pricePence, so a lost second price_point would still pass. Only the £24.99 point proves price history survived the restart. Asserting the timeline row count, or giving the second point a price different from pricePence, would make the check real.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "fresh-install.e2e uses spawnSync with a 30s timeout for the refuses-to-start cases, which blocks the Playwright worker's event loop while it waits. That is acceptable here because nothing else runs in that test.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "restart.e2e passes PROTOCOL_HEADER=x-forwarded-proto alongside ORIGIN to get past the CSRF check, based on the claim that adapter-node ignores ORIGIN at runtime. That workaround is in the test only; the test_contract's ORIGIN=http://127.0.0.1:\u003cport\u003e is still set.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-14": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "restart.e2e keeps the earlier raw-HTML toContain check per point. With distinct prices it is now redundant with the per-row filter, and on its own it could still be satisfied by the Lowest/Highest stats block rather than a history row. The new row-count and row-filter assertions are the ones that make the test robust.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-15": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "srcFiles() relies on Dirent.parentPath with recursive readdirSync (Node \u003e= 20.12); package.json pins no engine, so an older Node would build 'undefined/\u003cname\u003e' paths and fail with ENOENT rather than a clear message",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "isTestFile only exempts *.spec/test/e2e.{js,ts}; a future non-test helper that names auth.schema on purpose would need the filter widened",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-2": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "Ports with leading zeros (e.g. 'localhost:00080') are accepted as port 80; harmless for a loopback guard, but this case is untested",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "The reject table goes past the contract with 'localhost:0', 'localhost:65536' and leading/trailing-space rows, so the port-range check and anchoring are actually exercised",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-3": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-4",
+          "text": "Existing e2e specs still assert the removed header surface (Sign out button, Account link): src/routes/header.e2e.ts, focus.e2e.ts, login/login.e2e.ts, account/password/change-password.e2e.ts, admin/users/admin-users.e2e.ts. They will fail after this change unless a sibling task removes or updates them; none is in this task's file list.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-4",
+          "text": "ARCHITECTURE.md:151 still describes a header with Account, Admin for admins, and a POST Sign out; it is now stale.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/routes/account/password/+page.svelte still exists on disk, so the 'every nav link resolves to a route' test would not yet catch a leftover Account -\u003e /account/password link until the sibling route-removal task deletes it. The self-check test probes /account/nonexistent, not /account/password, despite its name.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-4": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "Removing alert.schema.ts and the per-user channel/watch signatures leaves e2e/seed.ts (inserts into alertChannel, watch rows with userId) and e2e/harness.e2e.ts (imports alertChannel, calls loadChannelConfig(db, key, design.id, 'ntfy')) broken; e2e is outside tsconfig so typecheck will not catch it, but `npm test` will fail until a sibling task rewrites them.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "watches.ts insert switched from db.transaction to db.batch (to avoid SQLITE_BUSY on concurrent adds). The libsql batch is still atomic, and the id-collision test now proxies 'batch'. This is a behavioural change the task description does not mention.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "0009/0010 only reject multi-user databases whose users collide on a channel kind or a product. A multi-user DB with disjoint kinds and products migrates silently and merges into one install. That matches data_scope ('unsupported') but is not a full refusal.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Channels sealed under the old per-user AAD survive 0009 but read as unreadable until saved again (documented in crypto.ts and tested in channels.spec 'legacy AAD or wrong key'). Upgraded installs will need their channel credentials re-entered.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "0009's hand-added DELETE of config_enc IS NULL deliveries runs after the file's PRAGMA foreign_keys=ON. That is correct because the pragma is a no-op inside the migrator's transaction, and migrate.spec checks the result with pragma foreign_key_check.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-6": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-1",
+          "text": "The 'handle imports' assertion only collects specifiers from `from '...'` clauses. A bare side-effect import such as `import 'better-auth/svelte-kit'` would get past it, so the 'any subpath' contract line is enforced only for the named and type import forms.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "The guard reads the Host header, not event.url, so it holds even when adapter-node builds the URL from ORIGIN. local-request.ts accepts exact loopback names only, with an optional port from 1 to 65535.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-7": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "package.json still defines the admin:create script (node src/lib/server/cli/admin-create.ts) and the auth:schema script (--config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts), both pointing at files this task deletes; the better-auth dependency also remains. Not in this task's file list, so presumably a sibling task (t-8), but they are dangling right now.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "e2e/seed.ts imports the deleted ../src/lib/server/auth-factory.ts and e2e/harness.e2e.ts calls /api/auth/*. The seed was already broken by t-4's schema changes (userId, alertChannel), so the e2e rework presumably belongs to another task.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ARCHITECTURE.md still lists symbols in access.ts, auth-factory.ts, own-password.ts, admin-bootstrap.ts and accounts.ts, and the comment at line 15 of src/lib/server/health.ts still mentions relations exported by auth.schema.ts; all are now stale.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "In migrate.spec, the local variable `schema` inside dump() shadows the new `import * as schema`; it works, but a lint rule against shadowing would flag it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The route-matching and import-scanner fixture tests in removed-routes.spec cover parameter, optional and catch-all routes, layout groups, and every import form, so the scans of the real sources cannot pass by accident.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-8": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "test_contract says any non-test file under src/ is scanned, but the removed-routes.spec glob only covers *.{ts,js,svelte}; a better-auth mention in src/app.html, src/lib/styles/*.css or src/lib/server/testing/fixtures/README.md would not fail it (none exists today)",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "playwright.config.ts still passes BETTER_AUTH_SECRET (E2E_SECRET) to the webServer env, and e2e/accounts.ts still has better-auth comments and the E2E_SECRET constant; harmless now that env.ts no longer declares the variable, and outside this task's files, but leftover",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "AUTH_TEXT's negative lookahead is case-insensitive, so identifiers like BetterAuthOptions are not caught by the text scan alone; only an import from better-auth would catch them",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-9": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "harness 'fresh seed' asserts the watch set equals SEEDED_WATCHES exactly, relying on test order; e2e/a11y.e2e.ts sorts before e2e/harness.e2e.ts, so the comment 'runs before every route spec' holds only while a11y stays read-only",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "'node-server needs a build' exercises the missing-entry guard via entry 'build/no-such-entry.js' rather than the default build/index.js; same branch, so it still guards the fail-fast path",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "nodeServerEnv spreads caller env last, so a spec can override HOST/PORT/DATABASE_URL/SCHEDULER_DISABLED; the allowlist from process.env is limited to PATH/SystemRoot/HOME as described",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    }
+  }
+}

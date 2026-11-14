@@ -1,0 +1,73 @@
+[phase]
+  id = "02-single-user"
+  title = "02-single-user"
+  milestone = "v0.1"
+
+[[criteria]]
+  id = "c-1"
+  text = "With a fresh database, / shows the empty watchlist directly: no login screen, no redirect, no account setup."
+
+[[criteria]]
+  id = "c-2"
+  text = "The server starts and serves every page with BETTER_AUTH_SECRET unset; only DATABASE_URL and ALERTS_ENCRYPTION_KEY are required."
+
+[[criteria]]
+  id = "c-3"
+  text = "/login, /logout, /account/password, /admin/users/* and /api/auth/* all return 404."
+
+[[criteria]]
+  id = "c-4"
+  text = "The header has no Sign out or Admin link, and every page has a footer 'Source' link to https://github.com/Rivil/price-check (AGPL-3.0 §13)."
+
+[[criteria]]
+  id = "c-5"
+  text = "Watches, price history and alert channels created in one server run are all present after a restart on the same DB file."
+
+[[criteria]]
+  id = "c-6"
+  text = "A form POST to any action with a foreign Origin header is rejected with 403."
+
+[[criteria]]
+  id = "c-7"
+  text = "A request whose Host is not localhost or 127.0.0.1 (any port) is rejected with 403 (DNS-rebinding guard)."
+
+[[decisions]]
+  key = "data_scope"
+  choice = "Drop the better-auth tables and every user_id column/index; data is owned by the install, not a user row. Multi-user DBs are unsupported."
+  why = "Single local user is locked; a phantom user row keeps the auth schema half alive. No desktop installs exist yet and importing old server data is a milestone non-goal."
+  locked = true
+
+[[decisions]]
+  key = "removed_routes"
+  choice = "Auth, account-password and admin routes are deleted and 404; no redirects to /."
+  why = "Redirects would keep dead URLs looking supported; 404 makes the removal testable and honest."
+  locked = true
+
+[[decisions]]
+  key = "local_request_guard"
+  choice = "Keep SvelteKit's CSRF origin check on, and add a Host-header loopback check in hooks for every request, /health included."
+  why = "With no auth, any web page the user visits could reach the local server via cross-origin POST or DNS rebinding; these two checks are the whole access control now."
+  locked = true
+
+[[deferred]]
+  text = "Generate ALERTS_ENCRYPTION_KEY on first launch and persist it under userData, so no env is needed"
+  why = "Needs the Electron main process and app.getPath('userData'), which 03-desktop-shell creates"
+  target = "03-desktop-shell"
+
+[[deferred]]
+  id = "8e1e2aa6f20aa44b"
+  text = "Desktop shell must start the server with ORIGIN=http://127.0.0.1:<port>; with ORIGIN unset adapter-node derives https://<Host> and Kit's CSRF check rejects every same-origin form POST"
+  why = "Found by 02-single-user panel (adapter-node 6.0.0 handler.js); ORIGIN is optional in env.ts after 02"
+  dismissed = true
+
+[[deferred]]
+  id = "87b48a2f75002539"
+  text = "Host loopback guard does not cover static /_app/immutable/* assets: adapter-node serves them via sirv before hooks. Wrap or replace the adapter-node handler so every request is Host-checked"
+  why = "02-single-user accepted the gap (assets hold no user data); 03 owns server startup"
+  target = "03-desktop-shell"
+
+[[deferred]]
+  id = "a4203acc62a2d602"
+  text = "Desktop server must make same-origin form POSTs pass CSRF: adapter-node 6 ignores runtime ORIGIN (origin baked at build from kit paths.origin, build/adapter-node.js:7); unset, self-origin is https://<Host> (handler.js get_origin:151) so POSTs from http://127.0.0.1:<port> fail. Options: PROTOCOL_HEADER + inject x-forwarded-proto: http in a wrapping server, or a fixed origin at build"
+  why = "Corrects deferred[1] (wrong ORIGIN assumption); found by 02-single-user t-13 investigation 2026-11-14"
+  target = "03-desktop-shell"

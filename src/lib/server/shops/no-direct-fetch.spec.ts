@@ -133,7 +133,7 @@ describe('no direct fetch', () => {
 		const keys = Object.keys(sources);
 
 		expect(keys).toContain(CLIENT);
-		expect(keys).toContain('/src/lib/server/cli/admin-create.ts');
+		expect(keys).toContain('/src/lib/server/cli/adapter-check.ts');
 		expect(keys.filter((key) => /\.(spec|e2e)\.ts$/.test(key))).toEqual([]);
 
 		// The adapter's accept header holds '*' + '/*'; the code after it must still be scanned.

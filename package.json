@@ -1,7 +1,7 @@
 {
 	"name": "price-check-app",
 	"private": true,
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"license": "AGPL-3.0-or-later",
 	"type": "module",
 	"packageManager": "pnpm@10.33.4",
@@ -22,9 +22,7 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
-		"admin:create": "node --env-file-if-exists=.env src/lib/server/cli/admin-create.ts",
-		"adapter:check": "node src/lib/server/cli/adapter-check.ts",
-		"auth:schema": "auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
+		"adapter:check": "node src/lib/server/cli/adapter-check.ts"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "4.14.0",
@@ -37,7 +35,6 @@
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",
 		"@types/node": "^24",
 		"@vitest/browser-playwright": "^4.1.8",
-		"auth": "^1.6.24",
 		"drizzle-kit": "^0.31.10",
 		"eslint": "^10.4.1",
 		"eslint-config-prettier": "^10.1.8",
@@ -62,7 +59,6 @@
 	},
 	"dependencies": {
 		"@libsql/client": "^0.17.4",
-		"better-auth": "^1.7.13",
 		"drizzle-orm": "^0.45.4",
 		"node-html-parser": "9.0.5",
 		"nodemailer": "10.3.1"

@@ -23,12 +23,14 @@ regenerate the whole document from a scan of the code and git history.
 
 ### Access control
 
-Every request passes one server-hook gate: signed-out requests redirect to /login, non-admins get 403 on every /admin page and action, and only the exact path /health skips the gate, before the session load.
+Every request, /health included, must be addressed to a loopback Host (localhost or 127.0.0.1, any port) or gets a plain 403 before any route runs, and Kit's CSRF origin check rejects cross-origin form POSTs; there is no sign-in and no session.
 
-- decideAccess — src/lib/server/access.ts:29
-- createAccessHandle — src/lib/server/access.ts:58
+- isLoopbackHost — src/lib/server/local-request.ts:11
+- createLocalRequestHandle — src/lib/server/local-request.ts:28
+- handle — src/hooks.server.ts:37
+- ACTION_ENDPOINTS — e2e/action-endpoints.ts:9
 
-_introduced accounts · 8be9d9c · extended health · a1e390e_
+_introduced accounts · 8be9d9c · extended health · a1e390e · extended 02-single-user · 7d337c3_
 
 ### Accessibility checks
 
@@ -40,29 +42,9 @@ Playwright checks every page, in light and dark, for axe AA text contrast, 3:1 c
 
 _introduced app-design · 3f93e57_
 
-### Account authentication
-
-Household members sign in with email and password, sign out, and change their own password; public sign-up is disabled and guarded by a source scan.
-
-- createAuth — src/lib/server/auth-factory.ts:24
-- actions — src/routes/login/+page.server.ts:8
-- POST — src/routes/logout/+server.ts:6
-- changeOwnPassword — src/lib/server/own-password.ts:38
-- SIGN_UP_PATTERNS — src/routes/no-public-signup.spec.ts:17
-
-_introduced accounts · c995bde_
-
-### Admin bootstrap
-
-`pnpm admin:create` creates the first admin on a fresh instance and refuses once any admin exists.
-
-- bootstrapAdmin — src/lib/server/admin-bootstrap.ts:55
-
-_introduced accounts · 8a4932f_
-
 ### Alert channel credential encryption
 
-Channel settings are stored under AES-256-GCM with a dedicated ALERTS_ENCRYPTION_KEY bound to user and channel kind; the server refuses to start without a valid key and names only the variable.
+Channel settings are stored under AES-256-GCM with a dedicated ALERTS_ENCRYPTION_KEY bound to the channel kind; the server refuses to start without a valid key and names only the variable.
 
 - encryptSecret — src/lib/server/alerts/crypto.ts:70
 - init — src/hooks.server.ts:27
@@ -83,7 +65,7 @@ _introduced alert-channels · 31dc98b · extended resend-channel · 01c0e9b · e
 
 ### Alert channel settings
 
-Account → Alerts shows one card per channel type (ntfy, Resend, SMTP) with per-kind routing, enable/disable, Send test with its failure reason and remove; a new card starts with its type's default routing (the email cards' recipient prefilled with the login email, SMTP's port with 587), credentials are write-only, non-text form fields are ignored, and each card's messages show only in that card.
+Account → Alerts shows one card per channel type (ntfy, Resend, SMTP) with per-kind routing, enable/disable, Send test with its failure reason and remove; a new card starts with its type's default routing (the email cards' recipient empty, SMTP's port 587), credentials are write-only, non-text form fields are ignored, and each card's messages show only in that card.
 
 - load — src/routes/account/alerts/+page.server.ts:52
 - channel-resend card — src/routes/account/alerts/+page.svelte:171
@@ -95,20 +77,12 @@ _introduced alert-channels · 2901b1c · extended resend-channel · bc62f8a · e
 
 ### Alert channels storage
 
-One encrypted channel per user per kind with write-only secrets and per-watch, per-channel price-drop delivery rows; the legacy plaintext topic store is gone.
+One encrypted channel per kind with write-only secrets and per-watch, per-channel price-drop delivery rows; the legacy plaintext topic store is gone.
 
 - notifyChannel — src/lib/server/db/channel.schema.ts:14
 - saveChannel — src/lib/server/alerts/channels.ts:176
 
 _introduced alert-channels · d9672c0_
-
-### Alert channels upgrade
-
-On startup, legacy plaintext ntfy rows are copied into encrypted channels without overwriting a re-saved one, then deleted and VACUUMed so no topic or token stays in the DB file.
-
-- backfillLegacyNtfy — src/lib/server/alerts/backfill.ts:26
-
-_introduced alert-channels · affb2b3_
 
 ### At-target price highlight
 
@@ -136,25 +110,44 @@ Every page takes its colours (light and dark), type and spacing from shared toke
 
 _introduced app-design · ae4d978_
 
+### Docs checks
+
+A spec pins the README's end-user-first shape and fails on auth-stack traces in the docs, package.json or src, and on multi-user leftovers in this document.
+
+- staleArchitecture — scripts/readme.spec.ts:33
+
+_introduced 01-public-ci · 19df497 · extended 02-single-user · 00118d3_
+
 ### E2E test harness
 
-Playwright runs against a freshly migrated, seeded database (one admin, one member, plus a design edge-case user with long content, and chart and card watches timed relative to seeding) built and previewed before the suite.
+Playwright runs against a freshly migrated database seeded with one install's data (watches with long content, chart and card watches timed relative to seeding, failures and an ntfy channel, no accounts) built and previewed before the suite; node-build specs spawn the built server with an allowlisted env.
 
-- webServer — playwright.config.ts:9
-- SEEDED_DESIGN — e2e/accounts.ts:43
-- chartFull — e2e/accounts.ts:232
+- webServer — playwright.config.ts:12
+- SEEDED_DESIGN_TOPIC_URL — e2e/accounts.ts:24
+- chartFull — e2e/accounts.ts:181
+- startNodeServer — e2e/node-server.ts:80
 
-_introduced accounts · 62effc6 · extended app-design · 5944cfe · extended price-chart · 54fd517_
+_introduced accounts · 62effc6 · extended app-design · 5944cfe · extended price-chart · 54fd517 · extended 02-single-user · 93a5f70_
 
-### Header navigation
+### Failed-check alerts
 
-Signed-in pages show a header with Watchlist, Alerts, Account (Admin for admins) and a POST Sign out; the current link is marked with aria-current.
+A failed check tells every enabled failures channel in parallel, every time, with no claim and no retry; a channel this install's key cannot decrypt is logged by kind and skipped while the others are still told, and the check never fails.
 
-- navItems — src/lib/nav.ts:32
-- Main nav — src/routes/+layout.svelte:27
-- Account page — src/routes/account/password/+page.svelte:13
+- alertAfterFailure — src/lib/server/alerts/alerts.ts:205
+- undecryptable channel — src/lib/server/alerts/alerts.spec.ts:973
 
-_introduced app-design · 2f29576_
+_extended 02-single-user · aa810e8_
+
+### Header and footer
+
+Every page shows a header with Watchlist and Alerts only (the current link marked with aria-current, no sign-in chrome) and a footer Source link to the public repo (AGPL-3.0 §13).
+
+- navItems — src/lib/nav.ts:29
+- Main nav — src/routes/+layout.svelte:25
+- SiteFooter — src/lib/components/SiteFooter.svelte:9
+- source link on every page — src/routes/header.e2e.ts:48
+
+_introduced app-design · 2f29576 · extended 02-single-user · 32275bd_
 
 ### Health probe
 
@@ -164,15 +157,6 @@ A public GET /health reads every schema table and answers 200 or 503 with no det
 - retry deadline — src/lib/server/health.spec.ts:137
 
 _introduced health · 8bb016d_
-
-### Household account management
-
-Admins list household accounts, create new ones (optionally as admin), and reset a user's password, which signs that user out everywhere.
-
-- createHouseholdAccount — src/lib/server/accounts.ts:132
-- resetAccountPassword — src/lib/server/accounts.ts:96
-
-_introduced accounts · ff36f24_
 
 ### Price chart
 
@@ -213,6 +197,26 @@ Server and scheduler errors log only their type, route or watch id, and real sta
 - handleError — src/hooks.server.ts:46
 
 _introduced alert-fixes · d00d0dc_
+
+### Single-user install
+
+One install owns all data with no accounts, sign-in or admin: / opens straight on the watchlist, only DATABASE_URL and ALERTS_ENCRYPTION_KEY are required, the removed auth routes are plain 404s, and watches (unique per shop and product) and channels (one per kind) survive a restart.
+
+- addWatch — src/lib/server/watches.ts:54
+- variables — src/env.ts:3
+- 0011_drop_auth — drizzle/0011_drop_auth.sql:1
+- opens without login — src/routes/watchlist.e2e.ts:26
+- data survives a restart on the same database — e2e/restart.e2e.ts:52
+
+_introduced 02-single-user · 4d5a234_
+
+### Test database harness
+
+Unit tests get a freshly migrated temp-file SQLite per call; dispose() closes the client and removes its directory.
+
+- createTestDb — src/lib/server/testing/test-db.ts:24
+
+_introduced 02-single-user · c5fd8f4_
 
 ### Watch page history
 

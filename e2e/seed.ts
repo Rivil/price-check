@@ -1,23 +1,18 @@
 // Runs before the e2e server starts (playwright.config.ts webServer): a fresh,
-// migrated database holding exactly the seeded users and their rows. Plain Node
+// migrated database holding exactly one install's seeded rows — watches, history,
+// failures and the ntfy channel, with no owner (decision data_scope). Plain Node
 // type stripping: explicit .ts imports, no $app/*.
 import { mkdirSync, rmSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { migrate } from 'drizzle-orm/libsql/migrator';
-import { createAuth } from '../src/lib/server/auth-factory.ts';
+import { saveChannel } from '../src/lib/server/alerts/channels.ts';
 import { createDb } from '../src/lib/server/db/client.ts';
-import { alertChannel, checkFailure, pricePoint, watch } from '../src/lib/server/db/schema.ts';
+import { checkFailure, pricePoint, watch } from '../src/lib/server/db/schema.ts';
 import {
-	E2E_ORIGIN,
-	E2E_SECRET,
-	SEEDED_ADMIN,
-	SEEDED_DESIGN,
+	E2E_ALERTS_KEY,
 	SEEDED_DESIGN_TOPIC_URL,
 	SEEDED_FAILURES,
-	SEEDED_LONG_ACCOUNT,
-	SEEDED_MEMBER,
-	SEEDED_OTHER,
 	SEEDED_POINTS,
 	SEEDED_RELATIVE_POINTS,
 	SEEDED_WATCHES,
@@ -47,25 +42,10 @@ function stamp(at: string | Ago) {
 const db = createDb(`file:${dbFile}`);
 try {
 	await migrate(db, { migrationsFolder: MIGRATIONS_FOLDER });
-	const auth = createAuth({ db, baseURL: E2E_ORIGIN, secret: E2E_SECRET });
-	const ids: Record<string, string> = {};
-	// Order matters: harness 'fresh seed' counts the users created up to the member,
-	// so every later seed user must come after it.
-	for (const [key, { email, name, password, role }] of Object.entries({
-		admin: SEEDED_ADMIN,
-		member: SEEDED_MEMBER,
-		other: SEEDED_OTHER,
-		design: SEEDED_DESIGN,
-		longAccount: SEEDED_LONG_ACCOUNT
-	})) {
-		const { user } = await auth.api.createUser({ body: { email, name, password, role } });
-		ids[key] = user.id;
-	}
 	for (const seeded of Object.values(SEEDED_WATCHES)) {
 		const lastCheckedAt = stamp(seeded.lastCheckedAt);
 		await db.insert(watch).values({
 			id: seeded.id,
-			userId: ids[seeded.owner],
 			shop: 'amazon-uk',
 			productId: seeded.productId,
 			canonicalUrl: `https://www.amazon.co.uk/dp/${seeded.productId}`,
@@ -99,14 +79,13 @@ try {
 	await db
 		.insert(checkFailure)
 		.values(SEEDED_FAILURES.map((row) => ({ ...row, checkedAt: stamp(row.checkedAt) })));
-	// A legacy plaintext row with a token, as an upgraded install has it: the
-	// server's startup backfill moves it into encrypted storage.
-	await db.insert(alertChannel).values({
-		userId: ids.design,
-		ntfyUrl: SEEDED_DESIGN_TOPIC_URL,
-		ntfyToken: 'tk_e2eDesignSeedToken0123456789ab' // token-shaped, test-only
+	// The install's one ntfy channel, sealed with the key the e2e server runs with.
+	const saved = await saveChannel(db, Buffer.from(E2E_ALERTS_KEY, 'base64'), 'ntfy', {
+		topic: SEEDED_DESIGN_TOPIC_URL,
+		token: 'tk_e2eDesignSeedToken0123456789ab' // token-shaped, test-only
 	});
-	process.stdout.write(`seed: ${dbFile} ready (users, watches, history, alert channel)\n`);
+	if (!saved.ok) throw new Error(`seed: ntfy channel refused: ${saved.message}`);
+	process.stdout.write(`seed: ${dbFile} ready (watches, history, alert channel)\n`);
 } finally {
 	db.$client.close();
 }

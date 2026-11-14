@@ -1,10 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
-import {
-	SEEDED_DESIGN,
-	SEEDED_DESIGN_TOPIC_URL,
-	SEEDED_MEMBER,
-	signIn
-} from '../../../../e2e/accounts.ts';
+import { createDb } from '../../../lib/server/db/client.ts';
+import { notifyChannel } from '../../../lib/server/db/schema.ts';
+import { E2E_DATABASE_URL, SEEDED_DESIGN_TOPIC_URL } from '../../../../e2e/accounts.ts';
 
 // Send test is clicked here, but only for a topic on https://127.0.0.1:1/ — a closed
 // loopback port, refused at once with no DNS lookup — so it never reaches a real
@@ -13,10 +10,38 @@ import {
 // would be a live call; its outcomes are pinned in the page server and component specs.
 // SMTP's Send test goes only to 127.0.0.1 port 1, likewise closed: no live mail server.
 
-const REFUSED_TOPIC = 'https://127.0.0.1:1/e2e-member';
+const REFUSED_TOPIC = 'https://127.0.0.1:1/e2e-alerts';
+const RECIPIENT = 'me@e2e.invalid';
+
+// The channels belong to the one install, and later specs read its seeded ntfy
+// topic: every test here starts from, and leaves, exactly the seeded rows.
+let seeded: (typeof notifyChannel.$inferSelect)[] = [];
+
+async function withDb<T>(run: (db: ReturnType<typeof createDb>) => Promise<T>) {
+	const db = createDb(E2E_DATABASE_URL);
+	try {
+		return await run(db);
+	} finally {
+		db.$client.close();
+	}
+}
+
+test.beforeAll(async () => {
+	seeded = await withDb((db) => db.select().from(notifyChannel));
+	expect(seeded.map(({ kind }) => kind)).toContain('ntfy');
+});
+
+test.afterEach(async () => {
+	await withDb(async (db) => {
+		await db.delete(notifyChannel);
+		await db.insert(notifyChannel).values(seeded);
+	});
+});
 
 async function openAlerts(page: Page) {
-	await page.goto('/account/alerts');
+	const response = await page.goto('/account/alerts');
+	expect(response?.status()).toBe(200);
+	expect(response?.request().redirectedFrom()).toBeNull();
 	await expect(page.getByRole('heading', { name: 'Alerts', level: 1 })).toBeVisible();
 }
 
@@ -24,12 +49,8 @@ const ntfyCard = (page: Page) => page.getByTestId('channel-ntfy');
 const resendCard = (page: Page) => page.getByTestId('channel-resend');
 const smtpCard = (page: Page) => page.getByTestId('channel-smtp');
 
-/**
- * The member starts each test with no channel saved: a card of either type left by
- * an earlier or retried test is removed first.
- */
-async function asFreshMember(page: Page) {
-	await signIn(page, SEEDED_MEMBER);
+/** Opens the page with no channel saved: the seeded ntfy channel is removed first. */
+async function withNoChannels(page: Page) {
 	await openAlerts(page);
 	for (const card of [ntfyCard(page), resendCard(page), smtpCard(page)]) {
 		const remove = card.getByRole('button', { name: 'Remove' });
@@ -61,10 +82,8 @@ async function saveTopic(page: Page, topic: string, token?: string) {
 	await expect(ntfyCard(page).getByRole('status')).toHaveText('Saved.');
 }
 
-test('upgraded', async ({ page }) => {
-	// The design user's channel was seeded in the legacy plaintext table and moved
-	// across at startup: it shows as before, with nothing to re-enter.
-	await signIn(page, SEEDED_DESIGN);
+test('seeded topic', async ({ page }) => {
+	// Loaded straight, no login: the install's seeded channel shows as saved.
 	await openAlerts(page);
 	await expect(ntfyCard(page).locator('code').first()).toHaveText(SEEDED_DESIGN_TOPIC_URL);
 	await expect(ntfyCard(page).getByTestId('channel-state')).toContainText('Enabled');
@@ -74,7 +93,7 @@ test('upgraded', async ({ page }) => {
 });
 
 test('send test', async ({ page }) => {
-	await asFreshMember(page);
+	await withNoChannels(page);
 	await expect(ntfyCard(page).getByRole('button', { name: 'Send test' })).toHaveCount(0);
 
 	// An invalid link is refused and nothing is saved.
@@ -91,8 +110,8 @@ test('send test', async ({ page }) => {
 });
 
 test('settings', async ({ page }) => {
-	await asFreshMember(page);
-	await saveTopic(page, 'https://ntfy.e2e.invalid/e2e-member-settings');
+	await withNoChannels(page);
+	await saveTopic(page, 'https://ntfy.e2e.invalid/e2e-alerts-settings');
 
 	await ntfyCard(page).getByLabel('Failed checks').uncheck();
 	await ntfyCard(page).getByRole('button', { name: 'Save topic' }).click();
@@ -113,7 +132,7 @@ test('settings', async ({ page }) => {
 	await page.reload();
 	await expect(ntfyCard(page).getByTestId('channel-state')).toContainText('Disabled');
 	await expect(ntfyCard(page).locator('code').first()).toHaveText(
-		'https://ntfy.e2e.invalid/e2e-member-settings'
+		'https://ntfy.e2e.invalid/e2e-alerts-settings'
 	);
 	await expect(ntfyCard(page).getByLabel('Failed checks')).not.toBeChecked();
 
@@ -122,14 +141,14 @@ test('settings', async ({ page }) => {
 	await page.reload();
 	await expect(ntfyCard(page).getByTestId('channel-state')).toContainText('Enabled');
 	await expect(ntfyCard(page).locator('code').first()).toHaveText(
-		'https://ntfy.e2e.invalid/e2e-member-settings'
+		'https://ntfy.e2e.invalid/e2e-alerts-settings'
 	);
 });
 
 test('credential', async ({ page }) => {
-	const token = 'tk_e2eMemberToken0123456789abcdef'; // token-shaped, test-only
-	await asFreshMember(page);
-	await saveTopic(page, 'https://ntfy.e2e.invalid/e2e-member-credential', token);
+	const token = 'tk_e2eAlertsToken0123456789abcdef'; // token-shaped, test-only
+	await withNoChannels(page);
+	await saveTopic(page, 'https://ntfy.e2e.invalid/e2e-alerts-credential', token);
 	expect(await page.content()).not.toContain(token);
 
 	await page.reload();
@@ -139,8 +158,8 @@ test('credential', async ({ page }) => {
 });
 
 test('remove', async ({ page }) => {
-	await asFreshMember(page);
-	await saveTopic(page, 'https://ntfy.e2e.invalid/e2e-member-remove');
+	await withNoChannels(page);
+	await saveTopic(page, 'https://ntfy.e2e.invalid/e2e-alerts-remove');
 	await page.reload();
 	await expect(ntfyCard(page).locator('code')).toHaveCount(1);
 
@@ -153,19 +172,20 @@ test('remove', async ({ page }) => {
 });
 
 test('resend', async ({ page }) => {
-	const key = 're_e2eMemberKey_0123456789abcdef'; // key-shaped, test-only
+	const key = 're_e2eAlertsKey_0123456789abcdef'; // key-shaped, test-only
 	const badKey = 're_bad key typed here';
-	await asFreshMember(page);
+	await withNoChannels(page);
 	const card = resendCard(page);
 
-	// A new card: drops only, recipient prefilled with the login email.
+	// A new card: drops only, and no recipient: there is no login email to default to.
 	await expect(card.getByLabel('Price drops')).toBeChecked();
 	await expect(card.getByLabel('Failed checks')).not.toBeChecked();
-	await expect(card.getByLabel('Recipient address')).toHaveValue(SEEDED_MEMBER.email);
+	await expect(card.getByLabel('Recipient address')).toHaveValue('');
 
 	// A bad key is refused, and what was typed is nowhere in the page.
 	await card.getByLabel('Resend API key').fill(badKey);
 	await card.getByLabel('Sender address').fill('alerts@e2e.invalid');
+	await card.getByLabel('Recipient address').fill(RECIPIENT);
 	await card.getByRole('button', { name: 'Save email settings' }).click();
 	await expect(card.getByRole('alert')).toContainText('API key');
 	expect(await page.content()).not.toContain(badKey);
@@ -174,6 +194,7 @@ test('resend', async ({ page }) => {
 
 	await card.getByLabel('Resend API key').fill(key);
 	await card.getByLabel('Sender address').fill('alerts@e2e.invalid');
+	await card.getByLabel('Recipient address').fill(RECIPIENT);
 	await card.getByRole('button', { name: 'Save email settings' }).click();
 	await expect(card.getByRole('status')).toHaveText('Saved.');
 	expect(await page.content()).not.toContain(key);
@@ -198,21 +219,22 @@ test('resend', async ({ page }) => {
 test('smtp', async ({ page }) => {
 	const password = 'e2e-smtp-app-password-0123'; // test-only
 	const refusedPassword = 'e2e-smtp-refused-password-9876'; // test-only
-	await asFreshMember(page);
+	await withNoChannels(page);
 	const card = smtpCard(page);
 
-	// A new card: port 587, drops only, recipient prefilled with the login email.
+	// A new card: port 587, drops only, and no recipient: there is no login email.
 	await expect(card.getByLabel('Port')).toHaveValue('587');
 	await expect(card.getByLabel('Price drops')).toBeChecked();
 	await expect(card.getByLabel('Failed checks')).not.toBeChecked();
-	await expect(card.getByLabel('Recipient address')).toHaveValue(SEEDED_MEMBER.email);
+	await expect(card.getByLabel('Recipient address')).toHaveValue('');
 
 	// A refused save (port 0) names the field, and the typed password is nowhere in the page.
 	await card.getByLabel('SMTP server host').fill('127.0.0.1');
 	await card.getByLabel('Port').fill('0');
-	await card.getByLabel('Username').fill('e2e-member');
+	await card.getByLabel('Username').fill('e2e-alerts');
 	await card.getByLabel('Password').fill(refusedPassword);
 	await card.getByLabel('Sender address').fill('alerts@e2e.invalid');
+	await card.getByLabel('Recipient address').fill(RECIPIENT);
 	await card.getByRole('button', { name: 'Save SMTP settings' }).click();
 	await expect(card.getByRole('alert')).toContainText('SMTP port');
 	expect(await page.content()).not.toContain(refusedPassword);
@@ -221,9 +243,10 @@ test('smtp', async ({ page }) => {
 
 	await card.getByLabel('SMTP server host').fill('127.0.0.1');
 	await card.getByLabel('Port').fill('1');
-	await card.getByLabel('Username').fill('e2e-member');
+	await card.getByLabel('Username').fill('e2e-alerts');
 	await card.getByLabel('Password').fill(password);
 	await card.getByLabel('Sender address').fill('alerts@e2e.invalid');
+	await card.getByLabel('Recipient address').fill(RECIPIENT);
 	await card.getByRole('button', { name: 'Save SMTP settings' }).click();
 	await expect(card.getByRole('status')).toHaveText('Saved.');
 	expect(await page.content()).not.toContain(password);
