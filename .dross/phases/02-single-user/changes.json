@@ -20,6 +20,26 @@
         }
       ]
     },
+    "t-10": {
+      "files": [
+        "src/routes/watchlist.e2e.ts",
+        "src/routes/watches/[id]/watch-page.e2e.ts",
+        "src/routes/account/alerts/alerts.e2e.ts",
+        "src/routes/at-target.e2e.ts",
+        "src/routes/chart-a11y.e2e.ts",
+        "src/routes/page.svelte.e2e.ts"
+      ],
+      "commit": "a5877ee",
+      "completed_at": "2026-11-14T09:40:44.756266Z",
+      "landmarks": [
+        {
+          "feature": "single-user access",
+          "symbol": "opens without login",
+          "loc": "src/routes/watchlist.e2e.ts:26",
+          "what": "page-flow e2e specs load /, watch pages and /account/alerts directly with no sign-in; cross-user cases dropped"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/local-request.ts",
@@ -239,6 +259,33 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "test-db.spec's MIGRATIONS_FOLDER === migrationsFolder() assertion depends on vitest running from the repo root; that is intended here but will break if the test cwd changes",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-10": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "watchlist.e2e 'opens without login' says it loads '/' 'not via beforeEach', but beforeEach has already opened '/'. The second page.goto still checks the server's status and that there was no redirect, so the test still works; only the comment is slightly off.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "layout.e2e.ts, contrast.e2e.ts, header.e2e.ts and focus.e2e.ts still import signIn and SEEDED_MEMBER/SEEDED_DESIGN, which e2e/accounts.ts no longer exports. Those files are outside this task's list, so this is presumably another task's work, but the full e2e suite won't run cleanly until they are fixed.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "alerts.e2e takes a snapshot of the notify_channel rows in beforeAll and puts them back after each test, so later spec files still see the seeded ntfy topic. This is only safe because playwright.config.ts uses workers: 1.",
           "resolution": "non-blocking, left"
         }
       ]

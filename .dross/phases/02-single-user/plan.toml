@@ -127,7 +127,7 @@ test_contract = [
   '''if page.goto('/') is not 200 with no redirectedFrom, the 'Watchlist' h1 is not visible, or any seeded title (formerly split across users) is missing, watchlist.e2e 'opens without login' fails''',
   '''if /watches/e2e-page-detail does not load directly with its history, watch-page.e2e fails; if /account/alerts does not load directly showing the seeded topic, alerts.e2e fails; no spec may import signIn''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-11"
