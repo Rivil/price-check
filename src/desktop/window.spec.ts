@@ -125,13 +125,14 @@ afterEach(() => {
 });
 
 describe('createMainWindow', () => {
-	it('locks down webPreferences: isolated, sandboxed, no node, no preload', () => {
+	it('locks down webPreferences: isolated, sandboxed, no node, no webview, no preload', () => {
 		const { window } = openWindow();
 		const prefs = window.options.webPreferences;
 
 		expect(prefs?.contextIsolation).toBe(true);
 		expect(prefs?.sandbox).toBe(true);
 		expect(prefs?.nodeIntegration).toBe(false);
+		expect(prefs?.webviewTag).toBe(false);
 		expect(prefs).not.toHaveProperty('preload');
 	});
 
@@ -141,7 +142,7 @@ describe('createMainWindow', () => {
 		expect(window.loaded).toEqual([ORIGIN]);
 	});
 
-	it.each(['https://www.amazon.co.uk/dp/B0X', 'https://ntfy.sh/t'])(
+	it.each(['https://www.amazon.co.uk/dp/B0X', 'https://ntfy.sh/t', 'http://shop.example/dp/B0X'])(
 		'denies window.open(%s) and opens it in the default browser once',
 		(url) => {
 			const { window, openExternal } = openWindow();
@@ -194,14 +195,16 @@ describe('createMainWindow', () => {
 		}
 	);
 
-	it('hands an off-origin http(s) link navigation to the default browser', () => {
-		const { window, openExternal } = openWindow();
+	it.each(['https://www.amazon.co.uk/dp/B0X', 'http://shop.example/dp/B0X'])(
+		'hands an off-origin link navigation to %s to the default browser',
+		(url) => {
+			const { window, openExternal } = openWindow();
 
-		window.navigate('will-navigate', 'https://www.amazon.co.uk/dp/B0X');
-
-		expect(openExternal).toHaveBeenCalledTimes(1);
-		expect(openExternal).toHaveBeenCalledWith('https://www.amazon.co.uk/dp/B0X');
-	});
+			expect(window.navigate('will-navigate', url).prevented).toBe(true);
+			expect(openExternal).toHaveBeenCalledTimes(1);
+			expect(openExternal).toHaveBeenCalledWith(url);
+		}
+	);
 
 	it('lets a same-origin navigation through', () => {
 		const { window, openExternal } = openWindow();
