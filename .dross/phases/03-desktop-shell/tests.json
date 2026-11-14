@@ -1,6 +1,6 @@
 {
   "phase": "03-desktop-shell",
-  "generated_at": "2026-11-14T13:58:09.183261Z",
+  "generated_at": "2026-11-14T14:14:57.033405Z",
   "languages": [
     {
       "name": "typescript",
@@ -13,6 +13,8 @@
         "e2e/desktop/launch.ts",
         "e2e/desktop/quit-relaunch.e2e.ts",
         "e2e/desktop/seed-child.ts",
+        "e2e/harness.e2e.ts",
+        "e2e/node-server.ts",
         "playwright.config.ts",
         "playwright.desktop.config.ts",
         "scripts/build-desktop.spec.ts",
@@ -910,64 +912,24 @@
             "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
           },
           {
-            "File": "src/desktop/server.ts",
-            "Line": 70,
+            "File": "src/desktop/tray.ts",
+            "Line": 92,
             "Op": "StringLiteral",
             "Snippet": "\"\"",
             "Origin": "in-hunk",
-            "Key": "beff93833ef79b51",
+            "Key": "a33b0ef6ee785bdc",
             "Lifecycle": "accepted",
             "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
           },
           {
-            "File": "src/desktop/server.ts",
-            "Line": 86,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "03b19bccd05c3053",
-            "Lifecycle": "accepted",
-            "Note": "next() is only reached when the handler declines a request; adapter-node's handler never calls next after ending the response, so the writableEnded guard never changes an outcome."
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 38,
+            "File": "src/desktop/tray.ts",
+            "Line": 19,
             "Op": "StringLiteral",
             "Snippet": "\"\"",
             "Origin": "in-hunk",
-            "Key": "48aa8dd11e051ca5",
+            "Key": "99503e9f5613e260",
             "Lifecycle": "accepted",
             "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 97,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "7565d901d08cc046",
-            "Lifecycle": "accepted",
-            "Note": "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 99,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "a5da1890d023603d",
-            "Lifecycle": "accepted",
-            "Note": "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 128,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "8fe9f2c38e0ff2e8",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: deleting every variable and then Object.assign(process.env, env) leaves process.env equal to env, the same as deleting only those absent from env."
           },
           {
             "File": "src/lib/server/scheduler.ts",
@@ -1080,24 +1042,64 @@
             "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
           },
           {
-            "File": "src/desktop/tray.ts",
-            "Line": 92,
+            "File": "src/desktop/server.ts",
+            "Line": 70,
             "Op": "StringLiteral",
             "Snippet": "\"\"",
             "Origin": "in-hunk",
-            "Key": "a33b0ef6ee785bdc",
+            "Key": "beff93833ef79b51",
             "Lifecycle": "accepted",
             "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
           },
           {
-            "File": "src/desktop/tray.ts",
-            "Line": 19,
+            "File": "src/desktop/server.ts",
+            "Line": 86,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "03b19bccd05c3053",
+            "Lifecycle": "accepted",
+            "Note": "next() is only reached when the handler declines a request; adapter-node's handler never calls next after ending the response, so the writableEnded guard never changes an outcome."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 38,
             "Op": "StringLiteral",
             "Snippet": "\"\"",
             "Origin": "in-hunk",
-            "Key": "99503e9f5613e260",
+            "Key": "48aa8dd11e051ca5",
             "Lifecycle": "accepted",
             "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 97,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "7565d901d08cc046",
+            "Lifecycle": "accepted",
+            "Note": "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 99,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "a5da1890d023603d",
+            "Lifecycle": "accepted",
+            "Note": "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 128,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "8fe9f2c38e0ff2e8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: deleting every variable and then Object.assign(process.env, env) leaves process.env equal to env, the same as deleting only those absent from env."
           }
         ],
         "NotCovered": 16
@@ -2376,6 +2378,110 @@
             "start": 42,
             "end": 84,
             "construct": "TryStatement"
+          }
+        ],
+        "e2e/harness.e2e.ts": [
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 265,
+            "end": 313,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 315,
+            "end": 315,
+            "construct": "hunk"
+          },
+          {
+            "start": 316,
+            "end": 327,
+            "construct": "FunctionDeclaration holdConnection"
+          },
+          {
+            "start": 328,
+            "end": 330,
+            "construct": "hunk"
+          },
+          {
+            "start": 331,
+            "end": 357,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 358,
+            "end": 359,
+            "construct": "hunk"
+          },
+          {
+            "start": 360,
+            "end": 363,
+            "construct": "VariableDeclaration STUCK_PROBE"
+          },
+          {
+            "start": 364,
+            "end": 366,
+            "construct": "hunk"
+          },
+          {
+            "start": 367,
+            "end": 393,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 394,
+            "end": 394,
+            "construct": "hunk"
+          }
+        ],
+        "e2e/node-server.ts": [
+          {
+            "start": 19,
+            "end": 23,
+            "construct": "hunk"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "VariableDeclaration E2E_SHUTDOWN_TIMEOUT"
+          },
+          {
+            "start": 25,
+            "end": 30,
+            "construct": "hunk"
+          },
+          {
+            "start": 31,
+            "end": 31,
+            "construct": "VariableDeclaration STOP_GRACE_MS"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 45,
+            "end": 52,
+            "construct": "TSTypeAliasDeclaration NodeServer"
+          },
+          {
+            "start": 55,
+            "end": 75,
+            "construct": "FunctionDeclaration nodeServerEnv"
+          },
+          {
+            "start": 98,
+            "end": 170,
+            "construct": "FunctionDeclaration startNodeServer"
           }
         ],
         "playwright.config.ts": [
@@ -5931,6 +6037,8 @@
       "e2e/desktop/launch.ts",
       "e2e/desktop/quit-relaunch.e2e.ts",
       "e2e/desktop/seed-child.ts",
+      "e2e/harness.e2e.ts",
+      "e2e/node-server.ts",
       "package.json",
       "playwright.config.ts",
       "playwright.desktop.config.ts",
@@ -5985,7 +6093,7 @@
       ".dross/phases/03-desktop-shell/changes.json": [
         {
           "start": 1,
-          "end": 917
+          "end": 978
         }
       ],
       ".dross/phases/03-desktop-shell/panel/mvp.md": [
@@ -6015,7 +6123,7 @@
       ".dross/phases/03-desktop-shell/plan.toml": [
         {
           "start": 1,
-          "end": 334
+          "end": 344
         }
       ],
       ".dross/phases/03-desktop-shell/spec.toml": [
@@ -6027,13 +6135,13 @@
       ".dross/phases/03-desktop-shell/tests.json": [
         {
           "start": 1,
-          "end": 6988
+          "end": 6552
         }
       ],
       ".dross/phases/03-desktop-shell/verify.toml": [
         {
           "start": 1,
-          "end": 369
+          "end": 157
         }
       ],
       ".dross/project.toml": [
@@ -6049,7 +6157,7 @@
         },
         {
           "start": 561,
-          "end": 1397
+          "end": 1424
         }
       ],
       ".github/workflows/ci.yml": [
@@ -6126,6 +6234,50 @@
         {
           "start": 1,
           "end": 84
+        }
+      ],
+      "e2e/harness.e2e.ts": [
+        {
+          "start": 3,
+          "end": 3
+        },
+        {
+          "start": 20,
+          "end": 20
+        },
+        {
+          "start": 266,
+          "end": 273
+        },
+        {
+          "start": 295,
+          "end": 301
+        },
+        {
+          "start": 315,
+          "end": 394
+        }
+      ],
+      "e2e/node-server.ts": [
+        {
+          "start": 19,
+          "end": 32
+        },
+        {
+          "start": 47,
+          "end": 50
+        },
+        {
+          "start": 72,
+          "end": 72
+        },
+        {
+          "start": 137,
+          "end": 138
+        },
+        {
+          "start": 140,
+          "end": 149
         }
       ],
       "package.json": [
@@ -6547,6 +6699,6 @@
     "source": "git+changes"
   },
   "measured_on": "local",
-  "measured_commit": "53c41dc15a9815082337de88745a0cd2499347bb",
-  "measured_tree": "6419d315469c13ef9568327cac8ea71362373ef1"
+  "measured_commit": "304085c9a5bed8a6f56dd9606d83f9f5e1d7584b",
+  "measured_tree": "6582e41a2f6016e727ed8e593748b4ca000a57fc"
 }
