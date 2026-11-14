@@ -129,6 +129,22 @@
           "what": "tray icon with Open/Start at login/Quit menu rebuilt from live OS login-item state after each toggle"
         }
       ]
+    },
+    "t-8": {
+      "files": [
+        "src/desktop/lifecycle.ts",
+        "src/desktop/lifecycle.spec.ts"
+      ],
+      "commit": "40cba9a",
+      "completed_at": "2026-11-14T11:44:38.763046Z",
+      "landmarks": [
+        {
+          "feature": "desktop app lifecycle",
+          "symbol": "runDesktop",
+          "loc": "src/desktop/lifecycle.ts:149",
+          "what": "single-instance lock, tray-only login launch, close-to-tray, resume pass, deadline-bounded quit ending in app.exit"
+        }
+      ]
     }
   },
   "reviews": {
@@ -325,6 +341,40 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "the RealDeps -\u003e TrayDeps\u003cMenu\u003e assignment in tray.spec.ts is only checked at compile time (pnpm check); vitest alone will not catch drift from Electron's Tray/Menu types",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-8": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "A before-quit that arrives during startup (before running.server/runtime are set, e.g. while startServer is still opening the DB) runs an empty shutdown and calls app.exit(0) right away, so the server and DB are never closed cleanly. Exiting the process releases them, so this is a rare-path risk rather than a bug, but no test covers quitting mid-startup.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "If startServer resolves but readRuntime throws, the listening server is never closed before app.exit(1). Process exit cleans it up, and the 'unpublished runtime' test covers the exit path.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The window-all-closed test spoofs process.platform across win32/linux/darwin, but the handler ignores platform, so the per-platform runs differ only in name. They still guard against a future platform-specific regression.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The realDepsFit compile-time check, which confirms Electron's real App/PowerMonitor/Dialog fit the structural deps, is only enforced by pnpm check, not by vitest.",
           "resolution": "non-blocking, left"
         }
       ]

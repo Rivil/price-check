@@ -156,7 +156,7 @@ test_contract = [
   '''if before-quit does not run exactly [runtime.stop, server.close, runtime.closeDb, app.exit(0)] in that order, calls exit before closeDb resolves, runs again on a second before-quit during shutdown, or a step that throws, rejects or hangs past the shutdown deadline stops app.exit from being called, lifecycle.spec fails''',
   '''if a loadKey throw (bad key file) or a startServer rejection does not end in dialog.showErrorBox (message names the file, contains no key base64) then app.exit(1) with no tray created (a zombie instance would hold the lock and swallow every relaunch), lifecycle.spec fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-9"
