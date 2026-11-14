@@ -1,11 +1,11 @@
 [verify]
   phase = "02-single-user"
-  generated_at = 2026-11-14T10:17:45.982548Z
+  generated_at = 2026-11-14T10:21:48.286717Z
   verdict = "pass"
   finalized = true
-  finalized_at = 2026-11-14T10:19:04.066215Z
-  measured_commit = "ae2eb5337d31e756f978ed1a1656476919dee293"
-  measured_tree = "4debe8f95ee35ceea493b9f28831fc7ae5046bec"
+  finalized_at = 2026-11-14T10:22:09.160213Z
+  measured_commit = "9be1341a2c2c45266b1c980d37f96a089be3b835"
+  measured_tree = "b24a338ddda487d104bbe4a522b75071f837c637"
 
 [summary]
   mutation_status = "measured"
@@ -80,6 +80,10 @@
 [[finding]]
   severity = "NOTE"
   text = "skipped .env.example: no mutation adapter for .example"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .gitleaks.toml: no mutation adapter for .toml"
 
 [[finding]]
   severity = "NOTE"
@@ -312,3 +316,7 @@
 [[finding]]
   severity = "NOTE"
   text = "Solo review: all 14 tasks passed in 1 round, none failed. t-1..t-13 FLAGs as recorded in the prior verify (resolved or left as hygiene). t-14 NOTE: restart.e2e's raw-HTML toContain check is now redundant with the per-row filter (left). t-15 NOTEs: srcFiles() needs Node >= 20.12 Dirent.parentPath, isTestFile filter scope (left; .node-version pins 24)."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Re-measured after 9be1341 (gitleaks allowlist for survivor ids in tests.json and survivors.toml; config only, no source change). dross verify --reuse-report re-parsed the 10:17 Stryker report over identical source: 0.95 over 658, killed 627, survived 16 (all accepted), 0 unclassified. Criterion mappings carried over unchanged. Observed this run: dross test 927/927, pnpm lint clean, gitleaks git --log-opts=HEAD exit 0."
