@@ -140,7 +140,7 @@ Page lists become '/', a watch page, '/account/alerts' and a 404 page; login/adm
 '''
 covers        = ["c-4"]
 test_contract = ["if any of '/', '/watches/<seeded>', '/account/alerts' or '/no-such-page' (404 page) lacks exactly one footer link named 'Source' with href https://github.com/Rivil/price-check, shows a button named /sign out/i, or shows an 'Admin' or 'Account' link, header.e2e fails; every header nav href must GET 200", "if '/healthx' still redirects (was 303 to /login) instead of 404, health.e2e fails", "if the footer link fails contrast in either colour scheme, contrast.e2e fails", "if the footer 'Source' link is not reachable by Tab after the last main-content control on '/', focus.e2e fails", "if layout.e2e still visits /login, /admin/users or /account/password, or the layout checks miss the 404 page, layout.e2e fails"]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-12"

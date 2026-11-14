@@ -40,6 +40,25 @@
         }
       ]
     },
+    "t-11": {
+      "files": [
+        "src/routes/header.e2e.ts",
+        "src/routes/layout.e2e.ts",
+        "src/routes/focus.e2e.ts",
+        "src/routes/contrast.e2e.ts",
+        "src/routes/health/health.e2e.ts"
+      ],
+      "commit": "09d3f45",
+      "completed_at": "2026-11-14T09:44:20.763925Z",
+      "landmarks": [
+        {
+          "feature": "site chrome",
+          "symbol": "source link on every page",
+          "loc": "src/routes/header.e2e.ts:48",
+          "what": "e2e pins footer Source link, no auth chrome and 404 pages across header/layout/focus/contrast specs"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/local-request.ts",
@@ -286,6 +305,26 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "alerts.e2e takes a snapshot of the notify_channel rows in beforeAll and puts them back after each test, so later spec files still see the seeded ntfy topic. This is only safe because playwright.config.ts uses workers: 1.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-11": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "contrast.e2e keepingChannels deletes and re-inserts every notify_channel row; with foreign keys on, that cascade-deletes any price_drop_delivery rows, which are not restored. The e2e seed creates none today, so nothing breaks now.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "header.e2e 'no auth chrome' matches 'Admin' and 'Account' without exact:true, so it rejects any link whose name contains those words (case-insensitive). That is stricter than the contract and fine with the current two-link nav.",
           "resolution": "non-blocking, left"
         }
       ]
