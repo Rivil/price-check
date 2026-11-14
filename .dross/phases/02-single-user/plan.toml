@@ -170,4 +170,4 @@ test_contract = [
   '''if GET '/' on a fresh temp DB (redirect 'manual') is not 200 at pathname '/' with the empty-watchlist text, or there is any input[type=password] or Set-Cookie, fresh-install.e2e fails''',
   '''if, after server A (ORIGIN=http://127.0.0.1:<port>) saves an ntfy channel via /account/alerts?/save (.invalid host, r-01) and a watch + 2 price_points are inserted, server B on the same file does not list the watch on '/', show both prices on /watches/<id>, and show the topic decrypted on /account/alerts, restart.e2e fails''',
 ]
-status        = "pending"
+status        = "done"

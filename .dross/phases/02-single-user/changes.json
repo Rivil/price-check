@@ -77,6 +77,22 @@
         }
       ]
     },
+    "t-13": {
+      "files": [
+        "e2e/fresh-install.e2e.ts",
+        "e2e/restart.e2e.ts"
+      ],
+      "commit": "f52091a",
+      "completed_at": "2026-11-14T09:59:17.024011Z",
+      "landmarks": [
+        {
+          "feature": "single-user install",
+          "symbol": "data survives a restart on the same database",
+          "loc": "e2e/restart.e2e.ts:49",
+          "what": "node build e2e proves minimal-env fresh start, env-missing exit, and restart persistence"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/local-request.ts",
@@ -373,6 +389,34 @@
           "severity": "NOTE",
           "criterion": "c-7",
           "text": "The control test with ORIGIN unset (a matching derived https://\u003cHost\u003e Origin is answered 400) correctly shows that only the Host guard can refuse the rebinding POST.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-13": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "restart.e2e checks '£19.99' on /watches/\u003cid\u003e, but that is also the watch's own pricePence, so a lost second price_point would still pass. Only the £24.99 point proves price history survived the restart. Asserting the timeline row count, or giving the second point a price different from pricePence, would make the check real.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "fresh-install.e2e uses spawnSync with a 30s timeout for the refuses-to-start cases, which blocks the Playwright worker's event loop while it waits. That is acceptable here because nothing else runs in that test.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "restart.e2e passes PROTOCOL_HEADER=x-forwarded-proto alongside ORIGIN to get past the CSRF check, based on the claim that adapter-node ignores ORIGIN at runtime. That workaround is in the test only; the test_contract's ORIGIN=http://127.0.0.1:\u003cport\u003e is still set.",
           "resolution": "non-blocking, left"
         }
       ]
