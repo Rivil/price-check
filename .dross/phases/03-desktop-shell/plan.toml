@@ -321,7 +321,7 @@ files = ["src/desktop/lifecycle.spec.ts", "src/lib/server/scheduler.spec.ts"]
 description = "Verify 03 left 5 lifecycle.ts survivors (131 x2, 132, 167, 208) and 6 scheduler.ts survivors (93 x3, 99 x2, 103). lifecycle.spec never checks which file the startup error dialog leads with, nor that a relaunch during shutdown opens no window; scheduler.spec never checks that stop() disarms the interval (the reviewer's t-2 FLAG) or that a pass finishing in time logs no drain timeout. Tests only."
 covers = ["c-7", "c-8", "c-9"]
 test_contract = ["if a key-stage startup failure's dialog content no longer starts with 'The alerts key file could not be used:' and the keyFile path on the next line (or a server-stage one no longer starts with the dbFile lead), lifecycle.spec fails; the injected error's message must not contain either path", "if a second-instance or activate event that arrives after before-quit started the shutdown shows or creates a window, lifecycle.spec fails", "if stop() on a started scheduler leaves its setInterval armed (fake timers: vi.getTimerCount() is 0 after stop with no pass in flight), scheduler.spec fails", "if stop() logs 'did not finish within' when the in-flight pass settles before drainMs, scheduler.spec fails"]
-status = "pending"
+status = "done"
 
 [[task]]
 id = "t-21"

@@ -220,6 +220,22 @@
         }
       ]
     },
+    "t-20": {
+      "files": [
+        "src/desktop/lifecycle.spec.ts",
+        "src/lib/server/scheduler.spec.ts"
+      ],
+      "commit": "e7f79f2",
+      "completed_at": "2026-11-14T13:44:11.725002Z",
+      "landmarks": [
+        {
+          "feature": "desktop lifecycle",
+          "symbol": "createScheduler.stop",
+          "loc": "src/lib/server/scheduler.spec.ts:283",
+          "what": "specs pin startup error lead, no window during shutdown, and stop() disarming its interval and drain timer"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "src/desktop/app-paths.ts",
@@ -631,6 +647,44 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "Once stop() hits its drainMs timeout it resolves with a pass still running, so a quit that calls closeDb next will close the db under that pass. This is the accepted trade-off of the drain bound, and it is logged.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-20": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-9",
+          "text": "scheduler.spec 'a pass that settles in time logs no drain timeout and leaves no timer': the advanceTimersByTimeAsync(1000) before the final getTimerCount() check lets the drain timer fire, so the 'leaves no timer' check cannot catch a removed clearTimeout(timer) at scheduler.ts:102; checking getTimerCount() right after `await stopping` would",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "the lifecycle shutdown test fires second-instance, activate and the tray's showWindow while runtime.stop is still pending, so it covers every way a window can be shown during shutdown, not only the two events in the contract",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "The shutdown test sets h.windowOpen = false before before-quit, so a removed quitting guard would increment windowsCreated rather than just re-focus; the extra trayActions.showWindow() call also goes through the same guarded showWindow",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-9",
+          "text": "The drain test checks getTimerCount() before advancing time, so it also pins clearTimeout(timer) at scheduler.ts:102 in addition to the log condition at :103",
           "resolution": "non-blocking, left"
         }
       ]
