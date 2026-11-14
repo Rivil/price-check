@@ -38,6 +38,12 @@ export type ChannelCard = {
 
 const SAVE_FIRST = 'Save this channel first.';
 
+// The desktop channel is seeded, on, whenever its row is missing (decision
+// default_on_seed): removed, it would come back on at the next launch. It can only
+// be turned off.
+const KEPT_KINDS: ReadonlySet<string> = new Set(['desktop']);
+const KEPT_MESSAGE = "The desktop channel can't be removed; disable it instead.";
+
 /** The submitted channel type, or null when it is missing or not a registered type. */
 function kindOf(data: FormData): string | null {
 	const kind = data.get('kind');
@@ -97,6 +103,7 @@ export const actions: Actions = {
 	remove: async ({ request }) => {
 		const kind = kindOf(await request.formData());
 		if (kind === null) return fail(400, { message: UNKNOWN_KIND_MESSAGE });
+		if (KEPT_KINDS.has(kind)) return fail(400, { kind, message: KEPT_MESSAGE });
 		await removeChannel(db, kind);
 		return { removed: kind };
 	},

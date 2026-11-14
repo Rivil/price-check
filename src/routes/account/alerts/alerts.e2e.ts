@@ -92,6 +92,18 @@ test('seeded topic', async ({ page }) => {
 	await expect(ntfyCard(page).getByTestId('token-state')).toHaveText('Access token: set.');
 });
 
+test('no desktop card', async ({ page }) => {
+	// The node server publishes no notifier, so no desktop driver, row or card
+	// (decision desktop_only_driver); the web cards are all there.
+	await openAlerts(page);
+	await expect(ntfyCard(page)).toBeVisible();
+	await expect(resendCard(page)).toBeVisible();
+	await expect(smtpCard(page)).toBeVisible();
+	await expect(page.getByTestId('channel-desktop')).toHaveCount(0);
+	await expect(page.getByRole('heading', { name: 'Desktop' })).toHaveCount(0);
+	expect(seeded.map(({ kind }) => kind)).not.toContain('desktop');
+});
+
 test('send test', async ({ page }) => {
 	await withNoChannels(page);
 	await expect(ntfyCard(page).getByRole('button', { name: 'Send test' })).toHaveCount(0);
