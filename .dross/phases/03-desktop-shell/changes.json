@@ -154,6 +154,21 @@
         }
       ]
     },
+    "t-17": {
+      "files": [
+        "src/desktop/login-item.spec.ts"
+      ],
+      "commit": "5556161",
+      "completed_at": "2026-11-14T13:31:01.474846Z",
+      "landmarks": [
+        {
+          "feature": "start at login",
+          "symbol": "autostartEntry",
+          "loc": "src/desktop/login-item.ts:94",
+          "what": "Linux autostart entry text, Exec escapes, APPIMAGE trim, disabled-entry regex and unpackaged isEnabled pinned by spec"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/scheduler.ts",
@@ -503,6 +518,26 @@
           "severity": "NOTE",
           "criterion": "c-7",
           "text": "The two test_contract lines (10 consecutive local passes with --repeat-each 10, and PR #8 desktop e2e green on the first attempt on windows-2025, ubuntu and macOS) are run-time checks the diff can't show. Confirm them before marking t-16 done.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-17": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "'writes exactly that entry to the autostart file on registration' compares the file against autostartEntry() itself, so on its own it only checks the wiring; the fixed-text test above it is what pins the content",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the entryDisabled table removes the stock X-GNOME-Autostart-enabled=true line and puts each case mid-entry, so dropping the ^ or $ anchors, the m flag, or any \\s* allowance makes at least one row fail",
           "resolution": "non-blocking, left"
         }
       ]

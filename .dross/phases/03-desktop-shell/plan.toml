@@ -291,7 +291,7 @@ files = ["src/desktop/login-item.spec.ts"]
 description = "Verify 03 left 22 login-item.ts survivors (lines 27, 84, 86, 95, 98-105, 112 x10, 169): login-item.spec never asserts the autostart entry's content beyond Exec, so a broken .desktop file would stop Linux start-at-login undetected. Tests only; no production change unless a test exposes a real bug."
 covers = ["c-6"]
 test_contract = ["if autostartEntry drops or changes any line ([Desktop Entry], Type=Application, Version=1.0, Name=Price Check, the Comment line, Terminal=false, X-GNOME-Autostart-enabled=true, trailing newline), login-item.spec fails: assert the whole entry text for a fixed execPath", "if quoteExecArg stops turning a newline into the two characters backslash-n, or a carriage return into backslash-r, inside the quoted Exec argument, login-item.spec fails", "if autostartEntry stops trimming APPIMAGE (a whitespace-only APPIMAGE must fall back to execPath), login-item.spec fails", "if entryDisabled loses its ^ or $ anchors or its \\s* tolerance, login-item.spec fails: a table where 'Hidden=true', 'Hidden = true', '  X-GNOME-Autostart-enabled =false  ' and 'X-GNOME-Autostart-enabled=false' (each inside a full entry) read as off, and 'NoHidden=true', 'X-Hidden=true' and 'X-GNOME-Autostart-enabled=falsey' read as on", "if isEnabled stops returning false on an unpackaged run while the OS (getLoginItemSettings or the autostart file) reports enabled, login-item.spec fails"]
-status = "pending"
+status = "done"
 
 [[task]]
 id = "t-18"
