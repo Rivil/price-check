@@ -6,7 +6,7 @@
 // - Workflow-level `permissions:` is present and exactly `contents: read`.
 // - Job-level `permissions:` is `{}`, `contents: read` or `contents: none`. The only
 //   way past that is WRITE_SCOPE_ALLOWLIST: a listed workflow file may grant its
-//   listed scopes `write`, at job level only.
+//   listed scopes `write`, at job level only (today: release.yml, contents).
 //
 // No YAML library (no new supply-chain dependency): a line-based reader that fails
 // closed. Any `permissions` or `uses` it cannot classify is a violation.
@@ -17,8 +17,14 @@ import { fileURLToPath } from 'node:url';
 
 export type Violation = { file: string; line: number; message: string };
 
-/** Workflow file name → scopes its jobs may grant `write`. Empty: nothing may write. */
-export const WRITE_SCOPE_ALLOWLIST: Readonly<Record<string, readonly string[]>> = {};
+/**
+ * Workflow file name → scopes its jobs may grant `write`. Per file, not per job:
+ * release.yml's publish job is the only one that may write (decision
+ * release_pipeline), which scripts/release-workflow.spec.ts pins per job.
+ */
+export const WRITE_SCOPE_ALLOWLIST: Readonly<Record<string, readonly string[]>> = {
+	'release.yml': ['contents']
+};
 
 type Entry = { line: number; indent: number; text: string };
 type Frame = { indent: number; key: string };
