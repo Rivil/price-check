@@ -108,7 +108,7 @@ test_contract = [
   '''if the 'Not released yet' note survives, readme.spec fails''',
   '''if README names a `pnpm <x>` that is not a package.json script, the existing readme.spec pnpmCommands check fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-7"

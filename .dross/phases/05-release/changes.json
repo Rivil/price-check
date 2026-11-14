@@ -92,6 +92,22 @@
           "what": "Quit and tray Restart to update install a pending update only after DB close, env scrubbed, predecessor-pid wait on relaunch"
         }
       ]
+    },
+    "t-6": {
+      "files": [
+        "README.md",
+        "scripts/readme.spec.ts"
+      ],
+      "commit": "efe0cbc",
+      "completed_at": "2026-11-14T19:04:22.421215Z",
+      "landmarks": [
+        {
+          "feature": "release docs",
+          "symbol": "osPart",
+          "loc": "scripts/readme.spec.ts:77",
+          "what": "README pins per-OS install notes: universal dmg, per-user Windows install, AppImage libfuse2 and AppArmor userns step, sandbox kept"
+        }
+      ]
     }
   },
   "reviews": {
@@ -245,6 +261,35 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "installPending removes ALERTS_ENCRYPTION_KEY and DATABASE_URL before calling installOnExit, so a failed hand-over still exits with them scrubbed. That is fine because app.exit(0) follows right after.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-6": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "README tells users the release's .zip and .yml files are for updates, but electron-builder releases usually also carry .blockmap files, which go unmentioned. Harmless, but readers may wonder about them.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "The Windows test checks 'SmartScreen' and 'no administrator rights' but not that SmartScreen is the only warning. That is enough for the test_contract, and the 'no UAC' half is device UAT anyway.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The Development section still says 'Electron packaging is in progress', which is a little stale now that releases ship. It is outside this task's claimed surface.",
           "resolution": "non-blocking, left"
         }
       ]
