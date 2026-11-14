@@ -7,6 +7,7 @@ import {
 	createTray,
 	DARWIN_ICON_FILE,
 	DEFAULT_ICON_FILE,
+	RESTART_TO_UPDATE_LABEL,
 	trayIconPath,
 	TRAY_TOOLTIP,
 	type AppTray,
@@ -82,6 +83,7 @@ function setup(opts: { platform?: NodeJS.Platform; loginEnabled?: boolean } = {}
 	const actions = {
 		showWindow: vi.fn(),
 		quitApp: vi.fn(),
+		restartToUpdate: vi.fn(),
 		loginItem,
 		iconDir: ASSETS_DIR
 	} satisfies TrayActions;
@@ -157,6 +159,62 @@ describe('tray actions', () => {
 		expect(actions.showWindow).not.toHaveBeenCalled();
 		expect(loginItem.setEnabled).not.toHaveBeenCalled();
 		expect(tray.menus).toHaveLength(menusBefore);
+	});
+});
+
+describe('Restart to update (05-release c-5)', () => {
+	const RESTART = RESTART_TO_UPDATE_LABEL;
+	/** Every label, separators included, so the item's place is pinned exactly. */
+	const layout = (menu: MenuItemConstructorOptions[]) =>
+		menu.map((i) => (i.type === 'separator' ? '---' : i.label));
+
+	it('is absent until an update is ready: exactly Open, Start at login, separator, Quit', () => {
+		const { tray, handle } = setup();
+		expect(RESTART).toBe('Restart to update');
+		expect(layout(tray.menu)).toEqual(['Open', 'Start at login', '---', 'Quit']);
+		handle.setUpdateReady(false);
+		expect(layout(tray.menu)).toEqual(['Open', 'Start at login', '---', 'Quit']);
+	});
+
+	it('setUpdateReady(true) adds exactly one item, right above Quit', () => {
+		const { tray, handle } = setup();
+		handle.setUpdateReady(true);
+		expect(layout(tray.menu)).toEqual(['Open', 'Start at login', '---', RESTART, 'Quit']);
+	});
+
+	it('a second setUpdateReady(true) adds no second item', () => {
+		const { tray, handle } = setup();
+		handle.setUpdateReady(true);
+		handle.setUpdateReady(true);
+		expect(tray.menu.filter((i) => i.label === RESTART)).toHaveLength(1);
+		expect(layout(tray.menu)).toEqual(['Open', 'Start at login', '---', RESTART, 'Quit']);
+	});
+
+	it('its click calls restartToUpdate once and nothing else', () => {
+		const { tray, handle, actions, loginItem } = setup();
+		handle.setUpdateReady(true);
+		tray.click(RESTART);
+		expect(actions.restartToUpdate).toHaveBeenCalledTimes(1);
+		expect(actions.quitApp).not.toHaveBeenCalled();
+		expect(actions.showWindow).not.toHaveBeenCalled();
+		expect(loginItem.setEnabled).not.toHaveBeenCalled();
+	});
+
+	it('stays through a Start at login rebuild, and Quit still only quits', () => {
+		const { tray, handle, actions } = setup();
+		handle.setUpdateReady(true);
+		tray.click('Start at login');
+		expect(layout(tray.menu)).toEqual(['Open', 'Start at login', '---', RESTART, 'Quit']);
+		tray.click('Quit');
+		expect(actions.quitApp).toHaveBeenCalledTimes(1);
+		expect(actions.restartToUpdate).not.toHaveBeenCalled();
+	});
+
+	it('setUpdateReady(false) takes it away again', () => {
+		const { tray, handle } = setup();
+		handle.setUpdateReady(true);
+		handle.setUpdateReady(false);
+		expect(layout(tray.menu)).toEqual(['Open', 'Start at login', '---', 'Quit']);
 	});
 });
 

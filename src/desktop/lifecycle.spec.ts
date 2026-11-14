@@ -1,15 +1,21 @@
 import type { App, Dialog, PowerMonitor } from 'electron';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ServerRuntime } from '#lib/server/runtime-bridge.ts';
 import {
+	PREDECESSOR_PID_ENV,
+	PREDECESSOR_POLL_MS,
+	PREDECESSOR_WAIT_MS,
 	runDesktop,
 	SCHEDULER_DRAIN_MS,
 	SHUTDOWN_DEADLINE_MS,
 	STARTUP_ERROR_TITLE,
 	type LifecycleApp,
 	type LifecycleDeps,
-	type LifecycleServer
+	type LifecycleServer,
+	type LifecycleTrayActions,
+	type LifecycleUpdates
 } from './lifecycle.ts';
+import type { ExitMode, UpdaterController } from './updater.ts';
 
 // Compile-time only (pnpm check): the real Electron app, powerMonitor and dialog must
 // satisfy the structural deps main.ts passes in.
@@ -17,6 +23,9 @@ type RealDeps = { app: App; powerMonitor: PowerMonitor; dialog: Dialog };
 const realDepsFit = (deps: RealDeps): Pick<LifecycleDeps, 'app' | 'powerMonitor' | 'dialog'> =>
 	deps;
 void realDepsFit;
+// The updater's controller is what main.ts passes as deps.updates.
+const updaterFits = (controller: UpdaterController): LifecycleUpdates => controller;
+void updaterFits;
 
 const USER_DATA = '/data/Price Check user';
 const KEY_FILE = `${USER_DATA}/alerts.key`;
@@ -60,10 +69,12 @@ class FakeEmitter {
 	}
 }
 
+type FakeApp = FakeEmitter & LifecycleApp & { relaunch: ReturnType<typeof vi.fn> };
+
 type Harness = {
 	deps: LifecycleDeps;
 	log: string[];
-	app: FakeEmitter & LifecycleApp;
+	app: FakeApp;
 	powerMonitor: FakeEmitter;
 	runtime: ServerRuntime;
 	server: LifecycleServer;
@@ -72,13 +83,21 @@ type Harness = {
 	windowsCreated: number;
 	windowOpen: boolean;
 	errorBoxes: { title: string; content: string }[];
-	trayActions: { showWindow(): void; quitApp(): void } | null;
+	trayActions: LifecycleTrayActions | null;
 	/** Delivers a notification click to the handler runDesktop registered. */
 	click(path: string): void;
 };
 
 type HarnessOptions = {
 	lock?: boolean;
+	/** Successive requestSingleInstanceLock results; the last one repeats. Overrides lock. */
+	locks?: boolean[];
+	/** Like Electron: app.quit() emits before-quit at once (the fake's quit only logs). */
+	quitEmitsBeforeQuit?: boolean;
+	/** deps.updates with pending() returning this; no deps.updates when undefined. */
+	pending?: boolean;
+	predecessorPid?: number | null;
+	isProcessAlive?: (pid: number) => boolean;
 	loginLaunch?: boolean;
 	whenReadyPending?: boolean;
 	/** deps.appUserModelId; null (macOS, Linux) unless given. */
@@ -89,21 +108,27 @@ function harness(options: HarnessOptions = {}): Harness {
 	const log: string[] = [];
 	const ready = deferred();
 	if (!options.whenReadyPending) ready.resolve();
+	const locks = [...(options.locks ?? [options.lock ?? true])];
 
 	const app = Object.assign(new FakeEmitter(), {
 		setPath: vi.fn((name: string) => void log.push(`setPath:${name}`)),
 		requestSingleInstanceLock: vi.fn(() => {
 			log.push('lock');
-			return options.lock ?? true;
+			return locks.length > 1 ? (locks.shift() as boolean) : locks[0];
 		}),
 		setAppUserModelId: vi.fn(() => void log.push('aumid')),
 		whenReady: vi.fn(() => {
 			log.push('whenReady');
 			return ready.promise;
 		}),
-		quit: vi.fn(() => void log.push('quit')),
-		exit: vi.fn((code?: number) => void log.push(`exit:${code}`))
-	}) as FakeEmitter & LifecycleApp;
+		quit: vi.fn(() => {
+			log.push('quit');
+			if (options.quitEmitsBeforeQuit) app.emit('before-quit', { preventDefault: vi.fn() });
+		}),
+		exit: vi.fn((code?: number) => void log.push(`exit:${code}`)),
+		relaunch: vi.fn(() => void log.push('relaunch'))
+	}) as FakeApp;
+	harnesses.push(app);
 
 	const powerMonitor = new FakeEmitter();
 
@@ -183,8 +208,23 @@ function harness(options: HarnessOptions = {}): Harness {
 			}
 		}
 	};
+	if (options.pending !== undefined) {
+		const pending = options.pending;
+		h.deps.updates = {
+			pending: vi.fn(() => pending),
+			installOnExit: vi.fn((mode: ExitMode) => {
+				log.push(`install:${mode}`);
+				return true;
+			})
+		};
+	}
+	if (options.predecessorPid !== undefined) h.deps.predecessorPid = options.predecessorPid;
+	if (options.isProcessAlive) h.deps.isProcessAlive = vi.fn(options.isProcessAlive);
 	return h;
 }
+
+/** Every fake app made in the current test, checked for app.relaunch() after it. */
+const harnesses: FakeApp[] = [];
 
 function beforeQuit(h: Harness): QuitEvent {
 	const event = { preventDefault: vi.fn() };
@@ -193,8 +233,12 @@ function beforeQuit(h: Harness): QuitEvent {
 }
 
 afterEach(() => {
+	// No path may relaunch: the only relaunch is the updater's, after this process exits.
+	const relaunched = harnesses.filter((app) => app.relaunch.mock.calls.length > 0).length;
+	harnesses.length = 0;
 	vi.useRealTimers();
 	vi.restoreAllMocks();
+	expect(relaunched).toBe(0);
 });
 
 describe('single instance', () => {
@@ -661,5 +705,372 @@ describe('startup failure', () => {
 		});
 		await expect(runDesktop(h.deps)).resolves.toBe('failed');
 		expect(h.app.exit).toHaveBeenCalledWith(1);
+	});
+});
+
+describe('update install on quit (05-release c-5, c-6)', () => {
+	const ENV_NAMES = ['ALERTS_ENCRYPTION_KEY', 'DATABASE_URL', PREDECESSOR_PID_ENV] as const;
+	const savedEnv = new Map<string, string | undefined>();
+
+	beforeEach(() => {
+		for (const name of ENV_NAMES) savedEnv.set(name, process.env[name]);
+		// What loadAdapterHandler leaves in the main process's env.
+		process.env.ALERTS_ENCRYPTION_KEY = KEY.toString('base64');
+		process.env.DATABASE_URL = `file:${DB_FILE}`;
+		delete process.env[PREDECESSOR_PID_ENV];
+	});
+
+	afterEach(() => {
+		for (const name of ENV_NAMES) {
+			const value = savedEnv.get(name);
+			if (value === undefined) delete process.env[name];
+			else process.env[name] = value;
+		}
+	});
+
+	/** Runs the app and clears the startup entries from the call-order log. */
+	async function started(options: HarnessOptions): Promise<Harness> {
+		const h = harness(options);
+		await expect(runDesktop(h.deps)).resolves.toBe('started');
+		h.log.length = 0;
+		return h;
+	}
+
+	function updatesOf(h: Harness): LifecycleUpdates {
+		if (!h.deps.updates) throw new Error('no updates in deps');
+		return h.deps.updates;
+	}
+
+	function restartToUpdate(h: Harness): void {
+		if (h.trayActions === null) throw new Error('no tray created');
+		h.trayActions.restartToUpdate();
+	}
+
+	it('Quit with an update pending installs it after the DB is closed, then exits', async () => {
+		const h = await started({ pending: true });
+		beforeQuit(h);
+		await settle();
+		expect(h.log).toEqual([
+			'runtime.stop',
+			'server.close',
+			'runtime.closeDb',
+			'install:quit',
+			'exit:0'
+		]);
+		expect(updatesOf(h).installOnExit).toHaveBeenCalledTimes(1);
+	});
+
+	it('Restart to update quits once and installs in restart mode after the DB is closed', async () => {
+		const h = await started({ pending: true, quitEmitsBeforeQuit: true });
+		restartToUpdate(h);
+		await settle();
+		expect(h.log).toEqual([
+			'quit',
+			'runtime.stop',
+			'server.close',
+			'runtime.closeDb',
+			'install:restart',
+			'exit:0'
+		]);
+		expect(h.app.quit).toHaveBeenCalledTimes(1);
+		expect(h.app.exit).toHaveBeenCalledTimes(1);
+	});
+
+	it('a second Restart to update while quitting changes nothing', async () => {
+		const h = await started({ pending: true, quitEmitsBeforeQuit: true });
+		const stopped = deferred();
+		vi.mocked(h.runtime.stop).mockImplementation(() => stopped.promise);
+		restartToUpdate(h);
+		await settle();
+		const logBefore = [...h.log];
+		restartToUpdate(h);
+		expect(h.log).toEqual(logBefore);
+		stopped.resolve();
+		await settle();
+		expect(h.app.quit).toHaveBeenCalledTimes(1);
+		expect(h.log.slice(-2)).toEqual(['install:restart', 'exit:0']);
+		expect(h.runtime.stop).toHaveBeenCalledTimes(1);
+		expect(updatesOf(h).installOnExit).toHaveBeenCalledTimes(1);
+		expect(h.app.exit).toHaveBeenCalledTimes(1);
+	});
+
+	it('two Restart to update clicks before before-quit arrives call app.quit once', async () => {
+		const h = await started({ pending: true });
+		restartToUpdate(h);
+		restartToUpdate(h);
+		expect(h.app.quit).toHaveBeenCalledTimes(1);
+		beforeQuit(h);
+		await settle();
+		expect(h.log).toEqual([
+			'quit',
+			'runtime.stop',
+			'server.close',
+			'runtime.closeDb',
+			'install:restart',
+			'exit:0'
+		]);
+	});
+
+	it('Restart to update after Quit started keeps the quit mode and calls no quit', async () => {
+		const h = await started({ pending: true, quitEmitsBeforeQuit: true });
+		const stopped = deferred();
+		vi.mocked(h.runtime.stop).mockImplementation(() => stopped.promise);
+		beforeQuit(h);
+		await settle();
+		restartToUpdate(h);
+		stopped.resolve();
+		await settle();
+		expect(h.app.quit).not.toHaveBeenCalled();
+		expect(h.log.slice(-2)).toEqual(['install:quit', 'exit:0']);
+	});
+
+	it('a quit with no update pending never installs and keeps the env', async () => {
+		const h = await started({ pending: false });
+		beforeQuit(h);
+		await settle();
+		expect(h.log).toEqual(['runtime.stop', 'server.close', 'runtime.closeDb', 'exit:0']);
+		expect(updatesOf(h).installOnExit).not.toHaveBeenCalled();
+		expect(process.env.ALERTS_ENCRYPTION_KEY).toBe(KEY.toString('base64'));
+		expect(process.env[PREDECESSOR_PID_ENV]).toBeUndefined();
+	});
+
+	it('an unpackaged run (no updates) keeps the existing quit order for Quit and Restart', async () => {
+		const q = await started({});
+		expect(q.deps.updates).toBeUndefined();
+		beforeQuit(q);
+		await settle();
+		expect(q.log).toEqual(['runtime.stop', 'server.close', 'runtime.closeDb', 'exit:0']);
+
+		const r = await started({ quitEmitsBeforeQuit: true });
+		restartToUpdate(r);
+		await settle();
+		expect(r.log).toEqual(['quit', 'runtime.stop', 'server.close', 'runtime.closeDb', 'exit:0']);
+		expect(process.env[PREDECESSOR_PID_ENV]).toBeUndefined();
+	});
+
+	it('a closeDb that hangs installs only once the shutdown deadline passes', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const h = await started({ pending: true });
+		vi.mocked(h.runtime.closeDb).mockImplementation(() => new Promise<void>(() => {}));
+		vi.useFakeTimers();
+		beforeQuit(h);
+		await vi.advanceTimersByTimeAsync(SHUTDOWN_DEADLINE_MS - 1);
+		expect(updatesOf(h).installOnExit).not.toHaveBeenCalled();
+		expect(h.app.exit).not.toHaveBeenCalled();
+		await vi.advanceTimersByTimeAsync(1);
+		expect(h.log.slice(-2)).toEqual(['install:quit', 'exit:0']);
+		expect(updatesOf(h).installOnExit).toHaveBeenCalledTimes(1);
+	});
+
+	it('a throwing installOnExit or pending still ends in exit(0)', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const i = await started({ pending: true });
+		vi.mocked(updatesOf(i).installOnExit).mockImplementation(() => {
+			throw new Error('installer missing');
+		});
+		beforeQuit(i);
+		await settle();
+		expect(i.app.exit).toHaveBeenCalledTimes(1);
+		expect(i.app.exit).toHaveBeenCalledWith(0);
+
+		const p = await started({ pending: true });
+		vi.mocked(updatesOf(p).pending).mockImplementation(() => {
+			throw new Error('no state');
+		});
+		beforeQuit(p);
+		await settle();
+		expect(updatesOf(p).installOnExit).not.toHaveBeenCalled();
+		expect(p.app.exit).toHaveBeenCalledWith(0);
+	});
+
+	it('an installOnExit that hands nothing over still exits', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const h = await started({ pending: true });
+		vi.mocked(updatesOf(h).installOnExit).mockReturnValue(false);
+		beforeQuit(h);
+		await settle();
+		expect(h.app.exit).toHaveBeenCalledWith(0);
+	});
+
+	it('two quits install once', async () => {
+		const h = await started({ pending: true });
+		beforeQuit(h);
+		await settle();
+		beforeQuit(h);
+		await settle();
+		expect(updatesOf(h).installOnExit).toHaveBeenCalledTimes(1);
+		expect(h.runtime.stop).toHaveBeenCalledTimes(1);
+		expect(h.app.exit).toHaveBeenCalledTimes(1);
+	});
+
+	it("the installer's own app.quit() is let through and exit(0) still runs once", async () => {
+		const h = await started({ pending: true });
+		const installerQuit: QuitEvent[] = [];
+		vi.mocked(updatesOf(h).installOnExit).mockImplementation((mode) => {
+			h.log.push(`install:${mode}`);
+			// electron-updater's quitAndInstall ends in app.quit(), which fires before-quit.
+			installerQuit.push(beforeQuit(h));
+			return true;
+		});
+		beforeQuit(h);
+		await settle();
+		expect(installerQuit).toHaveLength(1);
+		expect(installerQuit[0].preventDefault).not.toHaveBeenCalled();
+		expect(h.log).toEqual([
+			'runtime.stop',
+			'server.close',
+			'runtime.closeDb',
+			'install:quit',
+			'exit:0'
+		]);
+		// One that arrives after exit (electron-updater defers its quit) is let through too.
+		const late = beforeQuit(h);
+		await settle();
+		expect(late.preventDefault).not.toHaveBeenCalled();
+		expect(h.app.exit).toHaveBeenCalledTimes(1);
+	});
+
+	it('hands over with the key and DB URL gone from the env and this pid as predecessor', async () => {
+		const h = await started({ pending: true });
+		const seen: Record<string, string | boolean | undefined>[] = [];
+		vi.mocked(updatesOf(h).installOnExit).mockImplementation(() => {
+			seen.push({
+				key: process.env.ALERTS_ENCRYPTION_KEY,
+				db: process.env.DATABASE_URL,
+				hasKey: 'ALERTS_ENCRYPTION_KEY' in process.env,
+				hasDb: 'DATABASE_URL' in process.env,
+				predecessor: process.env[PREDECESSOR_PID_ENV]
+			});
+			return true;
+		});
+		beforeQuit(h);
+		await settle();
+		expect(seen).toEqual([
+			{
+				key: undefined,
+				db: undefined,
+				hasKey: false,
+				hasDb: false,
+				predecessor: String(process.pid)
+			}
+		]);
+	});
+
+	it('no path calls app.relaunch()', async () => {
+		const q = await started({ pending: true });
+		beforeQuit(q);
+		const r = await started({ pending: true, quitEmitsBeforeQuit: true });
+		restartToUpdate(r);
+		const u = await started({ quitEmitsBeforeQuit: true });
+		restartToUpdate(u);
+		await settle();
+		for (const h of [q, r, u]) {
+			expect(h.app.exit).toHaveBeenCalledWith(0);
+			expect(h.app.relaunch).not.toHaveBeenCalled();
+		}
+	});
+});
+
+describe('waiting for the version an update replaced (05-release c-6)', () => {
+	const PID = 4242;
+
+	/** Starts runDesktop on fake timers and records its outcome once it settles. */
+	function launch(options: HarnessOptions) {
+		vi.useFakeTimers();
+		const h = harness(options);
+		const result: { outcome: string | null } = { outcome: null };
+		const run = runDesktop(h.deps).then((outcome) => {
+			result.outcome = outcome;
+			return outcome;
+		});
+		return { h, run, result };
+	}
+
+	it('waits for the predecessor to exit, then takes the lock and starts', async () => {
+		let alive = true;
+		const { h, run, result } = launch({
+			locks: [false, true],
+			predecessorPid: PID,
+			isProcessAlive: () => alive
+		});
+		await vi.advanceTimersByTimeAsync(10_000);
+		expect(result.outcome).toBeNull();
+		expect(h.app.quit).not.toHaveBeenCalled();
+		// Never retries the lock or starts while the old process is alive.
+		expect(h.app.requestSingleInstanceLock).toHaveBeenCalledTimes(1);
+		expect(h.deps.loadKey).not.toHaveBeenCalled();
+		expect(h.deps.isProcessAlive).toHaveBeenCalledWith(PID);
+		alive = false;
+		await vi.advanceTimersByTimeAsync(PREDECESSOR_POLL_MS);
+		await expect(run).resolves.toBe('started');
+		expect(h.app.requestSingleInstanceLock).toHaveBeenCalledTimes(2);
+		expect(h.app.quit).not.toHaveBeenCalled();
+		expect(h.deps.startServer).toHaveBeenCalledTimes(1);
+		expect(h.log.slice(0, 4)).toEqual(['setPath:userData', 'lock', 'lock', 'whenReady']);
+	});
+
+	it('gives up after PREDECESSOR_WAIT_MS, retries the lock once and quits if still held', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const { h, run, result } = launch({
+			lock: false,
+			predecessorPid: PID,
+			isProcessAlive: () => true
+		});
+		expect(PREDECESSOR_WAIT_MS).toBe(30_000);
+		await vi.advanceTimersByTimeAsync(PREDECESSOR_WAIT_MS - PREDECESSOR_POLL_MS - 1);
+		expect(result.outcome).toBeNull();
+		expect(h.app.quit).not.toHaveBeenCalled();
+		await vi.advanceTimersByTimeAsync(PREDECESSOR_POLL_MS + 1);
+		expect(result.outcome).toBe('second-instance');
+		await expect(run).resolves.toBe('second-instance');
+		expect(h.app.requestSingleInstanceLock).toHaveBeenCalledTimes(2);
+		expect(h.app.quit).toHaveBeenCalledTimes(1);
+		expect(h.deps.loadKey).not.toHaveBeenCalled();
+		expect(h.deps.startServer).not.toHaveBeenCalled();
+	});
+
+	it('a predecessor already gone retries the lock once; still held, it quits', async () => {
+		const { h, run } = launch({
+			lock: false,
+			predecessorPid: PID,
+			isProcessAlive: () => false
+		});
+		await expect(run).resolves.toBe('second-instance');
+		expect(h.app.requestSingleInstanceLock).toHaveBeenCalledTimes(2);
+		expect(h.deps.isProcessAlive).toHaveBeenCalledTimes(1);
+		expect(h.app.quit).toHaveBeenCalledTimes(1);
+		expect(h.deps.notifications.setClickHandler).not.toHaveBeenCalled();
+	});
+
+	it('a throwing isProcessAlive stops the wait and retries the lock', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const { h, run } = launch({
+			locks: [false, true],
+			predecessorPid: PID,
+			isProcessAlive: () => {
+				throw new Error('EPERM');
+			}
+		});
+		await expect(run).resolves.toBe('started');
+		expect(h.app.requestSingleInstanceLock).toHaveBeenCalledTimes(2);
+	});
+
+	it('with predecessorPid null a lost lock quits at once', async () => {
+		const { h, run } = launch({
+			lock: false,
+			predecessorPid: null,
+			isProcessAlive: () => true
+		});
+		await expect(run).resolves.toBe('second-instance');
+		expect(h.deps.isProcessAlive).not.toHaveBeenCalled();
+		expect(h.app.requestSingleInstanceLock).toHaveBeenCalledTimes(1);
+		expect(h.app.quit).toHaveBeenCalledTimes(1);
+	});
+
+	it('a launch that gets the lock never asks about the predecessor', async () => {
+		const { h, run } = launch({ predecessorPid: PID, isProcessAlive: () => true });
+		await expect(run).resolves.toBe('started');
+		expect(h.deps.isProcessAlive).not.toHaveBeenCalled();
+		expect(h.app.requestSingleInstanceLock).toHaveBeenCalledTimes(1);
 	});
 });

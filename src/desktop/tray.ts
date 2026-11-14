@@ -1,6 +1,7 @@
 // The tray (spec c-5, c-6, c-9): Open brings the window back, Start at login toggles
 // the OS registration, Quit ends the app. It is the way back to a closed window
-// while the app keeps checking in the background.
+// while the app keeps checking in the background. Once an update is downloaded,
+// setUpdateReady(true) adds 'Restart to update' above Quit (05-release c-5).
 //
 // The menu is always built from live OS state: the Start at login checkbox reads
 // loginItem.isEnabled() each time the menu is built, and every toggle rebuilds it.
@@ -20,6 +21,7 @@ export const TRAY_TOOLTIP = 'Price Check';
 /** macOS treats a `…Template.png` file as a template image (tinted for light/dark menu bars). */
 export const DARWIN_ICON_FILE = 'tray-iconTemplate.png';
 export const DEFAULT_ICON_FILE = 'tray-icon.png';
+export const RESTART_TO_UPDATE_LABEL = 'Restart to update';
 
 /** The slice of Electron's Tray this module uses; M is the platform's menu type. */
 export type AppTray<M> = {
@@ -42,6 +44,8 @@ export type TrayLoginItem = {
 export type TrayActions = {
 	showWindow(): void;
 	quitApp(): void;
+	/** Quits, installing the downloaded update and relaunching the new version. */
+	restartToUpdate(): void;
 	loginItem: TrayLoginItem;
 	/** The directory holding the tray icon files (src/desktop/assets in the app root). */
 	iconDir: string;
@@ -51,6 +55,8 @@ export type TrayHandle<M> = {
 	readonly tray: AppTray<M>;
 	/** Rebuilds the menu from the current OS state. */
 	rebuildMenu(): void;
+	/** Shows (true) or hides (false) 'Restart to update'; rebuilds only on a change. */
+	setUpdateReady(ready: boolean): void;
 };
 
 /** The icon file for this platform: the template image on macOS, the colour one elsewhere. */
@@ -58,11 +64,18 @@ export function trayIconPath(platform: NodeJS.Platform, iconDir: string): string
 	return join(iconDir, platform === 'darwin' ? DARWIN_ICON_FILE : DEFAULT_ICON_FILE);
 }
 
-/** The menu template, read from live OS state; `onToggleLogin` runs on a Start at login click. */
+/**
+ * The menu template, read from live OS state; `onToggleLogin` runs on a Start at login
+ * click, and `updateReady` adds 'Restart to update' above Quit.
+ */
 export function trayMenuTemplate(
 	actions: TrayActions,
-	onToggleLogin: () => void
+	onToggleLogin: () => void,
+	updateReady = false
 ): MenuItemConstructorOptions[] {
+	const restart: MenuItemConstructorOptions[] = updateReady
+		? [{ label: RESTART_TO_UPDATE_LABEL, click: () => actions.restartToUpdate() }]
+		: [];
 	return [
 		{ label: 'Open', click: () => actions.showWindow() },
 		{
@@ -72,6 +85,7 @@ export function trayMenuTemplate(
 			click: onToggleLogin
 		},
 		{ type: 'separator' },
+		...restart,
 		{ label: 'Quit', click: () => actions.quitApp() }
 	];
 }
@@ -80,9 +94,12 @@ export function trayMenuTemplate(
 export function createTray<M>(deps: TrayDeps<M>, actions: TrayActions): TrayHandle<M> {
 	const tray = new deps.Tray(trayIconPath(deps.platform, actions.iconDir));
 	tray.setToolTip(TRAY_TOOLTIP);
+	let updateReady = false;
 
 	const rebuildMenu = (): void => {
-		tray.setContextMenu(deps.Menu.buildFromTemplate(trayMenuTemplate(actions, toggleLogin)));
+		tray.setContextMenu(
+			deps.Menu.buildFromTemplate(trayMenuTemplate(actions, toggleLogin, updateReady))
+		);
 	};
 
 	function toggleLogin(): void {
@@ -94,6 +111,12 @@ export function createTray<M>(deps: TrayDeps<M>, actions: TrayActions): TrayHand
 		rebuildMenu();
 	}
 
+	const setUpdateReady = (ready: boolean): void => {
+		if (ready === updateReady) return;
+		updateReady = ready;
+		rebuildMenu();
+	};
+
 	rebuildMenu();
-	return { tray, rebuildMenu };
+	return { tray, rebuildMenu, setUpdateReady };
 }
