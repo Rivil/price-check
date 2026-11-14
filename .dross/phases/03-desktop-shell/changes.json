@@ -1,0 +1,6 @@
+{
+  "phase": "03-desktop-shell",
+  "base": "milestone/v0.1",
+  "base_commit": "6cd3a06b93a9df48600440bd34d3e5db90138959",
+  "tasks": {}
+}
