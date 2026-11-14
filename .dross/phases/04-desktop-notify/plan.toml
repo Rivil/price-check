@@ -205,4 +205,4 @@ test_contract = [
   '''if a launch with notify 'unsupported' shows anything but 'Not delivered: notifications not supported.' in channel-desktop after Send test, or adds a record, desktop-alerts.e2e fails (c-5)''',
   '''if, with the real Notification class, Send test's card message disagrees with Notification.isSupported() read from main (false -> the unsupported message; true -> 'Test alert sent.' or 'Not delivered: refused.'), or reads 'Not delivered: unreachable.' (the driver caught a throw from the real Electron API), desktop-alerts.e2e fails on that OS''',
 ]
-status        = "pending"
+status        = "done"

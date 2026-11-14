@@ -37,6 +37,21 @@
         }
       ]
     },
+    "t-11": {
+      "files": [
+        "e2e/desktop/desktop-alerts.e2e.ts"
+      ],
+      "commit": "15c2572",
+      "completed_at": "2026-11-14T17:08:29.892403Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "saveTicks",
+          "loc": "e2e/desktop/desktop-alerts.e2e.ts:87",
+          "what": "Electron e2e proving Desktop card ticks/off survive relaunch, unsupported and real-class Send test, card axe and focus"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/alerts/channel.ts",
@@ -226,6 +241,57 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "On Linux the minimise test skips both the precondition and the not-minimised claim, as the record says. Window restore there relies on t-3.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-11": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-4",
+          "text": "e2e/desktop/desktop-alerts.e2e.ts:258 — the second saveTicks in the untick test runs while 'Saved.' is still showing from the first save (line 257), so the 'Saved.' check at line 153 passes at once, and expectTicks only reads the client-side checkboxes just set by setChecked. checkNow's page.goto can then cut off the in-flight save, so Failed checks is still on and the test fails intermittently. Wait for the save itself (e.g. the POST response, or reload and re-read the ticks) before navigating.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "saveTicks' doc comment says 'the reloaded form must show them', but expectTicks reads the same checkboxes setChecked just set; it does not show the stored state. The relaunch test's dbSnapshot and the reloads in openAlerts do cover persistence.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The axe and keyboard focus-walk test on the Desktop card goes beyond this task's test_contract; it is in the declared file and is useful coverage.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-4",
+          "text": "quitThroughApp in desktop-alerts.e2e.ts waits for the process exit with no deadline and never checks the exit code. A hung quit only fails when the test times out. quit-relaunch.e2e.ts races the exit against QUIT_TIMEOUT_MS and asserts code 0.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The axe and Tab-walk accessibility test on the Desktop card goes beyond test_contract. Its non-vacuity checks (emulated scheme matches, axe passes include color-contrast, button-name and label) are sound, and the stops/visited index alignment in tabWalk holds.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-4",
+          "text": "The c-4 off and untick cases are paired with a control check that must add exactly one record, so a count of 0 cannot pass just because the recorder recorded nothing.",
           "resolution": "non-blocking, left"
         }
       ]
