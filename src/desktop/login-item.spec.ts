@@ -283,6 +283,55 @@ describe('linux autostart entry', () => {
 	it('quoteExecArg always quotes', () => {
 		expect(quoteExecArg('/usr/bin/x')).toBe('"/usr/bin/x"');
 	});
+
+	it('is exactly the expected entry for a plain execPath, ending in a newline', () => {
+		expect(autostartEntry({}, '/usr/bin/price-check')).toBe(
+			[
+				'[Desktop Entry]',
+				'Type=Application',
+				'Version=1.0',
+				'Name=Price Check',
+				'Comment=Checks watched prices in the background',
+				'Exec="/usr/bin/price-check" --login-launch',
+				'Terminal=false',
+				'X-GNOME-Autostart-enabled=true',
+				''
+			].join('\n')
+		);
+	});
+
+	it('writes exactly that entry to the autostart file on registration', () => {
+		const { item } = setup('linux', { execPath: '/usr/bin/price-check' });
+
+		item.ensureRegisteredOnce();
+
+		expect(readFileSync(linuxEntry(), 'utf8')).toBe(autostartEntry({}, '/usr/bin/price-check'));
+	});
+
+	it.each([
+		['newline', '/opt/a\nb/price-check', '"/opt/a\\nb/price-check"'],
+		['carriage return', '/opt/a\rb/price-check', '"/opt/a\\rb/price-check"']
+	])('escapes a %s as backslash + letter and round-trips it', (_, path, quoted) => {
+		expect(quoteExecArg(path)).toBe(quoted);
+		const entry = autostartEntry({}, path);
+		expect(entry.split('\n')).toHaveLength(9); // no line break leaked into the entry
+		expect(parseExec(entry)).toEqual([path, LOGIN_LAUNCH_ARG]);
+	});
+
+	it('falls back to execPath when APPIMAGE is whitespace only', () => {
+		expect(parseExec(autostartEntry({ APPIMAGE: '  \t ' }, EXEC_PATH))).toEqual([
+			EXEC_PATH,
+			LOGIN_LAUNCH_ARG
+		]);
+	});
+
+	it('trims whitespace around APPIMAGE', () => {
+		const appImage = '/home/u/Apps/PriceCheck.AppImage';
+		expect(parseExec(autostartEntry({ APPIMAGE: ` ${appImage}\n` }, EXEC_PATH))).toEqual([
+			appImage,
+			LOGIN_LAUNCH_ARG
+		]);
+	});
 });
 
 describe('isLoginLaunch', () => {
@@ -354,6 +403,44 @@ describe('isEnabled / setEnabled (the tray toggle)', () => {
 
 		expect(item.isEnabled()).toBe(false);
 	});
+
+	// Each line goes mid-entry (after Type=), replacing the stock
+	// X-GNOME-Autostart-enabled=true line, so an end-of-input match cannot pass for
+	// an end-of-line one.
+	it.each([
+		['Hidden=true', false],
+		['Hidden = true', false],
+		['  X-GNOME-Autostart-enabled =false  ', false],
+		['X-GNOME-Autostart-enabled=false', false],
+		['X-GNOME-Autostart-enabled = false', false],
+		['NoHidden=true', true],
+		['X-Hidden=true', true],
+		['X-GNOME-Autostart-enabled=falsey', true]
+	])('linux: an entry with %j reads as enabled=%s', (line, enabled) => {
+		const { item } = setup('linux');
+		item.setEnabled(true);
+		const lines = readFileSync(linuxEntry(), 'utf8')
+			.split('\n')
+			.filter((l) => l !== 'X-GNOME-Autostart-enabled=true');
+		lines.splice(lines.indexOf('Type=Application') + 1, 0, line);
+		writeFileSync(linuxEntry(), lines.join('\n'));
+
+		expect(item.isEnabled()).toBe(enabled);
+	});
+
+	it.each(['darwin', 'win32', 'linux'] as const)(
+		'%s: an unpackaged run reads as off even when the OS reports it on',
+		(p) => {
+			const { app, item } = setup(p, { packaged: false });
+			app.registered = true;
+			app.registeredArgs = p === 'win32' ? [LOGIN_LAUNCH_ARG] : [];
+			mkdirSync(join(home, '.config', 'autostart'), { recursive: true });
+			writeFileSync(linuxEntry(), autostartEntry({}, EXEC_PATH));
+			expect(app.getLoginItemSettings({ args: app.registeredArgs }).openAtLogin).toBe(true);
+
+			expect(item.isEnabled()).toBe(false);
+		}
+	);
 
 	it('win32: setEnabled(false) passes the registered args, so the entry is removed', () => {
 		const { app, item } = setup('win32');
