@@ -95,7 +95,7 @@ Drop BETTER_AUTH_SECRET; ORIGIN stays declared but optional (passthrough schema;
 '''
 covers        = ["c-2"]
 test_contract = ["if Object.keys(variables).sort() is not exactly [ALERTS_ENCRYPTION_KEY, CHECK_INTERVAL_HOURS, DATABASE_URL, ORIGIN, SCHEDULER_DISABLED], or any key except DATABASE_URL fails to validate undefined -> { value: undefined }, env.spec fails (re-adding a required secret or a required ORIGIN fails it)", "if package.json dependencies/devDependencies contain 'better-auth' or 'auth', scripts contain admin:create or auth:schema, README or .env.example mention BETTER_AUTH_SECRET or admin:create, or .env.example has an ORIGIN line, readme.spec fails", "if any non-test file under src/ mentions better-auth or BETTER_AUTH_SECRET anywhere (full-text, incl. comments and doc links), removed-routes.spec's text scan (extended in this task) fails", "if ARCHITECTURE.md still mentions admin:create, BETTER_AUTH_SECRET or better-auth as current, readme.spec fails"]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-9"

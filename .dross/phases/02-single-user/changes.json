@@ -170,6 +170,29 @@
           "what": "drops better-auth tables and deletes auth/admin routes and libs so those paths 404"
         }
       ]
+    },
+    "t-8": {
+      "files": [
+        "src/env.ts",
+        "src/env.spec.ts",
+        "package.json",
+        "pnpm-lock.yaml",
+        ".env.example",
+        "README.md",
+        "ARCHITECTURE.md",
+        "scripts/readme.spec.ts",
+        "src/routes/removed-routes.spec.ts"
+      ],
+      "commit": "72ed4b3",
+      "completed_at": "2026-11-14T09:31:02.377397Z",
+      "landmarks": [
+        {
+          "feature": "single-user access",
+          "symbol": "variables.ORIGIN",
+          "loc": "src/env.ts:5",
+          "what": "better-auth and BETTER_AUTH_SECRET removed; ORIGIN optional passthrough env"
+        }
+      ]
     }
   },
   "reviews": {
@@ -351,6 +374,34 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The route-matching and import-scanner fixture tests in removed-routes.spec cover parameter, optional and catch-all routes, layout groups, and every import form, so the scans of the real sources cannot pass by accident.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-8": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "test_contract says any non-test file under src/ is scanned, but the removed-routes.spec glob only covers *.{ts,js,svelte}; a better-auth mention in src/app.html, src/lib/styles/*.css or src/lib/server/testing/fixtures/README.md would not fail it (none exists today)",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "playwright.config.ts still passes BETTER_AUTH_SECRET (E2E_SECRET) to the webServer env, and e2e/accounts.ts still has better-auth comments and the E2E_SECRET constant; harmless now that env.ts no longer declares the variable, and outside this task's files, but leftover",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "AUTH_TEXT's negative lookahead is case-insensitive, so identifiers like BetterAuthOptions are not caught by the text scan alone; only an import from better-auth would catch them",
           "resolution": "non-blocking, left"
         }
       ]
