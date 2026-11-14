@@ -111,6 +111,24 @@
           "what": "registers once on packaged first launch (Electron API on macOS/Windows; XDG autostart on Linux), detects login launch, tray toggle reads/writes OS state"
         }
       ]
+    },
+    "t-7": {
+      "files": [
+        "src/desktop/tray.ts",
+        "src/desktop/tray.spec.ts",
+        "src/desktop/assets/tray-icon.png",
+        "src/desktop/assets/tray-iconTemplate.png"
+      ],
+      "commit": "2497125",
+      "completed_at": "2026-11-14T11:39:40.868494Z",
+      "landmarks": [
+        {
+          "feature": "desktop tray",
+          "symbol": "createTray",
+          "loc": "src/desktop/tray.ts:80",
+          "what": "tray icon with Open/Start at login/Quit menu rebuilt from live OS login-item state after each toggle"
+        }
+      ]
     }
   },
   "reviews": {
@@ -280,6 +298,33 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "linux ensureRegisteredOnce: if the autostart entry is written but the marker write then fails, the outcome is 'failed' with the entry left in place; the next launch just rewrites it, so this is harmless.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-7": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "toggleLogin computes the new value from a fresh loginItem.isEnabled() call rather than from the clicked item's checked state, so a toggle always flips whatever the OS currently reports; the 'toggles back and forth' and 'policy pin' tests pin this down",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the test 'the macOS file name ends in Template.png' only checks a constant against itself; the real guarantee comes from the darwin icon-path test and the file-exists test",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the RealDeps -\u003e TrayDeps\u003cMenu\u003e assignment in tray.spec.ts is only checked at compile time (pnpm check); vitest alone will not catch drift from Electron's Tray/Menu types",
           "resolution": "non-blocking, left"
         }
       ]

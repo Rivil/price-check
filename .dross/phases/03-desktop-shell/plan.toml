@@ -134,7 +134,7 @@ test_contract = [
   '''if toggling Start at login does not call setEnabled(!current) and rebuild with the re-read OS state, or a throwing setEnabled leaves the checkbox showing the failed state, tray.spec fails''',
   '''if the darwin icon is not the Template file, or either icon file does not exist under src/desktop/assets, tray.spec fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-8"
