@@ -191,7 +191,7 @@ test_contract = [
   '''if launchDesktop with scheduler: 'unsupported-only' starts Electron while the userData DB holds a watch whose canonicalUrl defaultRegistry.identify() does not report 'unsupported' (an amazon.co.uk URL), harness.e2e fails: it must throw before launch (r-01)''',
   '''if Electron's process.versions.node major (electronApp.evaluate) differs from .node-version's major, harness.e2e fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-11"

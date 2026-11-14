@@ -23,6 +23,27 @@
         }
       ]
     },
+    "t-10": {
+      "files": [
+        "playwright.desktop.config.ts",
+        "playwright.config.ts",
+        "tsconfig.json",
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/harness.e2e.ts",
+        "scripts/build-desktop.spec.ts",
+        "package.json"
+      ],
+      "commit": "84ac028",
+      "completed_at": "2026-11-14T11:55:52.16812Z",
+      "landmarks": [
+        {
+          "feature": "desktop e2e harness",
+          "symbol": "launchDesktop",
+          "loc": "e2e/desktop/launch.ts:202",
+          "what": "launches real Electron via Playwright on a temp userData with an allowlisted env; own Playwright config the web suite ignores"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/scheduler.ts",
@@ -197,6 +218,41 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "`packages: 'external'` already makes electron external. The explicit `external: ['electron']` repeats it, which does no harm.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-10": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-1",
+          "text": "launch.ts attaches its stdout/stderr listeners (collectOutput) only after _electron.launch resolves. If main prints the listening line before then, that output is never seen and waitForListening times out. It depends on Playwright's loader holding back app ready; reading the line through a listener attached at spawn, or Playwright's own process output, would remove the race.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "build-desktop.spec 'playwright config split' calls createFileMatcher from playwright/lib/util. That is an internal module, even though the package exports it, so a Playwright minor bump could rename or reshape it and break this vitest check with no matching change in behaviour.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The 'launcher env' test catches a process.env spread by checking the harness's own env keys against the allowlist (desktop.env). The checks on main's process.env alone would not catch one, because serverEnv overrides DATABASE_URL and the key and drops ORIGIN anyway. Both layers are asserted, so the contract holds.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "e2e/desktop/*.ts is not in tsconfig include; only playwright.desktop.config.ts was added, as the task specified. This matches the existing e2e/ files, which are not included either.",
           "resolution": "non-blocking, left"
         }
       ]
