@@ -110,6 +110,23 @@
         }
       ]
     },
+    "t-15": {
+      "files": [
+        "ARCHITECTURE.md",
+        "src/lib/server/health.ts",
+        "scripts/readme.spec.ts"
+      ],
+      "commit": "00118d3",
+      "completed_at": "2026-11-14T10:12:15.177049Z",
+      "landmarks": [
+        {
+          "feature": "single-user docs",
+          "symbol": "staleArchitecture",
+          "loc": "scripts/readme.spec.ts:33",
+          "what": "ARCHITECTURE.md e2e harness describes the one-install seed; a scan fails on admin/member or auth.schema leftovers"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/local-request.ts",
@@ -447,6 +464,26 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "restart.e2e keeps the earlier raw-HTML toContain check per point. With distinct prices it is now redundant with the per-row filter, and on its own it could still be satisfied by the Lowest/Highest stats block rather than a history row. The new row-count and row-filter assertions are the ones that make the test robust.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-15": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "srcFiles() relies on Dirent.parentPath with recursive readdirSync (Node \u003e= 20.12); package.json pins no engine, so an older Node would build 'undefined/\u003cname\u003e' paths and fail with ENOENT rather than a clear message",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "isTestFile only exempts *.spec/test/e2e.{js,ts}; a future non-test helper that names auth.schema on purpose would need the filter widened",
           "resolution": "non-blocking, left"
         }
       ]

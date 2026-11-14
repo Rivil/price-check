@@ -190,5 +190,5 @@ title = "Drop stale multi-user notes from docs"
 files = ["ARCHITECTURE.md", "src/lib/server/health.ts", "scripts/readme.spec.ts"]
 description = "Reviewer NOTEs (t-3, t-7) left stale text: ARCHITECTURE.md 'E2E test harness' (lines ~122-126) still describes 'one admin, one member, plus a design edge-case user' and cites SEEDED_DESIGN at e2e/accounts.ts:43, which no longer exists (only SEEDED_DESIGN_TOPIC_URL); health.ts:15 comment still mentions relations exported by auth.schema.ts (deleted in t-7). Rewrite to the one-install seed and current symbols; comment-only change in health.ts."
 test_contract = ["if ARCHITECTURE.md mentions 'one admin', 'one member' or a bare SEEDED_DESIGN landmark, or any non-test file under src/ mentions auth.schema, readme.spec fails"]
-status = "pending"
+status = "done"
 depends_on = ["t-13"]
