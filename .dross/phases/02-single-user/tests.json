@@ -1,0 +1,7198 @@
+{
+  "phase": "02-single-user",
+  "generated_at": "2026-11-14T10:06:23.891036Z",
+  "languages": [
+    {
+      "name": "typescript",
+      "tool": "stryker",
+      "files": [
+        "e2e/accounts.ts",
+        "e2e/action-endpoints.ts",
+        "e2e/fresh-install.e2e.ts",
+        "e2e/harness.e2e.ts",
+        "e2e/local-guard.e2e.ts",
+        "e2e/node-server.ts",
+        "e2e/removed-routes.e2e.ts",
+        "e2e/restart.e2e.ts",
+        "e2e/seed.ts",
+        "playwright.config.ts",
+        "scripts/readme.spec.ts",
+        "src/app.d.ts",
+        "src/env.spec.ts",
+        "src/env.ts",
+        "src/hooks.server.spec.ts",
+        "src/hooks.server.ts",
+        "src/lib/components/SiteFooter.svelte",
+        "src/lib/components/SiteFooter.svelte.spec.ts",
+        "src/lib/nav.spec.ts",
+        "src/lib/nav.ts",
+        "src/lib/server/alerts/alerts.spec.ts",
+        "src/lib/server/alerts/alerts.ts",
+        "src/lib/server/alerts/channels.spec.ts",
+        "src/lib/server/alerts/channels.ts",
+        "src/lib/server/alerts/crypto.spec.ts",
+        "src/lib/server/alerts/crypto.ts",
+        "src/lib/server/alerts/live.spec.ts",
+        "src/lib/server/checks.spec.ts",
+        "src/lib/server/checks.ts",
+        "src/lib/server/db/channel.schema.spec.ts",
+        "src/lib/server/db/channel.schema.ts",
+        "src/lib/server/db/check-failure.schema.spec.ts",
+        "src/lib/server/db/migrate.spec.ts",
+        "src/lib/server/db/price-point.schema.spec.ts",
+        "src/lib/server/db/schema.ts",
+        "src/lib/server/db/watch.schema.spec.ts",
+        "src/lib/server/db/watch.schema.ts",
+        "src/lib/server/health.spec.ts",
+        "src/lib/server/local-request.spec.ts",
+        "src/lib/server/local-request.ts",
+        "src/lib/server/scheduler.spec.ts",
+        "src/lib/server/shops/no-direct-fetch.spec.ts",
+        "src/lib/server/sparklines.spec.ts",
+        "src/lib/server/sparklines.ts",
+        "src/lib/server/testing/test-db.spec.ts",
+        "src/lib/server/testing/test-db.ts",
+        "src/lib/server/watches.spec.ts",
+        "src/lib/server/watches.ts",
+        "src/routes/+layout.svelte",
+        "src/routes/+page.server.ts",
+        "src/routes/account/alerts/+page.server.ts",
+        "src/routes/account/alerts/+page.svelte",
+        "src/routes/account/alerts/alerts.e2e.ts",
+        "src/routes/account/alerts/page.server.spec.ts",
+        "src/routes/account/alerts/page.svelte.spec.ts",
+        "src/routes/action-endpoints.spec.ts",
+        "src/routes/at-target.e2e.ts",
+        "src/routes/chart-a11y.e2e.ts",
+        "src/routes/contrast.e2e.ts",
+        "src/routes/focus.e2e.ts",
+        "src/routes/header.e2e.ts",
+        "src/routes/health/health.e2e.ts",
+        "src/routes/layout.e2e.ts",
+        "src/routes/page.server.spec.ts",
+        "src/routes/removed-routes.spec.ts",
+        "src/routes/watches/[id]/+page.server.ts",
+        "src/routes/watches/[id]/page.server.spec.ts",
+        "src/routes/watches/[id]/watch-page.e2e.ts",
+        "src/routes/watchlist.e2e.ts"
+      ],
+      "mutation": {
+        "Tool": "stryker",
+        "Killed": 574,
+        "Survived": 23,
+        "Timeout": 6,
+        "Errors": 0,
+        "Score": 0.9519071310116086,
+        "Surviving": [
+          {
+            "File": "src/lib/server/db/channel.schema.ts",
+            "Line": 15,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "4f8fded39e06f561",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/lib/server/db/channel.schema.ts",
+            "Line": 14,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "cd8dc208215eed1b",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/lib/server/db/channel.schema.ts",
+            "Line": 33,
+            "Op": "ArrowFunction",
+            "Snippet": "() =\u003e undefined",
+            "Origin": "inherited",
+            "Key": "4482ed5275ce6acc",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/lib/server/db/channel.schema.ts",
+            "Line": 33,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "inherited",
+            "Key": "f13dcb9115977085",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/lib/server/db/channel.schema.ts",
+            "Line": 36,
+            "Op": "ArrowFunction",
+            "Snippet": "() =\u003e undefined",
+            "Origin": "in-hunk",
+            "Key": "6de93198c34d82cb",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/lib/server/db/channel.schema.ts",
+            "Line": 34,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "08258689131593c7",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/lib/server/db/channel.schema.ts",
+            "Line": 33,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "b30e36170aeb2bf3",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/lib/server/db/channel.schema.ts",
+            "Line": 36,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "9149bbeb9715cf36",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/lib/server/db/channel.schema.ts",
+            "Line": 36,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "ad924df8ddd6c8c1",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/routes/account/alerts/+page.server.ts",
+            "Line": 117,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "e431af43ffe57455",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent on the wire: only ntfy reads alert.kind, and for '' it sends priority NTFY_PRIORITY[''] = undefined, which JSON.stringify omits, the same body as kind 'test' (no priority); resend and smtp ignore kind"
+          },
+          {
+            "File": "src/lib/server/alerts/alerts.ts",
+            "Line": 142,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "inherited",
+            "Key": "d89779be41c89c48",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent for every stored price: with a null target, pricePence \u003c= null compares against 0, and adapters only ever store prices \u003e 0 (amazon/extract.ts:26 returns null for \u003c= 0), so dropped stays false"
+          },
+          {
+            "File": "src/lib/server/alerts/alerts.ts",
+            "Line": 216,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "6393b7616b8017c7",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: channelsFor picks priceDrops only for 'price_drop' and checkFailures for any other kind, so '' routes exactly like 'check_failed'"
+          },
+          {
+            "File": "src/lib/server/alerts/alerts.ts",
+            "Line": 216,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "cd27373a6379c454",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/lib/server/local-request.ts",
+            "Line": 12,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "4ff2f05c6d457098",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: without the null guard, LOOPBACK_HOST.exec(null) coerces to the string 'null', which never matches, so the function still returns false"
+          },
+          {
+            "File": "src/lib/server/local-request.ts",
+            "Line": 18,
+            "Op": "EqualityOperator",
+            "Snippet": "n \u003e 1",
+            "Origin": "in-hunk",
+            "Key": "e7ec8b0822acf4ea",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/lib/server/local-request.ts",
+            "Line": 33,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "9cb297f77f7bef3a",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: a Response with a string body defaults to content-type text/plain;charset=UTF-8, the same media type and charset as the explicit header; the 403 status and body are unchanged"
+          },
+          {
+            "File": "src/lib/server/watches.ts",
+            "Line": 214,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "inherited",
+            "Key": "9c54032ecc58cfe3",
+            "Lifecycle": "accepted",
+            "Note": "Both paths throw: with the guard skipped, already(null) throws a TypeError instead of rethrowing the unique-constraint error. Reachable only if the race winner's row is deleted between the failed batch and the lookup; the add fails either way"
+          },
+          {
+            "File": "src/lib/server/alerts/channels.ts",
+            "Line": 62,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "inherited",
+            "Key": "b7e5ce097982de2d",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: openConfig callers only read .ok (opened.ok, previous?.ok, !opened.ok), and {}.ok is undefined, which is falsy exactly like false"
+          },
+          {
+            "File": "src/lib/server/alerts/channels.ts",
+            "Line": 68,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "inherited",
+            "Key": "cd25736ea9ff4f7e",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: openConfig callers only read .ok (opened.ok, previous?.ok, !opened.ok), and {}.ok is undefined, which is falsy exactly like false"
+          },
+          {
+            "File": "src/lib/server/alerts/channels.ts",
+            "Line": 64,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "inherited",
+            "Key": "5f669fb23a890421",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: openConfig callers only read .ok (opened.ok, previous?.ok, !opened.ok), and {}.ok is undefined, which is falsy exactly like false"
+          },
+          {
+            "File": "src/lib/server/alerts/channels.ts",
+            "Line": 191,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "inherited",
+            "Key": "676b81e8d492f6c3",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: this branch runs only when the channel row exists, so the write is always the onConflictDoUpdate path; with kinds = {} the update sets only configEnc/updatedAt and leaves price_drops/check_failures as stored, which is the value the original copies back"
+          },
+          {
+            "File": "src/lib/server/alerts/channels.ts",
+            "Line": 62,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "inherited",
+            "Key": "d725f846d31fc027",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: with the null guard skipped, decryptSecret(key, null, aad) throws on null.startsWith inside its own try and returns { ok: false }, the same result the guard returns"
+          },
+          {
+            "File": "src/lib/server/alerts/channels.ts",
+            "Line": 64,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "inherited",
+            "Key": "50ebc2d433ca9b7f",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: with the !opened.ok guard skipped, JSON.parse(undefined) throws a SyntaxError that the following catch turns into { ok: false }, the same result"
+          }
+        ],
+        "NotCovered": 0
+      },
+      "measured_on": "local",
+      "ranges": {
+        "e2e/accounts.ts": [
+          {
+            "start": 1,
+            "end": 3,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 38,
+            "end": 264,
+            "construct": "VariableDeclaration SEEDED_WATCHES"
+          }
+        ],
+        "e2e/action-endpoints.ts": [
+          {
+            "start": 1,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "TSTypeAliasDeclaration ActionEndpoint"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 19,
+            "construct": "VariableDeclaration ACTION_ENDPOINTS"
+          },
+          {
+            "start": 20,
+            "end": 25,
+            "construct": "hunk"
+          },
+          {
+            "start": 26,
+            "end": 34,
+            "construct": "FunctionDeclaration actionUrl"
+          }
+        ],
+        "e2e/fresh-install.e2e.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 15,
+            "construct": "hunk"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "VariableDeclaration REPO_ROOT"
+          },
+          {
+            "start": 17,
+            "end": 18,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 22,
+            "construct": "VariableDeclaration PARENT_ONLY"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "hunk"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "VariableDeclaration dir"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "VariableDeclaration saved"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "hunk"
+          },
+          {
+            "start": 27,
+            "end": 31,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 33,
+            "end": 39,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 40,
+            "end": 40,
+            "construct": "hunk"
+          },
+          {
+            "start": 41,
+            "end": 56,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 57,
+            "end": 57,
+            "construct": "hunk"
+          },
+          {
+            "start": 58,
+            "end": 78,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 79,
+            "end": 79,
+            "construct": "hunk"
+          },
+          {
+            "start": 80,
+            "end": 102,
+            "construct": "ForOfStatement"
+          }
+        ],
+        "e2e/harness.e2e.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 18,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "VariableDeclaration REPO_ROOT"
+          },
+          {
+            "start": 55,
+            "end": 56,
+            "construct": "hunk"
+          },
+          {
+            "start": 57,
+            "end": 83,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 84,
+            "end": 84,
+            "construct": "hunk"
+          },
+          {
+            "start": 85,
+            "end": 94,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 96,
+            "end": 149,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 243,
+            "end": 243,
+            "construct": "hunk"
+          },
+          {
+            "start": 244,
+            "end": 254,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 256,
+            "end": 256,
+            "construct": "hunk"
+          },
+          {
+            "start": 257,
+            "end": 262,
+            "construct": "VariableDeclaration ENV_PROBE"
+          },
+          {
+            "start": 263,
+            "end": 263,
+            "construct": "hunk"
+          },
+          {
+            "start": 264,
+            "end": 298,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 300,
+            "end": 308,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "e2e/local-guard.e2e.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 29,
+            "construct": "hunk"
+          },
+          {
+            "start": 30,
+            "end": 30,
+            "construct": "VariableDeclaration WATCH"
+          },
+          {
+            "start": 31,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 33,
+            "end": 38,
+            "construct": "VariableDeclaration FIELDS"
+          },
+          {
+            "start": 39,
+            "end": 41,
+            "construct": "VariableDeclaration TEXT_BODY"
+          },
+          {
+            "start": 42,
+            "end": 43,
+            "construct": "hunk"
+          },
+          {
+            "start": 44,
+            "end": 44,
+            "construct": "VariableDeclaration KIT_CSRF"
+          },
+          {
+            "start": 45,
+            "end": 46,
+            "construct": "hunk"
+          },
+          {
+            "start": 47,
+            "end": 57,
+            "construct": "FunctionDeclaration snapshot"
+          },
+          {
+            "start": 58,
+            "end": 59,
+            "construct": "hunk"
+          },
+          {
+            "start": 60,
+            "end": 79,
+            "construct": "FunctionDeclaration forgeries"
+          },
+          {
+            "start": 80,
+            "end": 80,
+            "construct": "hunk"
+          },
+          {
+            "start": 81,
+            "end": 122,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 123,
+            "end": 123,
+            "construct": "hunk"
+          },
+          {
+            "start": 124,
+            "end": 124,
+            "construct": "TSTypeAliasDeclaration RawResponse"
+          },
+          {
+            "start": 125,
+            "end": 129,
+            "construct": "hunk"
+          },
+          {
+            "start": 130,
+            "end": 158,
+            "construct": "FunctionDeclaration rawRequest"
+          },
+          {
+            "start": 159,
+            "end": 159,
+            "construct": "hunk"
+          },
+          {
+            "start": 160,
+            "end": 160,
+            "construct": "TSTypeAliasDeclaration Guarded"
+          },
+          {
+            "start": 161,
+            "end": 162,
+            "construct": "hunk"
+          },
+          {
+            "start": 163,
+            "end": 183,
+            "construct": "FunctionDeclaration startGuarded"
+          },
+          {
+            "start": 184,
+            "end": 184,
+            "construct": "hunk"
+          },
+          {
+            "start": 185,
+            "end": 185,
+            "construct": "VariableDeclaration GUARDED_PATHS"
+          },
+          {
+            "start": 186,
+            "end": 186,
+            "construct": "hunk"
+          },
+          {
+            "start": 187,
+            "end": 223,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 224,
+            "end": 224,
+            "construct": "hunk"
+          },
+          {
+            "start": 225,
+            "end": 262,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "e2e/node-server.ts": [
+          {
+            "start": 1,
+            "end": 7,
+            "construct": "hunk"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "VariableDeclaration REPO_ROOT"
+          },
+          {
+            "start": 15,
+            "end": 16,
+            "construct": "hunk"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "VariableDeclaration INHERITED"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 29,
+            "construct": "TSTypeAliasDeclaration NodeServerOptions"
+          },
+          {
+            "start": 30,
+            "end": 30,
+            "construct": "hunk"
+          },
+          {
+            "start": 31,
+            "end": 35,
+            "construct": "TSTypeAliasDeclaration NodeServer"
+          },
+          {
+            "start": 36,
+            "end": 37,
+            "construct": "hunk"
+          },
+          {
+            "start": 38,
+            "end": 57,
+            "construct": "FunctionDeclaration nodeServerEnv"
+          },
+          {
+            "start": 58,
+            "end": 59,
+            "construct": "hunk"
+          },
+          {
+            "start": 60,
+            "end": 73,
+            "construct": "FunctionDeclaration freePort"
+          },
+          {
+            "start": 74,
+            "end": 79,
+            "construct": "hunk"
+          },
+          {
+            "start": 80,
+            "end": 143,
+            "construct": "FunctionDeclaration startNodeServer"
+          }
+        ],
+        "e2e/removed-routes.e2e.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 20,
+            "construct": "VariableDeclaration REMOVED_PATHS"
+          },
+          {
+            "start": 21,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "VariableDeclaration CREDENTIALS"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 52,
+            "construct": "ForOfStatement"
+          }
+        ],
+        "e2e/restart.e2e.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 17,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "VariableDeclaration TOPIC"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 31,
+            "construct": "VariableDeclaration WATCH"
+          },
+          {
+            "start": 32,
+            "end": 33,
+            "construct": "hunk"
+          },
+          {
+            "start": 34,
+            "end": 37,
+            "construct": "VariableDeclaration POINTS"
+          },
+          {
+            "start": 38,
+            "end": 38,
+            "construct": "hunk"
+          },
+          {
+            "start": 39,
+            "end": 39,
+            "construct": "VariableDeclaration dir"
+          },
+          {
+            "start": 40,
+            "end": 40,
+            "construct": "hunk"
+          },
+          {
+            "start": 41,
+            "end": 43,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 44,
+            "end": 44,
+            "construct": "hunk"
+          },
+          {
+            "start": 45,
+            "end": 47,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 48,
+            "end": 48,
+            "construct": "hunk"
+          },
+          {
+            "start": 49,
+            "end": 123,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "e2e/seed.ts": [
+          {
+            "start": 2,
+            "end": 3,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 20,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 43,
+            "end": 91,
+            "construct": "TryStatement"
+          }
+        ],
+        "playwright.config.ts": [
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 31,
+            "construct": "ExportDefaultDeclaration"
+          }
+        ],
+        "scripts/readme.spec.ts": [
+          {
+            "start": 2,
+            "end": 3,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "VariableDeclaration read"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "VariableDeclaration readme"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "VariableDeclaration envExample"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "VariableDeclaration architecture"
+          },
+          {
+            "start": 11,
+            "end": 15,
+            "construct": "VariableDeclaration pkg"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "VariableDeclaration PNPM_BUILTINS"
+          },
+          {
+            "start": 19,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 22,
+            "construct": "VariableDeclaration pnpmCommands"
+          },
+          {
+            "start": 23,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "VariableDeclaration AUTH_TRACES"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "hunk"
+          },
+          {
+            "start": 36,
+            "end": 84,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 85,
+            "end": 85,
+            "construct": "hunk"
+          },
+          {
+            "start": 86,
+            "end": 113,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/app.d.ts": [
+          {
+            "start": 3,
+            "end": 11,
+            "construct": "TSModuleDeclaration global"
+          }
+        ],
+        "src/env.spec.ts": [
+          {
+            "start": 13,
+            "end": 58,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/env.ts": [
+          {
+            "start": 3,
+            "end": 24,
+            "construct": "VariableDeclaration variables"
+          }
+        ],
+        "src/hooks.server.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 61,
+            "end": 160,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 162,
+            "end": 210,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 211,
+            "end": 211,
+            "construct": "hunk"
+          }
+        ],
+        "src/hooks.server.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 29,
+            "construct": "VariableDeclaration init"
+          },
+          {
+            "start": 31,
+            "end": 36,
+            "construct": "hunk"
+          },
+          {
+            "start": 37,
+            "end": 37,
+            "construct": "VariableDeclaration handle"
+          }
+        ],
+        "src/lib/components/SiteFooter.svelte": [
+          {
+            "start": 1,
+            "end": 5,
+            "construct": "hunk"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "VariableDeclaration SOURCE_URL"
+          },
+          {
+            "start": 7,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 13,
+            "construct": "Element footer"
+          },
+          {
+            "start": 14,
+            "end": 25,
+            "construct": "hunk"
+          }
+        ],
+        "src/lib/components/SiteFooter.svelte.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "VariableDeclaration SOURCE_URL"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 24,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/nav.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 10,
+            "construct": "VariableDeclaration currentOf"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "hunk"
+          },
+          {
+            "start": 13,
+            "end": 14,
+            "construct": "VariableDeclaration pageFileFor"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "hunk"
+          },
+          {
+            "start": 16,
+            "end": 36,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 38,
+            "end": 69,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/nav.ts": [
+          {
+            "start": 2,
+            "end": 3,
+            "construct": "hunk"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "TSTypeAliasDeclaration NavHref"
+          },
+          {
+            "start": 15,
+            "end": 18,
+            "construct": "VariableDeclaration ITEMS"
+          },
+          {
+            "start": 26,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 29,
+            "end": 35,
+            "construct": "FunctionDeclaration navItems"
+          }
+        ],
+        "src/lib/server/alerts/alerts.spec.ts": [
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 51,
+            "end": 51,
+            "construct": "VariableDeclaration h"
+          },
+          {
+            "start": 57,
+            "end": 62,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 63,
+            "end": 70,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 107,
+            "end": 110,
+            "construct": "FunctionDeclaration saveNtfy"
+          },
+          {
+            "start": 112,
+            "end": 114,
+            "construct": "FunctionDeclaration saveFake"
+          },
+          {
+            "start": 116,
+            "end": 128,
+            "construct": "FunctionDeclaration addWatch"
+          },
+          {
+            "start": 174,
+            "end": 885,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 887,
+            "end": 988,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/alerts/alerts.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "hunk"
+          },
+          {
+            "start": 129,
+            "end": 197,
+            "construct": "FunctionDeclaration alertAfterSuccess"
+          },
+          {
+            "start": 205,
+            "end": 238,
+            "construct": "FunctionDeclaration alertAfterFailure"
+          }
+        ],
+        "src/lib/server/alerts/channels.spec.ts": [
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 45,
+            "end": 45,
+            "construct": "hunk"
+          },
+          {
+            "start": 46,
+            "end": 46,
+            "construct": "VariableDeclaration LEGACY_AAD"
+          },
+          {
+            "start": 48,
+            "end": 48,
+            "construct": "VariableDeclaration h"
+          },
+          {
+            "start": 66,
+            "end": 69,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 70,
+            "end": 74,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 76,
+            "end": 77,
+            "construct": "VariableDeclaration saveNtfy"
+          },
+          {
+            "start": 79,
+            "end": 79,
+            "construct": "VariableDeclaration rows"
+          },
+          {
+            "start": 80,
+            "end": 81,
+            "construct": "hunk"
+          },
+          {
+            "start": 82,
+            "end": 88,
+            "construct": "FunctionDeclaration fileBytes"
+          },
+          {
+            "start": 90,
+            "end": 297,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 299,
+            "end": 432,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 454,
+            "end": 506,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 508,
+            "end": 540,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/alerts/channels.ts": [
+          {
+            "start": 1,
+            "end": 4,
+            "construct": "hunk"
+          },
+          {
+            "start": 6,
+            "end": 7,
+            "construct": "hunk"
+          },
+          {
+            "start": 55,
+            "end": 57,
+            "construct": "FunctionDeclaration undecryptable"
+          },
+          {
+            "start": 61,
+            "end": 70,
+            "construct": "FunctionDeclaration openConfig"
+          },
+          {
+            "start": 72,
+            "end": 74,
+            "construct": "FunctionDeclaration sealConfig"
+          },
+          {
+            "start": 77,
+            "end": 77,
+            "construct": "hunk"
+          },
+          {
+            "start": 79,
+            "end": 80,
+            "construct": "hunk"
+          },
+          {
+            "start": 90,
+            "end": 90,
+            "construct": "hunk"
+          },
+          {
+            "start": 91,
+            "end": 112,
+            "construct": "FunctionDeclaration listChannels"
+          },
+          {
+            "start": 116,
+            "end": 116,
+            "construct": "hunk"
+          },
+          {
+            "start": 117,
+            "end": 145,
+            "construct": "FunctionDeclaration channelsFor"
+          },
+          {
+            "start": 148,
+            "end": 153,
+            "construct": "FunctionDeclaration loadChannelConfig"
+          },
+          {
+            "start": 165,
+            "end": 166,
+            "construct": "hunk"
+          },
+          {
+            "start": 170,
+            "end": 205,
+            "construct": "FunctionDeclaration saveChannel"
+          },
+          {
+            "start": 208,
+            "end": 215,
+            "construct": "FunctionDeclaration setEnabled"
+          },
+          {
+            "start": 218,
+            "end": 220,
+            "construct": "FunctionDeclaration removeChannel"
+          }
+        ],
+        "src/lib/server/alerts/crypto.spec.ts": [
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "VariableDeclaration AAD"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "VariableDeclaration LEGACY_AAD"
+          },
+          {
+            "start": 94,
+            "end": 128,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 130,
+            "end": 146,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/alerts/crypto.ts": [
+          {
+            "start": 2,
+            "end": 4,
+            "construct": "hunk"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 65,
+            "end": 65,
+            "construct": "hunk"
+          },
+          {
+            "start": 66,
+            "end": 68,
+            "construct": "FunctionDeclaration channelAad"
+          }
+        ],
+        "src/lib/server/alerts/live.spec.ts": [
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "VariableDeclaration h"
+          },
+          {
+            "start": 27,
+            "end": 33,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 34,
+            "end": 37,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 61,
+            "end": 61,
+            "construct": "hunk"
+          },
+          {
+            "start": 62,
+            "end": 66,
+            "construct": "FunctionDeclaration useResend"
+          },
+          {
+            "start": 71,
+            "end": 71,
+            "construct": "hunk"
+          },
+          {
+            "start": 74,
+            "end": 92,
+            "construct": "FunctionDeclaration useSmtp"
+          },
+          {
+            "start": 233,
+            "end": 266,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/checks.spec.ts": [
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "VariableDeclaration h"
+          },
+          {
+            "start": 40,
+            "end": 51,
+            "construct": "FunctionDeclaration addWatchRow"
+          },
+          {
+            "start": 59,
+            "end": 62,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 63,
+            "end": 63,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 65,
+            "end": 186,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 188,
+            "end": 218,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 220,
+            "end": 358,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 360,
+            "end": 410,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 412,
+            "end": 431,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 433,
+            "end": 466,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/checks.ts": [
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "hunk"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 139,
+            "end": 139,
+            "construct": "hunk"
+          },
+          {
+            "start": 140,
+            "end": 152,
+            "construct": "FunctionDeclaration checkNow"
+          },
+          {
+            "start": 156,
+            "end": 156,
+            "construct": "hunk"
+          },
+          {
+            "start": 157,
+            "end": 163,
+            "construct": "FunctionDeclaration priceHistory"
+          },
+          {
+            "start": 167,
+            "end": 167,
+            "construct": "hunk"
+          },
+          {
+            "start": 168,
+            "end": 178,
+            "construct": "FunctionDeclaration failureHistory"
+          }
+        ],
+        "src/lib/server/db/channel.schema.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 97,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/db/channel.schema.ts": [
+          {
+            "start": 1,
+            "end": 4,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 26,
+            "construct": "VariableDeclaration notifyChannel"
+          },
+          {
+            "start": 28,
+            "end": 47,
+            "construct": "VariableDeclaration priceDropDelivery"
+          }
+        ],
+        "src/lib/server/db/check-failure.schema.spec.ts": [
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 15,
+            "end": 68,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 70,
+            "end": 168,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/db/migrate.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "TSTypeAliasDeclaration Journal"
+          },
+          {
+            "start": 23,
+            "end": 25,
+            "construct": "VariableDeclaration journal"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "VariableDeclaration entry"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 29,
+            "construct": "VariableDeclaration run"
+          },
+          {
+            "start": 30,
+            "end": 30,
+            "construct": "hunk"
+          },
+          {
+            "start": 31,
+            "end": 34,
+            "construct": "FunctionDeclaration tables"
+          },
+          {
+            "start": 36,
+            "end": 39,
+            "construct": "FunctionDeclaration columns"
+          },
+          {
+            "start": 40,
+            "end": 40,
+            "construct": "hunk"
+          },
+          {
+            "start": 41,
+            "end": 44,
+            "construct": "VariableDeclaration ids"
+          },
+          {
+            "start": 45,
+            "end": 46,
+            "construct": "hunk"
+          },
+          {
+            "start": 47,
+            "end": 50,
+            "construct": "FunctionDeclaration lastApplied"
+          },
+          {
+            "start": 51,
+            "end": 52,
+            "construct": "hunk"
+          },
+          {
+            "start": 53,
+            "end": 61,
+            "construct": "FunctionDeclaration folderUpTo"
+          },
+          {
+            "start": 62,
+            "end": 63,
+            "construct": "hunk"
+          },
+          {
+            "start": 64,
+            "end": 73,
+            "construct": "FunctionDeclaration dump"
+          },
+          {
+            "start": 74,
+            "end": 75,
+            "construct": "hunk"
+          },
+          {
+            "start": 76,
+            "end": 79,
+            "construct": "VariableDeclaration declaredTables"
+          },
+          {
+            "start": 80,
+            "end": 81,
+            "construct": "hunk"
+          },
+          {
+            "start": 82,
+            "end": 87,
+            "construct": "VariableDeclaration sealedLegacy"
+          },
+          {
+            "start": 88,
+            "end": 88,
+            "construct": "hunk"
+          },
+          {
+            "start": 89,
+            "end": 91,
+            "construct": "FunctionDeclaration addUser"
+          },
+          {
+            "start": 92,
+            "end": 92,
+            "construct": "hunk"
+          },
+          {
+            "start": 93,
+            "end": 99,
+            "construct": "FunctionDeclaration addWatch"
+          },
+          {
+            "start": 100,
+            "end": 100,
+            "construct": "hunk"
+          },
+          {
+            "start": 110,
+            "end": 629,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/db/price-point.schema.spec.ts": [
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "VariableDeclaration h"
+          },
+          {
+            "start": 8,
+            "end": 18,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/db/watch.schema.spec.ts": [
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "VariableDeclaration h"
+          },
+          {
+            "start": 14,
+            "end": 16,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 19,
+            "end": 26,
+            "construct": "FunctionDeclaration row"
+          },
+          {
+            "start": 28,
+            "end": 98,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 100,
+            "end": 152,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/db/watch.schema.ts": [
+          {
+            "start": 1,
+            "end": 2,
+            "construct": "hunk"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 31,
+            "construct": "VariableDeclaration watch"
+          }
+        ],
+        "src/lib/server/health.spec.ts": [
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 67,
+            "end": 248,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/local-request.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "hunk"
+          },
+          {
+            "start": 5,
+            "end": 38,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 39,
+            "end": 39,
+            "construct": "hunk"
+          },
+          {
+            "start": 40,
+            "end": 101,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/local-request.ts": [
+          {
+            "start": 1,
+            "end": 3,
+            "construct": "hunk"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 7,
+            "construct": "hunk"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "VariableDeclaration LOOPBACK_HOST"
+          },
+          {
+            "start": 9,
+            "end": 10,
+            "construct": "hunk"
+          },
+          {
+            "start": 11,
+            "end": 19,
+            "construct": "FunctionDeclaration isLoopbackHost"
+          },
+          {
+            "start": 20,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 38,
+            "construct": "FunctionDeclaration createLocalRequestHandle"
+          }
+        ],
+        "src/lib/server/scheduler.spec.ts": [
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 163,
+            "end": 230,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 232,
+            "end": 277,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/shops/no-direct-fetch.spec.ts": [
+          {
+            "start": 131,
+            "end": 183,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/sparklines.spec.ts": [
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "VariableDeclaration h"
+          },
+          {
+            "start": 14,
+            "end": 16,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 19,
+            "end": 26,
+            "construct": "FunctionDeclaration addWatch"
+          },
+          {
+            "start": 32,
+            "end": 79,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/sparklines.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "hunk"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "hunk"
+          },
+          {
+            "start": 8,
+            "end": 25,
+            "construct": "FunctionDeclaration recentPrices"
+          }
+        ],
+        "src/lib/server/testing/test-db.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "VariableDeclaration open"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 13,
+            "construct": "FunctionDeclaration fresh"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "hunk"
+          },
+          {
+            "start": 15,
+            "end": 20,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 21,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 23,
+            "end": 28,
+            "construct": "FunctionDeclaration journalWhens"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "hunk"
+          },
+          {
+            "start": 30,
+            "end": 69,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/testing/test-db.ts": [
+          {
+            "start": 1,
+            "end": 3,
+            "construct": "hunk"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 12,
+            "construct": "hunk"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "VariableDeclaration MIGRATIONS_FOLDER"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "hunk"
+          },
+          {
+            "start": 15,
+            "end": 22,
+            "construct": "TSInterfaceDeclaration TestDb"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "hunk"
+          },
+          {
+            "start": 24,
+            "end": 37,
+            "construct": "FunctionDeclaration createTestDb"
+          }
+        ],
+        "src/lib/server/watches.spec.ts": [
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 62,
+            "end": 62,
+            "construct": "VariableDeclaration h"
+          },
+          {
+            "start": 66,
+            "end": 69,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 70,
+            "end": 70,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 75,
+            "end": 571,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 573,
+            "end": 669,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/watches.ts": [
+          {
+            "start": 1,
+            "end": 4,
+            "construct": "hunk"
+          },
+          {
+            "start": 54,
+            "end": 118,
+            "construct": "FunctionDeclaration addWatch"
+          },
+          {
+            "start": 120,
+            "end": 120,
+            "construct": "hunk"
+          },
+          {
+            "start": 121,
+            "end": 123,
+            "construct": "FunctionDeclaration listWatches"
+          },
+          {
+            "start": 125,
+            "end": 125,
+            "construct": "hunk"
+          },
+          {
+            "start": 126,
+            "end": 129,
+            "construct": "FunctionDeclaration getWatch"
+          },
+          {
+            "start": 136,
+            "end": 136,
+            "construct": "hunk"
+          },
+          {
+            "start": 137,
+            "end": 148,
+            "construct": "FunctionDeclaration setTarget"
+          },
+          {
+            "start": 167,
+            "end": 167,
+            "construct": "hunk"
+          },
+          {
+            "start": 168,
+            "end": 171,
+            "construct": "FunctionDeclaration deleteWatch"
+          },
+          {
+            "start": 173,
+            "end": 179,
+            "construct": "FunctionDeclaration findWatched"
+          },
+          {
+            "start": 185,
+            "end": 217,
+            "construct": "FunctionDeclaration insert"
+          },
+          {
+            "start": 219,
+            "end": 219,
+            "construct": "hunk"
+          },
+          {
+            "start": 220,
+            "end": 220,
+            "construct": "VariableDeclaration PRODUCT_RACE"
+          }
+        ],
+        "src/routes/+layout.svelte": [
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "VariableDeclaration"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "VariableDeclaration items"
+          },
+          {
+            "start": 21,
+            "end": 35,
+            "construct": "Element header"
+          },
+          {
+            "start": 39,
+            "end": 39,
+            "construct": "hunk"
+          },
+          {
+            "start": 40,
+            "end": 40,
+            "construct": "InlineComponent SiteFooter"
+          },
+          {
+            "start": 41,
+            "end": 41,
+            "construct": "hunk"
+          }
+        ],
+        "src/routes/+page.server.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 30,
+            "end": 45,
+            "construct": "VariableDeclaration load"
+          },
+          {
+            "start": 47,
+            "end": 59,
+            "construct": "VariableDeclaration actions"
+          }
+        ],
+        "src/routes/account/alerts/+page.server.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 24,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 47,
+            "end": 74,
+            "construct": "VariableDeclaration load"
+          },
+          {
+            "start": 76,
+            "end": 138,
+            "construct": "VariableDeclaration actions"
+          },
+          {
+            "start": 140,
+            "end": 147,
+            "construct": "FunctionDeclaration toggle"
+          }
+        ],
+        "src/routes/account/alerts/+page.svelte": [
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "VariableDeclaration recipient"
+          },
+          {
+            "start": 34,
+            "end": 34,
+            "construct": "VariableDeclaration smtpRecipient"
+          }
+        ],
+        "src/routes/account/alerts/alerts.e2e.ts": [
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "VariableDeclaration REFUSED_TOPIC"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "VariableDeclaration RECIPIENT"
+          },
+          {
+            "start": 15,
+            "end": 17,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "VariableDeclaration seeded"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 27,
+            "construct": "FunctionDeclaration withDb"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "hunk"
+          },
+          {
+            "start": 29,
+            "end": 32,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 33,
+            "end": 33,
+            "construct": "hunk"
+          },
+          {
+            "start": 34,
+            "end": 39,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 41,
+            "end": 46,
+            "construct": "FunctionDeclaration openAlerts"
+          },
+          {
+            "start": 52,
+            "end": 52,
+            "construct": "hunk"
+          },
+          {
+            "start": 53,
+            "end": 72,
+            "construct": "FunctionDeclaration withNoChannels"
+          },
+          {
+            "start": 85,
+            "end": 93,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 95,
+            "end": 110,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 112,
+            "end": 146,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 148,
+            "end": 158,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 160,
+            "end": 172,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 174,
+            "end": 217,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 219,
+            "end": 273,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/account/alerts/page.server.spec.ts": [
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 34,
+            "end": 35,
+            "construct": "hunk"
+          },
+          {
+            "start": 36,
+            "end": 36,
+            "construct": "VariableDeclaration state"
+          },
+          {
+            "start": 37,
+            "end": 41,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 47,
+            "end": 47,
+            "construct": "hunk"
+          },
+          {
+            "start": 48,
+            "end": 56,
+            "construct": "FunctionDeclaration event"
+          },
+          {
+            "start": 70,
+            "end": 70,
+            "construct": "VariableDeclaration db"
+          },
+          {
+            "start": 71,
+            "end": 71,
+            "construct": "VariableDeclaration save"
+          },
+          {
+            "start": 80,
+            "end": 80,
+            "construct": "hunk"
+          },
+          {
+            "start": 81,
+            "end": 81,
+            "construct": "VariableDeclaration page"
+          },
+          {
+            "start": 83,
+            "end": 86,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 87,
+            "end": 92,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 94,
+            "end": 450,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 478,
+            "end": 485,
+            "construct": "FunctionDeclaration multipartSave"
+          },
+          {
+            "start": 487,
+            "end": 619,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 643,
+            "end": 800,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/account/alerts/page.svelte.spec.ts": [
+          {
+            "start": 43,
+            "end": 53,
+            "construct": "VariableDeclaration props"
+          },
+          {
+            "start": 63,
+            "end": 220,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/action-endpoints.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 7,
+            "construct": "hunk"
+          },
+          {
+            "start": 8,
+            "end": 12,
+            "construct": "VariableDeclaration pageServers"
+          },
+          {
+            "start": 13,
+            "end": 17,
+            "construct": "VariableDeclaration kitConfigs"
+          },
+          {
+            "start": 18,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 27,
+            "construct": "FunctionDeclaration routeOf"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "hunk"
+          },
+          {
+            "start": 29,
+            "end": 30,
+            "construct": "VariableDeclaration PROPERTY_KEY"
+          },
+          {
+            "start": 31,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 33,
+            "end": 37,
+            "construct": "FunctionDeclaration keyOf"
+          },
+          {
+            "start": 38,
+            "end": 43,
+            "construct": "hunk"
+          },
+          {
+            "start": 44,
+            "end": 85,
+            "construct": "FunctionDeclaration declaredActions"
+          },
+          {
+            "start": 86,
+            "end": 87,
+            "construct": "hunk"
+          },
+          {
+            "start": 88,
+            "end": 92,
+            "construct": "FunctionDeclaration declaredEndpoints"
+          },
+          {
+            "start": 93,
+            "end": 94,
+            "construct": "hunk"
+          },
+          {
+            "start": 95,
+            "end": 100,
+            "construct": "VariableDeclaration CSRF_WEAKENERS"
+          },
+          {
+            "start": 101,
+            "end": 101,
+            "construct": "hunk"
+          },
+          {
+            "start": 102,
+            "end": 102,
+            "construct": "VariableDeclaration weakensCsrf"
+          },
+          {
+            "start": 103,
+            "end": 103,
+            "construct": "hunk"
+          },
+          {
+            "start": 104,
+            "end": 104,
+            "construct": "VariableDeclaration listed"
+          },
+          {
+            "start": 105,
+            "end": 105,
+            "construct": "hunk"
+          },
+          {
+            "start": 106,
+            "end": 200,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/at-target.e2e.ts": [
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 7,
+            "construct": "hunk"
+          },
+          {
+            "start": 37,
+            "end": 48,
+            "construct": "FunctionDeclaration withPage"
+          }
+        ],
+        "src/routes/chart-a11y.e2e.ts": [
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 35,
+            "construct": "FunctionDeclaration withPage"
+          }
+        ],
+        "src/routes/contrast.e2e.ts": [
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 15,
+            "construct": "hunk"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "VariableDeclaration SOURCE_URL"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "hunk"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "VariableDeclaration TEXT_MIN"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "hunk"
+          },
+          {
+            "start": 27,
+            "end": 42,
+            "construct": "FunctionDeclaration withPage"
+          },
+          {
+            "start": 44,
+            "end": 47,
+            "construct": "hunk"
+          },
+          {
+            "start": 48,
+            "end": 66,
+            "construct": "FunctionDeclaration keepingChannels"
+          },
+          {
+            "start": 67,
+            "end": 68,
+            "construct": "hunk"
+          },
+          {
+            "start": 69,
+            "end": 86,
+            "construct": "FunctionDeclaration expectSourceContrast"
+          },
+          {
+            "start": 87,
+            "end": 87,
+            "construct": "hunk"
+          },
+          {
+            "start": 90,
+            "end": 90,
+            "construct": "hunk"
+          },
+          {
+            "start": 91,
+            "end": 141,
+            "construct": "FunctionDeclaration expectTokens"
+          },
+          {
+            "start": 144,
+            "end": 150,
+            "construct": "FunctionDeclaration expectState"
+          },
+          {
+            "start": 152,
+            "end": 311,
+            "construct": "ForOfStatement"
+          }
+        ],
+        "src/routes/focus.e2e.ts": [
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "VariableDeclaration SOURCE_URL"
+          },
+          {
+            "start": 14,
+            "end": 19,
+            "construct": "VariableDeclaration PAGES"
+          },
+          {
+            "start": 21,
+            "end": 29,
+            "construct": "FunctionDeclaration open"
+          },
+          {
+            "start": 31,
+            "end": 107,
+            "construct": "ForOfStatement"
+          }
+        ],
+        "src/routes/header.e2e.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 5,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "VariableDeclaration SOURCE_URL"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "hunk"
+          },
+          {
+            "start": 10,
+            "end": 16,
+            "construct": "VariableDeclaration PAGES"
+          },
+          {
+            "start": 20,
+            "end": 23,
+            "construct": "FunctionDeclaration open"
+          },
+          {
+            "start": 25,
+            "end": 34,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 36,
+            "end": 46,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 47,
+            "end": 47,
+            "construct": "hunk"
+          },
+          {
+            "start": 48,
+            "end": 61,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 62,
+            "end": 62,
+            "construct": "hunk"
+          },
+          {
+            "start": 63,
+            "end": 74,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 75,
+            "end": 75,
+            "construct": "hunk"
+          },
+          {
+            "start": 76,
+            "end": 95,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 97,
+            "end": 102,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/health/health.e2e.ts": [
+          {
+            "start": 11,
+            "end": 19,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/layout.e2e.ts": [
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 49,
+            "construct": "FunctionDeclaration expectNoClipping"
+          },
+          {
+            "start": 57,
+            "end": 67,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 69,
+            "end": 79,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 81,
+            "end": 120,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 122,
+            "end": 141,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 143,
+            "end": 155,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 157,
+            "end": 169,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 171,
+            "end": 191,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/page.server.spec.ts": [
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 13,
+            "end": 17,
+            "construct": "VariableDeclaration state"
+          },
+          {
+            "start": 36,
+            "end": 42,
+            "construct": "TSTypeAliasDeclaration Card"
+          },
+          {
+            "start": 48,
+            "end": 48,
+            "construct": "hunk"
+          },
+          {
+            "start": 49,
+            "end": 55,
+            "construct": "FunctionDeclaration event"
+          },
+          {
+            "start": 56,
+            "end": 56,
+            "construct": "hunk"
+          },
+          {
+            "start": 57,
+            "end": 59,
+            "construct": "FunctionDeclaration cards"
+          },
+          {
+            "start": 60,
+            "end": 60,
+            "construct": "hunk"
+          },
+          {
+            "start": 61,
+            "end": 65,
+            "construct": "FunctionDeclaration card"
+          },
+          {
+            "start": 78,
+            "end": 78,
+            "construct": "hunk"
+          },
+          {
+            "start": 79,
+            "end": 92,
+            "construct": "FunctionDeclaration seed"
+          },
+          {
+            "start": 93,
+            "end": 93,
+            "construct": "hunk"
+          },
+          {
+            "start": 94,
+            "end": 98,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 99,
+            "end": 99,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 101,
+            "end": 169,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 171,
+            "end": 268,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/removed-routes.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 12,
+            "construct": "VariableDeclaration sources"
+          },
+          {
+            "start": 13,
+            "end": 14,
+            "construct": "hunk"
+          },
+          {
+            "start": 15,
+            "end": 19,
+            "construct": "VariableDeclaration e2eSources"
+          },
+          {
+            "start": 20,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 23,
+            "end": 33,
+            "construct": "VariableDeclaration REMOVED_PATHS"
+          },
+          {
+            "start": 34,
+            "end": 35,
+            "construct": "hunk"
+          },
+          {
+            "start": 36,
+            "end": 36,
+            "construct": "VariableDeclaration REMOVED_TREES"
+          },
+          {
+            "start": 37,
+            "end": 38,
+            "construct": "hunk"
+          },
+          {
+            "start": 39,
+            "end": 50,
+            "construct": "VariableDeclaration DELETED_MODULES"
+          },
+          {
+            "start": 51,
+            "end": 56,
+            "construct": "hunk"
+          },
+          {
+            "start": 57,
+            "end": 57,
+            "construct": "VariableDeclaration AUTH_TEXT"
+          },
+          {
+            "start": 58,
+            "end": 58,
+            "construct": "hunk"
+          },
+          {
+            "start": 59,
+            "end": 59,
+            "construct": "VariableDeclaration TEXT_PATTERNS"
+          },
+          {
+            "start": 60,
+            "end": 61,
+            "construct": "hunk"
+          },
+          {
+            "start": 62,
+            "end": 62,
+            "construct": "VariableDeclaration SPECIFIER"
+          },
+          {
+            "start": 63,
+            "end": 63,
+            "construct": "hunk"
+          },
+          {
+            "start": 64,
+            "end": 64,
+            "construct": "VariableDeclaration isRouteFile"
+          },
+          {
+            "start": 65,
+            "end": 66,
+            "construct": "hunk"
+          },
+          {
+            "start": 67,
+            "end": 72,
+            "construct": "FunctionDeclaration routeSegments"
+          },
+          {
+            "start": 73,
+            "end": 74,
+            "construct": "hunk"
+          },
+          {
+            "start": 75,
+            "end": 88,
+            "construct": "FunctionDeclaration answers"
+          },
+          {
+            "start": 89,
+            "end": 89,
+            "construct": "hunk"
+          },
+          {
+            "start": 90,
+            "end": 99,
+            "construct": "FunctionDeclaration removedRoutes"
+          },
+          {
+            "start": 100,
+            "end": 100,
+            "construct": "hunk"
+          },
+          {
+            "start": 101,
+            "end": 101,
+            "construct": "VariableDeclaration stripExtension"
+          },
+          {
+            "start": 102,
+            "end": 103,
+            "construct": "hunk"
+          },
+          {
+            "start": 104,
+            "end": 108,
+            "construct": "FunctionDeclaration resolve"
+          },
+          {
+            "start": 109,
+            "end": 109,
+            "construct": "hunk"
+          },
+          {
+            "start": 110,
+            "end": 110,
+            "construct": "VariableDeclaration isBetterAuth"
+          },
+          {
+            "start": 111,
+            "end": 112,
+            "construct": "hunk"
+          },
+          {
+            "start": 113,
+            "end": 124,
+            "construct": "FunctionDeclaration importOffenders"
+          },
+          {
+            "start": 125,
+            "end": 125,
+            "construct": "hunk"
+          },
+          {
+            "start": 126,
+            "end": 133,
+            "construct": "FunctionDeclaration offenders"
+          },
+          {
+            "start": 134,
+            "end": 134,
+            "construct": "hunk"
+          },
+          {
+            "start": 135,
+            "end": 290,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/watches/[id]/+page.server.ts": [
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 13,
+            "end": 29,
+            "construct": "VariableDeclaration load"
+          },
+          {
+            "start": 31,
+            "end": 57,
+            "construct": "VariableDeclaration actions"
+          }
+        ],
+        "src/routes/watches/[id]/page.server.spec.ts": [
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 15,
+            "end": 18,
+            "construct": "VariableDeclaration state"
+          },
+          {
+            "start": 33,
+            "end": 33,
+            "construct": "hunk"
+          },
+          {
+            "start": 34,
+            "end": 43,
+            "construct": "FunctionDeclaration event"
+          },
+          {
+            "start": 72,
+            "end": 74,
+            "construct": "FunctionDeclaration page"
+          },
+          {
+            "start": 90,
+            "end": 108,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 109,
+            "end": 109,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 111,
+            "end": 364,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/watches/[id]/watch-page.e2e.ts": [
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 56,
+            "end": 71,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 86,
+            "end": 98,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/watchlist.e2e.ts": [
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 16,
+            "construct": "VariableDeclaration"
+          },
+          {
+            "start": 22,
+            "end": 24,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "hunk"
+          },
+          {
+            "start": 26,
+            "end": 40,
+            "construct": "ExpressionStatement"
+          }
+        ]
+      },
+      "whole_file": {
+        "src/lib/server/db/schema.ts": "file-absent-from-hunks"
+      }
+    }
+  ],
+  "skipped": [
+    {
+      "file": ".env.example",
+      "reason": "no mutation adapter for .example"
+    },
+    {
+      "file": "ARCHITECTURE.md",
+      "reason": "no mutation adapter for .md"
+    },
+    {
+      "file": "README.md",
+      "reason": "no mutation adapter for .md"
+    },
+    {
+      "file": "drizzle/0009_single_user_channels.sql",
+      "reason": "no mutation adapter for .sql"
+    },
+    {
+      "file": "drizzle/0010_single_user_watches.sql",
+      "reason": "no mutation adapter for .sql"
+    },
+    {
+      "file": "drizzle/0011_drop_auth.sql",
+      "reason": "no mutation adapter for .sql"
+    },
+    {
+      "file": "drizzle/meta/0009_snapshot.json",
+      "reason": "no mutation adapter for .json"
+    },
+    {
+      "file": "drizzle/meta/0010_snapshot.json",
+      "reason": "no mutation adapter for .json"
+    },
+    {
+      "file": "drizzle/meta/0011_snapshot.json",
+      "reason": "no mutation adapter for .json"
+    },
+    {
+      "file": "drizzle/meta/_journal.json",
+      "reason": "no mutation adapter for .json"
+    },
+    {
+      "file": "package.json",
+      "reason": "no mutation adapter for .json"
+    },
+    {
+      "file": "pnpm-lock.yaml",
+      "reason": "no mutation adapter for .yaml"
+    },
+    {
+      "file": "src/lib/server/access.spec.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/access.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/accounts.spec.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/accounts.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/admin-bootstrap.spec.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/admin-bootstrap.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/alerts/backfill.spec.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/alerts/backfill.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/auth-factory.spec.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/auth-factory.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/auth.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/cli/admin-create.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/db/alert.schema.spec.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/db/alert.schema.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/db/auth.schema.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/login-limiter.spec.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/login-limiter.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/own-password.spec.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/own-password.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/lib/server/testing/auth-harness.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/+layout.server.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/account/password",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/account/password/+page.server.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/account/password/+page.svelte",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/account/password/change-password.e2e.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/admin",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/admin/users/+page.server.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/admin/users/+page.svelte",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/admin/users/[id]/password/+page.server.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/admin/users/[id]/password/+page.svelte",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/admin/users/[id]/password/reset-password.e2e.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/admin/users/admin-users.e2e.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/layout.server.spec.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/login",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/login/+page.server.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/login/+page.svelte",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/login/login.e2e.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/login/page.server.spec.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/logout",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/logout/+server.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/no-public-signup.spec.ts",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "src/routes/page.svelte.e2e.ts",
+      "reason": "file no longer exists in the working tree"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/phases/02-single-user/REVIEW-1.md",
+      ".dross/phases/02-single-user/REVIEW.md",
+      ".dross/phases/02-single-user/changes.json",
+      ".dross/phases/02-single-user/panel/mvp.md",
+      ".dross/phases/02-single-user/panel/risk.md",
+      ".dross/phases/02-single-user/panel/synthesis.md",
+      ".dross/phases/02-single-user/panel/verification.md",
+      ".dross/phases/02-single-user/plan.toml",
+      ".dross/phases/02-single-user/spec.toml",
+      ".dross/project.toml",
+      ".env.example",
+      "ARCHITECTURE.md",
+      "README.md",
+      "drizzle/0009_single_user_channels.sql",
+      "drizzle/0010_single_user_watches.sql",
+      "drizzle/0011_drop_auth.sql",
+      "drizzle/meta/0009_snapshot.json",
+      "drizzle/meta/0010_snapshot.json",
+      "drizzle/meta/0011_snapshot.json",
+      "drizzle/meta/_journal.json",
+      "e2e/accounts.ts",
+      "e2e/action-endpoints.ts",
+      "e2e/fresh-install.e2e.ts",
+      "e2e/harness.e2e.ts",
+      "e2e/local-guard.e2e.ts",
+      "e2e/node-server.ts",
+      "e2e/removed-routes.e2e.ts",
+      "e2e/restart.e2e.ts",
+      "e2e/seed.ts",
+      "package.json",
+      "playwright.config.ts",
+      "pnpm-lock.yaml",
+      "scripts/readme.spec.ts",
+      "src/app.d.ts",
+      "src/env.spec.ts",
+      "src/env.ts",
+      "src/hooks.server.spec.ts",
+      "src/hooks.server.ts",
+      "src/lib/components/SiteFooter.svelte",
+      "src/lib/components/SiteFooter.svelte.spec.ts",
+      "src/lib/nav.spec.ts",
+      "src/lib/nav.ts",
+      "src/lib/server/access.spec.ts",
+      "src/lib/server/access.ts",
+      "src/lib/server/accounts.spec.ts",
+      "src/lib/server/accounts.ts",
+      "src/lib/server/admin-bootstrap.spec.ts",
+      "src/lib/server/admin-bootstrap.ts",
+      "src/lib/server/alerts/alerts.spec.ts",
+      "src/lib/server/alerts/alerts.ts",
+      "src/lib/server/alerts/backfill.spec.ts",
+      "src/lib/server/alerts/backfill.ts",
+      "src/lib/server/alerts/channels.spec.ts",
+      "src/lib/server/alerts/channels.ts",
+      "src/lib/server/alerts/crypto.spec.ts",
+      "src/lib/server/alerts/crypto.ts",
+      "src/lib/server/alerts/live.spec.ts",
+      "src/lib/server/auth-factory.spec.ts",
+      "src/lib/server/auth-factory.ts",
+      "src/lib/server/auth.ts",
+      "src/lib/server/checks.spec.ts",
+      "src/lib/server/checks.ts",
+      "src/lib/server/cli/admin-create.ts",
+      "src/lib/server/db/alert.schema.spec.ts",
+      "src/lib/server/db/alert.schema.ts",
+      "src/lib/server/db/auth.schema.ts",
+      "src/lib/server/db/channel.schema.spec.ts",
+      "src/lib/server/db/channel.schema.ts",
+      "src/lib/server/db/check-failure.schema.spec.ts",
+      "src/lib/server/db/migrate.spec.ts",
+      "src/lib/server/db/price-point.schema.spec.ts",
+      "src/lib/server/db/schema.ts",
+      "src/lib/server/db/watch.schema.spec.ts",
+      "src/lib/server/db/watch.schema.ts",
+      "src/lib/server/health.spec.ts",
+      "src/lib/server/local-request.spec.ts",
+      "src/lib/server/local-request.ts",
+      "src/lib/server/login-limiter.spec.ts",
+      "src/lib/server/login-limiter.ts",
+      "src/lib/server/own-password.spec.ts",
+      "src/lib/server/own-password.ts",
+      "src/lib/server/scheduler.spec.ts",
+      "src/lib/server/shops/no-direct-fetch.spec.ts",
+      "src/lib/server/sparklines.spec.ts",
+      "src/lib/server/sparklines.ts",
+      "src/lib/server/testing/auth-harness.ts",
+      "src/lib/server/testing/test-db.spec.ts",
+      "src/lib/server/testing/test-db.ts",
+      "src/lib/server/watches.spec.ts",
+      "src/lib/server/watches.ts",
+      "src/routes/+layout.server.ts",
+      "src/routes/+layout.svelte",
+      "src/routes/+page.server.ts",
+      "src/routes/account/alerts/+page.server.ts",
+      "src/routes/account/alerts/+page.svelte",
+      "src/routes/account/alerts/alerts.e2e.ts",
+      "src/routes/account/alerts/page.server.spec.ts",
+      "src/routes/account/alerts/page.svelte.spec.ts",
+      "src/routes/account/password",
+      "src/routes/account/password/+page.server.ts",
+      "src/routes/account/password/+page.svelte",
+      "src/routes/account/password/change-password.e2e.ts",
+      "src/routes/action-endpoints.spec.ts",
+      "src/routes/admin",
+      "src/routes/admin/users/+page.server.ts",
+      "src/routes/admin/users/+page.svelte",
+      "src/routes/admin/users/[id]/password/+page.server.ts",
+      "src/routes/admin/users/[id]/password/+page.svelte",
+      "src/routes/admin/users/[id]/password/reset-password.e2e.ts",
+      "src/routes/admin/users/admin-users.e2e.ts",
+      "src/routes/at-target.e2e.ts",
+      "src/routes/chart-a11y.e2e.ts",
+      "src/routes/contrast.e2e.ts",
+      "src/routes/focus.e2e.ts",
+      "src/routes/header.e2e.ts",
+      "src/routes/health/health.e2e.ts",
+      "src/routes/layout.e2e.ts",
+      "src/routes/layout.server.spec.ts",
+      "src/routes/login",
+      "src/routes/login/+page.server.ts",
+      "src/routes/login/+page.svelte",
+      "src/routes/login/login.e2e.ts",
+      "src/routes/login/page.server.spec.ts",
+      "src/routes/logout",
+      "src/routes/logout/+server.ts",
+      "src/routes/no-public-signup.spec.ts",
+      "src/routes/page.server.spec.ts",
+      "src/routes/page.svelte.e2e.ts",
+      "src/routes/removed-routes.spec.ts",
+      "src/routes/watches/[id]/+page.server.ts",
+      "src/routes/watches/[id]/page.server.spec.ts",
+      "src/routes/watches/[id]/watch-page.e2e.ts",
+      "src/routes/watchlist.e2e.ts"
+    ],
+    "hunks": {
+      ".dross/phases/02-single-user/REVIEW-1.md": [
+        {
+          "start": 1,
+          "end": 34
+        }
+      ],
+      ".dross/phases/02-single-user/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 42
+        }
+      ],
+      ".dross/phases/02-single-user/changes.json": [
+        {
+          "start": 1,
+          "end": 636
+        }
+      ],
+      ".dross/phases/02-single-user/panel/mvp.md": [
+        {
+          "start": 1,
+          "end": 172
+        }
+      ],
+      ".dross/phases/02-single-user/panel/risk.md": [
+        {
+          "start": 1,
+          "end": 350
+        }
+      ],
+      ".dross/phases/02-single-user/panel/synthesis.md": [
+        {
+          "start": 1,
+          "end": 498
+        }
+      ],
+      ".dross/phases/02-single-user/panel/verification.md": [
+        {
+          "start": 1,
+          "end": 273
+        }
+      ],
+      ".dross/phases/02-single-user/plan.toml": [
+        {
+          "start": 1,
+          "end": 173
+        }
+      ],
+      ".dross/phases/02-single-user/spec.toml": [
+        {
+          "start": 1,
+          "end": 73
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "ARCHITECTURE.md": [
+        {
+          "start": 26,
+          "end": 26
+        },
+        {
+          "start": 28,
+          "end": 30
+        },
+        {
+          "start": 32,
+          "end": 32
+        },
+        {
+          "start": 46,
+          "end": 46
+        },
+        {
+          "start": 67,
+          "end": 67
+        },
+        {
+          "start": 79,
+          "end": 79
+        },
+        {
+          "start": 132,
+          "end": 132
+        },
+        {
+          "start": 134,
+          "end": 135
+        },
+        {
+          "start": 137,
+          "end": 137
+        }
+      ],
+      "README.md": [
+        {
+          "start": 34,
+          "end": 34
+        },
+        {
+          "start": 36,
+          "end": 36
+        }
+      ],
+      "drizzle/0009_single_user_channels.sql": [
+        {
+          "start": 1,
+          "end": 40
+        }
+      ],
+      "drizzle/0010_single_user_watches.sql": [
+        {
+          "start": 1,
+          "end": 24
+        }
+      ],
+      "drizzle/0011_drop_auth.sql": [
+        {
+          "start": 1,
+          "end": 7
+        }
+      ],
+      "drizzle/meta/0009_snapshot.json": [
+        {
+          "start": 1,
+          "end": 806
+        }
+      ],
+      "drizzle/meta/0010_snapshot.json": [
+        {
+          "start": 1,
+          "end": 777
+        }
+      ],
+      "drizzle/meta/0011_snapshot.json": [
+        {
+          "start": 1,
+          "end": 389
+        }
+      ],
+      "drizzle/meta/_journal.json": [
+        {
+          "start": 67,
+          "end": 87
+        }
+      ],
+      "e2e/accounts.ts": [
+        {
+          "start": 1,
+          "end": 3
+        },
+        {
+          "start": 19,
+          "end": 22
+        },
+        {
+          "start": 39,
+          "end": 39
+        },
+        {
+          "start": 51,
+          "end": 51
+        }
+      ],
+      "e2e/action-endpoints.ts": [
+        {
+          "start": 1,
+          "end": 34
+        }
+      ],
+      "e2e/fresh-install.e2e.ts": [
+        {
+          "start": 1,
+          "end": 102
+        }
+      ],
+      "e2e/harness.e2e.ts": [
+        {
+          "start": 1,
+          "end": 5
+        },
+        {
+          "start": 7,
+          "end": 8
+        },
+        {
+          "start": 12,
+          "end": 12
+        },
+        {
+          "start": 17,
+          "end": 17
+        },
+        {
+          "start": 19,
+          "end": 19
+        },
+        {
+          "start": 21,
+          "end": 21
+        },
+        {
+          "start": 55,
+          "end": 56
+        },
+        {
+          "start": 58,
+          "end": 63
+        },
+        {
+          "start": 65,
+          "end": 93
+        },
+        {
+          "start": 103,
+          "end": 103
+        },
+        {
+          "start": 106,
+          "end": 106
+        },
+        {
+          "start": 141,
+          "end": 141
+        },
+        {
+          "start": 148,
+          "end": 148
+        },
+        {
+          "start": 243,
+          "end": 252
+        },
+        {
+          "start": 256,
+          "end": 297
+        },
+        {
+          "start": 300,
+          "end": 307
+        }
+      ],
+      "e2e/local-guard.e2e.ts": [
+        {
+          "start": 1,
+          "end": 262
+        }
+      ],
+      "e2e/node-server.ts": [
+        {
+          "start": 1,
+          "end": 143
+        }
+      ],
+      "e2e/removed-routes.e2e.ts": [
+        {
+          "start": 1,
+          "end": 52
+        }
+      ],
+      "e2e/restart.e2e.ts": [
+        {
+          "start": 1,
+          "end": 123
+        }
+      ],
+      "e2e/seed.ts": [
+        {
+          "start": 2,
+          "end": 3
+        },
+        {
+          "start": 9,
+          "end": 9
+        },
+        {
+          "start": 11,
+          "end": 11
+        },
+        {
+          "start": 13,
+          "end": 13
+        },
+        {
+          "start": 82,
+          "end": 85
+        },
+        {
+          "start": 87,
+          "end": 88
+        }
+      ],
+      "package.json": [
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 25,
+          "end": 25
+        }
+      ],
+      "playwright.config.ts": [
+        {
+          "start": 2,
+          "end": 2
+        },
+        {
+          "start": 19,
+          "end": 20
+        }
+      ],
+      "pnpm-lock.yaml": [
+        {
+          "start": 4320,
+          "end": 4321
+        },
+        {
+          "start": 4347,
+          "end": 4348
+        }
+      ],
+      "scripts/readme.spec.ts": [
+        {
+          "start": 2,
+          "end": 3
+        },
+        {
+          "start": 7,
+          "end": 11
+        },
+        {
+          "start": 13,
+          "end": 14
+        },
+        {
+          "start": 17,
+          "end": 26
+        },
+        {
+          "start": 67,
+          "end": 111
+        }
+      ],
+      "src/app.d.ts": [
+        {
+          "start": 6,
+          "end": 6
+        }
+      ],
+      "src/env.spec.ts": [
+        {
+          "start": 41,
+          "end": 56
+        }
+      ],
+      "src/env.ts": [
+        {
+          "start": 6,
+          "end": 8
+        }
+      ],
+      "src/hooks.server.spec.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 3,
+          "end": 3
+        },
+        {
+          "start": 67,
+          "end": 67
+        },
+        {
+          "start": 74,
+          "end": 75
+        },
+        {
+          "start": 162,
+          "end": 211
+        }
+      ],
+      "src/hooks.server.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 8,
+          "end": 8
+        },
+        {
+          "start": 16,
+          "end": 16
+        },
+        {
+          "start": 20,
+          "end": 20
+        },
+        {
+          "start": 31,
+          "end": 37
+        }
+      ],
+      "src/lib/components/SiteFooter.svelte": [
+        {
+          "start": 1,
+          "end": 25
+        }
+      ],
+      "src/lib/components/SiteFooter.svelte.spec.ts": [
+        {
+          "start": 1,
+          "end": 24
+        }
+      ],
+      "src/lib/nav.spec.ts": [
+        {
+          "start": 1,
+          "end": 2
+        },
+        {
+          "start": 7,
+          "end": 8
+        },
+        {
+          "start": 12,
+          "end": 15
+        },
+        {
+          "start": 17,
+          "end": 18
+        },
+        {
+          "start": 20,
+          "end": 20
+        },
+        {
+          "start": 24,
+          "end": 34
+        },
+        {
+          "start": 43,
+          "end": 43
+        },
+        {
+          "start": 48,
+          "end": 49
+        },
+        {
+          "start": 56,
+          "end": 57
+        },
+        {
+          "start": 65,
+          "end": 65
+        }
+      ],
+      "src/lib/nav.ts": [
+        {
+          "start": 2,
+          "end": 3
+        },
+        {
+          "start": 6,
+          "end": 6
+        },
+        {
+          "start": 17,
+          "end": 17
+        },
+        {
+          "start": 26,
+          "end": 27
+        },
+        {
+          "start": 29,
+          "end": 29
+        },
+        {
+          "start": 31,
+          "end": 31
+        }
+      ],
+      "src/lib/server/alerts/alerts.spec.ts": [
+        {
+          "start": 12,
+          "end": 12
+        },
+        {
+          "start": 14,
+          "end": 14
+        },
+        {
+          "start": 51,
+          "end": 51
+        },
+        {
+          "start": 58,
+          "end": 58
+        },
+        {
+          "start": 68,
+          "end": 68
+        },
+        {
+          "start": 107,
+          "end": 108
+        },
+        {
+          "start": 112,
+          "end": 113
+        },
+        {
+          "start": 120,
+          "end": 120
+        },
+        {
+          "start": 183,
+          "end": 183
+        },
+        {
+          "start": 210,
+          "end": 242
+        },
+        {
+          "start": 260,
+          "end": 260
+        },
+        {
+          "start": 357,
+          "end": 357
+        },
+        {
+          "start": 367,
+          "end": 367
+        },
+        {
+          "start": 386,
+          "end": 386
+        },
+        {
+          "start": 412,
+          "end": 412
+        },
+        {
+          "start": 426,
+          "end": 426
+        },
+        {
+          "start": 434,
+          "end": 434
+        },
+        {
+          "start": 465,
+          "end": 465
+        },
+        {
+          "start": 473,
+          "end": 473
+        },
+        {
+          "start": 655,
+          "end": 655
+        },
+        {
+          "start": 750,
+          "end": 750
+        },
+        {
+          "start": 758,
+          "end": 758
+        },
+        {
+          "start": 857,
+          "end": 857
+        },
+        {
+          "start": 896,
+          "end": 896
+        },
+        {
+          "start": 975,
+          "end": 975
+        }
+      ],
+      "src/lib/server/alerts/alerts.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 152,
+          "end": 152
+        },
+        {
+          "start": 216,
+          "end": 216
+        }
+      ],
+      "src/lib/server/alerts/channels.spec.ts": [
+        {
+          "start": 3,
+          "end": 3
+        },
+        {
+          "start": 5,
+          "end": 5
+        },
+        {
+          "start": 7,
+          "end": 7
+        },
+        {
+          "start": 45,
+          "end": 46
+        },
+        {
+          "start": 48,
+          "end": 48
+        },
+        {
+          "start": 67,
+          "end": 67
+        },
+        {
+          "start": 73,
+          "end": 73
+        },
+        {
+          "start": 76,
+          "end": 77
+        },
+        {
+          "start": 79,
+          "end": 87
+        },
+        {
+          "start": 92,
+          "end": 93
+        },
+        {
+          "start": 99,
+          "end": 99
+        },
+        {
+          "start": 106,
+          "end": 138
+        },
+        {
+          "start": 140,
+          "end": 141
+        },
+        {
+          "start": 144,
+          "end": 144
+        },
+        {
+          "start": 150,
+          "end": 150
+        },
+        {
+          "start": 158,
+          "end": 159
+        },
+        {
+          "start": 162,
+          "end": 162
+        },
+        {
+          "start": 172,
+          "end": 173
+        },
+        {
+          "start": 176,
+          "end": 176
+        },
+        {
+          "start": 185,
+          "end": 185
+        },
+        {
+          "start": 193,
+          "end": 194
+        },
+        {
+          "start": 197,
+          "end": 197
+        },
+        {
+          "start": 214,
+          "end": 216
+        },
+        {
+          "start": 220,
+          "end": 221
+        },
+        {
+          "start": 225,
+          "end": 226
+        },
+        {
+          "start": 232,
+          "end": 234
+        },
+        {
+          "start": 238,
+          "end": 239
+        },
+        {
+          "start": 244,
+          "end": 247
+        },
+        {
+          "start": 254,
+          "end": 255
+        },
+        {
+          "start": 257,
+          "end": 259
+        },
+        {
+          "start": 263,
+          "end": 263
+        },
+        {
+          "start": 271,
+          "end": 271
+        },
+        {
+          "start": 275,
+          "end": 275
+        },
+        {
+          "start": 281,
+          "end": 285
+        },
+        {
+          "start": 290,
+          "end": 290
+        },
+        {
+          "start": 301,
+          "end": 303
+        },
+        {
+          "start": 316,
+          "end": 319
+        },
+        {
+          "start": 324,
+          "end": 327
+        },
+        {
+          "start": 330,
+          "end": 331
+        },
+        {
+          "start": 335,
+          "end": 335
+        },
+        {
+          "start": 337,
+          "end": 342
+        },
+        {
+          "start": 344,
+          "end": 345
+        },
+        {
+          "start": 349,
+          "end": 353
+        },
+        {
+          "start": 357,
+          "end": 394
+        },
+        {
+          "start": 396,
+          "end": 399
+        },
+        {
+          "start": 402,
+          "end": 404
+        },
+        {
+          "start": 408,
+          "end": 409
+        },
+        {
+          "start": 413,
+          "end": 415
+        },
+        {
+          "start": 418,
+          "end": 419
+        },
+        {
+          "start": 423,
+          "end": 423
+        },
+        {
+          "start": 427,
+          "end": 427
+        },
+        {
+          "start": 429,
+          "end": 429
+        },
+        {
+          "start": 460,
+          "end": 460
+        },
+        {
+          "start": 471,
+          "end": 472
+        },
+        {
+          "start": 476,
+          "end": 476
+        },
+        {
+          "start": 479,
+          "end": 479
+        },
+        {
+          "start": 482,
+          "end": 482
+        },
+        {
+          "start": 486,
+          "end": 488
+        },
+        {
+          "start": 498,
+          "end": 500
+        },
+        {
+          "start": 504,
+          "end": 504
+        },
+        {
+          "start": 510,
+          "end": 512
+        },
+        {
+          "start": 520,
+          "end": 524
+        },
+        {
+          "start": 526,
+          "end": 526
+        },
+        {
+          "start": 528,
+          "end": 529
+        },
+        {
+          "start": 532,
+          "end": 532
+        },
+        {
+          "start": 534,
+          "end": 538
+        }
+      ],
+      "src/lib/server/alerts/channels.ts": [
+        {
+          "start": 1,
+          "end": 4
+        },
+        {
+          "start": 6,
+          "end": 7
+        },
+        {
+          "start": 55,
+          "end": 56
+        },
+        {
+          "start": 63,
+          "end": 63
+        },
+        {
+          "start": 72,
+          "end": 73
+        },
+        {
+          "start": 77,
+          "end": 77
+        },
+        {
+          "start": 79,
+          "end": 80
+        },
+        {
+          "start": 90,
+          "end": 90
+        },
+        {
+          "start": 96,
+          "end": 96
+        },
+        {
+          "start": 102,
+          "end": 102
+        },
+        {
+          "start": 116,
+          "end": 116
+        },
+        {
+          "start": 128,
+          "end": 128
+        },
+        {
+          "start": 134,
+          "end": 134
+        },
+        {
+          "start": 139,
+          "end": 139
+        },
+        {
+          "start": 148,
+          "end": 149
+        },
+        {
+          "start": 165,
+          "end": 166
+        },
+        {
+          "start": 183,
+          "end": 183
+        },
+        {
+          "start": 196,
+          "end": 196
+        },
+        {
+          "start": 199,
+          "end": 199
+        },
+        {
+          "start": 201,
+          "end": 201
+        },
+        {
+          "start": 208,
+          "end": 208
+        },
+        {
+          "start": 212,
+          "end": 212
+        },
+        {
+          "start": 218,
+          "end": 219
+        }
+      ],
+      "src/lib/server/alerts/crypto.spec.ts": [
+        {
+          "start": 12,
+          "end": 14
+        },
+        {
+          "start": 111,
+          "end": 113
+        },
+        {
+          "start": 131,
+          "end": 144
+        }
+      ],
+      "src/lib/server/alerts/crypto.ts": [
+        {
+          "start": 2,
+          "end": 4
+        },
+        {
+          "start": 6,
+          "end": 6
+        },
+        {
+          "start": 65,
+          "end": 67
+        }
+      ],
+      "src/lib/server/alerts/live.spec.ts": [
+        {
+          "start": 5,
+          "end": 5
+        },
+        {
+          "start": 24,
+          "end": 24
+        },
+        {
+          "start": 28,
+          "end": 28
+        },
+        {
+          "start": 30,
+          "end": 30
+        },
+        {
+          "start": 36,
+          "end": 36
+        },
+        {
+          "start": 61,
+          "end": 61
+        },
+        {
+          "start": 63,
+          "end": 63
+        },
+        {
+          "start": 65,
+          "end": 65
+        },
+        {
+          "start": 71,
+          "end": 71
+        },
+        {
+          "start": 90,
+          "end": 90
+        },
+        {
+          "start": 238,
+          "end": 238
+        }
+      ],
+      "src/lib/server/checks.spec.ts": [
+        {
+          "start": 17,
+          "end": 17
+        },
+        {
+          "start": 23,
+          "end": 23
+        },
+        {
+          "start": 40,
+          "end": 40
+        },
+        {
+          "start": 61,
+          "end": 61
+        },
+        {
+          "start": 63,
+          "end": 63
+        },
+        {
+          "start": 67,
+          "end": 67
+        },
+        {
+          "start": 103,
+          "end": 103
+        },
+        {
+          "start": 120,
+          "end": 120
+        },
+        {
+          "start": 132,
+          "end": 132
+        },
+        {
+          "start": 139,
+          "end": 139
+        },
+        {
+          "start": 147,
+          "end": 147
+        },
+        {
+          "start": 159,
+          "end": 159
+        },
+        {
+          "start": 173,
+          "end": 174
+        },
+        {
+          "start": 190,
+          "end": 195
+        },
+        {
+          "start": 207,
+          "end": 207
+        },
+        {
+          "start": 222,
+          "end": 222
+        },
+        {
+          "start": 238,
+          "end": 239
+        },
+        {
+          "start": 279,
+          "end": 280
+        },
+        {
+          "start": 290,
+          "end": 291
+        },
+        {
+          "start": 331,
+          "end": 332
+        },
+        {
+          "start": 342,
+          "end": 342
+        },
+        {
+          "start": 362,
+          "end": 365
+        },
+        {
+          "start": 370,
+          "end": 370
+        },
+        {
+          "start": 377,
+          "end": 378
+        },
+        {
+          "start": 382,
+          "end": 382
+        },
+        {
+          "start": 392,
+          "end": 392
+        },
+        {
+          "start": 396,
+          "end": 396
+        },
+        {
+          "start": 400,
+          "end": 400
+        },
+        {
+          "start": 406,
+          "end": 406
+        },
+        {
+          "start": 414,
+          "end": 415
+        },
+        {
+          "start": 420,
+          "end": 420
+        },
+        {
+          "start": 423,
+          "end": 423
+        },
+        {
+          "start": 428,
+          "end": 429
+        },
+        {
+          "start": 435,
+          "end": 436
+        },
+        {
+          "start": 451,
+          "end": 451
+        },
+        {
+          "start": 454,
+          "end": 454
+        },
+        {
+          "start": 461,
+          "end": 464
+        }
+      ],
+      "src/lib/server/checks.ts": [
+        {
+          "start": 2,
+          "end": 2
+        },
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 139,
+          "end": 141
+        },
+        {
+          "start": 156,
+          "end": 157
+        },
+        {
+          "start": 161,
+          "end": 161
+        },
+        {
+          "start": 167,
+          "end": 168
+        },
+        {
+          "start": 176,
+          "end": 176
+        }
+      ],
+      "src/lib/server/db/channel.schema.spec.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 3,
+          "end": 4
+        },
+        {
+          "start": 7,
+          "end": 7
+        },
+        {
+          "start": 10,
+          "end": 10
+        },
+        {
+          "start": 12,
+          "end": 12
+        },
+        {
+          "start": 14,
+          "end": 14
+        },
+        {
+          "start": 31,
+          "end": 31
+        },
+        {
+          "start": 45,
+          "end": 45
+        },
+        {
+          "start": 47,
+          "end": 47
+        },
+        {
+          "start": 49,
+          "end": 49
+        },
+        {
+          "start": 51,
+          "end": 53
+        },
+        {
+          "start": 57,
+          "end": 57
+        },
+        {
+          "start": 62,
+          "end": 62
+        },
+        {
+          "start": 67,
+          "end": 69
+        },
+        {
+          "start": 71,
+          "end": 73
+        },
+        {
+          "start": 75,
+          "end": 75
+        },
+        {
+          "start": 80,
+          "end": 80
+        },
+        {
+          "start": 83,
+          "end": 84
+        },
+        {
+          "start": 88,
+          "end": 89
+        },
+        {
+          "start": 91,
+          "end": 91
+        },
+        {
+          "start": 95,
+          "end": 95
+        }
+      ],
+      "src/lib/server/db/channel.schema.ts": [
+        {
+          "start": 1,
+          "end": 4
+        },
+        {
+          "start": 9,
+          "end": 9
+        },
+        {
+          "start": 12,
+          "end": 26
+        },
+        {
+          "start": 34,
+          "end": 36
+        },
+        {
+          "start": 45,
+          "end": 45
+        }
+      ],
+      "src/lib/server/db/check-failure.schema.spec.ts": [
+        {
+          "start": 6,
+          "end": 6
+        },
+        {
+          "start": 9,
+          "end": 9
+        },
+        {
+          "start": 16,
+          "end": 16
+        },
+        {
+          "start": 19,
+          "end": 19
+        },
+        {
+          "start": 29,
+          "end": 29
+        },
+        {
+          "start": 48,
+          "end": 48
+        },
+        {
+          "start": 86,
+          "end": 89
+        },
+        {
+          "start": 96,
+          "end": 110
+        }
+      ],
+      "src/lib/server/db/migrate.spec.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 5,
+          "end": 6
+        },
+        {
+          "start": 8,
+          "end": 13
+        },
+        {
+          "start": 16,
+          "end": 17
+        },
+        {
+          "start": 22,
+          "end": 30
+        },
+        {
+          "start": 32,
+          "end": 32
+        },
+        {
+          "start": 36,
+          "end": 100
+        },
+        {
+          "start": 126,
+          "end": 126
+        },
+        {
+          "start": 128,
+          "end": 128
+        },
+        {
+          "start": 130,
+          "end": 131
+        },
+        {
+          "start": 134,
+          "end": 134
+        },
+        {
+          "start": 138,
+          "end": 140
+        },
+        {
+          "start": 143,
+          "end": 148
+        },
+        {
+          "start": 157,
+          "end": 158
+        },
+        {
+          "start": 160,
+          "end": 161
+        },
+        {
+          "start": 164,
+          "end": 226
+        },
+        {
+          "start": 229,
+          "end": 236
+        },
+        {
+          "start": 241,
+          "end": 251
+        },
+        {
+          "start": 255,
+          "end": 325
+        },
+        {
+          "start": 327,
+          "end": 624
+        },
+        {
+          "start": 626,
+          "end": 627
+        }
+      ],
+      "src/lib/server/db/price-point.schema.spec.ts": [
+        {
+          "start": 3,
+          "end": 3
+        },
+        {
+          "start": 6,
+          "end": 6
+        },
+        {
+          "start": 9,
+          "end": 9
+        },
+        {
+          "start": 19,
+          "end": 19
+        }
+      ],
+      "src/lib/server/db/watch.schema.spec.ts": [
+        {
+          "start": 6,
+          "end": 6
+        },
+        {
+          "start": 9,
+          "end": 9
+        },
+        {
+          "start": 12,
+          "end": 12
+        },
+        {
+          "start": 15,
+          "end": 15
+        },
+        {
+          "start": 17,
+          "end": 17
+        },
+        {
+          "start": 19,
+          "end": 19
+        },
+        {
+          "start": 29,
+          "end": 30
+        },
+        {
+          "start": 33,
+          "end": 33
+        },
+        {
+          "start": 35,
+          "end": 35
+        },
+        {
+          "start": 39,
+          "end": 39
+        },
+        {
+          "start": 42,
+          "end": 47
+        },
+        {
+          "start": 52,
+          "end": 52
+        },
+        {
+          "start": 70,
+          "end": 82
+        },
+        {
+          "start": 84,
+          "end": 96
+        },
+        {
+          "start": 130,
+          "end": 133
+        }
+      ],
+      "src/lib/server/db/watch.schema.ts": [
+        {
+          "start": 1,
+          "end": 2
+        },
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 30,
+          "end": 30
+        }
+      ],
+      "src/lib/server/health.spec.ts": [
+        {
+          "start": 10,
+          "end": 10
+        },
+        {
+          "start": 85,
+          "end": 94
+        }
+      ],
+      "src/lib/server/local-request.spec.ts": [
+        {
+          "start": 1,
+          "end": 101
+        }
+      ],
+      "src/lib/server/local-request.ts": [
+        {
+          "start": 1,
+          "end": 38
+        }
+      ],
+      "src/lib/server/scheduler.spec.ts": [
+        {
+          "start": 11,
+          "end": 11
+        },
+        {
+          "start": 164,
+          "end": 164
+        },
+        {
+          "start": 168,
+          "end": 168
+        },
+        {
+          "start": 173,
+          "end": 173
+        },
+        {
+          "start": 234,
+          "end": 234
+        },
+        {
+          "start": 237,
+          "end": 237
+        },
+        {
+          "start": 242,
+          "end": 242
+        },
+        {
+          "start": 249,
+          "end": 249
+        }
+      ],
+      "src/lib/server/shops/no-direct-fetch.spec.ts": [
+        {
+          "start": 136,
+          "end": 136
+        }
+      ],
+      "src/lib/server/sparklines.spec.ts": [
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 11,
+          "end": 11
+        },
+        {
+          "start": 15,
+          "end": 15
+        },
+        {
+          "start": 17,
+          "end": 17
+        },
+        {
+          "start": 19,
+          "end": 19
+        },
+        {
+          "start": 34,
+          "end": 34
+        },
+        {
+          "start": 38,
+          "end": 38
+        },
+        {
+          "start": 43,
+          "end": 45
+        },
+        {
+          "start": 47,
+          "end": 49
+        },
+        {
+          "start": 51,
+          "end": 51
+        },
+        {
+          "start": 53,
+          "end": 56
+        },
+        {
+          "start": 60,
+          "end": 61
+        },
+        {
+          "start": 67,
+          "end": 67
+        },
+        {
+          "start": 75,
+          "end": 75
+        },
+        {
+          "start": 77,
+          "end": 77
+        }
+      ],
+      "src/lib/server/sparklines.ts": [
+        {
+          "start": 1,
+          "end": 2
+        },
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 7,
+          "end": 8
+        },
+        {
+          "start": 16,
+          "end": 16
+        }
+      ],
+      "src/lib/server/testing/test-db.spec.ts": [
+        {
+          "start": 1,
+          "end": 69
+        }
+      ],
+      "src/lib/server/testing/test-db.ts": [
+        {
+          "start": 1,
+          "end": 37
+        }
+      ],
+      "src/lib/server/watches.spec.ts": [
+        {
+          "start": 7,
+          "end": 7
+        },
+        {
+          "start": 62,
+          "end": 62
+        },
+        {
+          "start": 68,
+          "end": 68
+        },
+        {
+          "start": 70,
+          "end": 70
+        },
+        {
+          "start": 79,
+          "end": 79
+        },
+        {
+          "start": 84,
+          "end": 84
+        },
+        {
+          "start": 114,
+          "end": 114
+        },
+        {
+          "start": 134,
+          "end": 134
+        },
+        {
+          "start": 149,
+          "end": 149
+        },
+        {
+          "start": 155,
+          "end": 155
+        },
+        {
+          "start": 199,
+          "end": 199
+        },
+        {
+          "start": 209,
+          "end": 209
+        },
+        {
+          "start": 218,
+          "end": 218
+        },
+        {
+          "start": 228,
+          "end": 228
+        },
+        {
+          "start": 238,
+          "end": 238
+        },
+        {
+          "start": 242,
+          "end": 242
+        },
+        {
+          "start": 249,
+          "end": 250
+        },
+        {
+          "start": 252,
+          "end": 285
+        },
+        {
+          "start": 302,
+          "end": 302
+        },
+        {
+          "start": 332,
+          "end": 332
+        },
+        {
+          "start": 346,
+          "end": 346
+        },
+        {
+          "start": 353,
+          "end": 353
+        },
+        {
+          "start": 368,
+          "end": 368
+        },
+        {
+          "start": 381,
+          "end": 381
+        },
+        {
+          "start": 396,
+          "end": 396
+        },
+        {
+          "start": 403,
+          "end": 403
+        },
+        {
+          "start": 449,
+          "end": 449
+        },
+        {
+          "start": 466,
+          "end": 466
+        },
+        {
+          "start": 481,
+          "end": 481
+        },
+        {
+          "start": 485,
+          "end": 485
+        },
+        {
+          "start": 523,
+          "end": 523
+        },
+        {
+          "start": 562,
+          "end": 562
+        },
+        {
+          "start": 573,
+          "end": 574
+        },
+        {
+          "start": 577,
+          "end": 577
+        },
+        {
+          "start": 582,
+          "end": 582
+        },
+        {
+          "start": 590,
+          "end": 590
+        },
+        {
+          "start": 597,
+          "end": 600
+        },
+        {
+          "start": 603,
+          "end": 604
+        },
+        {
+          "start": 606,
+          "end": 607
+        },
+        {
+          "start": 609,
+          "end": 612
+        },
+        {
+          "start": 614,
+          "end": 617
+        },
+        {
+          "start": 621,
+          "end": 621
+        },
+        {
+          "start": 624,
+          "end": 628
+        },
+        {
+          "start": 639,
+          "end": 644
+        },
+        {
+          "start": 646,
+          "end": 647
+        },
+        {
+          "start": 649,
+          "end": 649
+        },
+        {
+          "start": 652,
+          "end": 652
+        },
+        {
+          "start": 654,
+          "end": 654
+        },
+        {
+          "start": 656,
+          "end": 657
+        },
+        {
+          "start": 659,
+          "end": 659
+        },
+        {
+          "start": 662,
+          "end": 667
+        }
+      ],
+      "src/lib/server/watches.ts": [
+        {
+          "start": 1,
+          "end": 4
+        },
+        {
+          "start": 54,
+          "end": 54
+        },
+        {
+          "start": 67,
+          "end": 67
+        },
+        {
+          "start": 76,
+          "end": 76
+        },
+        {
+          "start": 120,
+          "end": 122
+        },
+        {
+          "start": 125,
+          "end": 127
+        },
+        {
+          "start": 136,
+          "end": 137
+        },
+        {
+          "start": 140,
+          "end": 140
+        },
+        {
+          "start": 145,
+          "end": 145
+        },
+        {
+          "start": 167,
+          "end": 169
+        },
+        {
+          "start": 173,
+          "end": 173
+        },
+        {
+          "start": 177,
+          "end": 177
+        },
+        {
+          "start": 196,
+          "end": 203
+        },
+        {
+          "start": 206,
+          "end": 206
+        },
+        {
+          "start": 213,
+          "end": 213
+        },
+        {
+          "start": 219,
+          "end": 220
+        }
+      ],
+      "src/routes/+layout.svelte": [
+        {
+          "start": 7,
+          "end": 7
+        },
+        {
+          "start": 11,
+          "end": 11
+        },
+        {
+          "start": 14,
+          "end": 14
+        },
+        {
+          "start": 21,
+          "end": 27
+        },
+        {
+          "start": 29,
+          "end": 29
+        },
+        {
+          "start": 31,
+          "end": 35
+        },
+        {
+          "start": 39,
+          "end": 41
+        }
+      ],
+      "src/routes/+page.server.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 30,
+          "end": 30
+        },
+        {
+          "start": 33,
+          "end": 33
+        },
+        {
+          "start": 48,
+          "end": 48
+        },
+        {
+          "start": 53,
+          "end": 53
+        }
+      ],
+      "src/routes/account/alerts/+page.server.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 24,
+          "end": 27
+        },
+        {
+          "start": 47,
+          "end": 48
+        },
+        {
+          "start": 64,
+          "end": 64
+        },
+        {
+          "start": 73,
+          "end": 73
+        },
+        {
+          "start": 77,
+          "end": 77
+        },
+        {
+          "start": 86,
+          "end": 86
+        },
+        {
+          "start": 94,
+          "end": 95
+        },
+        {
+          "start": 97,
+          "end": 97
+        },
+        {
+          "start": 100,
+          "end": 100
+        },
+        {
+          "start": 105,
+          "end": 105
+        },
+        {
+          "start": 109,
+          "end": 109
+        },
+        {
+          "start": 140,
+          "end": 140
+        },
+        {
+          "start": 143,
+          "end": 143
+        }
+      ],
+      "src/routes/account/alerts/+page.svelte": [
+        {
+          "start": 24,
+          "end": 25
+        },
+        {
+          "start": 34,
+          "end": 34
+        }
+      ],
+      "src/routes/account/alerts/alerts.e2e.ts": [
+        {
+          "start": 2,
+          "end": 4
+        },
+        {
+          "start": 13,
+          "end": 39
+        },
+        {
+          "start": 42,
+          "end": 44
+        },
+        {
+          "start": 52,
+          "end": 53
+        },
+        {
+          "start": 85,
+          "end": 86
+        },
+        {
+          "start": 96,
+          "end": 96
+        },
+        {
+          "start": 113,
+          "end": 114
+        },
+        {
+          "start": 135,
+          "end": 135
+        },
+        {
+          "start": 144,
+          "end": 144
+        },
+        {
+          "start": 149,
+          "end": 151
+        },
+        {
+          "start": 161,
+          "end": 162
+        },
+        {
+          "start": 175,
+          "end": 175
+        },
+        {
+          "start": 177,
+          "end": 177
+        },
+        {
+          "start": 180,
+          "end": 180
+        },
+        {
+          "start": 183,
+          "end": 183
+        },
+        {
+          "start": 188,
+          "end": 188
+        },
+        {
+          "start": 197,
+          "end": 197
+        },
+        {
+          "start": 222,
+          "end": 222
+        },
+        {
+          "start": 225,
+          "end": 225
+        },
+        {
+          "start": 229,
+          "end": 229
+        },
+        {
+          "start": 234,
+          "end": 234
+        },
+        {
+          "start": 237,
+          "end": 237
+        },
+        {
+          "start": 246,
+          "end": 246
+        },
+        {
+          "start": 249,
+          "end": 249
+        }
+      ],
+      "src/routes/account/alerts/page.server.spec.ts": [
+        {
+          "start": 3,
+          "end": 3
+        },
+        {
+          "start": 28,
+          "end": 28
+        },
+        {
+          "start": 34,
+          "end": 36
+        },
+        {
+          "start": 39,
+          "end": 39
+        },
+        {
+          "start": 47,
+          "end": 48
+        },
+        {
+          "start": 50,
+          "end": 50
+        },
+        {
+          "start": 70,
+          "end": 71
+        },
+        {
+          "start": 80,
+          "end": 81
+        },
+        {
+          "start": 85,
+          "end": 85
+        },
+        {
+          "start": 91,
+          "end": 91
+        },
+        {
+          "start": 95,
+          "end": 113
+        },
+        {
+          "start": 115,
+          "end": 115
+        },
+        {
+          "start": 117,
+          "end": 118
+        },
+        {
+          "start": 137,
+          "end": 137
+        },
+        {
+          "start": 140,
+          "end": 140
+        },
+        {
+          "start": 150,
+          "end": 150
+        },
+        {
+          "start": 156,
+          "end": 156
+        },
+        {
+          "start": 162,
+          "end": 162
+        },
+        {
+          "start": 170,
+          "end": 173
+        },
+        {
+          "start": 179,
+          "end": 179
+        },
+        {
+          "start": 184,
+          "end": 184
+        },
+        {
+          "start": 201,
+          "end": 201
+        },
+        {
+          "start": 214,
+          "end": 214
+        },
+        {
+          "start": 230,
+          "end": 230
+        },
+        {
+          "start": 236,
+          "end": 242
+        },
+        {
+          "start": 249,
+          "end": 250
+        },
+        {
+          "start": 252,
+          "end": 252
+        },
+        {
+          "start": 259,
+          "end": 259
+        },
+        {
+          "start": 261,
+          "end": 261
+        },
+        {
+          "start": 266,
+          "end": 266
+        },
+        {
+          "start": 274,
+          "end": 274
+        },
+        {
+          "start": 280,
+          "end": 281
+        },
+        {
+          "start": 290,
+          "end": 290
+        },
+        {
+          "start": 295,
+          "end": 297
+        },
+        {
+          "start": 305,
+          "end": 305
+        },
+        {
+          "start": 307,
+          "end": 308
+        },
+        {
+          "start": 322,
+          "end": 323
+        },
+        {
+          "start": 331,
+          "end": 332
+        },
+        {
+          "start": 334,
+          "end": 334
+        },
+        {
+          "start": 340,
+          "end": 350
+        },
+        {
+          "start": 361,
+          "end": 361
+        },
+        {
+          "start": 377,
+          "end": 377
+        },
+        {
+          "start": 390,
+          "end": 390
+        },
+        {
+          "start": 397,
+          "end": 397
+        },
+        {
+          "start": 401,
+          "end": 401
+        },
+        {
+          "start": 408,
+          "end": 408
+        },
+        {
+          "start": 412,
+          "end": 412
+        },
+        {
+          "start": 439,
+          "end": 440
+        },
+        {
+          "start": 478,
+          "end": 478
+        },
+        {
+          "start": 482,
+          "end": 482
+        },
+        {
+          "start": 489,
+          "end": 490
+        },
+        {
+          "start": 492,
+          "end": 493
+        },
+        {
+          "start": 524,
+          "end": 524
+        },
+        {
+          "start": 536,
+          "end": 537
+        },
+        {
+          "start": 540,
+          "end": 540
+        },
+        {
+          "start": 577,
+          "end": 577
+        },
+        {
+          "start": 595,
+          "end": 595
+        },
+        {
+          "start": 606,
+          "end": 607
+        },
+        {
+          "start": 613,
+          "end": 613
+        },
+        {
+          "start": 669,
+          "end": 670
+        },
+        {
+          "start": 673,
+          "end": 673
+        },
+        {
+          "start": 676,
+          "end": 677
+        },
+        {
+          "start": 717,
+          "end": 717
+        },
+        {
+          "start": 729,
+          "end": 729
+        },
+        {
+          "start": 733,
+          "end": 733
+        },
+        {
+          "start": 741,
+          "end": 741
+        },
+        {
+          "start": 752,
+          "end": 752
+        },
+        {
+          "start": 763,
+          "end": 763
+        },
+        {
+          "start": 773,
+          "end": 773
+        },
+        {
+          "start": 784,
+          "end": 785
+        },
+        {
+          "start": 791,
+          "end": 791
+        }
+      ],
+      "src/routes/account/alerts/page.svelte.spec.ts": [
+        {
+          "start": 50,
+          "end": 50
+        },
+        {
+          "start": 117,
+          "end": 118
+        },
+        {
+          "start": 121,
+          "end": 123
+        },
+        {
+          "start": 147,
+          "end": 147
+        },
+        {
+          "start": 151,
+          "end": 151
+        }
+      ],
+      "src/routes/action-endpoints.spec.ts": [
+        {
+          "start": 1,
+          "end": 200
+        }
+      ],
+      "src/routes/at-target.e2e.ts": [
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 6,
+          "end": 7
+        },
+        {
+          "start": 44,
+          "end": 44
+        }
+      ],
+      "src/routes/chart-a11y.e2e.ts": [
+        {
+          "start": 9,
+          "end": 9
+        },
+        {
+          "start": 19,
+          "end": 19
+        },
+        {
+          "start": 31,
+          "end": 31
+        }
+      ],
+      "src/routes/contrast.e2e.ts": [
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 7,
+          "end": 7
+        },
+        {
+          "start": 10,
+          "end": 15
+        },
+        {
+          "start": 22,
+          "end": 24
+        },
+        {
+          "start": 26,
+          "end": 27
+        },
+        {
+          "start": 36,
+          "end": 36
+        },
+        {
+          "start": 44,
+          "end": 87
+        },
+        {
+          "start": 90,
+          "end": 91
+        },
+        {
+          "start": 127,
+          "end": 127
+        },
+        {
+          "start": 144,
+          "end": 147
+        },
+        {
+          "start": 154,
+          "end": 159
+        },
+        {
+          "start": 164,
+          "end": 164
+        },
+        {
+          "start": 180,
+          "end": 180
+        },
+        {
+          "start": 202,
+          "end": 202
+        },
+        {
+          "start": 224,
+          "end": 224
+        },
+        {
+          "start": 239,
+          "end": 239
+        },
+        {
+          "start": 253,
+          "end": 253
+        },
+        {
+          "start": 276,
+          "end": 276
+        },
+        {
+          "start": 295,
+          "end": 299
+        },
+        {
+          "start": 301,
+          "end": 308
+        }
+      ],
+      "src/routes/focus.e2e.ts": [
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 12,
+          "end": 12
+        },
+        {
+          "start": 14,
+          "end": 18
+        },
+        {
+          "start": 21,
+          "end": 21
+        },
+        {
+          "start": 32,
+          "end": 32
+        },
+        {
+          "start": 34,
+          "end": 34
+        },
+        {
+          "start": 36,
+          "end": 37
+        },
+        {
+          "start": 43,
+          "end": 63
+        },
+        {
+          "start": 65,
+          "end": 65
+        },
+        {
+          "start": 85,
+          "end": 85
+        },
+        {
+          "start": 87,
+          "end": 87
+        }
+      ],
+      "src/routes/header.e2e.ts": [
+        {
+          "start": 1,
+          "end": 2
+        },
+        {
+          "start": 4,
+          "end": 5
+        },
+        {
+          "start": 7,
+          "end": 7
+        },
+        {
+          "start": 9,
+          "end": 16
+        },
+        {
+          "start": 20,
+          "end": 22
+        },
+        {
+          "start": 25,
+          "end": 31
+        },
+        {
+          "start": 36,
+          "end": 75
+        },
+        {
+          "start": 78,
+          "end": 82
+        },
+        {
+          "start": 93,
+          "end": 93
+        },
+        {
+          "start": 98,
+          "end": 101
+        }
+      ],
+      "src/routes/health/health.e2e.ts": [
+        {
+          "start": 15,
+          "end": 17
+        }
+      ],
+      "src/routes/layout.e2e.ts": [
+        {
+          "start": 3,
+          "end": 3
+        },
+        {
+          "start": 24,
+          "end": 24
+        },
+        {
+          "start": 41,
+          "end": 41
+        },
+        {
+          "start": 48,
+          "end": 48
+        },
+        {
+          "start": 58,
+          "end": 58
+        },
+        {
+          "start": 70,
+          "end": 70
+        },
+        {
+          "start": 82,
+          "end": 82
+        },
+        {
+          "start": 123,
+          "end": 123
+        },
+        {
+          "start": 144,
+          "end": 144
+        },
+        {
+          "start": 157,
+          "end": 158
+        },
+        {
+          "start": 160,
+          "end": 165
+        },
+        {
+          "start": 172,
+          "end": 172
+        }
+      ],
+      "src/routes/page.server.spec.ts": [
+        {
+          "start": 3,
+          "end": 3
+        },
+        {
+          "start": 9,
+          "end": 9
+        },
+        {
+          "start": 11,
+          "end": 11
+        },
+        {
+          "start": 14,
+          "end": 14
+        },
+        {
+          "start": 38,
+          "end": 38
+        },
+        {
+          "start": 48,
+          "end": 64
+        },
+        {
+          "start": 78,
+          "end": 80
+        },
+        {
+          "start": 89,
+          "end": 97
+        },
+        {
+          "start": 99,
+          "end": 99
+        },
+        {
+          "start": 102,
+          "end": 106
+        },
+        {
+          "start": 108,
+          "end": 109
+        },
+        {
+          "start": 112,
+          "end": 118
+        },
+        {
+          "start": 123,
+          "end": 123
+        },
+        {
+          "start": 128,
+          "end": 128
+        },
+        {
+          "start": 130,
+          "end": 130
+        },
+        {
+          "start": 133,
+          "end": 133
+        },
+        {
+          "start": 137,
+          "end": 138
+        },
+        {
+          "start": 142,
+          "end": 143
+        },
+        {
+          "start": 146,
+          "end": 148
+        },
+        {
+          "start": 153,
+          "end": 153
+        },
+        {
+          "start": 155,
+          "end": 158
+        },
+        {
+          "start": 162,
+          "end": 163
+        },
+        {
+          "start": 165,
+          "end": 165
+        },
+        {
+          "start": 167,
+          "end": 167
+        },
+        {
+          "start": 174,
+          "end": 174
+        },
+        {
+          "start": 188,
+          "end": 188
+        },
+        {
+          "start": 200,
+          "end": 200
+        },
+        {
+          "start": 212,
+          "end": 212
+        },
+        {
+          "start": 223,
+          "end": 223
+        },
+        {
+          "start": 229,
+          "end": 229
+        },
+        {
+          "start": 250,
+          "end": 250
+        },
+        {
+          "start": 257,
+          "end": 259
+        },
+        {
+          "start": 264,
+          "end": 264
+        },
+        {
+          "start": 266,
+          "end": 266
+        }
+      ],
+      "src/routes/removed-routes.spec.ts": [
+        {
+          "start": 1,
+          "end": 290
+        }
+      ],
+      "src/routes/watches/[id]/+page.server.ts": [
+        {
+          "start": 11,
+          "end": 11
+        },
+        {
+          "start": 13,
+          "end": 14
+        },
+        {
+          "start": 18,
+          "end": 19
+        },
+        {
+          "start": 32,
+          "end": 32
+        },
+        {
+          "start": 35,
+          "end": 35
+        },
+        {
+          "start": 42,
+          "end": 43
+        },
+        {
+          "start": 53,
+          "end": 54
+        }
+      ],
+      "src/routes/watches/[id]/page.server.spec.ts": [
+        {
+          "start": 9,
+          "end": 9
+        },
+        {
+          "start": 13,
+          "end": 13
+        },
+        {
+          "start": 16,
+          "end": 16
+        },
+        {
+          "start": 33,
+          "end": 34
+        },
+        {
+          "start": 36,
+          "end": 36
+        },
+        {
+          "start": 72,
+          "end": 73
+        },
+        {
+          "start": 91,
+          "end": 91
+        },
+        {
+          "start": 93,
+          "end": 93
+        },
+        {
+          "start": 107,
+          "end": 107
+        },
+        {
+          "start": 109,
+          "end": 109
+        },
+        {
+          "start": 113,
+          "end": 113
+        },
+        {
+          "start": 127,
+          "end": 127
+        },
+        {
+          "start": 131,
+          "end": 133
+        },
+        {
+          "start": 137,
+          "end": 137
+        },
+        {
+          "start": 147,
+          "end": 147
+        },
+        {
+          "start": 150,
+          "end": 150
+        },
+        {
+          "start": 158,
+          "end": 158
+        },
+        {
+          "start": 161,
+          "end": 161
+        },
+        {
+          "start": 163,
+          "end": 164
+        },
+        {
+          "start": 176,
+          "end": 176
+        },
+        {
+          "start": 187,
+          "end": 187
+        },
+        {
+          "start": 200,
+          "end": 200
+        },
+        {
+          "start": 202,
+          "end": 203
+        },
+        {
+          "start": 210,
+          "end": 210
+        },
+        {
+          "start": 223,
+          "end": 223
+        },
+        {
+          "start": 233,
+          "end": 233
+        },
+        {
+          "start": 242,
+          "end": 242
+        },
+        {
+          "start": 248,
+          "end": 248
+        },
+        {
+          "start": 252,
+          "end": 253
+        },
+        {
+          "start": 273,
+          "end": 273
+        },
+        {
+          "start": 294,
+          "end": 294
+        },
+        {
+          "start": 305,
+          "end": 305
+        },
+        {
+          "start": 315,
+          "end": 315
+        },
+        {
+          "start": 317,
+          "end": 317
+        },
+        {
+          "start": 328,
+          "end": 328
+        },
+        {
+          "start": 339,
+          "end": 339
+        },
+        {
+          "start": 345,
+          "end": 345
+        },
+        {
+          "start": 354,
+          "end": 354
+        },
+        {
+          "start": 356,
+          "end": 356
+        },
+        {
+          "start": 359,
+          "end": 360
+        },
+        {
+          "start": 362,
+          "end": 362
+        }
+      ],
+      "src/routes/watches/[id]/watch-page.e2e.ts": [
+        {
+          "start": 6,
+          "end": 6
+        },
+        {
+          "start": 58,
+          "end": 58
+        },
+        {
+          "start": 87,
+          "end": 90
+        }
+      ],
+      "src/routes/watchlist.e2e.ts": [
+        {
+          "start": 2,
+          "end": 2
+        },
+        {
+          "start": 10,
+          "end": 10
+        },
+        {
+          "start": 23,
+          "end": 39
+        }
+      ]
+    },
+    "base": "c052445532d73841dfac9e7d364766b5fc5b79d9",
+    "source": "git+changes"
+  },
+  "measured_on": "local",
+  "measured_commit": "243e34e6b9856a1813ab2f15a691efc2c6425bc0",
+  "measured_tree": "07c4e48986c2982b32c720c7be8123119f75dafc"
+}

@@ -15,8 +15,12 @@
   reason = "Equivalent: LOCKED.has(undefined) is false, so dropping the code !== undefined guard cannot change the outcome."
 
 [[category]]
-  name = "test-infra"
-  reason = "Test-harness cleanup body: removing it only leaks a temp directory. src/lib/server/testing/** is excluded from mutation in stryker.config.json; removeTempDir itself is mutation-tested by temp-dir.spec.ts."
+  name = "ddl-metadata"
+  reason = "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+
+[[category]]
+  name = "open-config-ok-false"
+  reason = "Equivalent: openConfig callers only read .ok (opened.ok, previous?.ok, !opened.ok), and {}.ok is undefined, which is falsy exactly like false"
 
 [[accepted]]
   key = "6d1a8890f4b5d82a"
@@ -190,15 +194,6 @@
   accepted_in = "01-public-ci"
 
 [[accepted]]
-  key = "5cb839e7a9f5133c"
-  file = "src/lib/server/testing/auth-harness.ts"
-  op = "BlockStatement"
-  text = "function cleanup() {"
-  line = 79
-  category = "test-infra"
-  accepted_in = "01-public-ci"
-
-[[accepted]]
   key = "cfaa815ed2c7edc3"
   file = "scripts/workflow-policy.ts"
   op = "ConditionalExpression"
@@ -314,3 +309,192 @@
   line = 242
   accepted_in = "01-public-ci"
   reason = "CLI default dir, unreachable in-process and fails closed: with '' as the default, pnpm ci:policy (no argument, as CI runs it) exits 1 'no workflow files' (hand-replayed), turning the static check red on the next PR; it cannot let a violation pass. Not killed by the separate-process test, which always passes a dir."
+
+[[accepted]]
+  key = "cd8dc208215eed1b"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "StringLiteral"
+  text = "kind: text('kind').primaryKey(),"
+  line = 14
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "4f8fded39e06f561"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "StringLiteral"
+  text = "enabled: integer('enabled', { mode: 'boolean' }).default(true).notNull(),"
+  line = 15
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "4482ed5275ce6acc"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "ArrowFunction"
+  text = ".references(() => watch.id, { onDelete: 'cascade' }),"
+  line = 33
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "f13dcb9115977085"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "ObjectLiteral"
+  text = ".references(() => watch.id, { onDelete: 'cascade' }),"
+  line = 33
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "b30e36170aeb2bf3"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "StringLiteral"
+  text = ".references(() => watch.id, { onDelete: 'cascade' }),"
+  line = 33
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "08258689131593c7"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "StringLiteral"
+  text = "kind: text('kind')"
+  line = 34
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "6de93198c34d82cb"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "ArrowFunction"
+  text = ".references(() => notifyChannel.kind, { onDelete: 'cascade' }),"
+  line = 36
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "9149bbeb9715cf36"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "ObjectLiteral"
+  text = ".references(() => notifyChannel.kind, { onDelete: 'cascade' }),"
+  line = 36
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "ad924df8ddd6c8c1"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "StringLiteral"
+  text = ".references(() => notifyChannel.kind, { onDelete: 'cascade' }),"
+  line = 36
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "b7e5ce097982de2d"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ObjectLiteral"
+  text = "if (row.configEnc === null) return { ok: false };"
+  line = 62
+  category = "open-config-ok-false"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "5f669fb23a890421"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ObjectLiteral"
+  text = "if (!opened.ok) return { ok: false };"
+  line = 64
+  category = "open-config-ok-false"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "cd25736ea9ff4f7e"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ObjectLiteral"
+  text = "return { ok: false };"
+  line = 68
+  category = "open-config-ok-false"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "d725f846d31fc027"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ConditionalExpression"
+  text = "if (row.configEnc === null) return { ok: false };"
+  line = 62
+  accepted_in = "02-single-user"
+  reason = "Equivalent: with the null guard skipped, decryptSecret(key, null, aad) throws on null.startsWith inside its own try and returns { ok: false }, the same result the guard returns"
+
+[[accepted]]
+  key = "50ebc2d433ca9b7f"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ConditionalExpression"
+  text = "if (!opened.ok) return { ok: false };"
+  line = 64
+  accepted_in = "02-single-user"
+  reason = "Equivalent: with the !opened.ok guard skipped, JSON.parse(undefined) throws a SyntaxError that the following catch turns into { ok: false }, the same result"
+
+[[accepted]]
+  key = "676b81e8d492f6c3"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ObjectLiteral"
+  text = "? { priceDrops: existing.priceDrops, checkFailures: existing.checkFailures }"
+  line = 191
+  accepted_in = "02-single-user"
+  reason = "Equivalent: this branch runs only when the channel row exists, so the write is always the onConflictDoUpdate path; with kinds = {} the update sets only configEnc/updatedAt and leaves price_drops/check_failures as stored, which is the value the original copies back"
+
+[[accepted]]
+  key = "d89779be41c89c48"
+  file = "src/lib/server/alerts/alerts.ts"
+  op = "ConditionalExpression"
+  text = "w.targetPence !== null && w.pricePence !== null && w.pricePence <= w.targetPence;"
+  line = 142
+  accepted_in = "02-single-user"
+  reason = "Equivalent for every stored price: with a null target, pricePence <= null compares against 0, and adapters only ever store prices > 0 (amazon/extract.ts:26 returns null for <= 0), so dropped stays false"
+
+[[accepted]]
+  key = "6393b7616b8017c7"
+  file = "src/lib/server/alerts/alerts.ts"
+  op = "StringLiteral"
+  text = "const routed = await channelsFor(db, deps.key(), 'check_failed', { log });"
+  line = 216
+  accepted_in = "02-single-user"
+  reason = "Equivalent: channelsFor picks priceDrops only for 'price_drop' and checkFailures for any other kind, so '' routes exactly like 'check_failed'"
+
+[[accepted]]
+  key = "4ff2f05c6d457098"
+  file = "src/lib/server/local-request.ts"
+  op = "ConditionalExpression"
+  text = "if (host === null) return false;"
+  line = 12
+  accepted_in = "02-single-user"
+  reason = "Equivalent: without the null guard, LOOPBACK_HOST.exec(null) coerces to the string 'null', which never matches, so the function still returns false"
+
+[[accepted]]
+  key = "9cb297f77f7bef3a"
+  file = "src/lib/server/local-request.ts"
+  op = "ObjectLiteral"
+  text = "headers: { 'content-type': 'text/plain; charset=utf-8' }"
+  line = 33
+  accepted_in = "02-single-user"
+  reason = "Equivalent: a Response with a string body defaults to content-type text/plain;charset=UTF-8, the same media type and charset as the explicit header; the 403 status and body are unchanged"
+
+[[accepted]]
+  key = "9c54032ecc58cfe3"
+  file = "src/lib/server/watches.ts"
+  op = "ConditionalExpression"
+  text = "if (existing === null) throw error;"
+  line = 214
+  accepted_in = "02-single-user"
+  reason = "Both paths throw: with the guard skipped, already(null) throws a TypeError instead of rethrowing the unique-constraint error. Reachable only if the race winner's row is deleted between the failed batch and the lookup; the add fails either way"
+
+[[accepted]]
+  key = "e431af43ffe57455"
+  file = "src/routes/account/alerts/+page.server.ts"
+  op = "StringLiteral"
+  text = "kind: 'test',"
+  line = 117
+  accepted_in = "02-single-user"
+  reason = "Equivalent on the wire: only ntfy reads alert.kind, and for '' it sends priority NTFY_PRIORITY[''] = undefined, which JSON.stringify omits, the same body as kind 'test' (no priority); resend and smtp ignore kind"

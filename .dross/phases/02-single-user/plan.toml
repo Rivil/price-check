@@ -1,4 +1,4 @@
-task_seq = 13
+task_seq = 15
 [phase]
 id = "02-single-user"
 
@@ -171,3 +171,24 @@ test_contract = [
   '''if, after server A (ORIGIN=http://127.0.0.1:<port>) saves an ntfy channel via /account/alerts?/save (.invalid host, r-01) and a watch + 2 price_points are inserted, server B on the same file does not list the watch on '/', show both prices on /watches/<id>, and show the topic decrypted on /account/alerts, restart.e2e fails''',
 ]
 status        = "done"
+
+[[task]]
+id = "t-14"
+wave = 8
+title = "Kill verify survivors: port 1, failure-alert log"
+files = ["src/lib/server/local-request.spec.ts", "src/lib/server/alerts/alerts.spec.ts", "e2e/restart.e2e.ts"]
+description = "Verify 02-single-user (ranged Stryker 0.95 over 603) left 2 real in-hunk survivors: local-request.ts:18 'n >= 1' -> 'n > 1' (port 1 rejected, untested lower bound) and alerts.ts:216 '{ log }' -> '{}' in alertAfterFailure (an undecryptable channel's log line goes to console.error instead of deps.log). Tests only; no production change. Also closes the t-13 reviewer FLAG: restart.e2e's second price point equals the watch's pricePence, so losing it would still pass."
+covers = ["c-7", "c-5"]
+test_contract = ["if isLoopbackHost('localhost:1') or isLoopbackHost('127.0.0.1:1') returns false (mutant n >= 1 -> n > 1 at local-request.ts:18), local-request.spec's accepted table fails", "if alertAfterFailure with an enabled check-failure channel sealed under another key does not call the injected deps.log with '[alerts] channel (<kind>) could not be decrypted' (mutant { log } -> {} at alerts.ts:216), alerts.spec fails", "if either price point inserted before the restart is missing from /watches/<id> on server B, restart.e2e fails: give each point a price distinct from the watch's pricePence (or assert the history row count) so a lost point cannot pass on the watch's own price"]
+status = "pending"
+depends_on = ["t-13"]
+
+[[task]]
+id = "t-15"
+wave = 8
+title = "Drop stale multi-user notes from docs"
+files = ["ARCHITECTURE.md", "src/lib/server/health.ts", "scripts/readme.spec.ts"]
+description = "Reviewer NOTEs (t-3, t-7) left stale text: ARCHITECTURE.md 'E2E test harness' (lines ~122-126) still describes 'one admin, one member, plus a design edge-case user' and cites SEEDED_DESIGN at e2e/accounts.ts:43, which no longer exists (only SEEDED_DESIGN_TOPIC_URL); health.ts:15 comment still mentions relations exported by auth.schema.ts (deleted in t-7). Rewrite to the one-install seed and current symbols; comment-only change in health.ts."
+test_contract = ["if ARCHITECTURE.md mentions 'one admin', 'one member' or a bare SEEDED_DESIGN landmark, or any non-test file under src/ mentions auth.schema, readme.spec fails"]
+status = "pending"
+depends_on = ["t-13"]
