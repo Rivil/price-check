@@ -93,6 +93,23 @@
         }
       ]
     },
+    "t-14": {
+      "files": [
+        "src/lib/server/local-request.spec.ts",
+        "src/lib/server/alerts/alerts.spec.ts",
+        "e2e/restart.e2e.ts"
+      ],
+      "commit": "aa810e8",
+      "completed_at": "2026-11-14T10:10:20.849823Z",
+      "landmarks": [
+        {
+          "feature": "failure alerts",
+          "symbol": "alertAfterFailure",
+          "loc": "src/lib/server/alerts/alerts.spec.ts:973",
+          "what": "tests pin the undecryptable-channel log to deps.log and port-1 loopback acceptance; restart e2e asserts history rows"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/local-request.ts",
@@ -417,6 +434,19 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "restart.e2e passes PROTOCOL_HEADER=x-forwarded-proto alongside ORIGIN to get past the CSRF check, based on the claim that adapter-node ignores ORIGIN at runtime. That workaround is in the test only; the test_contract's ORIGIN=http://127.0.0.1:\u003cport\u003e is still set.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-14": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "restart.e2e keeps the earlier raw-HTML toContain check per point. With distinct prices it is now redundant with the per-row filter, and on its own it could still be satisfied by the Lowest/Highest stats block rather than a history row. The new row-count and row-filter assertions are the ones that make the test robust.",
           "resolution": "non-blocking, left"
         }
       ]
