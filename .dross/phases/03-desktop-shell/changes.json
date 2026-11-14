@@ -92,11 +92,21 @@
     },
     "t-14": {
       "files": [
-        ".github/workflows/ci.yml"
+        ".github/workflows/ci.yml",
+        "scripts/ci-desktop.spec.ts",
+        ".gitleaks.toml",
+        "scripts/gitleaks-config.spec.ts"
       ],
-      "commit": "6cbeecb",
-      "completed_at": "2026-11-14T12:35:13.281878Z",
+      "commit": "79bbc38",
+      "completed_at": "2026-11-14T12:35:25.859761Z",
+      "notes": "CI fix follow-up: 6cbeecb (build-time DATABASE_URL on the desktop e2e step). Windows desktop e2e still red in run 43594680457.",
       "landmarks": [
+        {
+          "feature": "public CI",
+          "symbol": "desktop e2e step",
+          "loc": ".github/workflows/ci.yml:140",
+          "what": "three-OS CI runs the Electron e2e suite (Linux under xvfb with the AppArmor userns sysctl) with the Electron zip cached before install"
+        },
         {
           "feature": "public CI",
           "symbol": "desktop e2e step env",
