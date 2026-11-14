@@ -351,7 +351,7 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 		const close = () => {
 			closing ??= (async () => {
 				try {
-					await quit(launched, output);
+					await quit(launched, child, output);
 				} finally {
 					removeOwned();
 				}
@@ -366,8 +366,17 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 	}
 }
 
-async function quit(app: ElectronApplication, output: () => string): Promise<void> {
-	const child = app.process();
+/**
+ * `child` is the process captured at launch: once it has exited (a spec quit the app
+ * itself), Playwright may have disposed `app`, and app.process() then throws on
+ * Windows, so a gone process is left as it is.
+ */
+async function quit(
+	app: ElectronApplication,
+	child: ChildProcess,
+	output: () => string
+): Promise<void> {
+	if (child.exitCode !== null || child.signalCode !== null) return;
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	const deadline = new Promise<'timeout'>((done) => {
 		timer = setTimeout(() => done('timeout'), CLOSE_TIMEOUT_MS);
