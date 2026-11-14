@@ -3,7 +3,17 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { createLocalRequestHandle, isLoopbackHost } from './local-request.ts';
 
 describe('isLoopbackHost', () => {
-	const accepted = ['localhost', 'localhost:4173', '127.0.0.1', '127.0.0.1:65535', 'LocalHost:80'];
+	// Both ends of the port range, on both names.
+	const accepted = [
+		'localhost',
+		'localhost:4173',
+		'localhost:1',
+		'localhost:65535',
+		'127.0.0.1',
+		'127.0.0.1:1',
+		'127.0.0.1:65535',
+		'LocalHost:80'
+	];
 	const rejected = [
 		null,
 		'',

@@ -970,6 +970,30 @@ describe('alertAfterFailure', () => {
 		expect(await first).toEqual({ outcome: 'sent', channels: { ntfy: 'sent', fake: 'sent' } });
 	});
 
+	it('undecryptable channel', async () => {
+		const fake = fakeKind('fake');
+		await saveFake('fake', FAILURES);
+		// Sealed under another key: this install's key cannot open it.
+		const saved = await saveChannel(
+			h.db,
+			randomBytes(32),
+			'ntfy',
+			{ topic: TOPIC, token: TOKEN },
+			FAILURES
+		);
+		expect(saved).toEqual({ ok: true });
+		await addWatch('w1');
+
+		// The other channel is still told, and the unreadable one is logged through deps.log.
+		expect(await alertAfterFailure(h.db, 'w1', blocked, deps())).toEqual({
+			outcome: 'sent',
+			channels: { fake: 'sent' }
+		});
+		expect(sentKinds(fake)).toEqual(['check_failed']);
+		expect(ntfySend).not.toHaveBeenCalled();
+		expect(logs).toEqual(['[alerts] channel (ntfy) could not be decrypted']);
+	});
+
 	it('nothing to send', async () => {
 		await addWatch('w1');
 		// No channel at all, then only a drops-only one.

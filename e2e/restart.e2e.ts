@@ -30,10 +30,13 @@ const WATCH = {
 	lastCheckMessage: null
 };
 
-/** Two checks, oldest first: £24.99 then £19.99 (the watch's current price). */
+/**
+ * Two checks, oldest first: £24.99 then £21.99. Neither is the watch's own price
+ * (£19.99), so a lost point cannot pass on the price the page shows anyway.
+ */
 const POINTS = [
 	{ id: 'e2e-restart-pt-1', pricePence: 2499, hoursAgo: 30, shown: '£24.99' },
-	{ id: 'e2e-restart-pt-2', pricePence: 1999, hoursAgo: 1, shown: '£19.99' }
+	{ id: 'e2e-restart-pt-2', pricePence: 2199, hoursAgo: 1, shown: '£21.99' }
 ];
 
 let dir: string;
@@ -111,6 +114,13 @@ test('data survives a restart on the same database', async ({ page }) => {
 
 		const detail = await get(`/watches/${WATCH.id}`);
 		for (const point of POINTS) expect(detail, point.id).toContain(point.shown);
+		// One history row per point, each with its own price.
+		await page.goto(`${serverB.url}/watches/${WATCH.id}`);
+		const rows = page.locator('table tbody tr');
+		await expect(rows).toHaveCount(POINTS.length);
+		for (const point of POINTS) {
+			await expect(rows.filter({ hasText: point.shown }), point.id).toHaveCount(1);
+		}
 
 		// The topic was stored encrypted; B decrypts it with the same key. Read through
 		// the rendered page, not the raw HTML: Svelte adds attributes to <code>.
