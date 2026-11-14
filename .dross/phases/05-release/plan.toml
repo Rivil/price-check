@@ -19,7 +19,7 @@ test_contract = [
   '''if pnpm-workspace.yaml supportedArchitectures.cpu lacks x64 or arm64, or libc widens to musl, build-desktop.spec fails''',
   '''on a darwin host, if @libsql/darwin-arm64/package.json or @libsql/darwin-x64/package.json cannot be resolved from libsql's own directory, build-desktop.spec 'both darwin libsql binaries installed' fails (the universal app would ship one arch); skipped off darwin''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-2"

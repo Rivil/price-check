@@ -2,5 +2,54 @@
   "phase": "05-release",
   "base": "milestone/v0.1",
   "base_commit": "c53dab2ce2cd9fe4fcc224acd43a7a291d25bc92",
-  "tasks": {}
+  "tasks": {
+    "t-1": {
+      "files": [
+        ".gitleaks.toml",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/build-desktop.spec.ts"
+      ],
+      "commit": "ee0cc59",
+      "completed_at": "2026-11-14T18:25:29.391561Z",
+      "landmarks": [
+        {
+          "feature": "release packaging",
+          "symbol": "supportedArchitectures",
+          "loc": "pnpm-workspace.yaml:7",
+          "what": "pins electron-updater/electron-builder/@electron/asar exactly and installs both darwin libsql arches for a universal build"
+        }
+      ]
+    }
+  },
+  "reviews": {
+    "t-1": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "package.json bumps version 0.1.4 -\u003e 0.1.5, which the t-1 description does not mention. It fits the release_pipeline/device_uat decisions (tag MAJOR.MINOR.PATCH must equal package.json; v0.1.5 tags), but it is an unplanned change in this task.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "yamlSubList (scripts/build-desktop.spec.ts) keeps column-0 '#' comment lines inside the block when computing the minimum indent. One such comment under supportedArchitectures makes the indent 0, so the sub-keys are never matched and the test fails falsely on a valid config.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The darwin libsql test checks more than resolution: it also asserts index.node exists next to each @libsql/darwin-* manifest, which is stronger than the test_contract requires.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    }
+  }
 }
