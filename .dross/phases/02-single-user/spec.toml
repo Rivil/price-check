@@ -58,10 +58,16 @@
   id = "8e1e2aa6f20aa44b"
   text = "Desktop shell must start the server with ORIGIN=http://127.0.0.1:<port>; with ORIGIN unset adapter-node derives https://<Host> and Kit's CSRF check rejects every same-origin form POST"
   why = "Found by 02-single-user panel (adapter-node 6.0.0 handler.js); ORIGIN is optional in env.ts after 02"
-  target = "03-desktop-shell"
+  dismissed = true
 
 [[deferred]]
   id = "87b48a2f75002539"
   text = "Host loopback guard does not cover static /_app/immutable/* assets: adapter-node serves them via sirv before hooks. Wrap or replace the adapter-node handler so every request is Host-checked"
   why = "02-single-user accepted the gap (assets hold no user data); 03 owns server startup"
+  target = "03-desktop-shell"
+
+[[deferred]]
+  id = "a4203acc62a2d602"
+  text = "Desktop server must make same-origin form POSTs pass CSRF: adapter-node 6 ignores runtime ORIGIN (origin baked at build from kit paths.origin, build/adapter-node.js:7); unset, self-origin is https://<Host> (handler.js get_origin:151) so POSTs from http://127.0.0.1:<port> fail. Options: PROTOCOL_HEADER + inject x-forwarded-proto: http in a wrapping server, or a fixed origin at build"
+  why = "Corrects deferred[1] (wrong ORIGIN assumption); found by 02-single-user t-13 investigation 2026-11-14"
   target = "03-desktop-shell"
