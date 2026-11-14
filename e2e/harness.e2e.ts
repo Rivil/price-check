@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { connect } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,7 +17,7 @@ import {
 	SEEDED_DESIGN_TOPIC_URL,
 	SEEDED_WATCHES
 } from './accounts.ts';
-import { freePort, startNodeServer } from './node-server.ts';
+import { freePort, nodeServerEnv, startNodeServer } from './node-server.ts';
 
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const HOUR = 60 * 60 * 1000;
@@ -262,6 +263,14 @@ createServer((req, res) => {
 `;
 
 test('node-server env', async () => {
+	// adapter-node drains for SHUTDOWN_TIMEOUT seconds (default 30) on SIGTERM; a
+	// spawned server gets a short one, unless the spec sets its own.
+	const base = { port: 1, dbFile: 'unused.db' };
+	const timeout = nodeServerEnv(base).SHUTDOWN_TIMEOUT;
+	expect(timeout).toMatch(/^\d+$/);
+	expect(Number(timeout)).toBeLessThanOrEqual(2);
+	expect(nodeServerEnv({ ...base, env: { SHUTDOWN_TIMEOUT: '17' } }).SHUTDOWN_TIMEOUT).toBe('17');
+
 	// Set in this process only: a child that sees them got a process.env spread.
 	const parentOnly = ['BETTER_AUTH_SECRET', 'ORIGIN', 'NODE_SERVER_PARENT_ONLY'];
 	const saved = parentOnly.map((name) => [name, process.env[name]] as const);
@@ -283,7 +292,13 @@ test('node-server env', async () => {
 			await server.stop();
 		}
 		for (const name of parentOnly) expect(names, name).not.toContain(name);
-		for (const name of ['PATH', 'PORT', 'DATABASE_URL', 'ALERTS_ENCRYPTION_KEY']) {
+		for (const name of [
+			'PATH',
+			'PORT',
+			'DATABASE_URL',
+			'ALERTS_ENCRYPTION_KEY',
+			'SHUTDOWN_TIMEOUT'
+		]) {
 			expect(names, name).toContain(name);
 		}
 		// stop() resolved only once the child was gone: nothing answers any more.
@@ -293,6 +308,86 @@ test('node-server env', async () => {
 			if (value === undefined) delete process.env[name];
 			else process.env[name] = value;
 		}
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
+
+/** Opens a socket to `port` and sends a request that never finishes. */
+async function holdConnection(port: number) {
+	const socket = connect(port, '127.0.0.1');
+	await new Promise<void>((done, fail) => {
+		socket.once('connect', done);
+		socket.once('error', fail);
+	});
+	// stop() ends the server under this socket, which may then see ECONNRESET: the
+	// expected end of a held connection, and the tests assert on stop(), not on it.
+	socket.on('error', () => {});
+	socket.write('GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n');
+	return socket;
+}
+
+// A held connection kept adapter-node draining for 30s, the whole test timeout
+// (restart.e2e.ts timed out in 2 of 4 runs): the built server must stop well short.
+test('node-server stop does not wait out a held connection', async () => {
+	const dir = mkdtempSync(join(tmpdir(), 'node-server-held-'));
+	try {
+		const port = await freePort();
+		const server = await startNodeServer({
+			port,
+			dbFile: join(dir, 'held.db'),
+			env: { ALERTS_ENCRYPTION_KEY: E2E_ALERTS_KEY }
+		});
+		try {
+			const socket = await holdConnection(port);
+			try {
+				const started = Date.now();
+				await server.stop();
+				expect(Date.now() - started).toBeLessThan(5_000);
+			} finally {
+				socket.destroy();
+			}
+			await expect(fetch(`${server.url}/health`)).rejects.toThrow();
+		} finally {
+			// A no-op once stopped; otherwise the child must not outlive the test.
+			await server.stop();
+		}
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
+
+/** Answers with its pid and ignores SIGTERM: a drain that never ends. */
+const STUCK_PROBE = `import { createServer } from 'node:http';
+process.on('SIGTERM', () => {});
+createServer((req, res) => res.end(String(process.pid))).listen(Number(process.env.PORT), process.env.HOST);
+`;
+
+// stop() must outlast a server that never drains, and still resolve only once the
+// process is gone: libsql holds the DB file until then (Windows restart, cleanup).
+test('node-server stop kills a stuck server and awaits its exit', async () => {
+	const dir = mkdtempSync(join(tmpdir(), 'node-server-stuck-'));
+	try {
+		const probe = join(dir, 'stuck.mjs');
+		writeFileSync(probe, STUCK_PROBE);
+		const server = await startNodeServer({
+			port: await freePort(),
+			dbFile: join(dir, 'stuck.db'),
+			entry: probe
+		});
+		try {
+			const pid = Number(await (await fetch(`${server.url}/health`)).text());
+			expect(pid).toBeGreaterThan(0);
+
+			const started = Date.now();
+			await server.stop();
+			expect(Date.now() - started).toBeLessThan(5_000);
+			// Reaped, not just signalled: signal 0 finds no such process.
+			expect(() => process.kill(pid, 0)).toThrow(/ESRCH/);
+		} finally {
+			// A no-op once stopped; otherwise the child must not outlive the test.
+			await server.stop();
+		}
+	} finally {
 		rmSync(dir, { recursive: true, force: true });
 	}
 });
