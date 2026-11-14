@@ -59,13 +59,21 @@ const LISTENING_LINE = /\[desktop\] listening on/;
 
 type WindowInfo = { visible: boolean; url: string };
 
-/** Every live BrowserWindow in the main process. */
+/**
+ * Every live BrowserWindow in the main process. getAllWindows can still list a window
+ * that a close (or the single-instance flow) has already destroyed, and any call on it
+ * throws 'Object has been destroyed', so destroyed windows count as gone. The filter
+ * and the reads run in one synchronous main-process step, so nothing is destroyed
+ * between them.
+ */
 const windows = (desktop: DesktopApp): Promise<WindowInfo[]> =>
 	desktop.app.evaluate(({ BrowserWindow }) =>
-		BrowserWindow.getAllWindows().map((window) => ({
-			visible: window.isVisible(),
-			url: window.webContents.getURL()
-		}))
+		BrowserWindow.getAllWindows()
+			.filter((window) => !window.isDestroyed() && !window.webContents.isDestroyed())
+			.map((window) => ({
+				visible: window.isVisible(),
+				url: window.webContents.getURL()
+			}))
 	);
 
 /** Waits until the app has exactly one window, visible, on its original origin. */
@@ -78,7 +86,9 @@ async function expectOneWindow(desktop: DesktopApp): Promise<void> {
 /** Closes every window the way a user would (BrowserWindow.close) and waits until none is left. */
 async function closeWindows(desktop: DesktopApp): Promise<void> {
 	await desktop.app.evaluate(({ BrowserWindow }) => {
-		for (const window of BrowserWindow.getAllWindows()) window.close();
+		for (const window of BrowserWindow.getAllWindows()) {
+			if (!window.isDestroyed()) window.close();
+		}
 	});
 	await expect.poll(() => windows(desktop), { timeout: WINDOW_TIMEOUT_MS }).toEqual([]);
 }
