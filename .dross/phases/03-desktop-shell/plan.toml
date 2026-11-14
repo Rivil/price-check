@@ -311,7 +311,7 @@ files = ["src/desktop/window.spec.ts"]
 description = "Verify 03 left 2 window.ts survivors (56 'http:', 101 webviewTag). Decision external_links says off-origin links open in the default browser; window.spec only uses https URLs, and its webPreferences lock-down test never asserts webviewTag. Tests only."
 covers = ["c-5", "c-7"]
 test_contract = ["if windowOptions stops setting webPreferences.webviewTag to false, window.spec fails", "if an off-origin plain http:// link, from window.open or from a will-navigate, is no longer handed to shell.openExternal, window.spec fails"]
-status = "pending"
+status = "done"
 
 [[task]]
 id = "t-20"

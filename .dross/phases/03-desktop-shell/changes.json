@@ -185,6 +185,21 @@
         }
       ]
     },
+    "t-19": {
+      "files": [
+        "src/desktop/window.spec.ts"
+      ],
+      "commit": "68af770",
+      "completed_at": "2026-11-14T13:39:44.616125Z",
+      "landmarks": [
+        {
+          "feature": "desktop window external-link policy",
+          "symbol": "createMainWindow",
+          "loc": "src/desktop/window.spec.ts:127",
+          "what": "pins webviewTag false and plain-http off-origin links to shell.openExternal"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/scheduler.ts",
@@ -575,6 +590,19 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The empty res.on('error', () =\u003e {}) in the headers-sent abort test is test-only. The comment above it says it exists so an abort is treated as an expected outcome, not an unhandled error.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-19": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The test name still says 'no preload', but nothing in the code ever sets preload, so that assertion only guards against a regression. That's fine as is.",
           "resolution": "non-blocking, left"
         }
       ]
