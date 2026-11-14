@@ -1,6 +1,7 @@
 import type { BrowserWindow, BrowserWindowConstructorOptions, shell } from 'electron';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+	appUrl,
 	createMainWindow,
 	createWindowState,
 	isAppUrl,
@@ -298,5 +299,128 @@ describe('showWindow', () => {
 		expect(showWindow(state)).toBe(window);
 		expect(window.restore).not.toHaveBeenCalled();
 		expect(FakeWindow.instances).toHaveLength(1);
+	});
+});
+
+describe('showWindow with a path', () => {
+	const PATH = '/watches/w1';
+	const TARGET = `${ORIGIN}${PATH}`;
+	const OFF_ORIGIN_PATHS = [
+		'//evil.example/x',
+		'https://evil.example/',
+		'/\\evil.example',
+		`http://127.0.0.1:${PORT + 1}/watches/w1`,
+		'javascript:alert(1)',
+		'http://['
+	];
+
+	it('loads the path as the only page of a window never created yet', () => {
+		const { deps } = makeDeps();
+		const state = createWindowState(deps, ORIGIN);
+
+		const window = showWindow(state, PATH) as FakeWindow;
+
+		expect(window.loaded).toEqual([TARGET]);
+		expect(FakeWindow.instances).toEqual([window]);
+		expect(window.show).toHaveBeenCalledTimes(1);
+		expect(window.focus).toHaveBeenCalledTimes(1);
+	});
+
+	it('loads the path as the only page of a window recreated after close', () => {
+		const { deps } = makeDeps();
+		const state = createWindowState(deps, ORIGIN);
+		(showWindow(state) as FakeWindow).close();
+
+		const second = showWindow(state, PATH) as FakeWindow;
+
+		expect(FakeWindow.instances).toHaveLength(2);
+		expect(second.loaded).toEqual([TARGET]);
+	});
+
+	it('loads the path as the only page of a window destroyed without a closed event', () => {
+		const { deps } = makeDeps();
+		const state = createWindowState(deps, ORIGIN);
+		(showWindow(state) as FakeWindow).destroyed = true;
+
+		const second = showWindow(state, PATH) as FakeWindow;
+
+		expect(FakeWindow.instances).toHaveLength(2);
+		expect(second.loaded).toEqual([TARGET]);
+	});
+
+	it('restores a minimised window, loads the path once, then shows and focuses it', () => {
+		const { deps } = makeDeps();
+		const state = createWindowState(deps, ORIGIN);
+		const window = showWindow(state) as FakeWindow;
+		window.minimized = true;
+
+		expect(showWindow(state, PATH)).toBe(window);
+		expect(window.restore).toHaveBeenCalledTimes(1);
+		expect(window.loaded).toEqual([ORIGIN, TARGET]);
+		expect(window.show).toHaveBeenCalledTimes(2);
+		expect(window.focus).toHaveBeenCalledTimes(2);
+		expect(window.restore.mock.invocationCallOrder[0]).toBeLessThan(
+			window.show.mock.invocationCallOrder[1]
+		);
+		expect(FakeWindow.instances).toHaveLength(1);
+	});
+
+	it('loads the path in a visible window without restoring it', () => {
+		const { deps } = makeDeps();
+		const state = createWindowState(deps, ORIGIN);
+		const window = showWindow(state) as FakeWindow;
+
+		expect(showWindow(state, PATH)).toBe(window);
+		expect(window.restore).not.toHaveBeenCalled();
+		expect(window.loaded).toEqual([ORIGIN, TARGET]);
+		expect(FakeWindow.instances).toHaveLength(1);
+	});
+
+	it.each([false, true])(
+		'never reloads a live window when no path is given (minimised: %s)',
+		(minimized) => {
+			const { deps } = makeDeps();
+			const state = createWindowState(deps, ORIGIN);
+			const window = showWindow(state, PATH) as FakeWindow;
+			window.minimized = minimized;
+
+			showWindow(state);
+
+			expect(window.loaded).toEqual([TARGET]);
+			expect(window.show).toHaveBeenCalledTimes(2);
+		}
+	);
+
+	describe.each(OFF_ORIGIN_PATHS)('the off-origin path %s', (path) => {
+		it('resolves to the app origin', () => {
+			expect(appUrl(ORIGIN, path)).toBe(ORIGIN);
+		});
+
+		it('loads only the origin in a new window', () => {
+			const { deps } = makeDeps();
+			const state = createWindowState(deps, ORIGIN);
+
+			const window = showWindow(state, path) as FakeWindow;
+
+			expect(window.loaded).toEqual([ORIGIN]);
+		});
+
+		it('loads only the origin in a live window', () => {
+			const { deps } = makeDeps();
+			const state = createWindowState(deps, ORIGIN);
+			const window = showWindow(state) as FakeWindow;
+
+			showWindow(state, path);
+
+			expect(window.loaded).toEqual([ORIGIN, ORIGIN]);
+		});
+	});
+
+	it.each([
+		['/', `${ORIGIN}/`],
+		['/account/alerts', `${ORIGIN}/account/alerts`],
+		[`${ORIGIN}/watches/7`, `${ORIGIN}/watches/7`]
+	])('resolves the same-origin path %s to %s', (path, url) => {
+		expect(appUrl(ORIGIN, path)).toBe(url);
 	});
 });

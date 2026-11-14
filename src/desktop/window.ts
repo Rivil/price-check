@@ -103,8 +103,11 @@ export function windowOptions(): BrowserWindowConstructorOptions {
 	};
 }
 
-/** Opens the app window on `origin` with the external-link policy attached. */
-export function createMainWindow(deps: WindowDeps, origin: string): MainWindow {
+/**
+ * Opens the app window with the external-link policy for `origin` attached, and
+ * loads `url` (an app URL, by default the origin itself) as its first and only page.
+ */
+export function createMainWindow(deps: WindowDeps, origin: string, url = origin): MainWindow {
 	const window = new deps.BrowserWindow(windowOptions());
 	const { webContents } = window;
 
@@ -127,7 +130,7 @@ export function createMainWindow(deps: WindowDeps, origin: string): MainWindow {
 		if (!isAppUrl(event.url, origin)) event.preventDefault();
 	});
 
-	window.loadURL(origin).catch(logFailure('loading the app'));
+	window.loadURL(url).catch(logFailure('loading the app'));
 	return window;
 }
 
@@ -136,21 +139,42 @@ export function createWindowState(deps: WindowDeps, origin: string): WindowState
 }
 
 /**
+ * The app URL for `path`, resolved against `origin`. A path that resolves anywhere
+ * else ('//host/x', 'https://host/', '/\\host': backslashes count as slashes in
+ * http URLs) falls back to the origin itself, so the window never leaves the app.
+ */
+export function appUrl(origin: string, path: string): string {
+	let url: string;
+	try {
+		url = new URL(path, origin).href;
+	} catch {
+		return origin;
+	}
+	return isAppUrl(url, origin) ? url : origin;
+}
+
+/**
  * Brings the app window up: recreates it if it was never created or has been
  * closed, restores it if minimised, then shows and focuses it. Never opens a
  * second window while one is alive.
+ *
+ * With a `path` (a notification click), the window shows that app page: a new
+ * window loads it as its first page, a live one navigates to it. Without one (tray
+ * Open, a second instance, dock activate), a live window keeps its current page.
  */
-export function showWindow(state: WindowState): MainWindow {
+export function showWindow(state: WindowState, path?: string): MainWindow {
+	const target = path === undefined ? undefined : appUrl(state.origin, path);
 	let window = state.window;
 	if (window === null || window.isDestroyed()) {
-		const created = createMainWindow(state.deps, state.origin);
+		const created = createMainWindow(state.deps, state.origin, target);
 		created.on('closed', () => {
 			if (state.window === created) state.window = null;
 		});
 		state.window = created;
 		window = created;
-	} else if (window.isMinimized()) {
-		window.restore();
+	} else {
+		if (window.isMinimized()) window.restore();
+		if (target !== undefined) window.loadURL(target).catch(logFailure('loading a page'));
 	}
 	window.show();
 	window.focus();
