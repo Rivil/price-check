@@ -1,9 +1,10 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import { createDb } from '../src/lib/server/db/client.ts';
 import { pricePoint, watch } from '../src/lib/server/db/schema.ts';
+import { removeTempDir } from '../src/lib/server/testing/temp-dir.ts';
 import { E2E_ALERTS_KEY } from './accounts.ts';
 import { freePort, startNodeServer } from './node-server.ts';
 
@@ -45,8 +46,10 @@ test.beforeEach(() => {
 	dir = mkdtempSync(join(tmpdir(), 'restart-'));
 });
 
+// This process opened the file to seed it, and on Windows libsql keeps it locked
+// after close(), so cleanup there is best-effort (see temp-dir.ts).
 test.afterEach(() => {
-	rmSync(dir, { recursive: true, force: true });
+	removeTempDir(dir);
 });
 
 test('data survives a restart on the same database', async ({ page }) => {
