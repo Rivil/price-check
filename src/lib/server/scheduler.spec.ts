@@ -2,11 +2,11 @@ import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { DueWatch } from './checks.ts';
+import { dueWatches, type DueWatch } from './checks.ts';
 import { watch } from './db/schema.ts';
 import { saveChannel } from './alerts/channels.ts';
 import { setAlertsKey } from './alerts/crypto.ts';
-import { TICK_MS, createScheduler, startScheduler } from './scheduler.ts';
+import { STOP_DRAIN_MS, TICK_MS, createScheduler, startScheduler } from './scheduler.ts';
 import type { CheckResult } from './shops/types.ts';
 import { createTestDb, type TestDb } from './testing/test-db.ts';
 
@@ -145,7 +145,8 @@ describe('createScheduler', () => {
 	it('ticks every 5 minutes until stopped', async () => {
 		expect(TICK_MS).toBe(5 * 60 * 1000);
 		const due = vi.fn(async () => []);
-		const stop = createScheduler({ due, checkOne: vi.fn() }).start();
+		const scheduler = createScheduler({ due, checkOne: vi.fn() });
+		scheduler.start();
 
 		await vi.advanceTimersByTimeAsync(0);
 		expect(due).toHaveBeenCalledTimes(1);
@@ -154,9 +155,241 @@ describe('createScheduler', () => {
 		await vi.advanceTimersByTimeAsync(1);
 		expect(due).toHaveBeenCalledTimes(2);
 
-		stop();
+		await scheduler.stop();
 		await vi.advanceTimersByTimeAsync(TICK_MS * 3);
 		expect(due).toHaveBeenCalledTimes(2);
+		expect(scheduler.tick()).toBeNull();
+	});
+
+	it('resume mid-pass', async () => {
+		const asleep = new Date('2026-11-02T12:00:00Z');
+		const awake = new Date('2026-11-02T20:00:00Z');
+		vi.setSystemTime(asleep);
+		const gate = deferred();
+		const seen: Date[] = [];
+		const due = vi.fn(async (now: Date) => {
+			seen.push(now);
+			return [w('a')];
+		});
+		const checkOne = vi.fn().mockReturnValueOnce(gate.promise).mockResolvedValue(undefined);
+		const scheduler = createScheduler({ due, checkOne });
+
+		const first = scheduler.tick();
+		await vi.advanceTimersByTimeAsync(0);
+		expect(checkOne).toHaveBeenCalledOnce();
+
+		// The OS resumes while that pass still waits on its check.
+		vi.setSystemTime(awake);
+		scheduler.requestPass();
+		expect(due).toHaveBeenCalledOnce();
+
+		gate.resolve();
+		await first;
+		await vi.advanceTimersByTimeAsync(0);
+		expect(due).toHaveBeenCalledTimes(2);
+		expect(seen).toEqual([asleep, awake]);
+		expect(checkOne).toHaveBeenCalledTimes(2);
+
+		// Exactly one follow-up: nothing else runs afterwards.
+		await vi.advanceTimersByTimeAsync(TICK_MS * 3);
+		expect(due).toHaveBeenCalledTimes(2);
+	});
+
+	it('due during sleep', async () => {
+		const HOUR = 60 * 60 * 1000;
+		const interval = 12 * HOUR;
+		const t0 = new Date('2026-11-02T12:00:00Z').getTime();
+		// 'slept' comes due 6h into an 8h sleep; 'fresh' only after it.
+		const lastChecked = { slept: t0 - 6 * HOUR, fresh: t0 };
+		const due = vi.fn(async (now: Date) =>
+			Object.entries(lastChecked)
+				.filter(([, at]) => at + interval <= now.getTime())
+				.map(([id]) => w(id))
+		);
+		const checked: string[] = [];
+		const scheduler = createScheduler({
+			due,
+			checkOne: async (watch) => {
+				checked.push(watch.id);
+			}
+		});
+
+		vi.setSystemTime(t0);
+		await scheduler.tick();
+		expect(checked).toEqual([]);
+
+		vi.setSystemTime(t0 + 8 * HOUR);
+		scheduler.requestPass();
+		await vi.advanceTimersByTimeAsync(0);
+
+		expect(due).toHaveBeenLastCalledWith(new Date(t0 + 8 * HOUR));
+		expect(checked).toEqual(['slept']);
+	});
+
+	it('requestPass while idle starts a pass at once', () => {
+		const due = vi.fn(async () => []);
+		const scheduler = createScheduler({ due, checkOne: vi.fn() });
+
+		scheduler.requestPass();
+
+		// Synchronously: no timer, no microtask in between.
+		expect(due).toHaveBeenCalledOnce();
+	});
+
+	it('requests during a pass do not pile up', async () => {
+		const gate = deferred();
+		const due = vi.fn(async () => [w('a')]);
+		const checkOne = vi.fn().mockReturnValueOnce(gate.promise).mockResolvedValue(undefined);
+		const scheduler = createScheduler({ due, checkOne });
+
+		scheduler.requestPass();
+		await vi.advanceTimersByTimeAsync(0);
+		scheduler.requestPass();
+		scheduler.requestPass();
+		expect(due).toHaveBeenCalledOnce();
+
+		gate.resolve();
+		await vi.advanceTimersByTimeAsync(0);
+		await vi.advanceTimersByTimeAsync(TICK_MS * 3);
+		expect(due).toHaveBeenCalledTimes(2);
+	});
+
+	it('stop drains', async () => {
+		const gate = deferred();
+		const due = vi.fn(async () => [w('a')]);
+		const scheduler = createScheduler({ due, checkOne: () => gate.promise });
+		scheduler.start();
+		await vi.advanceTimersByTimeAsync(0);
+		expect(due).toHaveBeenCalledOnce();
+
+		let stopped = false;
+		const stopping = scheduler.stop(1000).then(() => {
+			stopped = true;
+		});
+		await vi.advanceTimersByTimeAsync(999);
+		// The check is still pending: quit must not close the db under it.
+		expect(stopped).toBe(false);
+
+		gate.resolve();
+		await stopping;
+		expect(stopped).toBe(true);
+
+		// The interval is gone, and a request after stop does nothing.
+		await vi.advanceTimersByTimeAsync(TICK_MS * 3);
+		scheduler.requestPass();
+		expect(due).toHaveBeenCalledOnce();
+	});
+
+	it('stop drops a queued follow-up', async () => {
+		const gate = deferred();
+		const due = vi.fn(async () => [w('a')]);
+		const scheduler = createScheduler({ due, checkOne: () => gate.promise });
+
+		scheduler.requestPass();
+		await vi.advanceTimersByTimeAsync(0);
+		scheduler.requestPass();
+		const stopping = scheduler.stop(1000);
+		gate.resolve();
+		await stopping;
+		await vi.advanceTimersByTimeAsync(TICK_MS);
+
+		expect(due).toHaveBeenCalledOnce();
+	});
+
+	it('stop gives up on a pass that never settles', async () => {
+		const log = vi.fn();
+		const scheduler = createScheduler({
+			due: async () => [w('a')],
+			checkOne: () => new Promise(() => {}),
+			log
+		});
+		scheduler.start();
+		await vi.advanceTimersByTimeAsync(0);
+
+		let stopped = false;
+		const stopping = scheduler.stop(1000).then(() => {
+			stopped = true;
+		});
+		await vi.advanceTimersByTimeAsync(999);
+		expect(stopped).toBe(false);
+		await vi.advanceTimersByTimeAsync(1);
+		await stopping;
+		expect(stopped).toBe(true);
+		expect(log).toHaveBeenCalledExactlyOnceWith(
+			'stop: the pass in flight did not finish within 1000ms'
+		);
+	});
+
+	it('stop waits STOP_DRAIN_MS by default', async () => {
+		const scheduler = createScheduler({
+			due: async () => [w('a')],
+			checkOne: () => new Promise(() => {}),
+			log: vi.fn()
+		});
+		scheduler.start();
+		await vi.advanceTimersByTimeAsync(0);
+
+		let stopped = false;
+		void scheduler.stop().then(() => {
+			stopped = true;
+		});
+		await vi.advanceTimersByTimeAsync(STOP_DRAIN_MS - 1);
+		expect(stopped).toBe(false);
+		await vi.advanceTimersByTimeAsync(1);
+		expect(stopped).toBe(true);
+	});
+
+	it('stop while idle resolves at once', async () => {
+		const due = vi.fn(async () => []);
+		const scheduler = createScheduler({ due, checkOne: vi.fn() });
+		scheduler.start();
+		await vi.advanceTimersByTimeAsync(0);
+
+		await expect(scheduler.stop()).resolves.toBeUndefined();
+	});
+});
+
+describe('catch-up after sleep', () => {
+	const HOUR = 60 * 60 * 1000;
+	const INTERVAL = 4 * HOUR;
+	const t0 = new Date('2026-11-02T12:00:00Z');
+	let h: TestDb;
+
+	beforeEach(async () => {
+		h = await createTestDb();
+		vi.useFakeTimers({ now: t0, toFake: ['Date'] });
+	});
+	afterEach(() => {
+		vi.useRealTimers();
+		h.dispose();
+	});
+
+	it('catch-up after sleep', async () => {
+		for (const id of ['one', 'two', 'three']) {
+			await h.db.insert(watch).values({
+				id,
+				shop: 'amazon-uk',
+				productId: `B0${id.toUpperCase()}`.padEnd(10, '0'),
+				canonicalUrl: `https://www.amazon.co.uk/dp/${id}`,
+				lastCheckedAt: t0
+			});
+		}
+		const due = vi.fn((now: Date) => dueWatches(h.db, now, INTERVAL));
+		const checked: string[] = [];
+		const scheduler = createScheduler({
+			due,
+			checkOne: async (watch) => {
+				checked.push(watch.id);
+			}
+		});
+
+		// The machine sleeps through three intervals, then resumes.
+		vi.setSystemTime(t0.getTime() + 3 * INTERVAL);
+		scheduler.requestPass();
+		await scheduler.stop(10_000);
+
+		expect(due).toHaveBeenCalledOnce();
+		expect([...checked].sort()).toEqual(['one', 'three', 'two']);
 	});
 });
 
@@ -166,14 +399,17 @@ describe('startScheduler', () => {
 
 	beforeEach(async () => {
 		h = await createTestDb();
-		vi.useFakeTimers({ now: new Date('2026-11-02T12:00:00Z'), toFake: ['setInterval', 'Date'] });
+		vi.useFakeTimers({
+			now: new Date('2026-11-02T12:00:00Z'),
+			toFake: ['setInterval', 'clearInterval', 'Date']
+		});
 	});
 	afterEach(() => {
 		vi.useRealTimers();
 		h.dispose();
 	});
 
-	it('gating', () => {
+	it('gating', async () => {
 		const check = vi.fn();
 		const base = { db: h.db, check };
 
@@ -184,9 +420,9 @@ describe('startScheduler', () => {
 		).toBeNull();
 		expect(check).not.toHaveBeenCalled();
 
-		const stop = startScheduler({ ...base, env: { SCHEDULER_DISABLED: '' }, building: false });
-		expect(stop).toBeTypeOf('function');
-		stop?.();
+		const controls = startScheduler({ ...base, env: { SCHEDULER_DISABLED: '' }, building: false });
+		expect(controls).toEqual({ requestPass: expect.any(Function), stop: expect.any(Function) });
+		await controls?.stop();
 	});
 
 	it('interval wiring', async () => {
@@ -210,7 +446,7 @@ describe('startScheduler', () => {
 		}));
 
 		// 4h interval: only the watch checked 5h ago is due.
-		const stop = startScheduler({
+		const controls = startScheduler({
 			db: h.db,
 			check,
 			env: { CHECK_INTERVAL_HOURS: '4' },
@@ -218,7 +454,7 @@ describe('startScheduler', () => {
 		});
 		await vi.waitFor(() => expect(check).toHaveBeenCalledTimes(1));
 		expect(check).toHaveBeenCalledWith('https://www.amazon.co.uk/dp/five');
-		stop?.();
+		await controls?.stop();
 
 		expect(() =>
 			startScheduler({ db: h.db, check, env: { CHECK_INTERVAL_HOURS: '0' }, building: false })
@@ -264,11 +500,11 @@ describe('startScheduler alerts', () => {
 			imageUrl: null
 		}));
 
-		const stop = startScheduler({ db: h.db, check, env: {}, building: false });
+		const controls = startScheduler({ db: h.db, check, env: {}, building: false });
 		try {
 			await vi.waitFor(() => expect(fetch).toHaveBeenCalledOnce());
 		} finally {
-			stop?.();
+			await controls?.stop();
 		}
 		const [target, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
 		expect(target).toBe('https://ntfy.sh/');

@@ -8,13 +8,16 @@ import hooksSource from './hooks.server.ts?raw';
 // A valid key for the server's ALERTS_ENCRYPTION_KEY: base64 of 32 bytes.
 const VALID_KEY = Buffer.alloc(32, 7).toString('base64');
 
+const RUNTIME_KEY = Symbol.for('price-check.runtime');
+
 const mocks = vi.hoisted(() => ({
-	db: { name: 'the app db' },
+	db: { name: 'the app db', $client: { close: vi.fn() } },
 	env: { building: false, key: undefined as string | undefined },
 	setAlertsKey: vi.fn(),
 	order: [] as string[],
 	migrateDb: vi.fn(),
 	startScheduler: vi.fn(),
+	publishRuntime: vi.fn(),
 	checkUrl: vi.fn(async (url: string) => ({ ok: false, reason: 'blocked', message: url }))
 }));
 vi.mock('$app/env', () => ({
@@ -37,6 +40,15 @@ vi.mock('#lib/server/alerts/crypto.ts', async (importOriginal) => ({
 }));
 vi.mock('#lib/server/db/index.ts', () => ({ db: mocks.db }));
 vi.mock('#lib/server/scheduler.ts', () => ({ startScheduler: mocks.startScheduler }));
+// The real bridge; publishRuntime records the step so its order can be checked.
+vi.mock('#lib/server/runtime-bridge.ts', async (importOriginal) => {
+	const real = await importOriginal<typeof import('#lib/server/runtime-bridge.ts')>();
+	mocks.publishRuntime.mockImplementation((runtime) => {
+		mocks.order.push('published');
+		real.publishRuntime(runtime);
+	});
+	return { ...real, publishRuntime: mocks.publishRuntime };
+});
 vi.mock('#lib/server/shops/index.ts', () => ({ checkUrl: mocks.checkUrl }));
 
 beforeEach(() => {
@@ -56,7 +68,16 @@ beforeEach(() => {
 		return null;
 	});
 	mocks.checkUrl.mockClear();
+	mocks.publishRuntime.mockClear();
+	mocks.db.$client.close.mockReset();
+	delete (globalThis as { [RUNTIME_KEY]?: unknown })[RUNTIME_KEY];
 });
+
+/** What init published, read back through the real bridge. */
+async function published() {
+	const { readRuntime } = await import('#lib/server/runtime-bridge.ts');
+	return readRuntime();
+}
 
 describe('hooks.server', () => {
 	it('init migrates the app db before starting the scheduler', async () => {
@@ -64,15 +85,15 @@ describe('hooks.server', () => {
 		await hooks.init();
 
 		expect(mocks.migrateDb).toHaveBeenCalledExactlyOnceWith(mocks.db);
-		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler']);
+		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler', 'published']);
 	});
 
 	it('order', async () => {
 		const hooks = await import('./hooks.server.ts');
 		await hooks.init();
 
-		// No legacy-channel backfill step any more: key, migrate, scheduler.
-		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler']);
+		// No legacy-channel backfill step any more: key, migrate, scheduler, then publish.
+		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler', 'published']);
 		expect(mocks.setAlertsKey).toHaveBeenCalledOnce();
 		const [key] = mocks.setAlertsKey.mock.calls[0] as [Buffer];
 		expect(Buffer.isBuffer(key)).toBe(true);
@@ -100,6 +121,7 @@ describe('hooks.server', () => {
 			expect(mocks.setAlertsKey).not.toHaveBeenCalled();
 			expect(mocks.migrateDb).not.toHaveBeenCalled();
 			expect(mocks.startScheduler).not.toHaveBeenCalled();
+			expect(mocks.publishRuntime).not.toHaveBeenCalled();
 			expect(mocks.order).toEqual([]);
 		}
 	});
@@ -130,6 +152,46 @@ describe('hooks.server', () => {
 
 		await expect(hooks.init()).rejects.toThrow('migration broke');
 		expect(mocks.startScheduler).not.toHaveBeenCalled();
+		expect(mocks.publishRuntime).not.toHaveBeenCalled();
+	});
+
+	it('publishes the scheduler controls', async () => {
+		const controls = { requestPass: vi.fn(), stop: vi.fn(async () => {}) };
+		mocks.startScheduler.mockImplementation(() => {
+			mocks.order.push('scheduler');
+			return controls;
+		});
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+
+		expect(mocks.publishRuntime).toHaveBeenCalledOnce();
+		const runtime = await published();
+		expect(runtime.requestPass).toBe(controls.requestPass);
+		expect(runtime.stop).toBe(controls.stop);
+		expect(Object.keys(runtime).sort()).toEqual(['closeDb', 'requestPass', 'stop']);
+	});
+
+	it('closeDb closes the app db client once', async () => {
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+		const runtime = await published();
+		expect(mocks.db.$client.close).not.toHaveBeenCalled();
+
+		await runtime.closeDb();
+		await runtime.closeDb();
+
+		expect(mocks.db.$client.close).toHaveBeenCalledOnce();
+	});
+
+	it('a disabled scheduler publishes no-op controls', async () => {
+		// The default mock: startScheduler returns null, as under SCHEDULER_DISABLED=1.
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+		const runtime = await published();
+
+		expect(() => runtime.requestPass()).not.toThrow();
+		await expect(runtime.stop()).resolves.toBeUndefined();
+		await expect(runtime.stop(0)).resolves.toBeUndefined();
 	});
 
 	it('init', async () => {
