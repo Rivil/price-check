@@ -175,7 +175,7 @@ test_contract = [
   '''if the desktop save form does not post kind=desktop with price_drops/check_failures checkbox names, page.svelte.spec fails''',
   '''if /account/alerts under the node server (no Electron) shows a channel-desktop section, alerts.e2e fails (not vitest-gated; executor observes pnpm test:e2e green)''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-10"

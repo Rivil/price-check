@@ -142,6 +142,25 @@
           "what": "init installs the desktop driver and seeds its row before the first scheduler pass when a notifier is published; a failure is logged and startup continues"
         }
       ]
+    },
+    "t-9": {
+      "files": [
+        "src/routes/account/alerts/+page.server.ts",
+        "src/routes/account/alerts/page.server.spec.ts",
+        "src/routes/account/alerts/+page.svelte",
+        "src/routes/account/alerts/page.svelte.spec.ts",
+        "src/routes/account/alerts/alerts.e2e.ts"
+      ],
+      "commit": "a45cebf",
+      "completed_at": "2026-11-14T16:56:20.515491Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "KEPT_KINDS",
+          "loc": "src/routes/account/alerts/+page.server.ts:44",
+          "what": "Alerts page shows a Desktop card (on/off, kind ticks, Send test) only when the driver is registered, and refuses its removal with a 400"
+        }
+      ]
     }
   },
   "reviews": {
@@ -331,6 +350,26 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "hooks.server.spec now mocks #lib/server/db/index.ts with a getter so the desktop tests can swap in a real temp-file db. The existing tests still receive the fake db through beforeEach.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-9": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "KEPT_MESSAGE is a private constant in +page.server.ts and is duplicated as a literal in page.server.spec.ts and page.svelte.spec.ts; exporting it would keep the copies in step",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the desktop afterEach asserts channelKinds() no longer contains 'desktop', guarding the rest of page.server.spec.ts against a leaked driver registration",
           "resolution": "non-blocking, left"
         }
       ]
