@@ -58,6 +58,24 @@
         }
       ]
     },
+    "t-16": {
+      "files": [
+        "src/desktop/updater.ts",
+        "src/desktop/updater.spec.ts",
+        "src/desktop/lifecycle.ts",
+        "src/desktop/lifecycle.spec.ts"
+      ],
+      "commit": "89db383",
+      "completed_at": "2026-11-14T20:24:02.906194Z",
+      "landmarks": [
+        {
+          "feature": "auto-update install on exit",
+          "symbol": "installOnExit",
+          "loc": "src/desktop/updater.ts:230",
+          "what": "sets autoRunAppAfterInstall per exit mode so a macOS plain Quit installs without relaunching"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "scripts/package-desktop.ts",
@@ -287,6 +305,33 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "main.ts now reads Electron's autoUpdater on every platform, including Linux, where it is a stub. The Linux packaged smoke run should confirm that reading it is harmless there.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-16": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/desktop/lifecycle.ts:53 rewrapped comment line runs far past the surrounding wrap width ('later only as a backstop, ... A Squirrel error exits at once, and so does a wait that passes'); cosmetic only",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the 'macOS ...' updater specs are not platform-gated, which is fine because installOnExit sets autoRunAppAfterInstall on every platform; the platform split lives inside electron-updater (BaseUpdater.js:16 uses isForceRunAfter when silent, MacUpdater.js:232 reads autoRunAppAfterInstall)",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/desktop/lifecycle.spec.ts is listed in the task's files but left unchanged; the existing lifecycle specs still pin the quit/restart hand-over, so nothing is missing",
           "resolution": "non-blocking, left"
         }
       ]
