@@ -92,19 +92,16 @@
     },
     "t-14": {
       "files": [
-        ".github/workflows/ci.yml",
-        "scripts/ci-desktop.spec.ts",
-        ".gitleaks.toml",
-        "scripts/gitleaks-config.spec.ts"
+        ".github/workflows/ci.yml"
       ],
-      "commit": "79bbc38",
-      "completed_at": "2026-11-14T12:15:53.663037Z",
+      "commit": "6cbeecb",
+      "completed_at": "2026-11-14T12:35:13.281878Z",
       "landmarks": [
         {
           "feature": "public CI",
-          "symbol": "desktop e2e step",
-          "loc": ".github/workflows/ci.yml:140",
-          "what": "three-OS CI runs the Electron e2e suite (Linux under xvfb with the AppArmor userns sysctl) with the Electron zip cached before install"
+          "symbol": "desktop e2e step env",
+          "loc": ".github/workflows/ci.yml:152",
+          "what": "build-time DATABASE_URL so the desktop suite's vite build passes SvelteKit env validation in CI"
         }
       ]
     },
@@ -407,21 +404,14 @@
           "round": 1,
           "kind": "quality",
           "severity": "NOTE",
-          "text": "ELECTRON_SKIP_BINARY_DOWNLOAD=1 in the static job does nothing today: electron 45.2.3's install.js never reads it. So the static job still downloads Electron on every run and has no cache step for it. The ci.yml comment says this openly, and the task asked for the variable, so nothing needs changing.",
+          "text": "The DATABASE_URL added to the desktop e2e step has no test guarding it in ci-desktop.spec; if someone removes it, only a CI run of vite build would catch that. Fine for a CI-only fix.",
           "resolution": "non-blocking, left"
         },
         {
           "round": 1,
           "kind": "quality",
           "severity": "NOTE",
-          "text": "The --no-sandbox scan skips lines that start with //, /* or *. A comment written after code on the same line is still scanned, so the check stays strict.",
-          "resolution": "non-blocking, left"
-        },
-        {
-          "round": 1,
-          "kind": "quality",
-          "severity": "NOTE",
-          "text": "ci-desktop.spec reads ci.yml with its own line parser instead of a YAML library, and fails loudly if a job or step it needs is missing. Like workflow-policy.ts, it is tied to ci.yml's current layout.",
+          "text": "The value reuses the web e2e's DB path (file:e2e/.data/e2e.db). That's harmless because the build never opens a client and Electron's main replaces it at launch through server-env.ts.",
           "resolution": "non-blocking, left"
         }
       ]
