@@ -22,6 +22,25 @@
         }
       ]
     },
+    "t-10": {
+      "files": [
+        "src/desktop/app-paths.ts",
+        "src/desktop/app-paths.spec.ts",
+        "src/desktop/main.ts",
+        "src/desktop/boundary.spec.ts",
+        "e2e/desktop/harness.e2e.ts"
+      ],
+      "commit": "e44722b",
+      "completed_at": "2026-11-14T19:47:38.124983Z",
+      "landmarks": [
+        {
+          "feature": "packaged desktop startup",
+          "symbol": "serverCwdFor",
+          "loc": "src/desktop/app-paths.ts:40",
+          "what": "server runs in app.asar.unpacked when packaged; main builds and publishes the updater only when app.isPackaged"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "scripts/package-desktop.ts",
@@ -187,6 +206,42 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The darwin libsql test checks more than resolution: it also asserts index.node exists next to each @libsql/darwin-* manifest, which is stronger than the test_contract requires.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-10": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "src/desktop/main.ts isProcessAlive: any kill(pid, 0) error code other than EPERM (not only ESRCH) is quietly read as 'process gone' with nothing logged. The comment covers only ESRCH and EPERM. lifecycle.waitForExit logs a throwing probe, but this catch never lets one reach it. Rethrowing unexpected codes would let the lifecycle log them.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "src/desktop/main.ts parsePid: a malformed PRICE_CHECK_PREDECESSOR_PID turns into null silently, so the c-6 wait for the predecessor is skipped with no log line. A console.error for a set but unparseable value would make that case diagnosable.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/desktop/main.ts: the post-'started' guard `app.isPackaged \u0026\u0026 updater \u0026\u0026 restartToUpdate` silently skips start()/publish if restartToUpdate were null. That cannot happen in practice because createTray runs before 'started', so the guard mainly narrows types.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "boundary.spec source-order and AST checks are textual (comments mentioning PREDECESSOR_PID count as reads, and the restart identity is matched by regex), so a refactor could pass or fail them for cosmetic reasons.",
           "resolution": "non-blocking, left"
         }
       ]
