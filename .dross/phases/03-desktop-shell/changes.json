@@ -90,6 +90,24 @@
         }
       ]
     },
+    "t-14": {
+      "files": [
+        ".github/workflows/ci.yml",
+        "scripts/ci-desktop.spec.ts",
+        ".gitleaks.toml",
+        "scripts/gitleaks-config.spec.ts"
+      ],
+      "commit": "79bbc38",
+      "completed_at": "2026-11-14T12:15:53.663037Z",
+      "landmarks": [
+        {
+          "feature": "public CI",
+          "symbol": "desktop e2e step",
+          "loc": ".github/workflows/ci.yml:140",
+          "what": "three-OS CI runs the Electron e2e suite (Linux under xvfb with the AppArmor userns sysctl) with the Electron zip cached before install"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/scheduler.ts",
@@ -377,6 +395,33 @@
           "severity": "NOTE",
           "criterion": "c-6",
           "text": "The login-launch test waits for the 'activate' listener to be attached before asserting no window, which ties the check to lifecycle.ts's startup order and keeps it from passing vacuously while startup is still running",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-14": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ELECTRON_SKIP_BINARY_DOWNLOAD=1 in the static job does nothing today: electron 45.2.3's install.js never reads it. So the static job still downloads Electron on every run and has no cache step for it. The ci.yml comment says this openly, and the task asked for the variable, so nothing needs changing.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The --no-sandbox scan skips lines that start with //, /* or *. A comment written after code on the same line is still scanned, so the check stays strict.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ci-desktop.spec reads ci.yml with its own line parser instead of a YAML library, and fails loudly if a job or step it needs is missing. Like workflow-policy.ts, it is tied to ci.yml's current layout.",
           "resolution": "non-blocking, left"
         }
       ]
