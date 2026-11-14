@@ -123,17 +123,18 @@ _introduced app-design · ae4d978_
 
 ### Desktop app window
 
-The app window is sandboxed on the local origin and never leaves it: window.open is always denied, off-origin http(s) links open in the default browser, and off-origin navigations and redirects are prevented; showing the window restores it or creates a new one.
+The app window is sandboxed on the local origin and never leaves it: window.open is always denied, off-origin http(s) links open in the default browser, and off-origin navigations and redirects are prevented; showing the window restores it or creates a new one, optionally on a same-origin path (an off-app path falls back to the origin, and a live window is never reloaded without one).
 
-- createMainWindow — src/desktop/window.ts:107
+- createMainWindow — src/desktop/window.ts:110
+- showWindow — src/desktop/window.ts:165
 
-_introduced 03-desktop-shell · 453d539 · extended 03-desktop-shell · 68af770_
+_introduced 03-desktop-shell · 453d539 · extended 03-desktop-shell · 68af770 · extended 04-desktop-notify · b94c08d_
 
 ### Desktop background running
 
 The desktop app keeps running in the tray after its window closes: a single-instance lock refocuses the running app, a resume from sleep runs one scheduler pass at once, and Quit stops the scheduler, server and database within a deadline before exiting; the tray offers Open, Start at login and Quit.
 
-- runDesktop — src/desktop/lifecycle.ts:149
+- runDesktop — src/desktop/lifecycle.ts:172
 - createTray — src/desktop/tray.ts:80
 - publishRuntime — src/lib/server/runtime-bridge.ts:21
 - runDesktop wiring — src/desktop/main.ts:76
@@ -157,6 +158,23 @@ A first launch on an empty userData dir opens the empty watchlist with no setup:
 - quitThroughApp — e2e/desktop/quit-relaunch.e2e.ts:47
 
 _introduced 03-desktop-shell · 40971db · extended 03-desktop-shell · 42f96b3_
+
+### Desktop notifications
+
+The desktop app shows price drops (and, when ticked, failed checks) as native notifications through a seeded Desktop channel that starts on and cannot be removed; a watch notifies once per target reached, a click opens the app window on that watch (or the watchlist if it is gone), Send test reports an unsupported OS as a failure, and Windows sets the shared AppUserModelId before any notification.
+
+- readNotifier — src/lib/server/notify-bridge.ts:33
+- createNotifier — src/desktop/notifier.ts:70
+- notificationClassFor — src/desktop/notify-seam.ts:116
+- createDesktopDriver — src/lib/server/alerts/desktop.ts:42
+- ensureChannel — src/lib/server/alerts/channels.ts:221
+- setUpDesktopAlerts — src/hooks.server.ts:24
+- runDesktop — src/desktop/lifecycle.ts:172
+- KEPT_KINDS — src/routes/account/alerts/+page.server.ts:44
+- recordedNotifications — e2e/desktop/launch.ts:423
+- saveTicks — e2e/desktop/desktop-alerts.e2e.ts:87
+
+_introduced 04-desktop-notify · 3b59163 · extended 04-desktop-notify · 15c2572_
 
 ### Docs checks
 
