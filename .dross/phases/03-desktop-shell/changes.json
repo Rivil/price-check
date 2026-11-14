@@ -115,6 +115,30 @@
         }
       ]
     },
+    "t-15": {
+      "files": [
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/harness.e2e.ts",
+        "e2e/desktop/seed-child.ts",
+        "e2e/desktop/guard.e2e.ts",
+        "e2e/desktop/background.e2e.ts",
+        "e2e/desktop/quit-relaunch.e2e.ts",
+        ".gitignore",
+        ".github/workflows/ci.yml",
+        "scripts/ci-desktop.spec.ts"
+      ],
+      "commit": "f0692f9",
+      "completed_at": "2026-11-14T13:05:24.656591Z",
+      "notes": "CI fix follow-up: 252d1de (quit() uses the launch-time child; app.process() threw on a disposed app on Windows). PR #8 run 43597167874: desktop e2e 17/17 on windows-2025 and ubuntu (attempt 1), macOS failed attempt 1 on a pre-existing race in background.e2e.ts windows() (isVisible on a destroyed window during closeWindows), 17/17 on rerun attempt 2.",
+      "landmarks": [
+        {
+          "feature": "desktop e2e harness",
+          "symbol": "launchDesktop",
+          "loc": "e2e/desktop/launch.ts:310",
+          "what": "launches Electron with a resolved app path, does all DB access in the seed-child.ts process, and kills the process tree with taskkill /T /F on win32 so the suite runs on Windows"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/scheduler.ts",
@@ -422,6 +446,26 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The value reuses the web e2e's DB path (file:e2e/.data/e2e.db). That's harmless because the build never opens a client and Electron's main replaces it at launch through server-env.ts.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-15": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "e2e/desktop/launch.ts:379 early return in quit() (skip app.close() when the launch-time child has already exited) has no test exercising it; a spec that quits the app itself and then calls close() is the only coverage, and only on Windows CI",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "e2e/desktop/launch.ts:363 catch path still calls app.process(); safe there because app has not been disposed yet, unlike the quit path this diff fixes",
           "resolution": "non-blocking, left"
         }
       ]
