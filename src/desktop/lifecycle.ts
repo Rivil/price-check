@@ -45,11 +45,12 @@
 // fetch it (autoInstallOnAppQuit is off): an app.exit(0) right after the hand-over
 // ends the process before Squirrel has it, and nothing installs. So on darwin, after
 // the hand-over, quit waits for Electron's native autoUpdater to report the update
-// staged ('update-downloaded'). electron-updater then asks Squirrel to install and
-// end the app itself, relaunching it (MacUpdater ignores quitAndInstall's
-// arguments, so on Quit too); app.exit(0) follows SQUIRREL_HANDOFF_MS later only as
-// a backstop, and still installs, since Squirrel installs a staged update when the
-// app ends. A Squirrel error exits at once, and so does a wait that passes
+// staged ('update-downloaded'). electron-updater then ends the app itself: for
+// 'Restart to update' it asks Squirrel to install and relaunch; for a plain Quit
+// (the updater turns autoRunAppAfterInstall off, since MacUpdater ignores
+// quitAndInstall's arguments) it only quits, and Squirrel installs the staged update
+// as the app ends, without relaunching it. app.exit(0) follows SQUIRREL_HANDOFF_MS
+// later only as a backstop, and still installs, for the same reason. A Squirrel error exits at once, and so does a wait that passes
 // SQUIRREL_STAGE_WAIT_MS: the update stays downloaded and is offered again on the
 // next launch. Windows and Linux exit right after the hand-over, as above.
 //

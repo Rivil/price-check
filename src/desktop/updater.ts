@@ -34,6 +34,7 @@ export type AutoUpdater = Pick<
 	| 'autoInstallOnAppQuit'
 	| 'allowDowngrade'
 	| 'allowPrerelease'
+	| 'autoRunAppAfterInstall'
 	| 'checkForUpdates'
 	| 'quitAndInstall'
 > & {
@@ -221,6 +222,12 @@ export function createUpdater({
 			if (downloaded === null || installed) return false;
 			installed = true;
 			try {
+				// macOS: MacUpdater ignores quitAndInstall's arguments and relaunches only
+				// when autoRunAppAfterInstall is on, so a plain Quit turns it off (the
+				// update still installs, the app stays closed). Windows and Linux read it
+				// only for a non-silent install, and this one is silent: there the second
+				// argument decides.
+				autoUpdater.autoRunAppAfterInstall = mode === 'restart';
 				autoUpdater.quitAndInstall(true, mode === 'restart');
 				return true;
 			} catch (error) {

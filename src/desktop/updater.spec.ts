@@ -21,6 +21,7 @@ class FakeUpdater extends EventEmitter {
 	autoInstallOnAppQuit = true;
 	allowDowngrade = false;
 	allowPrerelease: boolean;
+	autoRunAppAfterInstall = true;
 	checkForUpdates = vi.fn<() => Promise<UpdateCheckResult | null>>(() => Promise.resolve(null));
 	quitAndInstall = vi.fn<(isSilent?: boolean, isForceRunAfter?: boolean) => void>();
 
@@ -421,6 +422,58 @@ describe('createUpdater, installOnExit', () => {
 
 		expect(fake.quitAndInstall).toHaveBeenCalledTimes(1);
 		expect(fake.quitAndInstall).toHaveBeenCalledWith(true, true);
+		updater.stop();
+	});
+
+	/** Records autoRunAppAfterInstall as quitAndInstall sees it (MacUpdater reads it then). */
+	function recordAutoRun(fake: FakeUpdater): boolean[] {
+		const seen: boolean[] = [];
+		fake.quitAndInstall.mockImplementation(() => {
+			seen.push(fake.autoRunAppAfterInstall);
+		});
+		return seen;
+	}
+
+	it('macOS plain quit installs without relaunch', () => {
+		const { fake, updater } = setup();
+		const seen = recordAutoRun(fake);
+		updater.start();
+		fake.emit('update-downloaded', { version: '0.1.6' });
+
+		expect(updater.installOnExit('quit')).toBe(true);
+
+		expect(seen).toEqual([false]);
+		expect(fake.quitAndInstall).toHaveBeenCalledWith(true, false);
+		updater.stop();
+	});
+
+	it('macOS restart relaunches after install', () => {
+		const fake = new FakeUpdater();
+		fake.autoRunAppAfterInstall = false;
+		const { updater } = setup({ fake });
+		const seen = recordAutoRun(fake);
+		updater.start();
+		fake.emit('update-downloaded', { version: '0.1.6' });
+
+		expect(updater.installOnExit('restart')).toBe(true);
+
+		expect(seen).toEqual([true]);
+		expect(fake.quitAndInstall).toHaveBeenCalledWith(true, true);
+		updater.stop();
+	});
+
+	it('a later download installs with the mode of its own exit', () => {
+		const { fake, updater } = setup();
+		const seen = recordAutoRun(fake);
+		updater.start();
+		fake.emit('update-downloaded', { version: '0.1.6' });
+		expect(updater.installOnExit('quit')).toBe(true);
+		fake.emit('update-downloaded', { version: '0.1.7' });
+		expect(updater.installOnExit('restart')).toBe(true);
+		fake.emit('update-downloaded', { version: '0.1.8' });
+		expect(updater.installOnExit('quit')).toBe(true);
+
+		expect(seen).toEqual([false, true, false]);
 		updater.stop();
 	});
 
