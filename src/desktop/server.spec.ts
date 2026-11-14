@@ -7,7 +7,12 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { removeTempDir } from '#lib/server/testing/temp-dir.ts';
 import { loadAdapterHandler, startDesktopServer, type DesktopServer } from './server.ts';
 
-type Seen = { url: string; headers: IncomingHttpHeaders; rawHeaders: string[] };
+type Seen = {
+	url: string;
+	headers: IncomingHttpHeaders;
+	headersDistinct: NodeJS.Dict<string[]>;
+	rawHeaders: string[];
+};
 
 const started: DesktopServer[] = [];
 
@@ -23,6 +28,7 @@ async function startRecording(): Promise<{ server: DesktopServer; seen: Seen[] }
 			seen.push({
 				url: req.url ?? '',
 				headers: { ...req.headers },
+				headersDistinct: { ...req.headersDistinct },
 				rawHeaders: [...req.rawHeaders]
 			});
 			res.end('ok');
@@ -157,6 +163,58 @@ describe('startDesktopServer: forwarded headers', () => {
 		expect(rawHeaders[rawNames.indexOf('x-forwarded-proto') * 2 + 1]).toBe('http');
 	});
 
+	it('rewrites rawHeaders: headersDistinct sees one http, other headers keep their values', async () => {
+		const { server, seen } = await startRecording();
+
+		await send(server.port, {
+			headers: {
+				'X-Forwarded-Proto': 'https',
+				'X-Forwarded-Host': 'evil.example',
+				'X-Test': '1'
+			}
+		});
+
+		expect(seen).toHaveLength(1);
+		const [{ headersDistinct, rawHeaders }] = seen;
+		expect(headersDistinct['x-forwarded-proto']).toEqual(['http']);
+		expect('x-forwarded-host' in headersDistinct).toBe(false);
+		const rawPairs = new Map<string, string[]>();
+		for (let i = 0; i < rawHeaders.length; i += 2) {
+			const name = rawHeaders[i].toLowerCase();
+			rawPairs.set(name, [...(rawPairs.get(name) ?? []), rawHeaders[i + 1]]);
+		}
+		expect(rawPairs.get('x-test')).toEqual(['1']);
+		expect(rawPairs.get('host')).toEqual([`127.0.0.1:${server.port}`]);
+	});
+
+	// Node builds headersDistinct lazily from rawHeaders up to the parser's original
+	// header count, so a rewrite that only swaps rawHeaders leaves it throwing or stale.
+	it.each([
+		[
+			'client sent forwarded headers',
+			{ 'X-Forwarded-Proto': 'https', 'X-Forwarded-Host': 'evil.example', 'X-Test': ['1', '2'] }
+		],
+		['client sent none', { 'X-Test': ['1', '2'] }]
+	])('rewritten request headers stay consistent: %s', async (_label, headers) => {
+		const { server, seen } = await startRecording();
+
+		await send(server.port, { headers });
+
+		expect(seen).toHaveLength(1);
+		const [req] = seen;
+		const fromRaw: Record<string, string[]> = {};
+		for (let i = 0; i < req.rawHeaders.length; i += 2) {
+			const name = req.rawHeaders[i].toLowerCase();
+			(fromRaw[name] ??= []).push(req.rawHeaders[i + 1]);
+		}
+		expect(req.headersDistinct).toEqual(fromRaw);
+		expect(req.headersDistinct['x-forwarded-proto']).toEqual(['http']);
+		expect(req.headersDistinct['x-test']).toEqual(['1', '2']);
+		expect(req.headers['x-forwarded-proto']).toBe('http');
+		expect(req.headers['x-test']).toBe('1, 2');
+		expect(Object.keys(req.headers).sort()).toEqual(Object.keys(fromRaw).sort());
+	});
+
 	it("sets X-Forwarded-Proto 'http' when the client sent none", async () => {
 		const { server, seen } = await startRecording();
 
@@ -176,6 +234,59 @@ describe('startDesktopServer: handler failures', () => {
 		started.push(server);
 
 		expect((await send(server.port)).status).toBe(500);
+	});
+
+	it('answers 500 when the handler returns a rejecting promise', async () => {
+		const server = await startDesktopServer({
+			handler: async () => {
+				throw new Error('boom');
+			}
+		});
+		started.push(server);
+
+		expect(await send(server.port)).toEqual({ status: 500, body: 'Internal Server Error' });
+	});
+
+	it('leaves a handler that returns no promise to answer on its own, later', async () => {
+		const server = await startDesktopServer({
+			handler: (_req, res) => {
+				setTimeout(() => res.end('late'), 20);
+				return 'not a promise';
+			}
+		});
+		started.push(server);
+
+		expect(await send(server.port)).toEqual({ status: 200, body: 'late' });
+	});
+
+	it('destroys the response when the handler throws after sending headers', async () => {
+		const server = await startDesktopServer({
+			handler: (req, res) => {
+				if (req.url === '/next') {
+					res.end('ok');
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'text/plain' });
+				res.write('partial');
+				throw new Error('boom after headers');
+			}
+		});
+		started.push(server);
+
+		// The socket may close before or after the client parses the head: either a request
+		// error (socket hang up) or a response that closes without completing is an abort.
+		const first = await new Promise<string>((resolve) => {
+			const req = request({ host: '127.0.0.1', port: server.port, agent: false }, (res) => {
+				res.on('error', () => {});
+				res.on('close', () => resolve(res.complete ? 'complete' : 'aborted'));
+				res.resume();
+			});
+			req.on('error', () => resolve('aborted'));
+			req.end();
+		});
+
+		expect(first).toBe('aborted');
+		expect(await send(server.port, { path: '/next' })).toEqual({ status: 200, body: 'ok' });
 	});
 
 	it('answers 404 when the handler calls next()', async () => {

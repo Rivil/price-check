@@ -41,12 +41,21 @@ function sendText(res: ServerResponse, status: number, body: string): void {
 
 /**
  * Drops client-sent X-Forwarded-Proto and X-Forwarded-Host and sets X-Forwarded-Proto
- * to exactly one 'http'. Both req.headers (what adapter-node and Kit read) and
- * req.rawHeaders (what req.headersDistinct is built from) are rewritten.
+ * to exactly one 'http', in req.headers (what adapter-node and Kit read),
+ * req.headersDistinct and req.rawHeaders alike.
+ *
+ * Node's headers/headersDistinct getters (lib/_http_incoming.js) build their object
+ * lazily from rawHeaders, looping up to the parser's ORIGINAL header count, and cache
+ * it. Built after rawHeaders shrank, headersDistinct reads past the end and throws a
+ * TypeError; built after it grew, it misses the appended 'http'. So both are built
+ * from the original rawHeaders first, then all three are edited the same way.
  */
 function forcePlainHttp(req: IncomingMessage): void {
-	delete req.headers[FORWARDED_HOST];
-	req.headers[PROTOCOL_HEADER] = 'http';
+	const { headers, headersDistinct } = req;
+	delete headers[FORWARDED_HOST];
+	delete headersDistinct[FORWARDED_HOST];
+	headers[PROTOCOL_HEADER] = 'http';
+	headersDistinct[PROTOCOL_HEADER] = ['http'];
 	const raw: string[] = [];
 	for (let i = 0; i < req.rawHeaders.length; i += 2) {
 		const name = req.rawHeaders[i].toLowerCase();
