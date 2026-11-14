@@ -67,7 +67,7 @@ test_contract = [
   '''if SCHEDULER_DISABLED or CHECK_INTERVAL_HOURS are not passed through, server-env.spec fails''',
   '''if DATABASE_URL for a userData dir named 'Application Support Zoë #1 50%' does not let createDb + migrateDb create exactly <dir>/price-check.db (existsSync true, no stray file in cwd), server-env.spec 'awkward path' fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-4"

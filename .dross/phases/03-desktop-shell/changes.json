@@ -42,6 +42,26 @@
           "what": "server publishes requestPass/stop(drainMs)/closeDb on a globalThis registry symbol for Electron main"
         }
       ]
+    },
+    "t-3": {
+      "files": [
+        "src/desktop/app-paths.ts",
+        "src/desktop/app-paths.spec.ts",
+        "src/desktop/alerts-key.ts",
+        "src/desktop/alerts-key.spec.ts",
+        "src/desktop/server-env.ts",
+        "src/desktop/server-env.spec.ts"
+      ],
+      "commit": "40971db",
+      "completed_at": "2026-11-14T11:23:51.14697Z",
+      "landmarks": [
+        {
+          "feature": "desktop first-launch bootstrap",
+          "symbol": "loadOrCreateAlertsKey",
+          "loc": "src/desktop/alerts-key.ts:97",
+          "what": "userData paths, a once-only 0600 alerts key via exclusive link, and the server env the adapter handler runs under"
+        }
+      ]
     }
   },
   "reviews": {
@@ -104,6 +124,35 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "Once stop() hits its drainMs timeout it resolves with a pass still running, so a quit that calls closeDb next will close the db under that pass. This is the accepted trade-off of the drain bound, and it is logged.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-3": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "alerts-key.spec 'a damaged key created by a competitor mid-write' asserts the path is named but never asserts the error message/stack omits the file contents ('half-writ'); the no-leak check exists only in the 'bad key refused' table",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "server-env.spec 'awkward path' uses process.chdir, which works only because Vitest 4 defaults to the forks pool; switching the server project to pool 'threads' would make it throw",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "databaseUrl's claim that Windows drive letters and backslashes pass through libsql unescaped is exercised only by the POSIX awkward-path test; Windows CI is the only place that path shape gets checked",
           "resolution": "non-blocking, left"
         }
       ]
