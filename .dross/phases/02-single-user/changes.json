@@ -111,6 +111,22 @@
           "what": "channels keyed by kind and watches unique on (shop, product_id) with no user_id; migrations 0009/0010 reject colliding multi-user DBs"
         }
       ]
+    },
+    "t-6": {
+      "files": [
+        "src/hooks.server.ts",
+        "src/hooks.server.spec.ts"
+      ],
+      "commit": "e5498e5",
+      "completed_at": "2026-11-14T09:13:00.337362Z",
+      "landmarks": [
+        {
+          "feature": "local request guard",
+          "symbol": "handle",
+          "loc": "src/hooks.server.ts:37",
+          "what": "handle is the loopback Host guard alone; better-auth session and access handles removed"
+        }
+      ]
     }
   },
   "reviews": {
@@ -229,6 +245,28 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "0009's hand-added DELETE of config_enc IS NULL deliveries runs after the file's PRAGMA foreign_keys=ON. That is correct because the pragma is a no-op inside the migrator's transaction, and migrate.spec checks the result with pragma foreign_key_check.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-6": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-1",
+          "text": "The 'handle imports' assertion only collects specifiers from `from '...'` clauses. A bare side-effect import such as `import 'better-auth/svelte-kit'` would get past it, so the 'any subpath' contract line is enforced only for the named and type import forms.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "The guard reads the Host header, not event.url, so it holds even when adapter-node builds the URL from ORIGIN. local-request.ts accepts exact loopback names only, with an optional port from 1 to 65535.",
           "resolution": "non-blocking, left"
         }
       ]

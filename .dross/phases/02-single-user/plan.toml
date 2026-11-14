@@ -71,7 +71,7 @@ files         = ["src/hooks.server.ts", "src/hooks.server.spec.ts"]
 description   = "handle = createLocalRequestHandle() alone: no access handle, no svelteKitHandler, no #lib/server/auth.ts import. access.ts is then imported only by its own spec and accounts.spec, and is deleted with the other auth code in t-7."
 covers        = ["c-1", "c-7"]
 test_contract = ["if the exported handle lets '/health' with Host 'evil.example' through (a /health bypass before the guard), hooks.server.spec fails (expects 403, resolve never called)", "if '/' with Host 'localhost:5173' and no cookie redirects (a surviving /login redirect) or calls resolve other than once, hooks.server.spec fails", "if hooks.server.ts (read ?raw) still imports from 'better-auth' (any subpath) or '#lib/server/auth', hooks.server.spec's direct import assertion fails; init order must stay ['key', 'migrated', 'scheduler']"]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-7"
