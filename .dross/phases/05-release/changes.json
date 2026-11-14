@@ -41,6 +41,23 @@
         }
       ]
     },
+    "t-15": {
+      "files": [
+        "src/desktop/lifecycle.ts",
+        "src/desktop/lifecycle.spec.ts",
+        "src/desktop/main.ts"
+      ],
+      "commit": "373092d",
+      "completed_at": "2026-11-14T20:19:56.152152Z",
+      "landmarks": [
+        {
+          "feature": "desktop update install",
+          "symbol": "watchSquirrel",
+          "loc": "src/desktop/lifecycle.ts:282",
+          "what": "on macOS quit waits (bounded) for Squirrel to stage the handed-over update before app.exit"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "scripts/package-desktop.ts",
@@ -242,6 +259,34 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "boundary.spec source-order and AST checks are textual (comments mentioning PREDECESSOR_PID count as reads, and the restart identity is matched by regex), so a refactor could pass or fail them for cosmetic reasons.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-15": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "On macOS, Quit also relaunches the app after installing: MacUpdater.quitAndInstall ignores its arguments and handleUpdateDownloaded calls nativeUpdater.quitAndInstall() because autoRunAppAfterInstall defaults to true. The lifecycle.ts header comment says so; this is electron-updater's behaviour, not something this diff added.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "watchSquirrel adds 'update-downloaded' and 'error' listeners to Electron's autoUpdater and never removes them. This is harmless because it runs once, on the way to exiting.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "main.ts now reads Electron's autoUpdater on every platform, including Linux, where it is a stub. The Linux packaged smoke run should confirm that reading it is harmless there.",
           "resolution": "non-blocking, left"
         }
       ]
