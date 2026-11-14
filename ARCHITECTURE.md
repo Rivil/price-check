@@ -23,12 +23,13 @@ regenerate the whole document from a scan of the code and git history.
 
 ### Access control
 
-Every request passes one server-hook gate: signed-out requests redirect to /login, non-admins get 403 on every /admin page and action, and only the exact path /health skips the gate, before the session load.
+Every request, /health included, must be addressed to a loopback Host (localhost or 127.0.0.1, any port) or gets a plain 403 before any route runs, and Kit's CSRF origin check rejects cross-origin form POSTs; there is no sign-in and no session.
 
-- decideAccess — src/lib/server/access.ts:29
-- createAccessHandle — src/lib/server/access.ts:58
+- isLoopbackHost — src/lib/server/local-request.ts:11
+- createLocalRequestHandle — src/lib/server/local-request.ts:28
+- handle — src/hooks.server.ts:37
 
-_introduced accounts · 8be9d9c · extended health · a1e390e_
+_introduced accounts · 8be9d9c · extended health · a1e390e · extended 02-single-user_
 
 ### Accessibility checks
 
@@ -40,29 +41,9 @@ Playwright checks every page, in light and dark, for axe AA text contrast, 3:1 c
 
 _introduced app-design · 3f93e57_
 
-### Account authentication
-
-Household members sign in with email and password, sign out, and change their own password; public sign-up is disabled and guarded by a source scan.
-
-- createAuth — src/lib/server/auth-factory.ts:24
-- actions — src/routes/login/+page.server.ts:8
-- POST — src/routes/logout/+server.ts:6
-- changeOwnPassword — src/lib/server/own-password.ts:38
-- SIGN_UP_PATTERNS — src/routes/no-public-signup.spec.ts:17
-
-_introduced accounts · c995bde_
-
-### Admin bootstrap
-
-`pnpm admin:create` creates the first admin on a fresh instance and refuses once any admin exists.
-
-- bootstrapAdmin — src/lib/server/admin-bootstrap.ts:55
-
-_introduced accounts · 8a4932f_
-
 ### Alert channel credential encryption
 
-Channel settings are stored under AES-256-GCM with a dedicated ALERTS_ENCRYPTION_KEY bound to user and channel kind; the server refuses to start without a valid key and names only the variable.
+Channel settings are stored under AES-256-GCM with a dedicated ALERTS_ENCRYPTION_KEY bound to the channel kind; the server refuses to start without a valid key and names only the variable.
 
 - encryptSecret — src/lib/server/alerts/crypto.ts:70
 - init — src/hooks.server.ts:27
@@ -83,7 +64,7 @@ _introduced alert-channels · 31dc98b · extended resend-channel · 01c0e9b · e
 
 ### Alert channel settings
 
-Account → Alerts shows one card per channel type (ntfy, Resend, SMTP) with per-kind routing, enable/disable, Send test with its failure reason and remove; a new card starts with its type's default routing (the email cards' recipient prefilled with the login email, SMTP's port with 587), credentials are write-only, non-text form fields are ignored, and each card's messages show only in that card.
+Account → Alerts shows one card per channel type (ntfy, Resend, SMTP) with per-kind routing, enable/disable, Send test with its failure reason and remove; a new card starts with its type's default routing (the email cards' recipient empty, SMTP's port 587), credentials are write-only, non-text form fields are ignored, and each card's messages show only in that card.
 
 - load — src/routes/account/alerts/+page.server.ts:52
 - channel-resend card — src/routes/account/alerts/+page.svelte:171
@@ -95,7 +76,7 @@ _introduced alert-channels · 2901b1c · extended resend-channel · bc62f8a · e
 
 ### Alert channels storage
 
-One encrypted channel per user per kind with write-only secrets and per-watch, per-channel price-drop delivery rows; the legacy plaintext topic store is gone.
+One encrypted channel per kind with write-only secrets and per-watch, per-channel price-drop delivery rows; the legacy plaintext topic store is gone.
 
 - notifyChannel — src/lib/server/db/channel.schema.ts:14
 - saveChannel — src/lib/server/alerts/channels.ts:176
@@ -148,13 +129,12 @@ _introduced accounts · 62effc6 · extended app-design · 5944cfe · extended pr
 
 ### Header navigation
 
-Signed-in pages show a header with Watchlist, Alerts, Account (Admin for admins) and a POST Sign out; the current link is marked with aria-current.
+Every page shows a header with Watchlist and Alerts; the current link is marked with aria-current.
 
-- navItems — src/lib/nav.ts:32
-- Main nav — src/routes/+layout.svelte:27
-- Account page — src/routes/account/password/+page.svelte:13
+- navItems — src/lib/nav.ts:29
+- Main nav — src/routes/+layout.svelte:25
 
-_introduced app-design · 2f29576_
+_introduced app-design · 2f29576 · extended 02-single-user_
 
 ### Health probe
 
@@ -164,15 +144,6 @@ A public GET /health reads every schema table and answers 200 or 503 with no det
 - retry deadline — src/lib/server/health.spec.ts:137
 
 _introduced health · 8bb016d_
-
-### Household account management
-
-Admins list household accounts, create new ones (optionally as admin), and reset a user's password, which signs that user out everywhere.
-
-- createHouseholdAccount — src/lib/server/accounts.ts:132
-- resetAccountPassword — src/lib/server/accounts.ts:96
-
-_introduced accounts · ff36f24_
 
 ### Price chart
 

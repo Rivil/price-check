@@ -31,11 +31,9 @@ Built with SvelteKit (Svelte 5, adapter-node), Drizzle ORM on SQLite (libsql), T
 ```sh
 pnpm install
 pnpm exec playwright install chromium   # browser for component and e2e tests
-cp .env.example .env                    # then set BETTER_AUTH_SECRET (32+ random chars)
-                                        # and ALERTS_ENCRYPTION_KEY (openssl rand -base64 32)
+cp .env.example .env                    # then set ALERTS_ENCRYPTION_KEY (openssl rand -base64 32)
 pnpm db:migrate
-pnpm admin:create                       # prompts for email, name and password
-pnpm dev                                # http://localhost:5173
+pnpm dev                                # http://localhost:5173, no sign-in
 ```
 
 | Task          | Command                |
