@@ -39,6 +39,22 @@
           "what": "seeds the desktop alert channel row once (never overriding user flags) and alerts now carry watchId plus an 'unsupported' failure reason"
         }
       ]
+    },
+    "t-3": {
+      "files": [
+        "src/desktop/window.ts",
+        "src/desktop/window.spec.ts"
+      ],
+      "commit": "b94c08d",
+      "completed_at": "2026-11-14T15:33:40.592107Z",
+      "landmarks": [
+        {
+          "feature": "desktop notification click-through",
+          "symbol": "showWindow",
+          "loc": "src/desktop/window.ts:165",
+          "what": "shows the app window on a same-origin path, falling back to the origin for off-app paths and never reloading a live window without one"
+        }
+      ]
     }
   },
   "reviews": {
@@ -78,6 +94,35 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The re-seal update only matches the blob it just read (configEnc equal to it, or null), so a config saved in between is left alone. The concurrent test covers the double-insert case.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-3": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "src/desktop/window.ts:150 appUrl's catch returns origin on an unparseable path with nothing logged; the fallback is spec-mandated (fails isAppUrl) and the JSDoc states the off-app fallback, but the parse-failure case itself is not named and a dropped click target leaves no trace",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "the minimised-window test asserts restore() precedes show(), but not that restore() precedes the loadURL of the target, which the description's order (restore, load, then show/focus) implies",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "off-origin table goes beyond the contract (adjacent port, javascript:, unparseable 'http://[') and checks both the new-window and live-window paths",
           "resolution": "non-blocking, left"
         }
       ]

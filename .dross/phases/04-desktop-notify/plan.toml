@@ -57,7 +57,7 @@ test_contract = [
   '''if a path of '//evil.example/x', 'https://evil.example/' or '/\\evil.example' leads to loadURL with any non-app origin, window.spec's path table fails (each must load the origin)''',
   '''if showWindow(state) with no path calls loadURL on an already-open window (tray Open or a second instance would lose the current page), window.spec fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-4"
