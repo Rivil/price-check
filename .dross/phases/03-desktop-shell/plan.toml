@@ -43,7 +43,7 @@ test_contract = [
   '''if closeDb() closes the client twice when called twice, runtime-bridge.spec fails''',
   '''if hooks init order is not ['key','migrated','scheduler','published'], the published controls are not the startScheduler result's, closeDb does not call the db's $client.close, or a disabled scheduler (startScheduler -> null) publishes no controls or controls whose requestPass throws or whose stop() rejects, hooks.server.spec fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-3"

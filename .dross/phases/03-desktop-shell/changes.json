@@ -22,6 +22,26 @@
           "what": "esbuild bundles src/desktop/main.ts to dist-desktop/main.js (ESM, packages external, #lib inlined) and rejects $app/@libsql/drizzle-orm/libsql imports; electron 45.2.3 + esbuild pinned"
         }
       ]
+    },
+    "t-2": {
+      "files": [
+        "src/lib/server/scheduler.ts",
+        "src/lib/server/scheduler.spec.ts",
+        "src/lib/server/runtime-bridge.ts",
+        "src/lib/server/runtime-bridge.spec.ts",
+        "src/hooks.server.ts",
+        "src/hooks.server.spec.ts"
+      ],
+      "commit": "5c203f5",
+      "completed_at": "2026-11-14T11:19:03.965747Z",
+      "landmarks": [
+        {
+          "feature": "desktop runtime bridge",
+          "symbol": "publishRuntime",
+          "loc": "src/lib/server/runtime-bridge.ts:21",
+          "what": "server publishes requestPass/stop(drainMs)/closeDb on a globalThis registry symbol for Electron main"
+        }
+      ]
     }
   },
   "reviews": {
@@ -56,6 +76,34 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "`packages: 'external'` already makes electron external. The explicit `external: ['electron']` repeats it, which does no harm.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-2": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-9",
+          "text": "The 'stopped' guard in tick() makes the 'interval stays armed after stop' assertions vacuous: removing clearInterval from stop() would not fail 'stop drains' or 'ticks every 5 minutes until stopped', since every later tick returns null. A timer-count assertion (e.g. vi.getTimerCount()) would pin the interval teardown itself.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "In hooks.server.ts, closeDb reads db.$client only inside the closure, so publishing during a build never touches the build-time db Proxy.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Once stop() hits its drainMs timeout it resolves with a pass still running, so a quit that calls closeDb next will close the db under that pass. This is the accepted trade-off of the drain bound, and it is logged.",
           "resolution": "non-blocking, left"
         }
       ]
