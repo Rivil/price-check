@@ -5,119 +5,51 @@
 // is gitignored with the browser cache), the static job installs with --ignore-scripts,
 // and failures upload the desktop results. SHA pins and permissions are `pnpm ci:policy`'s.
 //
-// No YAML library (same reason as scripts/workflow-policy.ts): a line reader that
-// knows only the shape ci.yml uses, and throws when a job or step it needs is missing.
+// The workflow is read by scripts/workflow-reader.ts (no YAML library).
 import { readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import desktopConfig from '../playwright.desktop.config.ts';
+import { block, branches, map, readWorkflow, steps, type Step } from './workflow-reader.ts';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const CI_PATH = join(ROOT, '.github/workflows/ci.yml');
 const ci = readFileSync(CI_PATH, 'utf8');
-const lines = ci.split(/\r?\n/);
 
 const DESKTOP_RUN = 'pnpm test:e2e:desktop';
 const SYSCTL = 'sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0';
 
-function unquote(value: string): string {
-	const v = value.trim();
-	if (v.length >= 2 && (v[0] === '"' || v[0] === "'") && v.at(-1) === v[0]) return v.slice(1, -1);
-	return v;
-}
-
-const indentOf = (line: string) => line.length - line.trimStart().length;
-const isComment = (line: string) => line.trim().startsWith('#');
-
-/** The body of `jobs.<id>`: every line up to the next job or top-level key. */
-function job(id: string): string[] {
-	const start = lines.indexOf(`  ${id}:`);
-	if (start < 0) throw new Error(`ci.yml has no job '${id}'`);
-	const rest = lines.slice(start + 1);
-	const end = rest.findIndex((l) => l.trim() !== '' && !isComment(l) && indentOf(l) <= 2);
-	return end < 0 ? rest : rest.slice(0, end);
-}
-
-/** A `key:` mapping directly under a job (env, strategy…), as its child lines. */
-function block(body: string[], key: string, indent: number): string[] {
-	const start = body.findIndex((l) => l === `${' '.repeat(indent)}${key}:`);
-	if (start < 0) return [];
-	const rest = body.slice(start + 1);
-	const end = rest.findIndex((l) => l.trim() !== '' && !isComment(l) && indentOf(l) <= indent);
-	return end < 0 ? rest : rest.slice(0, end);
-}
-
-/** A flat `KEY: value` map, e.g. a job's env. */
-function map(blockLines: string[]): Record<string, string> {
-	const out: Record<string, string> = {};
-	for (const l of blockLines) {
-		const m = /^\s+([A-Za-z0-9_]+):\s*(.*?)\s*$/.exec(l);
-		if (m && !isComment(l)) out[m[1]] = unquote(m[2].replace(/\s+#.*$/, ''));
-	}
-	return out;
-}
-
-type Step = {
-	index: number;
-	lines: string[];
-	get: (key: string) => string | undefined;
-	run: string[];
-};
-
-/** The steps of a job, in order. `run` is the script's trimmed non-empty lines. */
-function steps(body: string[]): Step[] {
-	const list = block(body, 'steps', 4).filter((l) => !isComment(l));
-	const starts = list.flatMap((l, i) => (/^ {6}- /.test(l) ? [i] : []));
-	return starts.map((s, index) => {
-		const stepLines = list.slice(s, starts[index + 1] ?? list.length);
-		const get = (key: string) => {
-			const m = stepLines
-				.map((l) => new RegExp(`^ {6,}(?:- )?${key}:\\s*(.*?)\\s*$`).exec(l))
-				.find(Boolean);
-			return m ? unquote(m[1].replace(/\s+#.*$/, '')) : undefined;
-		};
-		const runAt = stepLines.findIndex((l) => /^ {6}(?:- | {2})run:/.test(l));
-		let run: string[] = [];
-		if (runAt >= 0) {
-			const inline = stepLines[runAt].replace(/^.*?run:\s*/, '').trim();
-			if (/^[|>]/.test(inline)) {
-				const scalar = stepLines.slice(runAt + 1);
-				const end = scalar.findIndex((l) => l.trim() !== '' && indentOf(l) <= 8);
-				run = (end < 0 ? scalar : scalar.slice(0, end)).map((l) => l.trim()).filter(Boolean);
-			} else run = [unquote(inline)];
-		}
-		return { index, lines: stepLines, get, run };
-	});
-}
-
-const testJob = job('test');
-const testSteps = steps(testJob);
-const testEnv = map(block(testJob, 'env', 4));
-const staticJob = job('static');
-const staticSteps = steps(staticJob);
 const gitignore = readFileSync(join(ROOT, '.gitignore'), 'utf8')
 	.split(/\r?\n/)
 	.map((l) => l.trim());
 
-const desktopSteps = testSteps.filter((s) => s.run.some((r) => r.includes(DESKTOP_RUN)));
-const desktop = desktopSteps[0];
-
-/**
- * The desktop step's script as its two OS branches. It must be exactly
- * `if [ "$RUNNER_OS" = "Linux" ]; then … else … fi`, so every OS takes one of them.
- */
-function branches(run: string[]): { linux: string[]; other: string[] } | null {
-	const elseAt = run.indexOf('else');
-	const ok =
-		run[0] === 'if [ "$RUNNER_OS" = "Linux" ]; then' &&
-		elseAt > 0 &&
-		run.at(-1) === 'fi' &&
-		run.filter((l) => /^(if|else|elif|fi)\b/.test(l)).length === 3;
-	return ok ? { linux: run.slice(1, elseAt), other: run.slice(elseAt + 1, -1) } : null;
-}
-const branch = branches(desktop?.run ?? []);
+// Read afresh before each test, never at collection: the reader's mutants then count
+// as covered by the tests that use it (Stryker treats load-time coverage as static).
+let testJob: string[];
+let testSteps: Step[];
+let testEnv: Record<string, string>;
+let staticJob: string[];
+let staticSteps: Step[];
+let desktopSteps: Step[];
+let desktop: Step;
+let branch: ReturnType<typeof branches>;
+let cacheDir: string;
+let cacheSteps: Step[];
+beforeEach(() => {
+	const { job } = readWorkflow(ci, 'ci.yml');
+	testJob = job('test');
+	testSteps = steps(testJob);
+	testEnv = map(block(testJob, 'env', 4));
+	staticJob = job('static');
+	staticSteps = steps(staticJob);
+	desktopSteps = testSteps.filter((s) => s.run.some((r) => r.includes(DESKTOP_RUN)));
+	desktop = desktopSteps[0];
+	branch = branches(desktop?.run ?? []);
+	cacheDir = testEnv.electron_config_cache ?? '';
+	cacheSteps = testSteps.filter((s) => s.get('path')?.includes('electron_config_cache'));
+});
 const indexOfRun = (cmd: string) => testSteps.findIndex((s) => s.run.includes(cmd));
 
 describe('ci.yml test matrix runs the desktop e2e on every OS', () => {
@@ -179,9 +111,6 @@ describe('ci.yml test matrix runs the desktop e2e on every OS', () => {
 });
 
 describe('the Electron binary cache', () => {
-	const cacheDir = testEnv.electron_config_cache ?? '';
-	const cacheSteps = testSteps.filter((s) => s.get('path')?.includes('electron_config_cache'));
-
 	it('points electron_config_cache inside the checkout', () => {
 		expect(cacheDir).toMatch(/^\$\{\{ github\.workspace \}\}\/[A-Za-z0-9._-]+$/);
 		expect(cacheDir).not.toContain('..');
