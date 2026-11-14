@@ -166,6 +166,23 @@ describe('desktop bundle', () => {
 		expect(out).toMatch(/^import\s*\{\s*sql\s*\}\s*from\s*"drizzle-orm";?$/m);
 	});
 
+	it('real entry', async () => {
+		const result = await buildDesktop({ entry: DEFAULT_ENTRY, write: false });
+		const files = result.outputFiles ?? [];
+		expect(files).toHaveLength(1);
+		const out = files[0].text;
+		expect(out).toMatch(/^import\s*\{[^}]*\bapp\b[^}]*\}\s*from\s*"electron";?$/m);
+		expect(out).not.toContain('#lib/');
+		expect(out).not.toContain('$app/');
+		// The handler is named once, as the URL main hands to loadAdapterHandler's
+		// dynamic import. A static import would run its env reads before main sets env.
+		expect(out).toContain('"../build/handler.js"');
+		const handlerSpecifier = /["'][^"'\n]*build\/handler\.js["']/.source;
+		expect(out).not.toMatch(new RegExp(`^\\s*(import|export)\\b[^;]*?${handlerSpecifier}`, 'm'));
+		expect(out).not.toMatch(new RegExp(`\\bimport\\s*\\(\\s*${handlerSpecifier}`));
+		expect(out).toMatch(/\bimport\(\s*(\/\*[^*]*\*\/\s*)?moduleUrl\s*\)/);
+	});
+
 	it('is gitignored at /dist-desktop', () => {
 		const lines = readFileSync(join(ROOT, '.gitignore'), 'utf8')
 			.split(/\r?\n/)
