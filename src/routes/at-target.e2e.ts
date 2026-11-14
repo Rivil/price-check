@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import { parseColour, parseTokens, schemeTokens } from '../lib/styles/tokens.ts';
-import { SEEDED_DESIGN, SEEDED_WATCHES, signIn } from '../../e2e/accounts.ts';
+import { SEEDED_WATCHES } from '../../e2e/accounts.ts';
 
-// Read-only on SEEDED_DESIGN's seeded watches: nothing here checks or edits a
-// watch, so it never reaches amazon.co.uk (r-01).
+// Read-only on the seeded watches: nothing here checks or edits a watch, so it
+// never reaches amazon.co.uk (r-01).
 
 const { layoutAtTarget, layoutLong, layoutCooldown } = SEEDED_WATCHES;
 const LABEL = 'at or below target';
@@ -41,9 +41,7 @@ async function withPage(
 ) {
 	const context = await browser.newContext(options);
 	try {
-		const page = await context.newPage();
-		await signIn(page, SEEDED_DESIGN);
-		await run(page);
+		await run(await context.newPage());
 	} finally {
 		await context.close();
 	}

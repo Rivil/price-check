@@ -3,13 +3,7 @@ import { asc, eq } from 'drizzle-orm';
 import { createDb } from '../../../lib/server/db/client.ts';
 import { checkFailure, watch } from '../../../lib/server/db/schema.ts';
 import { formatCheckedAt } from '../../../lib/watch-view.ts';
-import {
-	E2E_DATABASE_URL,
-	E2E_ORIGIN,
-	SEEDED_MEMBER,
-	SEEDED_WATCHES,
-	signIn
-} from '../../../../e2e/accounts.ts';
+import { E2E_DATABASE_URL, SEEDED_WATCHES } from '../../../../e2e/accounts.ts';
 
 // Only watches seeded for this file are edited or deleted here (see SEEDED_WATCHES).
 const {
@@ -17,7 +11,6 @@ const {
 	pageFailed,
 	pageEdit,
 	pageDelete,
-	otherPriced,
 	failedPriced,
 	pageCooldown,
 	chartFull,
@@ -60,12 +53,9 @@ function field(page: import('@playwright/test').Page, label: string) {
 	return page.locator(`dt:text-is("${label}") + dd`);
 }
 
-test.beforeEach(async ({ page }) => {
-	await signIn(page, SEEDED_MEMBER);
-});
-
 test('details', async ({ page }) => {
 	// Reached from the watchlist.
+	await page.goto('/');
 	await page.getByRole('link', { name: pageDetail.title }).click();
 	await page.waitForURL(`/watches/${pageDetail.id}`);
 
@@ -94,7 +84,10 @@ test('failure details', async ({ page }) => {
 });
 
 test('history', async ({ page }) => {
-	await page.goto(`/watches/${pageDetail.id}`);
+	// Loaded straight: no login screen, no redirect.
+	const response = await page.goto(`/watches/${pageDetail.id}`);
+	expect(response?.status()).toBe(200);
+	expect(response?.request().redirectedFrom()).toBeNull();
 
 	const rows = page.locator('table tbody tr');
 	await expect(rows).toHaveText([
@@ -270,25 +263,4 @@ test('delete', async ({ page }) => {
 	const gone = await page.goto(`/watches/${pageDelete.id}`);
 	expect(gone?.status()).toBe(404);
 	expect(await storedWatch(pageDelete.id)).toBeNull();
-});
-
-test('not yours', async ({ page }) => {
-	const before = await storedWatch(otherPriced.id);
-	expect(before).not.toBeNull();
-
-	const view = await page.goto(`/watches/${otherPriced.id}`);
-	expect(view?.status()).toBe(404);
-	await expect(page.getByText(otherPriced.title)).toHaveCount(0);
-
-	// The member's own session, posting straight at the other user's actions.
-	const headers = { origin: E2E_ORIGIN };
-	const edit = await page.request.post(`/watches/${otherPriced.id}?/target`, {
-		form: { target: '1' },
-		headers
-	});
-	expect(edit.status()).toBe(404);
-	const del = await page.request.post(`/watches/${otherPriced.id}?/delete`, { form: {}, headers });
-	expect(del.status()).toBe(404);
-
-	expect(await storedWatch(otherPriced.id)).toEqual(before);
 });
