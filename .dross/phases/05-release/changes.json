@@ -41,6 +41,24 @@
         }
       ]
     },
+    "t-11": {
+      "files": [
+        "e2e/packaged/launch-packaged.ts",
+        "e2e/packaged/smoke.packaged.ts",
+        "playwright.packaged.config.ts",
+        "package.json"
+      ],
+      "commit": "b0f3189",
+      "completed_at": "2026-11-14T20:41:01.151093Z",
+      "landmarks": [
+        {
+          "feature": "packaged smoke",
+          "symbol": "launchPackaged",
+          "loc": "e2e/packaged/launch-packaged.ts:243",
+          "what": "launches the packaged app on a guarded temp-home userData and smokes empty/libsql-unpacked/offline-update/persist/x64 slice"
+        }
+      ]
+    },
     "t-15": {
       "files": [
         "src/desktop/lifecycle.ts",
@@ -277,6 +295,72 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "boundary.spec source-order and AST checks are textual (comments mentioning PREDECESSOR_PID count as reads, and the restart identity is matched by regex), so a refactor could pass or fail them for cosmetic reasons.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-11": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-1",
+          "text": "e2e/packaged/launch-packaged.ts:349-351 (diff): `launched.evaluate(... electronApp.quit()).catch(() =\u003e undefined)` discards the evaluate rejection with no comment stating why; the adjacent comment explains why the call returns before exit, not why its error may be dropped. A genuine failure is lost and only resurfaces as the 15 s quit-deadline error without the original cause. Add the reason (e.g. the call may reject as the app tears down the connection) or carry the error into the timeout message.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "spawnX64's signalGroup `catch {}` is commented as ESRCH but catches every error from process.kill (e.g. EPERM), so a failed group kill would go unnoticed; consider checking the code and rethrowing anything other than ESRCH.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The libsql check derives the expected dir from process.platform-process.arch as a prefix, so linux-x64-gnu and win32-x64-msvc still match, and the app.asar regex correctly excludes app.asar.unpacked.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "'refuses existing data' injects a counting launcher and asserts zero launches, ownsUserData false and an unchanged directory listing, which is a direct test of the guard.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-1",
+          "text": "e2e/packaged/launch-packaged.ts quit(): the login-item turn-off calls setLoginItemSettings, which Electron does not implement on Linux, so it does nothing there. The app's Linux autostart entry would land under the temp XDG_CONFIG_HOME and only goes away because dispose() removes the temp home. The outcome is safe, but the stated 'turns off the login item' is really done by the cleanup on Linux.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "spawnX64 / the 'x64 slice' test never checks or undoes a login-item registration, unlike launchPackaged's quit(). This is safe today only because the seeded marker stops the app from registering.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "'refuses existing data' proves the refusal through an injected launcher counter and a before/after directory listing. On win32 it never creates or removes a real %APPDATA%\\price-check that already exists.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The libsql check needs at least one @libsql .node file under app.asar.unpacked/node_modules/@libsql/\u003cplatform\u003e-\u003carch\u003e and fails if any native module path contains app.asar/, which covers both halves of the c-1 test_contract line.",
           "resolution": "non-blocking, left"
         }
       ]

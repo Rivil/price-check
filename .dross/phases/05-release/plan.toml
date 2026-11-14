@@ -194,7 +194,7 @@ test_contract = [
   '''if the CI build's unreachable loopback feed makes the app exit or the window error within 15 s of launch, smoke.packaged 'offline update check' fails''',
   '''if launchPackaged with packagedUserDataDir already present spawns any process instead of rejecting, smoke.packaged 'refuses existing data' fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-12"
