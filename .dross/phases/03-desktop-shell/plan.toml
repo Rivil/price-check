@@ -173,7 +173,7 @@ test_contract = [
   '''if any file under src/lib or src/routes imports 'electron' or src/desktop, or any non-spec file under src/desktop (src/desktop/testing excluded) imports $app/*, @libsql/client or #lib/server/db/* (a second libsql client keeps the DB locked on Windows), boundary.spec fails''',
   '''if building the real src/desktop/main.ts fails, or its bundle is missing the bare 'electron' import, keeps a '#lib/' or '$app/' specifier, or statically imports build/handler.js (it must be a runtime dynamic import, after env is set), build-desktop.spec 'real entry' fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-10"

@@ -145,6 +145,24 @@
           "what": "single-instance lock, tray-only login launch, close-to-tray, resume pass, deadline-bounded quit ending in app.exit"
         }
       ]
+    },
+    "t-9": {
+      "files": [
+        "src/desktop/main.ts",
+        "src/desktop/boundary.spec.ts",
+        "scripts/build-desktop.spec.ts",
+        "package.json"
+      ],
+      "commit": "096fa5e",
+      "completed_at": "2026-11-14T11:48:49.24573Z",
+      "landmarks": [
+        {
+          "feature": "desktop app startup",
+          "symbol": "runDesktop wiring",
+          "loc": "src/desktop/main.ts:76",
+          "what": "Electron main entry wires real Electron objects into the lifecycle; boundary.spec pins main.ts as the only electron value import"
+        }
+      ]
     }
   },
   "reviews": {
@@ -375,6 +393,33 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The realDepsFit compile-time check, which confirms Electron's real App/PowerMonitor/Dialog fit the structural deps, is only enforced by pnpm check, not by vitest.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-9": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "build-desktop.spec 'real entry' matches the identifier `moduleUrl` inside the bundled import() call; esbuild keeps that name today but would rename it on a scope collision, which would fail the test even though the bundle is correct",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ICON_DIR resolves to \u003cappRoot\u003e/src/desktop/assets, so packaging must ship src/desktop/assets alongside dist-desktop; outside this task's scope",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "installAppMenu runs only after runDesktop resolves 'started'; until then macOS shows Electron's default menu, which also has Quit, so no gap in behaviour",
           "resolution": "non-blocking, left"
         }
       ]
