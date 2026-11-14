@@ -105,6 +105,26 @@
           "what": "desktop channel driver over the bridged notifier; click opens the watch; installDesktop registers and seeds the row"
         }
       ]
+    },
+    "t-7": {
+      "files": [
+        "src/desktop/server.ts",
+        "src/desktop/server.spec.ts",
+        "src/desktop/testing/fake-handler.ts",
+        "src/desktop/lifecycle.ts",
+        "src/desktop/lifecycle.spec.ts",
+        "src/desktop/main.ts"
+      ],
+      "commit": "e7fdf5b",
+      "completed_at": "2026-11-14T16:25:24.319999Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "runDesktop",
+          "loc": "src/desktop/lifecycle.ts:172",
+          "what": "sets the AUMID before key/server start and routes notification clicks to showWindow (held until ready, dropped on quit); notifier published before handler import"
+        }
+      ]
     }
   },
   "reviews": {
@@ -254,6 +274,26 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "'seed never overwrites' installs twice over a user-edited row and checks both the flags and the row count, which covers both halves of its contract line.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-7": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "A click held during startup is dropped without a log if startup then fails or quit begins (lifecycle.ts show/held path). That is acceptable because the app is exiting anyway.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "server.spec 'notifier before import' relies on vi.resetModules() so fake-handler's top-level readNotifier() runs again for each test. The afterEach also removes the Symbol.for key so no notifier leaks between tests.",
           "resolution": "non-blocking, left"
         }
       ]

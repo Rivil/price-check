@@ -138,7 +138,7 @@ test_contract = [
   '''if a click after before-quit started calls deps.showWindow, lifecycle.spec fails''',
   '''if any non-spec src/desktop file other than main.ts (notifier.ts, notify-seam.ts and app-id.ts included) value-imports 'electron', the existing boundary.spec fails; if the real main.ts entry fails to build, the existing build-desktop.spec 'real entry' fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-8"
