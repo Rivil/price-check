@@ -396,6 +396,30 @@ describe('quit', () => {
 		expect(h.app.exit).toHaveBeenCalledWith(0);
 	});
 
+	it('a second-instance or activate during shutdown opens no window', async () => {
+		const h = harness();
+		const stopped = deferred();
+		vi.mocked(h.runtime.stop).mockImplementation(() => stopped.promise);
+		await runDesktop(h.deps);
+		expect(h.deps.showWindow).toHaveBeenCalledTimes(1);
+		h.windowOpen = false; // the window was closed before quitting
+		beforeQuit(h);
+		await settle();
+		// Shutdown is under way and still waiting on the scheduler.
+		expect(h.app.exit).not.toHaveBeenCalled();
+
+		h.app.emit('second-instance', {}, ['electron', '.'], '/');
+		h.app.emit('activate', {}, false);
+		h.trayActions?.showWindow();
+
+		expect(h.deps.showWindow).toHaveBeenCalledTimes(1);
+		expect(h.windowsCreated).toBe(1);
+		stopped.resolve();
+		await settle();
+		expect(h.app.exit).toHaveBeenCalledWith(0);
+		expect(h.deps.showWindow).toHaveBeenCalledTimes(1);
+	});
+
 	it('a rejecting closeDb still ends in exit(0)', async () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {});
 		const h = harness();
@@ -463,6 +487,29 @@ describe('startup failure', () => {
 		expect(h.log.slice(-2)).toEqual(['showErrorBox', 'exit:1']);
 		expect(h.deps.createTray).not.toHaveBeenCalled();
 		expect(h.deps.showWindow).not.toHaveBeenCalled();
+	});
+
+	it('a key failure leads with the key file, a server failure with the database', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		// Neither message names a path: each path in the dialog must come from its lead.
+		const keyError = new Error('not a valid key');
+		const serverError = new Error('listen EADDRINUSE');
+
+		const k = harness();
+		vi.mocked(k.deps.loadKey).mockRejectedValue(keyError);
+		await expect(runDesktop(k.deps)).resolves.toBe('failed');
+		expect(k.errorBoxes).toHaveLength(1);
+		const keyLead = `The alerts key file could not be used:\n${KEY_FILE}\n\nnot a valid key`;
+		expect(k.errorBoxes[0].content.slice(0, keyLead.length)).toBe(keyLead);
+		expect(k.errorBoxes[0].content).not.toContain(DB_FILE);
+
+		const s = harness();
+		vi.mocked(s.deps.startServer).mockRejectedValue(serverError);
+		await expect(runDesktop(s.deps)).resolves.toBe('failed');
+		expect(s.errorBoxes).toHaveLength(1);
+		const serverLead = `The app's server did not start. Its database is:\n${DB_FILE}\n\nlisten EADDRINUSE`;
+		expect(s.errorBoxes[0].content.slice(0, serverLead.length)).toBe(serverLead);
+		expect(s.errorBoxes[0].content).not.toContain(KEY_FILE);
 	});
 
 	it('an unpublished runtime is a startup failure too', async () => {

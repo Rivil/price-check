@@ -280,6 +280,43 @@ describe('createScheduler', () => {
 		expect(due).toHaveBeenCalledOnce();
 	});
 
+	it('stop disarms the interval itself', async () => {
+		const due = vi.fn(async () => []);
+		const scheduler = createScheduler({ due, checkOne: vi.fn() });
+		scheduler.start();
+		await vi.advanceTimersByTimeAsync(0);
+		// Only the tick interval is armed; no pass is in flight.
+		expect(vi.getTimerCount()).toBe(1);
+
+		await scheduler.stop();
+
+		// Asserted on the timer, not on due(): tick() returns at once while stopped,
+		// so a leaked interval would never show up as an extra pass.
+		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it('a pass that settles in time logs no drain timeout and leaves no timer', async () => {
+		const gate = deferred();
+		const log = vi.fn();
+		const scheduler = createScheduler({
+			due: async () => [w('a')],
+			checkOne: () => gate.promise,
+			log
+		});
+		scheduler.start();
+		await vi.advanceTimersByTimeAsync(0);
+
+		const stopping = scheduler.stop(1000);
+		await vi.advanceTimersByTimeAsync(500);
+		gate.resolve();
+		await stopping;
+		// Checked before time moves on: the drain timer must be cleared, not left to fire.
+		expect(vi.getTimerCount()).toBe(0);
+		await vi.advanceTimersByTimeAsync(1000);
+
+		expect(log).not.toHaveBeenCalled();
+	});
+
 	it('stop drops a queued follow-up', async () => {
 		const gate = deferred();
 		const due = vi.fn(async () => [w('a')]);
