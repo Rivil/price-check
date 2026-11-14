@@ -59,6 +59,24 @@
         }
       ]
     },
+    "t-13": {
+      "files": [
+        ".github/workflows/release.yml",
+        "scripts/workflow-policy.ts",
+        "scripts/workflow-policy.spec.ts",
+        "scripts/release-workflow.spec.ts"
+      ],
+      "commit": "61c138b",
+      "completed_at": "2026-11-14T21:06:08.429604Z",
+      "landmarks": [
+        {
+          "feature": "release pipeline",
+          "symbol": "WRITE_SCOPE_ALLOWLIST",
+          "loc": "scripts/workflow-policy.ts:25",
+          "what": "v* tag runs tag check, three OS builds with packaged smoke, and a gh-only publish job holding the sole contents: write"
+        }
+      ]
+    },
     "t-15": {
       "files": [
         "src/desktop/lifecycle.ts",
@@ -471,6 +489,41 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "On win32 exitedAt is when the cmd wrapper exits, which comes after Electron's real exit. That makes 'StartTime \u003e exitedAt' stricter, not looser, so the c-6 check stays sound.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-13": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-4",
+          "text": "release-workflow.spec 'uses no cache' matches only /actions\\/cache@/, so actions/cache/restore@\u003csha\u003e or actions/cache/save@\u003csha\u003e would get past it; the test_contract says no job may use actions/cache at all",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "release-workflow.spec checks for always()/cancelled()/failure() only by a regex over the whole text and checks only job-level `if:`; a step-level `if:` written another way (e.g. `if: success() || true`) would not be caught. Low risk, since publish's `needs` is pinned exactly",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "publish runs `gh release list --limit 1000`; a repo with more than 1000 releases could miss an existing draft for the tag. Not a concern at this project's scale",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "`diff \u003c(...) \u003c(...) || true` in the publish script has no comment, but it only prints the mismatch before the unconditional `exit 1`, so no error is swallowed",
           "resolution": "non-blocking, left"
         }
       ]
