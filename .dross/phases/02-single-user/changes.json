@@ -193,6 +193,26 @@
           "what": "better-auth and BETTER_AUTH_SECRET removed; ORIGIN optional passthrough env"
         }
       ]
+    },
+    "t-9": {
+      "files": [
+        "e2e/seed.ts",
+        "e2e/accounts.ts",
+        "e2e/harness.e2e.ts",
+        "playwright.config.ts",
+        "e2e/node-server.ts",
+        "src/routes/removed-routes.spec.ts"
+      ],
+      "commit": "93a5f70",
+      "completed_at": "2026-11-14T09:36:31.734073Z",
+      "landmarks": [
+        {
+          "feature": "e2e harness",
+          "symbol": "startNodeServer",
+          "loc": "e2e/node-server.ts:80",
+          "what": "spawns node build with an allowlisted env and awaits exit on stop; e2e seed is one ownerless install"
+        }
+      ]
     }
   },
   "reviews": {
@@ -402,6 +422,34 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "AUTH_TEXT's negative lookahead is case-insensitive, so identifiers like BetterAuthOptions are not caught by the text scan alone; only an import from better-auth would catch them",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-9": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "harness 'fresh seed' asserts the watch set equals SEEDED_WATCHES exactly, relying on test order; e2e/a11y.e2e.ts sorts before e2e/harness.e2e.ts, so the comment 'runs before every route spec' holds only while a11y stays read-only",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "'node-server needs a build' exercises the missing-entry guard via entry 'build/no-such-entry.js' rather than the default build/index.js; same branch, so it still guards the fail-fast path",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "nodeServerEnv spreads caller env last, so a spec can override HOST/PORT/DATABASE_URL/SCHEDULER_DISABLED; the allowlist from process.env is limited to PATH/SystemRoot/HOME as described",
           "resolution": "non-blocking, left"
         }
       ]

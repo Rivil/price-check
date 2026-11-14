@@ -111,7 +111,7 @@ test_contract = [
   '''if startNodeServer spreads process.env (a probe child sees BETTER_AUTH_SECRET or ORIGIN without them being passed), harness.e2e 'node-server env' fails''',
   '''if any file under e2e/ imports better-auth or a deleted module, removed-routes.spec (vitest) fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-10"
