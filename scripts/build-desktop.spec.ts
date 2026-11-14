@@ -142,8 +142,11 @@ describe('desktop bundle', () => {
 	});
 
 	it.each([
+		['$app', '$app'],
 		['$app/env', '$app/env'],
 		['$app/env/private', '$app/env/private'],
+		['libsql', 'libsql'],
+		['libsql/web', 'libsql/web'],
 		['@libsql/client', '@libsql/client'],
 		['drizzle-orm/libsql', 'drizzle-orm/libsql'],
 		['drizzle-orm/libsql/migrator', 'drizzle-orm/libsql/migrator'],
@@ -169,6 +172,16 @@ describe('desktop bundle', () => {
 		const out = await bundle("import { sql } from 'drizzle-orm';\nconsole.log(sql);");
 		expect(out).toMatch(/^import\s*\{\s*sql\s*\}\s*from\s*"drizzle-orm";?$/m);
 	});
+
+	it.each(['x-libsql/y', 'not-$app/env', '@scope/drizzle-orm/libsql'])(
+		'leaves %s external: the refusal matches from the start of the path',
+		async (imported) => {
+			const out = await bundle(`import * as m from '${imported}';\nconsole.log(m);`);
+			expect(out).toMatch(
+				new RegExp(`^import\\s*\\*\\s*as\\s+\\w+\\s+from\\s*"${escape(imported)}";?$`, 'm')
+			);
+		}
+	);
 
 	it('real entry', async () => {
 		const result = await buildDesktop({ entry: DEFAULT_ENTRY, write: false });
