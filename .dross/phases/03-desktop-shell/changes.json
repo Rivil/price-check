@@ -95,6 +95,22 @@
           "what": "sandboxed window on the local origin; window.open always denied, off-origin http(s) to default browser, off-origin navigation/redirect prevented; showWindow recreates/restores"
         }
       ]
+    },
+    "t-6": {
+      "files": [
+        "src/desktop/login-item.ts",
+        "src/desktop/login-item.spec.ts"
+      ],
+      "commit": "2df5492",
+      "completed_at": "2026-11-14T11:36:31.165205Z",
+      "landmarks": [
+        {
+          "feature": "start at login",
+          "symbol": "createLoginItem",
+          "loc": "src/desktop/login-item.ts:115",
+          "what": "registers once on packaged first launch (Electron API on macOS/Windows; XDG autostart on Linux), detects login launch, tray toggle reads/writes OS state"
+        }
+      ]
     }
   },
   "reviews": {
@@ -243,6 +259,27 @@
           "severity": "NOTE",
           "criterion": "c-7",
           "text": "windowOptions also sets webviewTag:false, beyond the stated preferences. It is a harmless hardening.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-6": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "Description asks the executor to confirm wasOpenedAtLogin still reports on macOS 13+ with the pinned Electron (45.2.3) and record the finding; the recorded finding in login-item.ts says it is unconfirmed. The window-at-login fallback is safe, but tray-only login launch on packaged macOS is still unconfirmed.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "linux ensureRegisteredOnce: if the autostart entry is written but the marker write then fails, the outcome is 'failed' with the entry left in place; the next launch just rewrites it, so this is harmless.",
           "resolution": "non-blocking, left"
         }
       ]
