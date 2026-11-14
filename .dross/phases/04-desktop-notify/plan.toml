@@ -76,7 +76,7 @@ test_contract = [
   '''if in 'unsupported' mode isSupported() is not false, notify-seam.spec fails''',
   '''if click(i) for an index never shown throws in main instead of rejecting with a message naming the index, notify-seam.spec fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-5"

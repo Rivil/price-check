@@ -55,6 +55,22 @@
           "what": "shows the app window on a same-origin path, falling back to the origin for off-app paths and never reloading a live window without one"
         }
       ]
+    },
+    "t-4": {
+      "files": [
+        "src/desktop/notify-seam.ts",
+        "src/desktop/notify-seam.spec.ts"
+      ],
+      "commit": "f80379b",
+      "completed_at": "2026-11-14T15:37:06.145252Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "notificationClassFor",
+          "loc": "src/desktop/notify-seam.ts:116",
+          "what": "unpackaged runs with PRICE_CHECK_E2E_NOTIFY=record|unsupported swap Electron's Notification for a recorder on globalThis; packaged runs never read it"
+        }
+      ]
     }
   },
   "reviews": {
@@ -123,6 +139,33 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "off-origin table goes beyond the contract (adjacent port, javascript:, unparseable 'http://[') and checks both the new-window and live-window paths",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-4": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "notificationClassFor returns createRecorder(mode) as C (notify-seam.ts:405). The recorder is only a NotificationCtor, so a caller that relies on C-specific members of Electron's real class would type-check but fail at runtime in e2e mode. Returning NotificationCtor, or limiting what C can add, would keep this honest.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "RecordingNotification.emit always passes a single {} to listeners. Nothing fires 'failed' in the recorder now, but a later fake 'failed' path would need to pass the (event, error) pair that NotificationLike declares.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The compile-time check realClassFits makes sure Electron's real Notification fits the structural NotificationCtor slice, and the spec also covers show order versus construction order, multiple listeners and recorder replacement.",
           "resolution": "non-blocking, left"
         }
       ]
