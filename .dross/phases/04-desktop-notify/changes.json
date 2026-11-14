@@ -20,6 +20,23 @@
         }
       ]
     },
+    "t-10": {
+      "files": [
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/harness.e2e.ts",
+        "e2e/desktop/notify.e2e.ts"
+      ],
+      "commit": "982b562",
+      "completed_at": "2026-11-14T17:01:31.003512Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "recordedNotifications",
+          "loc": "e2e/desktop/launch.ts:423",
+          "what": "e2e launcher notify option plus recorder read/click helpers; notify.e2e proves delivery and click routing in real Electron"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/alerts/channel.ts",
@@ -180,6 +197,35 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "notify-bridge.spec's no-import check also covers dynamic import(), require() and re-exports with 'from', which goes beyond the test_contract",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-10": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "e2e/desktop/notify.e2e.ts: the 'exactly one record' checks wait until the count reaches before+1 and then check it once more straight away. A duplicate notification recorded slightly later would slip through. A short settle before the final count would make 'exactly one' hold.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "c-1 is exercised through a failed-check alert (Failed checks ticked), not a price drop reaching its target, which is what the test_contract specifies. The test never asserts that the notification body names the price or the target.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "On Linux the minimise test skips both the precondition and the not-minimised claim, as the record says. Window restore there relies on t-3.",
           "resolution": "non-blocking, left"
         }
       ]
