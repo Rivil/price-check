@@ -1,4 +1,6 @@
+import type { RequestEvent } from '@sveltejs/kit';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import hooksSource from './hooks.server.ts?raw';
 
 // The real hooks module, with everything it would start or reach replaced: init
 // must hand the scheduler the server's env, build flag, db and a check that goes
@@ -33,7 +35,6 @@ vi.mock('#lib/server/alerts/crypto.ts', async (importOriginal) => ({
 	...(await importOriginal<typeof import('#lib/server/alerts/crypto.ts')>()),
 	setAlertsKey: mocks.setAlertsKey
 }));
-vi.mock('#lib/server/auth.ts', () => ({ auth: { api: { getSession: vi.fn() } } }));
 vi.mock('#lib/server/db/index.ts', () => ({ db: mocks.db }));
 vi.mock('#lib/server/scheduler.ts', () => ({ startScheduler: mocks.startScheduler }));
 vi.mock('#lib/server/shops/index.ts', () => ({ checkUrl: mocks.checkUrl }));
@@ -155,6 +156,56 @@ describe('hooks.server', () => {
 		expect(mocks.checkUrl).toHaveBeenCalledExactlyOnceWith(
 			'https://www.amazon.co.uk/dp/B0ABC12345'
 		);
+	});
+});
+
+describe('handle', () => {
+	function fakeEvent(path: string, headers: Record<string, string>) {
+		const url = new URL(path, 'http://localhost:5173');
+		return {
+			url,
+			route: { id: url.pathname },
+			request: new Request(url, { headers }),
+			cookies: { get: () => undefined, getAll: () => [] },
+			locals: {}
+		} as unknown as RequestEvent;
+	}
+
+	async function run(event: RequestEvent) {
+		const { handle } = await import('./hooks.server.ts');
+		const resolve = vi.fn(async () => new Response('ok'));
+		const res = await handle({ event, resolve });
+		return { res, resolve };
+	}
+
+	it('handle guards /health', async () => {
+		// The guard runs first for every path: no /health bypass ahead of it.
+		const { res, resolve } = await run(fakeEvent('/health', { host: 'evil.example' }));
+
+		expect(res.status).toBe(403);
+		expect(resolve).not.toHaveBeenCalled();
+	});
+
+	it('handle serves / without login', async () => {
+		const event = fakeEvent('/', { host: 'localhost:5173' });
+		const { res, resolve } = await run(event);
+
+		// No cookie and no session, yet no redirect to /login: one resolve, its response.
+		expect(res.status).toBe(200);
+		expect(res.headers.get('location')).toBeNull();
+		expect(await res.text()).toBe('ok');
+		expect(resolve).toHaveBeenCalledExactlyOnceWith(event);
+	});
+
+	it('handle imports', () => {
+		// Static imports only: the auth stack is gone from the request path (c-1).
+		const specifiers = [...hooksSource.matchAll(/\bfrom\s+['"]([^'"]+)['"]/g)].map((m) => m[1]);
+		expect(specifiers).toContain('#lib/server/local-request.ts');
+		expect(specifiers.filter((s) => s === 'better-auth' || s.startsWith('better-auth/'))).toEqual(
+			[]
+		);
+		expect(specifiers.filter((s) => /\/server\/(?:auth|access)(?:\.ts)?$/.test(s))).toEqual([]);
+		expect(hooksSource).not.toMatch(/import\s*\(/);
 	});
 });
 

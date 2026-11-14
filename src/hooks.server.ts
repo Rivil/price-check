@@ -1,18 +1,11 @@
-import {
-	sequence,
-	type Handle,
-	type HandleServerError,
-	type ServerInit
-} from '@sveltejs/kit/hooks';
+import type { Handle, HandleServerError, ServerInit } from '@sveltejs/kit/hooks';
 import { building } from '$app/env';
 import { ALERTS_ENCRYPTION_KEY, CHECK_INTERVAL_HOURS, SCHEDULER_DISABLED } from '$app/env/private';
 import { parseAlertsKey, setAlertsKey } from '#lib/server/alerts/crypto.ts';
-import { auth } from '#lib/server/auth.ts';
-import { createAccessHandle } from '#lib/server/access.ts';
-import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { db } from '#lib/server/db/index.ts';
 import { migrateDb } from '#lib/server/db/migrate.ts';
 import { formatError } from '#lib/server/error-log.ts';
+import { createLocalRequestHandle } from '#lib/server/local-request.ts';
 import { startScheduler } from '#lib/server/scheduler.ts';
 import { checkUrl } from '#lib/server/shops/index.ts';
 
@@ -35,12 +28,13 @@ export const init: ServerInit = async () => {
 	});
 };
 
-const handleAccess = createAccessHandle((headers) => auth.api.getSession({ headers }));
-
-const handleBetterAuth: Handle = ({ event, resolve }) =>
-	svelteKitHandler({ event, resolve, auth, building });
-
-export const handle: Handle = sequence(handleAccess, handleBetterAuth);
+/**
+ * The whole access control of a single-user local install (decision
+ * local_request_guard): every request, /health included, must be addressed to a
+ * loopback Host or it gets a 403 before any route runs. Kit's CSRF origin check
+ * covers cross-origin form POSTs. There is no login and no session.
+ */
+export const handle: Handle = createLocalRequestHandle();
 
 /**
  * Replaces Kit's default, which prints each error's message and its cause chain:
