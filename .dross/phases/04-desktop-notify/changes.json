@@ -19,6 +19,26 @@
           "what": "globalThis Symbol.for('price-check.notifier') hand-off of main's DesktopNotifier to the server bundle; undefined outside Electron"
         }
       ]
+    },
+    "t-2": {
+      "files": [
+        "src/lib/server/alerts/channel.ts",
+        "src/lib/server/alerts/channels.ts",
+        "src/lib/server/alerts/channels.spec.ts",
+        "src/lib/server/alerts/alerts.ts",
+        "src/lib/server/alerts/alerts.spec.ts",
+        "src/lib/server/alerts/ntfy.spec.ts"
+      ],
+      "commit": "b39ea7a",
+      "completed_at": "2026-11-14T15:31:10.086091Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "ensureChannel",
+          "loc": "src/lib/server/alerts/channels.ts:221",
+          "what": "seeds the desktop alert channel row once (never overriding user flags) and alerts now carry watchId plus an 'unsupported' failure reason"
+        }
+      ]
     }
   },
   "reviews": {
@@ -38,6 +58,26 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "notify-bridge.spec's no-import check also covers dynamic import(), require() and re-exports with 'from', which goes beyond the test_contract",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-2": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ensureChannel works for any ChannelKind: if it were ever called for ntfy/resend/smtp, an unreadable row would be overwritten with an empty {} config. That is harmless for desktop, the only intended caller, and the old config could not be opened anyway.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The re-seal update only matches the blob it just read (configEnc equal to it, or null), so a config saved in between is left alone. The concurrent test covers the double-insert case.",
           "resolution": "non-blocking, left"
         }
       ]

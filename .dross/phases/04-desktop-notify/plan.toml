@@ -39,7 +39,7 @@ test_contract = [
   '''if a row sealed under another key stays undecryptable after ensureChannel (channelsFor would skip it forever with only a log line), or its flags change, channels.spec fails''',
   '''if two concurrent ensureChannel calls (Promise.all) throw or leave other than one row, channels.spec fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-3"
