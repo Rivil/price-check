@@ -56,6 +56,61 @@
           "what": "always-on header (Watchlist+Alerts only, no Sign out) and footer Source link to the public repo for AGPL-3.0 §13"
         }
       ]
+    },
+    "t-4": {
+      "files": [
+        "src/lib/server/db/channel.schema.ts",
+        "src/lib/server/db/schema.ts",
+        "src/lib/server/db/alert.schema.ts",
+        "src/lib/server/db/alert.schema.spec.ts",
+        "src/lib/server/db/channel.schema.spec.ts",
+        "drizzle/0009_single_user_channels.sql",
+        "drizzle/meta/0009_snapshot.json",
+        "drizzle/meta/_journal.json",
+        "src/lib/server/db/migrate.spec.ts",
+        "src/lib/server/alerts/crypto.ts",
+        "src/lib/server/alerts/crypto.spec.ts",
+        "src/lib/server/alerts/channels.ts",
+        "src/lib/server/alerts/channels.spec.ts",
+        "src/lib/server/alerts/alerts.ts",
+        "src/lib/server/alerts/alerts.spec.ts",
+        "src/lib/server/alerts/live.spec.ts",
+        "src/lib/server/alerts/backfill.ts",
+        "src/lib/server/alerts/backfill.spec.ts",
+        "src/lib/server/scheduler.spec.ts",
+        "src/hooks.server.ts",
+        "src/hooks.server.spec.ts",
+        "src/routes/account/alerts/+page.server.ts",
+        "src/routes/account/alerts/page.server.spec.ts",
+        "src/routes/account/alerts/+page.svelte",
+        "src/routes/account/alerts/page.svelte.spec.ts",
+        "src/lib/server/db/watch.schema.ts",
+        "drizzle/0010_single_user_watches.sql",
+        "drizzle/meta/0010_snapshot.json",
+        "src/lib/server/db/watch.schema.spec.ts",
+        "src/lib/server/db/price-point.schema.spec.ts",
+        "src/lib/server/db/check-failure.schema.spec.ts",
+        "src/lib/server/watches.ts",
+        "src/lib/server/watches.spec.ts",
+        "src/lib/server/checks.ts",
+        "src/lib/server/checks.spec.ts",
+        "src/lib/server/sparklines.ts",
+        "src/lib/server/sparklines.spec.ts",
+        "src/routes/+page.server.ts",
+        "src/routes/page.server.spec.ts",
+        "src/routes/watches/[id]/+page.server.ts",
+        "src/routes/watches/[id]/page.server.spec.ts"
+      ],
+      "commit": "4d5a234",
+      "completed_at": "2026-11-14T09:10:29.267875Z",
+      "landmarks": [
+        {
+          "feature": "single-user data model",
+          "symbol": "addWatch",
+          "loc": "src/lib/server/watches.ts:54",
+          "what": "channels keyed by kind and watches unique on (shop, product_id) with no user_id; migrations 0009/0010 reject colliding multi-user DBs"
+        }
+      ]
     }
   },
   "reviews": {
@@ -133,6 +188,47 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "src/routes/account/password/+page.svelte still exists on disk, so the 'every nav link resolves to a route' test would not yet catch a leftover Account -\u003e /account/password link until the sibling route-removal task deletes it. The self-check test probes /account/nonexistent, not /account/password, despite its name.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-4": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "Removing alert.schema.ts and the per-user channel/watch signatures leaves e2e/seed.ts (inserts into alertChannel, watch rows with userId) and e2e/harness.e2e.ts (imports alertChannel, calls loadChannelConfig(db, key, design.id, 'ntfy')) broken; e2e is outside tsconfig so typecheck will not catch it, but `npm test` will fail until a sibling task rewrites them.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "watches.ts insert switched from db.transaction to db.batch (to avoid SQLITE_BUSY on concurrent adds). The libsql batch is still atomic, and the id-collision test now proxies 'batch'. This is a behavioural change the task description does not mention.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "0009/0010 only reject multi-user databases whose users collide on a channel kind or a product. A multi-user DB with disjoint kinds and products migrates silently and merges into one install. That matches data_scope ('unsupported') but is not a full refusal.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Channels sealed under the old per-user AAD survive 0009 but read as unreadable until saved again (documented in crypto.ts and tested in channels.spec 'legacy AAD or wrong key'). Upgraded installs will need their channel credentials re-entered.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "0009's hand-added DELETE of config_enc IS NULL deliveries runs after the file's PRAGMA foreign_keys=ON. That is correct because the pragma is a no-op inside the migrator's transaction, and migrate.spec checks the result with pragma foreign_key_check.",
           "resolution": "non-blocking, left"
         }
       ]
