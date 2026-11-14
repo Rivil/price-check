@@ -108,6 +108,23 @@
           "what": "README pins per-OS install notes: universal dmg, per-user Windows install, AppImage libfuse2 and AppArmor userns step, sandbox kept"
         }
       ]
+    },
+    "t-7": {
+      "files": [
+        "scripts/workflow-reader.ts",
+        "scripts/workflow-reader.spec.ts",
+        "scripts/ci-desktop.spec.ts"
+      ],
+      "commit": "fad6bf0",
+      "completed_at": "2026-11-14T19:20:32.166859Z",
+      "landmarks": [
+        {
+          "feature": "workflow pinning specs",
+          "symbol": "readWorkflow",
+          "loc": "scripts/workflow-reader.ts:164",
+          "what": "shared no-YAML-library line reader for jobs, job and top-level keys, on triggers, steps and OS branches"
+        }
+      ]
     }
   },
   "reviews": {
@@ -290,6 +307,40 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The Development section still says 'Electron packaging is in progress', which is a little stale now that releases ship. It is outside this task's claimed surface.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-7": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/workflow-reader.ts triggers(): eventAt = body.findIndex(l =\u003e pair(l)?.[0] === event) does not check indent, so a nested key (e.g. a workflow_dispatch input named 'push') that comes before the real event line would be taken as that event's body. It should match only at the event's indent (indentOf(body[0])).",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "stripComment (/\\s#.*/) cuts a quoted value that contains ' #' (e.g. key: 'a #b'). The old ci-desktop helpers did the same; this repo's workflows have no such values.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "map() now accepts 'KEY:value' with no space after the colon (pinned by the 'H:v' case), unlike the old helper. It is harmless for ci-desktop.spec's env reads.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ci-desktop.spec now reads the workflow in beforeEach. No describe-level code reads the reassigned variables at collection time, so moving the cacheDir/cacheSteps setup is safe.",
           "resolution": "non-blocking, left"
         }
       ]

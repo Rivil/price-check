@@ -126,7 +126,7 @@ test_contract = [
   '''if jobKey('needs') does not read both `needs: [a, b]` and a block list as ['a','b'], or triggers() does not read push.tags ['v*'], workflow-reader.spec fails''',
   '''if the shared steps()/branches() lose the desktop step's Linux branch, ci-desktop.spec 'runs Linux under xvfb-run -a, after the AppArmor userns sysctl' fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-8"
