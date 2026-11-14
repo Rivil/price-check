@@ -149,7 +149,7 @@ files         = ["src/hooks.server.ts", "src/hooks.server.spec.ts", "e2e/desktop
 description   = "init: after migrateDb and before startScheduler, readNotifier(); if one is present, installDesktop(db, alertsKey(), notifier, {watchExists: async (id) => (await getWatch(db, id)) !== null}); if none, do nothing. Everything else in init stays as is. guard.e2e.ts's stored-channels assertion (toEqual(['ntfy'])) becomes ['desktop','ntfy'] in the same commit."
 covers        = ["c-1", "c-4"]
 test_contract = ["if init with a published fake notifier does not record order ['key','migrated','desktop','scheduler','published'], hooks.server.spec fails (the first scheduler pass must already route desktop)", "if init with no notifier published calls installDesktop, registers 'desktop' in channelKinds() or writes a notify_channel row, hooks.server.spec 'no Electron, no desktop' fails (decision desktop_only_driver)", "if the watchExists handed to installDesktop resolves true for an id with no watch row, hooks.server.spec fails", "if the registration made in one hooks.server.spec test is still in channelKinds() in the next (unregister not applied), hooks.server.spec fails", "if guard.e2e's stored channel kinds after saving ntfy in the desktop app are not exactly ['desktop','ntfy'] (the seeded desktop row plus the saved one), guard.e2e 'form posts reach their actions' fails (desktop e2e, not vitest-gated; executor observes pnpm test:e2e:desktop green for guard.e2e before committing)"]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-9"

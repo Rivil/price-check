@@ -125,6 +125,23 @@
           "what": "sets the AUMID before key/server start and routes notification clicks to showWindow (held until ready, dropped on quit); notifier published before handler import"
         }
       ]
+    },
+    "t-8": {
+      "files": [
+        "src/hooks.server.ts",
+        "src/hooks.server.spec.ts",
+        "e2e/desktop/guard.e2e.ts"
+      ],
+      "commit": "a907513",
+      "completed_at": "2026-11-14T16:29:30.148826Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "setUpDesktopAlerts",
+          "loc": "src/hooks.server.ts:24",
+          "what": "init installs the desktop driver and seeds its row before the first scheduler pass when a notifier is published; a failure is logged and startup continues"
+        }
+      ]
     }
   },
   "reviews": {
@@ -294,6 +311,26 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "server.spec 'notifier before import' relies on vi.resetModules() so fake-handler's top-level readNotifier() runs again for each test. The afterEach also removes the Symbol.for key so no notifier leaks between tests.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-8": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/hooks.server.ts setUpDesktopAlerts adds a log-and-continue catch around installDesktop that the task description does not mention ('everything else in init stays as is'). It is commented, logged without the error message, and covered by 'a failed desktop seed is logged and startup goes on', so it is extra behaviour rather than a quiet fallback.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "hooks.server.spec now mocks #lib/server/db/index.ts with a getter so the desktop tests can swap in a real temp-file db. The existing tests still receive the fake db through beforeEach.",
           "resolution": "non-blocking, left"
         }
       ]
