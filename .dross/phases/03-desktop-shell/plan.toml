@@ -230,7 +230,7 @@ test_contract = [
   '''if a raw GET with Host 'evil.example' to a real file under build/client/_app/immutable/ (read from disk), /health or / gets anything but 403, guard.e2e fails; control: the same asset with Host 127.0.0.1:<port> is 200 with an immutable cache-control''',
   '''if a TCP connect to the window's port on a non-loopback IPv4 of this machine (os.networkInterfaces) succeeds, guard.e2e fails (test.skip when the host has none); two launches on different userData dirs must get different ports''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-13"

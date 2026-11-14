@@ -60,6 +60,21 @@
         }
       ]
     },
+    "t-12": {
+      "files": [
+        "e2e/desktop/guard.e2e.ts"
+      ],
+      "commit": "863a5a1",
+      "completed_at": "2026-11-14T12:04:28.561796Z",
+      "landmarks": [
+        {
+          "feature": "local request guard",
+          "symbol": "guard in the app window",
+          "loc": "e2e/desktop/guard.e2e.ts:120",
+          "what": "real Electron proves same-origin window form posts pass while foreign/null/missing Origin and non-loopback Host (immutable assets too) get 403, port loopback-only"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/scheduler.ts",
@@ -305,6 +320,26 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The key is only ever compared by hash or decoded length and never printed. The ntfy topic and the watch URL are on .invalid hosts and the scheduler stays disabled, so r-01 and r-03 hold.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-12": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Every 403 case is checked two ways: CSRF refusals must contain Kit's CSRF text, and Host refusals must have the body 'Forbidden'. So a 403 from the wrong layer cannot pass by accident.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The four tests in the 'guard in the app window' block share one app launch. This only works because the desktop config sets workers: 1 and fullyParallel: false, and test 1's saved ntfy channel is part of the 'before' snapshot that test 2 compares against.",
           "resolution": "non-blocking, left"
         }
       ]
