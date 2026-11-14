@@ -251,6 +251,22 @@
         }
       ]
     },
+    "t-22": {
+      "files": [
+        "e2e/node-server.ts",
+        "e2e/harness.e2e.ts"
+      ],
+      "commit": "38798ba",
+      "completed_at": "2026-11-14T14:09:09.83469Z",
+      "landmarks": [
+        {
+          "feature": "e2e server harness",
+          "symbol": "startNodeServer.stop",
+          "loc": "e2e/node-server.ts:139",
+          "what": "SHUTDOWN_TIMEOUT=1 default plus SIGKILL after 3s grace; resolves only on child exit"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "src/desktop/app-paths.ts",
@@ -714,6 +730,51 @@
           "severity": "NOTE",
           "criterion": "c-1",
           "text": "New cases pin the ^ anchor for all three alternative families ($app, libsql, drizzle-orm/libsql) and the bare-name (/|$) branch for $app and libsql; drizzle-orm/libsql's bare form was already covered by the existing table row.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-22": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-9",
+          "text": "e2e/harness.e2e.ts:322 holdConnection adds `socket.on('error', () =\u003e {})`, an empty error listener with no comment giving the reason. Any socket error after connect is silently discarded. Add an adjacent comment (e.g. the ECONNRESET expected when stop() kills the server) or assert the expected error.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-9",
+          "text": "e2e/harness.e2e.ts 'node-server stop kills a stuck server and awaits its exit' and 'node-server stop does not wait out a held connection' never call server.stop() in a finally block, so an assertion failing before stop() (e.g. the pid fetch) leaves a spawned child (the stuck one ignores SIGTERM) running while rmSync tries to remove its directory.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The held-connection test passes as long as either guard holds: the 1s SHUTDOWN_TIMEOUT default or the 3s SIGKILL escalation. It fails only when both are gone. The 'node-server env' assertions check the default on its own, and the stuck-server test checks escalation on its own, so each guard is still covered.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-9",
+          "text": "The held-connection test is bounded by both the 1s SHUTDOWN_TIMEOUT default and the 3s SIGKILL escalation, so it cannot tell which one kept stop() short. The 'node-server env' check on nodeServerEnv covers the default on its own, so this is fine.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-9",
+          "text": "In the stuck-server test, process.kill(pid, 0) throwing ESRCH works as a 'reaped, not just signalled' check because Node reaps the child before it emits 'exit'. A zombie process would still answer signal 0, so the check can tell the two apart.",
           "resolution": "non-blocking, left"
         }
       ]
