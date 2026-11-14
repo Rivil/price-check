@@ -143,6 +143,24 @@
           "what": "127.0.0.1-only feed serving top-level test artefacts with Range plus PowerShell/ss process and listener parsers"
         }
       ]
+    },
+    "t-9": {
+      "files": [
+        "scripts/packaged-app.ts",
+        "scripts/packaged-app.spec.ts",
+        "scripts/verify-packaged.ts",
+        "scripts/verify-packaged.spec.ts"
+      ],
+      "commit": "5367b21",
+      "completed_at": "2026-11-14T19:42:08.631901Z",
+      "landmarks": [
+        {
+          "feature": "packaged artefact verification",
+          "symbol": "verifyLayout",
+          "loc": "scripts/verify-packaged.ts:489",
+          "what": "checks packaged app.asar file set, per-OS libsql unpacked, stamped versions, latest*.yml and update feed; mac lipo/signing and win per-user AUMID checks"
+        }
+      ]
     }
   },
   "reviews": {
@@ -431,6 +449,69 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "update-feed.spec covers traversal variants, a symlink, a dotfile, a subdirectory, a bad percent escape, suffix and mid-file ranges, 416, HEAD and 405, port release on close, and the ENAMETOOLONG 500 path with its log, well beyond the contract.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-9": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-3",
+          "text": "scripts/verify-packaged.ts:199 `const machineKey = result.code === 0 ? parseRegQuery(result.stdout) : null;` treats any failure of the HKLM uninstall query (spawn failure -1, timeout, access denied) as 'not installed per machine', with no comment, log or violation. HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall always exists on Windows, so a non-zero exit is a real error. As written, the per-machine/UAC check passes quietly when it never ran. Either report the failure as a violation (e.g. via failure(query, ...)), or accept only the documented 'key absent' exit and add a comment saying so.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/verify-packaged.ts:619 isFile's `catch { return false; }` discards every stat error with no comment. It fails closed, because false becomes a 'missing ...' violation, but an EACCES or EIO error is then misreported as a missing file. A comment, or checking for ENOENT, would make the intent explicit.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/packaged-app.ts:274: the comment justifies only reg's exit 1 for an absent key, but every non-zero code (including -1 when reg cannot be spawned) returns null. installWindows then reports 'no per-user (HKCU) uninstall entry', which hides the real cause.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "verify-packaged runCli names the subcommand with argv[0] in its 'ok' and violation-count lines. If an option comes before the subcommand (e.g. `--signed mac \u003capp\u003e`), the message shows the option instead of the command name.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Layout fixtures are real asars built with @electron/asar createPackageWithOptions, and the APP_DIR_NAME test uses vi.doMock to prove the folder name is not a literal. Both match the test_contract wording closely.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "scripts/packaged-app.ts findUserInstall treats every reg exit 1 as 'nothing installed per user'; reg.exe also exits 1 for other failures such as access denied. The comment states the reason and every caller (installWindows, runCli exe, verifyWin) turns null into an error or violation, so this is not a silent pass",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "scripts/verify-packaged.ts verifyWin's check that installed.key.key starts with HKEY_CURRENT_USER can never fail, because findUserInstall only queries HKCU; it is defensive only",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the 'fails an app.asar holding %s' table in scripts/verify-packaged.spec.ts asserts with violations.some(...), so a fixture that also triggers an unrelated violation would still pass; the whole-repo leak test makes up for this",
           "resolution": "non-blocking, left"
         }
       ]

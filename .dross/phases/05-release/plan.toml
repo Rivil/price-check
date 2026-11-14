@@ -164,7 +164,7 @@ test_contract = [
   '''if packagedUserDataDir is not <home>/Library/Application Support/price-check (darwin), <APPDATA>\price-check (win32), or $XDG_CONFIG_HOME/price-check with a <home>/.config fallback (linux), or is built from a literal instead of APP_DIR_NAME, packaged-app.spec fails''',
   '''if installWindows with a fake installer exiting 2 resolves, or parseRegQuery picks a key whose DisplayName is not PRODUCT_NAME, packaged-app.spec fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-10"
