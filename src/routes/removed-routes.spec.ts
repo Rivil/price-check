@@ -10,6 +10,13 @@ const sources = import.meta.glob<string>(
 	['/src/**/*.{ts,js,svelte}', '!**/*.{spec,test,e2e}.{ts,js}'],
 	{ query: '?raw', import: 'default', eager: true }
 );
+// Every e2e helper and spec: no import may reach the auth library or a deleted
+// module. Imports only: e2e specs name the auth secret to assert it is absent.
+const e2eSources = import.meta.glob<string>('/e2e/**/*.{ts,js}', {
+	query: '?raw',
+	import: 'default',
+	eager: true
+});
 // Stryker restore all
 
 /** URLs that must 404 (decision removed_routes): no route may answer any of them. */
@@ -102,16 +109,23 @@ function resolve(from: string, specifier: string) {
 
 const isBetterAuth = (specifier: string) => /^@?better-auth(?:\/|$)/.test(specifier);
 
-function offenders(files: Record<string, string>) {
-	return Object.entries(files).flatMap(([path, text]) => [
-		...[...text.matchAll(SPECIFIER)]
+/** Imports of the auth library or a deleted module, one line per offending import. */
+function importOffenders(files: Record<string, string>) {
+	return Object.entries(files).flatMap(([path, text]) =>
+		[...text.matchAll(SPECIFIER)]
 			.map((match) => match[2])
 			.filter(
 				(specifier) =>
 					isBetterAuth(specifier) ||
 					DELETED_MODULES.includes(stripExtension(resolve(path, specifier)))
 			)
-			.map((specifier) => `${path} imports ${specifier}`),
+			.map((specifier) => `${path} imports ${specifier}`)
+	);
+}
+
+function offenders(files: Record<string, string>) {
+	return Object.entries(files).flatMap(([path, text]) => [
+		...importOffenders({ [path]: text }),
 		...TEXT_PATTERNS.filter((pattern) => pattern.test(text)).map(
 			(pattern) => `${path} matches ${pattern}`
 		)
@@ -232,6 +246,38 @@ describe('removed routes', () => {
 
 	it('no source reaches the auth stack', () => {
 		expect(offenders(sources)).toEqual([]);
+	});
+
+	it('scans real e2e sources', () => {
+		const keys = Object.keys(e2eSources);
+
+		expect(keys).toContain('/e2e/seed.ts');
+		expect(keys).toContain('/e2e/accounts.ts');
+		expect(keys).toContain('/e2e/node-server.ts');
+		expect(keys).toContain('/e2e/harness.e2e.ts');
+	});
+
+	it('e2e scanner fixtures', () => {
+		const bad: [string, string][] = [
+			['/e2e/seed.ts', "import { createAuth } from '../src/lib/server/auth-factory.ts';"],
+			['/e2e/x.e2e.ts', "import { user } from '../src/lib/server/db/auth.schema.ts';"],
+			['/e2e/x.ts', "import { betterAuth } from 'better-auth';"],
+			['/e2e/x.ts', "const m = await import('../src/lib/server/testing/auth-harness.ts');"]
+		];
+		for (const [path, text] of bad) {
+			expect(importOffenders({ [path]: text }), text).toHaveLength(1);
+		}
+		// The secret's name alone is not an import: specs assert it is absent.
+		expect(
+			importOffenders({
+				'/e2e/x.e2e.ts': "import { watch } from '../src/lib/server/db/schema.ts';",
+				'/e2e/y.e2e.ts': "expect(env).not.toContain('BETTER_AUTH_SECRET');"
+			})
+		).toEqual([]);
+	});
+
+	it('no e2e file imports the auth stack', () => {
+		expect(importOffenders(e2eSources)).toEqual([]);
 	});
 
 	it('deleted modules are gone', () => {
