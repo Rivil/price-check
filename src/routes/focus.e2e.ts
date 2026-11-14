@@ -1,18 +1,7 @@
 import { expect, test, type Browser } from '@playwright/test';
-import { eq } from 'drizzle-orm';
-import { createDb } from '../lib/server/db/client.ts';
-import { user } from '../lib/server/db/schema.ts';
 import { contrastRatio } from '../lib/styles/tokens.ts';
 import { tabWalk, type Scheme } from '../../e2e/a11y.ts';
-import {
-	E2E_DATABASE_URL,
-	SEEDED_ADMIN,
-	SEEDED_DESIGN,
-	SEEDED_LONG_ACCOUNT,
-	SEEDED_WATCHES,
-	signIn,
-	type Credentials
-} from '../../e2e/accounts.ts';
+import { SEEDED_WATCHES } from '../../e2e/accounts.ts';
 
 // c-7: every link, button, input and checkbox shows a >= 2px, >= 3:1 focus-visible
 // outline when reached by Tab, in both schemes. Only Tab is pressed — nothing is
@@ -20,67 +9,60 @@ import {
 // image requests are aborted.
 
 const schemes: Scheme[] = ['light', 'dark'];
+const SOURCE_URL = 'https://github.com/Rivil/price-check';
 
-async function longAccountId() {
-	const db = createDb(E2E_DATABASE_URL);
-	try {
-		const [row] = await db
-			.select({ id: user.id })
-			.from(user)
-			.where(eq(user.email, SEEDED_LONG_ACCOUNT.email));
-		return row.id;
-	} finally {
-		db.$client.close();
-	}
-}
-
-const PAGES: { name: string; path: () => Promise<string>; as: Credentials | null }[] = [
-	{ name: '/login', path: async () => '/login', as: null },
-	{ name: '/', path: async () => '/', as: SEEDED_DESIGN },
-	{
-		name: '/watches/layoutLong',
-		path: async () => `/watches/${SEEDED_WATCHES.layoutLong.id}`,
-		as: SEEDED_DESIGN
-	},
-	{ name: '/account/alerts', path: async () => '/account/alerts', as: SEEDED_DESIGN },
-	{ name: '/account/password', path: async () => '/account/password', as: SEEDED_DESIGN },
-	{ name: '/admin/users', path: async () => '/admin/users', as: SEEDED_ADMIN },
-	{
-		name: 'reset page',
-		path: async () => `/admin/users/${await longAccountId()}/password`,
-		as: SEEDED_ADMIN
-	}
+const PAGES: { name: string; path: string; status: number }[] = [
+	{ name: '/', path: '/', status: 200 },
+	{ name: '/watches/layoutLong', path: `/watches/${SEEDED_WATCHES.layoutLong.id}`, status: 200 },
+	{ name: '/account/alerts', path: '/account/alerts', status: 200 },
+	{ name: '404 page', path: '/no-such-page', status: 404 }
 ];
 
-async function open(browser: Browser, scheme: Scheme, as: Credentials | null) {
+async function open(browser: Browser, scheme: Scheme) {
 	const context = await browser.newContext({ colorScheme: scheme });
 	await context.route(
 		(url) => url.hostname.endsWith('.invalid'),
 		(route) => route.abort()
 	);
 	const page = await context.newPage();
-	if (as) await signIn(page, as);
 	return { page, close: () => context.close() };
 }
 
 for (const scheme of schemes) {
-	for (const { name, path, as } of PAGES) {
+	for (const { name, path, status } of PAGES) {
 		test(`focus ${name} ${scheme}`, async ({ browser }) => {
-			const { page, close } = await open(browser, scheme, as);
+			const { page, close } = await open(browser, scheme);
 			try {
-				await page.goto(await path());
+				const response = await page.goto(path);
+				expect(response?.status(), path).toBe(status);
 				// tabWalk fails on any stop without a visible >= 2px, >= 3:1 outline, and
 				// when the walk misses an element or its count differs from the tabbable count.
 				const stops = await tabWalk(page);
 				expect(stops.length, 'focus reachable: something to tab to').toBeGreaterThan(0);
 				expect(stops.every((s) => s.focusVisible)).toBe(true);
-				if (as !== null) {
-					// The link-styled Sign out button keeps its outline like every other control.
-					expect(
-						stops.some((s) => /Sign out/.test(s.label)),
-						'Sign out is reached by Tab'
-					).toBe(true);
+
+				// c-4: the footer Source link is a stop of its own, after every main-content control.
+				const order = await page.evaluate(
+					(source) =>
+						window.__a11yProbe!.visited.map((el) =>
+							el.matches(`footer a[href="${source}"]`)
+								? 'source'
+								: el.closest('main')
+									? 'main'
+									: 'other'
+						),
+					SOURCE_URL
+				);
+				const sourceAt = order.indexOf('source');
+				expect(sourceAt, 'Source link is reached by Tab').toBeGreaterThanOrEqual(0);
+				expect(order.lastIndexOf('source'), 'Source link is one stop').toBe(sourceAt);
+				expect(order.lastIndexOf('main'), 'Source comes after the last main control').toBeLessThan(
+					sourceAt
+				);
+				if (status === 200) {
+					expect(order.includes('main'), 'not vacuous: main has controls').toBe(true);
 				}
+
 				if (name === '/watches/layoutLong') {
 					// Every mark is a button, but only the roving one is a stop.
 					expect(await page.locator('.chart .mark').count()).toBeGreaterThan(1);
@@ -100,9 +82,9 @@ for (const scheme of schemes) {
 	}
 
 	test(`focus contrast ${scheme}`, async ({ browser }) => {
-		const { page, close } = await open(browser, scheme, null);
+		const { page, close } = await open(browser, scheme);
 		try {
-			await page.goto('/login');
+			await page.goto('/');
 			const t = await page.evaluate(() => {
 				const root = getComputedStyle(document.documentElement);
 				const v = (name: string) => root.getPropertyValue(name).trim();
