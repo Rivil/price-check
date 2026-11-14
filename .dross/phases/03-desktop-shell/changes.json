@@ -62,6 +62,23 @@
           "what": "userData paths, a once-only 0600 alerts key via exclusive link, and the server env the adapter handler runs under"
         }
       ]
+    },
+    "t-4": {
+      "files": [
+        "src/desktop/server.ts",
+        "src/desktop/server.spec.ts",
+        "src/desktop/testing/fake-handler.ts"
+      ],
+      "commit": "e6b1e47",
+      "completed_at": "2026-11-14T11:28:48.806939Z",
+      "landmarks": [
+        {
+          "feature": "desktop http server",
+          "symbol": "startDesktopServer",
+          "loc": "src/desktop/server.ts:67",
+          "what": "127.0.0.1 port-0 node:http wrapper that 403s non-loopback Host, forces X-Forwarded-Proto http, and loads adapter-node handler after env+chdir"
+        }
+      ]
     }
   },
   "reviews": {
@@ -153,6 +170,33 @@
           "severity": "NOTE",
           "criterion": "c-1",
           "text": "databaseUrl's claim that Windows drive letters and backslashes pass through libsql unescaped is exercised only by the POSIX awkward-path test; Windows CI is the only place that path shape gets checked",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-4": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The two 'close with keep-alive' tests start their servers without pushing them onto `started`, so if an assertion fails before `server.close()` the listening server leaks into later tests.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "loadAdapterHandler replaces process.env instead of merging into it. Callers must pass a complete environment, which serverEnv already builds from the inherited env.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The tests go beyond the contract: they also cover a handler that throws (500), next() (404), and a repeated X-Forwarded-Proto header line, and the rawHeaders rewrite stops headersDistinct from bringing the client value back.",
           "resolution": "non-blocking, left"
         }
       ]

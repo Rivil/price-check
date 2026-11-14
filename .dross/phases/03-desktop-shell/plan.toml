@@ -85,7 +85,7 @@ test_contract = [
   '''if close() with an idle keep-alive connection open takes over 1s, or the port still accepts a connection after close() resolves, server.spec 'close with keep-alive' fails''',
   '''if loadAdapterHandler imports the fixture module (src/desktop/testing/fake-handler.ts, which records process.env.PROTOCOL_HEADER and process.cwd() at top level) before assigning env and chdir-ing, the recorded PROTOCOL_HEADER is not 'x-forwarded-proto' or the recorded cwd is not appRoot, and server.spec 'env and cwd before import' fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-5"
