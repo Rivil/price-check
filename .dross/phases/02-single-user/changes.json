@@ -59,6 +59,24 @@
         }
       ]
     },
+    "t-12": {
+      "files": [
+        "e2e/removed-routes.e2e.ts",
+        "e2e/local-guard.e2e.ts",
+        "e2e/action-endpoints.ts",
+        "src/routes/action-endpoints.spec.ts"
+      ],
+      "commit": "5af845c",
+      "completed_at": "2026-11-14T09:51:26.130698Z",
+      "landmarks": [
+        {
+          "feature": "local request guard",
+          "symbol": "ACTION_ENDPOINTS",
+          "loc": "e2e/action-endpoints.ts:9",
+          "what": "every form action listed and proven 403 cross-site; removed routes 404 and Host guard 403 proven over HTTP on preview and node build"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/local-request.ts",
@@ -325,6 +343,36 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "header.e2e 'no auth chrome' matches 'Admin' and 'Account' without exact:true, so it rejects any link whose name contains those words (case-insensitive). That is stricter than the contract and fine with the current two-link nav.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-12": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-6",
+          "text": "declaredActions in src/routes/action-endpoints.spec.ts is a hand-rolled scanner that does not understand regex literals. A quote or brace inside a regex in an action body would throw it off. It fails loudly (an error or a list mismatch) rather than passing when it shouldn't, so it is safe as written but may need care when actions grow.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-6",
+          "text": "The CSRF block's follow-up check (the ntfy channel still shows 'Enabled') assumes no earlier e2e file has disabled or removed the seeded channel. Today that holds only because e2e/ files run before src/routes/** files with workers: 1. The snapshot comparison done inside the test (toStrictEqual(before)) is the check that does not depend on file order.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "The control test with ORIGIN unset (a matching derived https://\u003cHost\u003e Origin is answered 400) correctly shows that only the Host guard can refuse the rebinding POST.",
           "resolution": "non-blocking, left"
         }
       ]

@@ -153,7 +153,7 @@ ACTION_ENDPOINTS lists every [path, action]. Removed routes and CSRF run on the 
 '''
 covers        = ["c-3", "c-6", "c-7"]
 test_contract = ["if GET or same-origin POST (urlencoded and JSON, maxRedirects 0) to /login, /logout, /account/password, /admin/users, /admin/users/x/password, /api/auth, /api/auth/get-session, /api/auth/session, /api/auth/sign-in/email or /login/__data.json is anything but exactly 404 with no Location and no Set-Cookie, removed-routes.e2e fails", "if any ACTION_ENDPOINTS entry accepts a POST with Origin https://evil.example (urlencoded, multipart, text/plain), Origin 'null', or no Origin instead of 403, or a follow-up GET shows the seeded watch/channel changed, local-guard.e2e's CSRF block fails; control: /?/add with Origin http://localhost:4173 and an unsupported URL must be 400, not 403 (no live fetch, r-01)", "if a +page.server.ts declares an action missing from ACTION_ENDPOINTS, or vite.config.ts sets csrf.trustedOrigins / disables the origin check, action-endpoints.spec fails", "if node build spawned WITH ORIGIN=http://127.0.0.1:<port> answers Host evil.example on GET '/', '/health', '/account/alerts' or '/watches/<id>/__data.json' with anything but 403, or answers Host '127.0.0.1:<port>' or 'localhost:9' with 403, local-guard.e2e fails", "if a request with no Host header (node:http setHost: false) gets any 2xx response, local-guard.e2e fails (Node 24 answers 400 before hooks; 400 or 403 both pass)", "if node build spawned WITHOUT ORIGIN accepts a POST with Host evil.example and Origin https://evil.example (only the Host guard can 403 it), local-guard.e2e fails"]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-13"
