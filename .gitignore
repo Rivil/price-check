@@ -43,6 +43,8 @@ node_modules
 .wrangler
 /.svelte-kit
 /build
+# Electron main bundle (pnpm build:desktop); also keeps prettier and eslint off it
+/dist-desktop
 
 # OS
 .DS_Store
