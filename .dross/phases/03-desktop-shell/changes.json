@@ -139,6 +139,21 @@
         }
       ]
     },
+    "t-16": {
+      "files": [
+        "e2e/desktop/background.e2e.ts"
+      ],
+      "commit": "b34ddc0",
+      "completed_at": "2026-11-14T13:13:36.966599Z",
+      "landmarks": [
+        {
+          "feature": "desktop background e2e",
+          "symbol": "windows",
+          "loc": "e2e/desktop/background.e2e.ts:69",
+          "what": "e2e window probe skips destroyed BrowserWindows so close/single-instance checks are deterministic"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/scheduler.ts",
@@ -466,6 +481,28 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "e2e/desktop/launch.ts:363 catch path still calls app.process(); safe there because app has not been disposed yet, unlike the quit path this diff fixes",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-16": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "e2e/desktop/background.e2e.ts:72 also drops a window whose BrowserWindow is alive but whose webContents is destroyed (e.g. a crashed renderer). closeWindows (line 93) and the windowless asserts (lines 186, 231) expect [], so they could pass with such a window still open. The task only asks for an isDestroyed() check on the window; consider filtering on window.isDestroyed() alone, or reporting a destroyed-webContents window instead of dropping it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "The two test_contract lines (10 consecutive local passes with --repeat-each 10, and PR #8 desktop e2e green on the first attempt on windows-2025, ubuntu and macOS) are run-time checks the diff can't show. Confirm them before marking t-16 done.",
           "resolution": "non-blocking, left"
         }
       ]

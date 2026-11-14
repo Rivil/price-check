@@ -281,4 +281,4 @@ files = ["e2e/desktop/background.e2e.ts"]
 description = "PR #8 run 43597167874 macOS attempt 1 flaked: background.e2e.ts windows() calls isVisible on a BrowserWindow already destroyed (close-to-tray / single-instance flow). Make the helper skip destroyed windows (isDestroyed() check inside the main-process evaluate) so the spec is deterministic. CI desktop e2e must pass on all three OSes without reruns."
 covers = ["c-5", "c-7"]
 test_contract = ["if windows() evaluates isVisible on a destroyed BrowserWindow, background.e2e.ts throws 'Object has been destroyed' intermittently; with the fix, 10 consecutive local runs of background.e2e.ts (--repeat-each 10) all pass", "if PR #8's desktop e2e job on windows-2025, ubuntu or macOS needs a rerun to pass, the task is not done (first attempt must be green)"]
-status = "pending"
+status = "done"
