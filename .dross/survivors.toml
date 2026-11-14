@@ -46,6 +46,14 @@
   name = "desk-listen-error"
   reason = "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
 
+[[category]]
+  name = "notify-log-only-catch"
+  reason = "A catch body that only logs: emptying it still swallows the error, and every outcome the tests assert (result, retained count, handler calls, startup going on) is unchanged; only the console line is lost."
+
+[[category]]
+  name = "notify-settle-guard"
+  reason = "Equivalent: settle()'s re-entry guard. Resolving an already-settled Promise is ignored and clearTimeout on a cleared timer is a no-op, so dropping the guard or never setting settled changes no show() result (notifier.spec pins show/failed/settleMs outcomes and the zero-timer check)."
+
 [[accepted]]
   key = "6d1a8890f4b5d82a"
   file = "scripts/workflow-policy.ts"
@@ -1379,15 +1387,6 @@
   reason = "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
 
 [[accepted]]
-  key = "88ba330aa8026940"
-  file = "src/desktop/window.ts"
-  op = "StringLiteral"
-  text = "window.loadURL(origin).catch(logFailure('loading the app'));"
-  line = 130
-  category = "desk-message-text"
-  accepted_in = "03-desktop-shell"
-
-[[accepted]]
   key = "ee3b0511ff0cda34"
   file = "src/desktop/window.ts"
   op = "StringLiteral"
@@ -1422,3 +1421,174 @@
   line = 73
   accepted_in = "03-desktop-shell"
   reason = "Equivalent: packages:'external' already leaves every bare import, electron included, external. Probed with esbuild 2026-11-14: external ['electron'], [''] and [] give identical stdin output and a byte-identical src/desktop/main.ts bundle (20685 bytes)."
+
+[[accepted]]
+  key = "01df4a5e2e308499"
+  file = "src/desktop/notifier.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop notification: resolving the click path failed', error);"
+  line = 65
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "dd4244c77d91898a"
+  file = "src/desktop/notifier.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop notification: click handler failed', error);"
+  line = 93
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "659dd29496456631"
+  file = "src/desktop/notifier.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop notification: constructing it failed', error);"
+  line = 110
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "eaa8d05959dcca94"
+  file = "src/desktop/notifier.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop notification: the OS reported a failure', error);"
+  line = 125
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "d8d5c8c958f1dc3d"
+  file = "src/desktop/notifier.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop notification: showing it failed', error);"
+  line = 139
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "327c8ef7a5aa545e"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "window.loadURL(url).catch(logFailure('loading the app'));"
+  line = 133
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "04377912050e3bd9"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "if (target !== undefined) window.loadURL(target).catch(logFailure('loading a page'));"
+  line = 177
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "ee9f78fd9325fcf7"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop startup: setting the AppUserModelId failed', error);"
+  line = 184
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "ddef87abf042061b"
+  file = "src/desktop/notifier.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 92
+  category = "notify-log-only-catch"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "f11fb4d3acdbab26"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 266
+  category = "notify-log-only-catch"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "f5d44b18832f211c"
+  file = "src/desktop/notifier.ts"
+  op = "ConditionalExpression"
+  text = "typeof path === 'string' &&"
+  line = 53
+  accepted_in = "04-desktop-notify"
+  reason = "Equivalent: with typeof path === 'string' forced true, a non-string clickPath() result throws in path.startsWith inside resolveClickPath's try, whose catch returns the same FALLBACK_PATH '/' that isAppPath false would."
+
+[[accepted]]
+  key = "67d8e354c1b08661"
+  file = "src/desktop/notifier.ts"
+  op = "ConditionalExpression"
+  text = "if (retained.length > MAX_RETAINED) retained.splice(0, retained.length - MAX_RETAINED);"
+  line = 77
+  accepted_in = "04-desktop-notify"
+  reason = "Equivalent: retained.splice(0, retained.length - MAX_RETAINED) removes nothing when the length is at or under the cap (zero or negative deleteCount), so the guard is redundant; notifier.spec 'holds at most the newest 20' pins the cap itself."
+
+[[accepted]]
+  key = "65ca07091857f49e"
+  file = "src/desktop/notifier.ts"
+  op = "EqualityOperator"
+  text = "if (retained.length > MAX_RETAINED) retained.splice(0, retained.length - MAX_RETAINED);"
+  line = 77
+  accepted_in = "04-desktop-notify"
+  reason = "Equivalent: at retained.length === MAX_RETAINED the splice deleteCount is 0, so > and >= remove the same (nothing); notifier.spec 'holds at most the newest 20' pins the cap."
+
+[[accepted]]
+  key = "e6d77803ac611b13"
+  file = "src/desktop/notifier.ts"
+  op = "ConditionalExpression"
+  text = "if (settled) return;"
+  line = 117
+  category = "notify-settle-guard"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "ba2ba0da955af743"
+  file = "src/desktop/notifier.ts"
+  op = "BooleanLiteral"
+  text = "settled = true;"
+  line = 118
+  category = "notify-settle-guard"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "db4477e3e04fbe30"
+  file = "src/desktop/window.ts"
+  op = "BlockStatement"
+  text = "} catch {"
+  line = 150
+  accepted_in = "04-desktop-notify"
+  reason = "Equivalent: with appUrl's catch emptied, url stays undefined, isAppUrl(undefined) fails parseUrl (new URL throws) and returns false, so appUrl still returns the origin (window.spec off-origin table includes the unparseable 'http://[')."
+
+[[accepted]]
+  key = "5aeacd4d89f32f17"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ObjectLiteral"
+  text = ".onConflictDoNothing({ target: notifyChannel.kind });"
+  line = 230
+  accepted_in = "04-desktop-notify"
+  reason = "Equivalent: notify_channel's only unique key is its kind primary key (drizzle/0009), so onConflictDoNothing() with no target skips exactly the same conflict as target kind."
+
+[[accepted]]
+  key = "c95155427c20e165"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ConditionalExpression"
+  text = "if (row === undefined || openConfig(key, row).ok) return;"
+  line = 233
+  accepted_in = "04-desktop-notify"
+  reason = "Unobservable for the sole caller: forcing the re-seal makes ensureChannel re-seal a readable desktop row, whose config is always {}; it reopens to {} with flags and updated_at untouched, and the update matches only the blob just read. Add a byte-identical-config test if ensureChannel ever seeds a kind with real settings."
+
+[[accepted]]
+  key = "16605a4211b2e3a7"
+  file = "src/lib/server/alerts/desktop.ts"
+  op = "ConditionalExpression"
+  text = "if (alert.watchId === undefined) return FALLBACK_CLICK_PATH;"
+  line = 33
+  accepted_in = "04-desktop-notify"
+  reason = "Unreachable in practice and fails safe: every routed alert carries watchId (alerts.spec 'watch id' for success and failure) and test alerts return earlier; without the guard, watchExists(undefined) sits inside clickPathFor's try, so a throw or a miss still opens '/'."

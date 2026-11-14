@@ -1,0 +1,3512 @@
+{
+  "phase": "04-desktop-notify",
+  "generated_at": "2026-11-14T17:20:04.697003Z",
+  "languages": [
+    {
+      "name": "typescript",
+      "tool": "stryker",
+      "files": [
+        "e2e/desktop/desktop-alerts.e2e.ts",
+        "e2e/desktop/guard.e2e.ts",
+        "e2e/desktop/harness.e2e.ts",
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/notify.e2e.ts",
+        "src/desktop/app-id.spec.ts",
+        "src/desktop/app-id.ts",
+        "src/desktop/lifecycle.spec.ts",
+        "src/desktop/lifecycle.ts",
+        "src/desktop/main.ts",
+        "src/desktop/notifier.spec.ts",
+        "src/desktop/notifier.ts",
+        "src/desktop/notify-seam.spec.ts",
+        "src/desktop/notify-seam.ts",
+        "src/desktop/server.spec.ts",
+        "src/desktop/server.ts",
+        "src/desktop/testing/fake-handler.ts",
+        "src/desktop/window.spec.ts",
+        "src/desktop/window.ts",
+        "src/hooks.server.spec.ts",
+        "src/hooks.server.ts",
+        "src/lib/server/alerts/alerts.spec.ts",
+        "src/lib/server/alerts/alerts.ts",
+        "src/lib/server/alerts/channel.ts",
+        "src/lib/server/alerts/channels.spec.ts",
+        "src/lib/server/alerts/channels.ts",
+        "src/lib/server/alerts/desktop.spec.ts",
+        "src/lib/server/alerts/desktop.ts",
+        "src/lib/server/alerts/ntfy.spec.ts",
+        "src/lib/server/notify-bridge.spec.ts",
+        "src/lib/server/notify-bridge.ts",
+        "src/routes/account/alerts/+page.server.ts",
+        "src/routes/account/alerts/+page.svelte",
+        "src/routes/account/alerts/alerts.e2e.ts",
+        "src/routes/account/alerts/page.server.spec.ts",
+        "src/routes/account/alerts/page.svelte.spec.ts"
+      ],
+      "mutation": {
+        "Tool": "stryker",
+        "Killed": 465,
+        "Survived": 43,
+        "Timeout": 0,
+        "Errors": 1,
+        "Score": 0.9153543307086615,
+        "Surviving": [
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 184,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "ee9f78fd9325fcf7",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 191,
+            "Op": "BooleanLiteral",
+            "Snippet": "true",
+            "Origin": "inherited",
+            "Key": "5fc33fef75d73b35",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 188,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "inherited",
+            "Key": "28319e8d25644b20",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 201,
+            "Op": "LogicalOperator",
+            "Snippet": "!running.ready \u0026\u0026 running.server === null",
+            "Origin": "inherited",
+            "Key": "71c391493b922ba9",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 201,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "inherited",
+            "Key": "bc96a77e858aabdd",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 216,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "inherited",
+            "Key": "1aca24ef5d5114c8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 217,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "inherited",
+            "Key": "7ff998abd0f89e94",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 217,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "61950c81be14a669",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 216,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "e1e204b3fe674130",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 218,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "inherited",
+            "Key": "8a623c770e7cfe17",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 218,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "cca13982bf5e04ba",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 232,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "Origin": "inherited",
+            "Key": "a6f27f3fbb6da065",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 257,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "125a9fbe0185dc27",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 263,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "inherited",
+            "Key": "0188855cb6fa56ec",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 266,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "inherited",
+            "Key": "f11fb4d3acdbab26",
+            "Lifecycle": "accepted",
+            "Note": "A catch body that only logs: emptying it still swallows the error, and every outcome the tests assert (result, retained count, handler calls, startup going on) is unchanged; only the console line is lost."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 267,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "d7c7f995c082ed25",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 280,
+            "Op": "BooleanLiteral",
+            "Snippet": "true",
+            "Origin": "inherited",
+            "Key": "325c9379b7d2fd52",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/notifier.ts",
+            "Line": 53,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "f5d44b18832f211c",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: with typeof path === 'string' forced true, a non-string clickPath() result throws in path.startsWith inside resolveClickPath's try, whose catch returns the same FALLBACK_PATH '/' that isAppPath false would."
+          },
+          {
+            "File": "src/desktop/notifier.ts",
+            "Line": 65,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "01df4a5e2e308499",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/notifier.ts",
+            "Line": 77,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "67d8e354c1b08661",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: retained.splice(0, retained.length - MAX_RETAINED) removes nothing when the length is at or under the cap (zero or negative deleteCount), so the guard is redundant; notifier.spec 'holds at most the newest 20' pins the cap itself."
+          },
+          {
+            "File": "src/desktop/notifier.ts",
+            "Line": 77,
+            "Op": "EqualityOperator",
+            "Snippet": "retained.length \u003e= MAX_RETAINED",
+            "Origin": "in-hunk",
+            "Key": "65ca07091857f49e",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: at retained.length === MAX_RETAINED the splice deleteCount is 0, so \u003e and \u003e= remove the same (nothing); notifier.spec 'holds at most the newest 20' pins the cap."
+          },
+          {
+            "File": "src/desktop/notifier.ts",
+            "Line": 93,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "dd4244c77d91898a",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/notifier.ts",
+            "Line": 92,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "ddef87abf042061b",
+            "Lifecycle": "accepted",
+            "Note": "A catch body that only logs: emptying it still swallows the error, and every outcome the tests assert (result, retained count, handler calls, startup going on) is unchanged; only the console line is lost."
+          },
+          {
+            "File": "src/desktop/notifier.ts",
+            "Line": 110,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "659dd29496456631",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/notifier.ts",
+            "Line": 118,
+            "Op": "BooleanLiteral",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "ba2ba0da955af743",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: settle()'s re-entry guard. Resolving an already-settled Promise is ignored and clearTimeout on a cleared timer is a no-op, so dropping the guard or never setting settled changes no show() result (notifier.spec pins show/failed/settleMs outcomes and the zero-timer check)."
+          },
+          {
+            "File": "src/desktop/notifier.ts",
+            "Line": 117,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "e6d77803ac611b13",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: settle()'s re-entry guard. Resolving an already-settled Promise is ignored and clearTimeout on a cleared timer is a no-op, so dropping the guard or never setting settled changes no show() result (notifier.spec pins show/failed/settleMs outcomes and the zero-timer check)."
+          },
+          {
+            "File": "src/desktop/notifier.ts",
+            "Line": 125,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "eaa8d05959dcca94",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/notifier.ts",
+            "Line": 139,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "d8d5c8c958f1dc3d",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 116,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "37def2591c9a9102",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 133,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "327c8ef7a5aa545e",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 150,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "db4477e3e04fbe30",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: with appUrl's catch emptied, url stays undefined, isAppUrl(undefined) fails parseUrl (new URL throws) and returns false, so appUrl still returns the origin (window.spec off-origin table includes the unparseable 'http://[')."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 170,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "inherited",
+            "Key": "42a99ea3e2844d9b",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 170,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "31492305523989f5",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 171,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "inherited",
+            "Key": "8c96b0e42ef203d8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 171,
+            "Op": "EqualityOperator",
+            "Snippet": "state.window !== created",
+            "Origin": "inherited",
+            "Key": "e56a1a5bbc9fc131",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 171,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "inherited",
+            "Key": "8c96b0e42ef203d8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 177,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "04377912050e3bd9",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/lib/server/alerts/alerts.ts",
+            "Line": 142,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "inherited",
+            "Key": "d89779be41c89c48",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent for every stored price: with a null target, pricePence \u003c= null compares against 0, and adapters only ever store prices \u003e 0 (amazon/extract.ts:26 returns null for \u003c= 0), so dropped stays false"
+          },
+          {
+            "File": "src/lib/server/alerts/alerts.ts",
+            "Line": 218,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "6393b7616b8017c7",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: channelsFor picks priceDrops only for 'price_drop' and checkFailures for any other kind, so '' routes exactly like 'check_failed'"
+          },
+          {
+            "File": "src/lib/server/alerts/channels.ts",
+            "Line": 230,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "5aeacd4d89f32f17",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: notify_channel's only unique key is its kind primary key (drizzle/0009), so onConflictDoNothing() with no target skips exactly the same conflict as target kind."
+          },
+          {
+            "File": "src/lib/server/alerts/channels.ts",
+            "Line": 233,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "c95155427c20e165",
+            "Lifecycle": "accepted",
+            "Note": "Unobservable for the sole caller: forcing the re-seal makes ensureChannel re-seal a readable desktop row, whose config is always {}; it reopens to {} with flags and updated_at untouched, and the update matches only the blob just read. Add a byte-identical-config test if ensureChannel ever seeds a kind with real settings."
+          },
+          {
+            "File": "src/lib/server/alerts/desktop.ts",
+            "Line": 33,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "16605a4211b2e3a7",
+            "Lifecycle": "accepted",
+            "Note": "Unreachable in practice and fails safe: every routed alert carries watchId (alerts.spec 'watch id' for success and failure) and test alerts return earlier; without the guard, watchExists(undefined) sits inside clickPathFor's try, so a throw or a miss still opens '/'."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 140,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "inherited",
+            "Key": "8fe9f2c38e0ff2e8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: deleting every variable and then Object.assign(process.env, env) leaves process.env equal to env, the same as deleting only those absent from env."
+          }
+        ],
+        "NotCovered": 0
+      },
+      "measured_on": "local",
+      "ranges": {
+        "e2e/desktop/desktop-alerts.e2e.ts": [
+          {
+            "start": 1,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 29,
+            "end": 38,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 39,
+            "end": 39,
+            "construct": "hunk"
+          },
+          {
+            "start": 40,
+            "end": 40,
+            "construct": "VariableDeclaration CARD_SELECTOR"
+          },
+          {
+            "start": 41,
+            "end": 41,
+            "construct": "VariableDeclaration DISABLED_STATE"
+          },
+          {
+            "start": 42,
+            "end": 42,
+            "construct": "VariableDeclaration UNSUPPORTED_MESSAGE"
+          },
+          {
+            "start": 43,
+            "end": 43,
+            "construct": "VariableDeclaration CHECK_FAILED"
+          },
+          {
+            "start": 44,
+            "end": 44,
+            "construct": "hunk"
+          },
+          {
+            "start": 45,
+            "end": 51,
+            "construct": "VariableDeclaration CARD_STOPS"
+          },
+          {
+            "start": 52,
+            "end": 52,
+            "construct": "hunk"
+          },
+          {
+            "start": 53,
+            "end": 53,
+            "construct": "VariableDeclaration REAL_SEND_TIMEOUT_MS"
+          },
+          {
+            "start": 54,
+            "end": 55,
+            "construct": "hunk"
+          },
+          {
+            "start": 56,
+            "end": 60,
+            "construct": "VariableDeclaration WATCHES"
+          },
+          {
+            "start": 61,
+            "end": 61,
+            "construct": "TSTypeAliasDeclaration WatchName"
+          },
+          {
+            "start": 62,
+            "end": 62,
+            "construct": "hunk"
+          },
+          {
+            "start": 63,
+            "end": 69,
+            "construct": "VariableDeclaration seedRows"
+          },
+          {
+            "start": 70,
+            "end": 70,
+            "construct": "hunk"
+          },
+          {
+            "start": 71,
+            "end": 71,
+            "construct": "VariableDeclaration desktopCard"
+          },
+          {
+            "start": 72,
+            "end": 72,
+            "construct": "VariableDeclaration recordCount"
+          },
+          {
+            "start": 73,
+            "end": 73,
+            "construct": "hunk"
+          },
+          {
+            "start": 74,
+            "end": 80,
+            "construct": "FunctionDeclaration openAlerts"
+          },
+          {
+            "start": 81,
+            "end": 86,
+            "construct": "hunk"
+          },
+          {
+            "start": 87,
+            "end": 106,
+            "construct": "FunctionDeclaration saveTicks"
+          },
+          {
+            "start": 107,
+            "end": 107,
+            "construct": "hunk"
+          },
+          {
+            "start": 108,
+            "end": 116,
+            "construct": "FunctionDeclaration expectTicks"
+          },
+          {
+            "start": 117,
+            "end": 121,
+            "construct": "hunk"
+          },
+          {
+            "start": 122,
+            "end": 129,
+            "construct": "FunctionDeclaration checkNow"
+          },
+          {
+            "start": 130,
+            "end": 131,
+            "construct": "hunk"
+          },
+          {
+            "start": 132,
+            "end": 142,
+            "construct": "FunctionDeclaration quitThroughApp"
+          },
+          {
+            "start": 143,
+            "end": 144,
+            "construct": "hunk"
+          },
+          {
+            "start": 145,
+            "end": 159,
+            "construct": "FunctionDeclaration expectCardAxeClean"
+          },
+          {
+            "start": 160,
+            "end": 160,
+            "construct": "hunk"
+          },
+          {
+            "start": 161,
+            "end": 250,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 251,
+            "end": 251,
+            "construct": "hunk"
+          },
+          {
+            "start": 252,
+            "end": 269,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 270,
+            "end": 270,
+            "construct": "hunk"
+          },
+          {
+            "start": 271,
+            "end": 300,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "e2e/desktop/guard.e2e.ts": [
+          {
+            "start": 105,
+            "end": 218,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "e2e/desktop/harness.e2e.ts": [
+          {
+            "start": 8,
+            "end": 9,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 28,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 74,
+            "end": 128,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "e2e/desktop/launch.ts": [
+          {
+            "start": 13,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 35,
+            "end": 39,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 48,
+            "end": 48,
+            "construct": "ExportNamedDeclaration"
+          },
+          {
+            "start": 171,
+            "end": 171,
+            "construct": "hunk"
+          },
+          {
+            "start": 172,
+            "end": 172,
+            "construct": "TSTypeAliasDeclaration NotifyMode"
+          },
+          {
+            "start": 173,
+            "end": 173,
+            "construct": "hunk"
+          },
+          {
+            "start": 174,
+            "end": 181,
+            "construct": "TSTypeAliasDeclaration DesktopEnvInput"
+          },
+          {
+            "start": 184,
+            "end": 201,
+            "construct": "FunctionDeclaration desktopEnv"
+          },
+          {
+            "start": 218,
+            "end": 230,
+            "construct": "TSTypeAliasDeclaration LaunchOptions"
+          },
+          {
+            "start": 331,
+            "end": 388,
+            "construct": "FunctionDeclaration launchDesktop"
+          },
+          {
+            "start": 416,
+            "end": 416,
+            "construct": "hunk"
+          },
+          {
+            "start": 417,
+            "end": 417,
+            "construct": "VariableDeclaration NOTIFICATIONS_KEY"
+          },
+          {
+            "start": 418,
+            "end": 422,
+            "construct": "hunk"
+          },
+          {
+            "start": 423,
+            "end": 433,
+            "construct": "FunctionDeclaration recordedNotifications"
+          },
+          {
+            "start": 434,
+            "end": 435,
+            "construct": "hunk"
+          },
+          {
+            "start": 436,
+            "end": 447,
+            "construct": "FunctionDeclaration clickNotification"
+          },
+          {
+            "start": 448,
+            "end": 449,
+            "construct": "hunk"
+          },
+          {
+            "start": 450,
+            "end": 455,
+            "construct": "FunctionDeclaration hasNotificationRecorder"
+          },
+          {
+            "start": 456,
+            "end": 456,
+            "construct": "hunk"
+          }
+        ],
+        "e2e/desktop/notify.e2e.ts": [
+          {
+            "start": 1,
+            "end": 14,
+            "construct": "hunk"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 17,
+            "end": 25,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "hunk"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "VariableDeclaration HAS_WM"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "hunk"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "TSTypeAliasDeclaration WindowState"
+          },
+          {
+            "start": 30,
+            "end": 31,
+            "construct": "hunk"
+          },
+          {
+            "start": 32,
+            "end": 41,
+            "construct": "VariableDeclaration windowStates"
+          },
+          {
+            "start": 42,
+            "end": 42,
+            "construct": "hunk"
+          },
+          {
+            "start": 43,
+            "end": 43,
+            "construct": "VariableDeclaration recordCount"
+          },
+          {
+            "start": 44,
+            "end": 45,
+            "construct": "hunk"
+          },
+          {
+            "start": 46,
+            "end": 49,
+            "construct": "FunctionDeclaration nextRecord"
+          },
+          {
+            "start": 50,
+            "end": 50,
+            "construct": "hunk"
+          },
+          {
+            "start": 51,
+            "end": 51,
+            "construct": "VariableDeclaration desktopCard"
+          },
+          {
+            "start": 52,
+            "end": 52,
+            "construct": "hunk"
+          },
+          {
+            "start": 53,
+            "end": 103,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 104,
+            "end": 104,
+            "construct": "hunk"
+          },
+          {
+            "start": 105,
+            "end": 215,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 216,
+            "end": 216,
+            "construct": "hunk"
+          },
+          {
+            "start": 217,
+            "end": 228,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/app-id.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "hunk"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "VariableDeclaration EXEC_PATH"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 18,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 34,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/app-id.ts": [
+          {
+            "start": 1,
+            "end": 9,
+            "construct": "hunk"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "VariableDeclaration APP_ID"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 18,
+            "construct": "TSTypeAliasDeclaration AppUserModelIdInput"
+          },
+          {
+            "start": 19,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 28,
+            "construct": "FunctionDeclaration appUserModelIdFor"
+          }
+        ],
+        "src/desktop/lifecycle.spec.ts": [
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "VariableDeclaration AUMID"
+          },
+          {
+            "start": 63,
+            "end": 78,
+            "construct": "TSTypeAliasDeclaration Harness"
+          },
+          {
+            "start": 80,
+            "end": 86,
+            "construct": "TSTypeAliasDeclaration HarnessOptions"
+          },
+          {
+            "start": 88,
+            "end": 187,
+            "construct": "FunctionDeclaration harness"
+          },
+          {
+            "start": 200,
+            "end": 255,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 325,
+            "end": 363,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 364,
+            "end": 364,
+            "construct": "hunk"
+          },
+          {
+            "start": 365,
+            "end": 433,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 434,
+            "end": 434,
+            "construct": "hunk"
+          }
+        ],
+        "src/desktop/lifecycle.ts": [
+          {
+            "start": 4,
+            "end": 16,
+            "construct": "hunk"
+          },
+          {
+            "start": 47,
+            "end": 58,
+            "construct": "TSTypeAliasDeclaration LifecycleApp"
+          },
+          {
+            "start": 77,
+            "end": 77,
+            "construct": "hunk"
+          },
+          {
+            "start": 78,
+            "end": 81,
+            "construct": "TSTypeAliasDeclaration LifecycleNotifications"
+          },
+          {
+            "start": 82,
+            "end": 82,
+            "construct": "hunk"
+          },
+          {
+            "start": 83,
+            "end": 105,
+            "construct": "TSTypeAliasDeclaration LifecycleDeps"
+          },
+          {
+            "start": 109,
+            "end": 121,
+            "construct": "TSTypeAliasDeclaration Running"
+          },
+          {
+            "start": 172,
+            "end": 285,
+            "construct": "FunctionDeclaration runDesktop"
+          }
+        ],
+        "src/desktop/main.ts": [
+          {
+            "start": 12,
+            "end": 16,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 28,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 34,
+            "end": 34,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 38,
+            "end": 38,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 39,
+            "end": 39,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 49,
+            "end": 49,
+            "construct": "hunk"
+          },
+          {
+            "start": 50,
+            "end": 50,
+            "construct": "VariableDeclaration NOTIFY_SETTLE_MS"
+          },
+          {
+            "start": 70,
+            "end": 77,
+            "construct": "VariableDeclaration notifications"
+          },
+          {
+            "start": 78,
+            "end": 78,
+            "construct": "hunk"
+          },
+          {
+            "start": 104,
+            "end": 154,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/notifier.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "hunk"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "VariableDeclaration SETTLE_MS"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "hunk"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "TSTypeAliasDeclaration Listener"
+          },
+          {
+            "start": 9,
+            "end": 10,
+            "construct": "hunk"
+          },
+          {
+            "start": 11,
+            "end": 44,
+            "construct": "FunctionDeclaration fakeNotificationClass"
+          },
+          {
+            "start": 45,
+            "end": 45,
+            "construct": "hunk"
+          },
+          {
+            "start": 46,
+            "end": 48,
+            "construct": "FunctionDeclaration notice"
+          },
+          {
+            "start": 49,
+            "end": 50,
+            "construct": "hunk"
+          },
+          {
+            "start": 51,
+            "end": 53,
+            "construct": "FunctionDeclaration flush"
+          },
+          {
+            "start": 54,
+            "end": 54,
+            "construct": "hunk"
+          },
+          {
+            "start": 55,
+            "end": 67,
+            "construct": "FunctionDeclaration setup"
+          },
+          {
+            "start": 68,
+            "end": 68,
+            "construct": "hunk"
+          },
+          {
+            "start": 69,
+            "end": 72,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 73,
+            "end": 73,
+            "construct": "hunk"
+          },
+          {
+            "start": 74,
+            "end": 77,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 78,
+            "end": 78,
+            "construct": "hunk"
+          },
+          {
+            "start": 79,
+            "end": 159,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 160,
+            "end": 160,
+            "construct": "hunk"
+          },
+          {
+            "start": 161,
+            "end": 191,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 192,
+            "end": 192,
+            "construct": "hunk"
+          },
+          {
+            "start": 193,
+            "end": 257,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/notifier.ts": [
+          {
+            "start": 1,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "VariableDeclaration MAX_RETAINED"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "VariableDeclaration FALLBACK_PATH"
+          },
+          {
+            "start": 30,
+            "end": 30,
+            "construct": "hunk"
+          },
+          {
+            "start": 31,
+            "end": 31,
+            "construct": "TSTypeAliasDeclaration ShowResult"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 33,
+            "end": 33,
+            "construct": "TSTypeAliasDeclaration ClickHandler"
+          },
+          {
+            "start": 34,
+            "end": 34,
+            "construct": "hunk"
+          },
+          {
+            "start": 35,
+            "end": 40,
+            "construct": "TSTypeAliasDeclaration NotifierInput"
+          },
+          {
+            "start": 41,
+            "end": 41,
+            "construct": "hunk"
+          },
+          {
+            "start": 42,
+            "end": 48,
+            "construct": "TSTypeAliasDeclaration NotifierHandle"
+          },
+          {
+            "start": 49,
+            "end": 50,
+            "construct": "hunk"
+          },
+          {
+            "start": 51,
+            "end": 58,
+            "construct": "FunctionDeclaration isAppPath"
+          },
+          {
+            "start": 59,
+            "end": 59,
+            "construct": "hunk"
+          },
+          {
+            "start": 60,
+            "end": 68,
+            "construct": "FunctionDeclaration resolveClickPath"
+          },
+          {
+            "start": 69,
+            "end": 69,
+            "construct": "hunk"
+          },
+          {
+            "start": 70,
+            "end": 158,
+            "construct": "FunctionDeclaration createNotifier"
+          }
+        ],
+        "src/desktop/notify-seam.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "VariableDeclaration realClassFits"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 16,
+            "end": 17,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 27,
+            "construct": "ClassDeclaration RealNotification"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "hunk"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "TSTypeAliasDeclaration Holder"
+          },
+          {
+            "start": 30,
+            "end": 30,
+            "construct": "hunk"
+          },
+          {
+            "start": 31,
+            "end": 35,
+            "construct": "FunctionDeclaration records"
+          },
+          {
+            "start": 36,
+            "end": 36,
+            "construct": "hunk"
+          },
+          {
+            "start": 37,
+            "end": 40,
+            "construct": "FunctionDeclaration seam"
+          },
+          {
+            "start": 41,
+            "end": 41,
+            "construct": "hunk"
+          },
+          {
+            "start": 42,
+            "end": 44,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 45,
+            "end": 45,
+            "construct": "hunk"
+          },
+          {
+            "start": 46,
+            "end": 77,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 78,
+            "end": 78,
+            "construct": "hunk"
+          },
+          {
+            "start": 79,
+            "end": 198,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 199,
+            "end": 199,
+            "construct": "hunk"
+          },
+          {
+            "start": 200,
+            "end": 212,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/notify-seam.ts": [
+          {
+            "start": 1,
+            "end": 17,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "VariableDeclaration E2E_NOTIFY_ENV"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "VariableDeclaration E2E_NOTIFICATIONS_KEY"
+          },
+          {
+            "start": 20,
+            "end": 21,
+            "construct": "hunk"
+          },
+          {
+            "start": 22,
+            "end": 26,
+            "construct": "TSTypeAliasDeclaration NotificationLike"
+          },
+          {
+            "start": 27,
+            "end": 28,
+            "construct": "hunk"
+          },
+          {
+            "start": 29,
+            "end": 32,
+            "construct": "TSTypeAliasDeclaration NotificationCtor"
+          },
+          {
+            "start": 33,
+            "end": 33,
+            "construct": "hunk"
+          },
+          {
+            "start": 34,
+            "end": 34,
+            "construct": "TSTypeAliasDeclaration ShownNotification"
+          },
+          {
+            "start": 35,
+            "end": 36,
+            "construct": "hunk"
+          },
+          {
+            "start": 37,
+            "end": 42,
+            "construct": "TSTypeAliasDeclaration E2eNotifications"
+          },
+          {
+            "start": 43,
+            "end": 43,
+            "construct": "hunk"
+          },
+          {
+            "start": 44,
+            "end": 44,
+            "construct": "TSTypeAliasDeclaration SeamMode"
+          },
+          {
+            "start": 45,
+            "end": 45,
+            "construct": "hunk"
+          },
+          {
+            "start": 46,
+            "end": 52,
+            "construct": "TSTypeAliasDeclaration NotificationClassInput"
+          },
+          {
+            "start": 53,
+            "end": 53,
+            "construct": "hunk"
+          },
+          {
+            "start": 54,
+            "end": 58,
+            "construct": "FunctionDeclaration seamMode"
+          },
+          {
+            "start": 59,
+            "end": 59,
+            "construct": "hunk"
+          },
+          {
+            "start": 60,
+            "end": 60,
+            "construct": "TSTypeAliasDeclaration Listener"
+          },
+          {
+            "start": 61,
+            "end": 61,
+            "construct": "hunk"
+          },
+          {
+            "start": 62,
+            "end": 109,
+            "construct": "FunctionDeclaration createRecorder"
+          },
+          {
+            "start": 110,
+            "end": 115,
+            "construct": "hunk"
+          },
+          {
+            "start": 116,
+            "end": 124,
+            "construct": "FunctionDeclaration notificationClassFor"
+          }
+        ],
+        "src/desktop/server.spec.ts": [
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 346,
+            "end": 346,
+            "construct": "TSTypeAliasDeclaration Recorded"
+          },
+          {
+            "start": 347,
+            "end": 347,
+            "construct": "hunk"
+          },
+          {
+            "start": 348,
+            "end": 348,
+            "construct": "VariableDeclaration NOTIFIER_KEY"
+          },
+          {
+            "start": 349,
+            "end": 349,
+            "construct": "VariableDeclaration notifier"
+          },
+          {
+            "start": 350,
+            "end": 350,
+            "construct": "hunk"
+          },
+          {
+            "start": 351,
+            "end": 419,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/server.ts": [
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 116,
+            "end": 116,
+            "construct": "hunk"
+          },
+          {
+            "start": 117,
+            "end": 120,
+            "construct": "TSTypeAliasDeclaration ServerBridges"
+          },
+          {
+            "start": 121,
+            "end": 121,
+            "construct": "hunk"
+          },
+          {
+            "start": 128,
+            "end": 131,
+            "construct": "hunk"
+          },
+          {
+            "start": 133,
+            "end": 150,
+            "construct": "FunctionDeclaration loadAdapterHandler"
+          }
+        ],
+        "src/desktop/testing/fake-handler.ts": [
+          {
+            "start": 3,
+            "end": 5,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 13,
+            "construct": "VariableDeclaration recorded"
+          }
+        ],
+        "src/desktop/window.spec.ts": [
+          {
+            "start": 3,
+            "end": 12,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 304,
+            "end": 304,
+            "construct": "hunk"
+          },
+          {
+            "start": 305,
+            "end": 426,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/window.ts": [
+          {
+            "start": 106,
+            "end": 109,
+            "construct": "hunk"
+          },
+          {
+            "start": 110,
+            "end": 135,
+            "construct": "FunctionDeclaration createMainWindow"
+          },
+          {
+            "start": 141,
+            "end": 145,
+            "construct": "hunk"
+          },
+          {
+            "start": 146,
+            "end": 154,
+            "construct": "FunctionDeclaration appUrl"
+          },
+          {
+            "start": 155,
+            "end": 155,
+            "construct": "hunk"
+          },
+          {
+            "start": 160,
+            "end": 163,
+            "construct": "hunk"
+          },
+          {
+            "start": 165,
+            "end": 182,
+            "construct": "FunctionDeclaration showWindow"
+          }
+        ],
+        "src/hooks.server.spec.ts": [
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "VariableDeclaration NOTIFIER_KEY"
+          },
+          {
+            "start": 20,
+            "end": 35,
+            "construct": "VariableDeclaration mocks"
+          },
+          {
+            "start": 49,
+            "end": 50,
+            "construct": "hunk"
+          },
+          {
+            "start": 51,
+            "end": 55,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 56,
+            "end": 56,
+            "construct": "hunk"
+          },
+          {
+            "start": 57,
+            "end": 73,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 74,
+            "end": 74,
+            "construct": "hunk"
+          },
+          {
+            "start": 75,
+            "end": 79,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 92,
+            "end": 117,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 118,
+            "end": 120,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 270,
+            "end": 380,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 381,
+            "end": 381,
+            "construct": "hunk"
+          }
+        ],
+        "src/hooks.server.ts": [
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 15,
+            "end": 23,
+            "construct": "hunk"
+          },
+          {
+            "start": 24,
+            "end": 34,
+            "construct": "FunctionDeclaration setUpDesktopAlerts"
+          },
+          {
+            "start": 40,
+            "end": 41,
+            "construct": "hunk"
+          },
+          {
+            "start": 46,
+            "end": 63,
+            "construct": "VariableDeclaration init"
+          }
+        ],
+        "src/lib/server/alerts/alerts.spec.ts": [
+          {
+            "start": 174,
+            "end": 927,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 929,
+            "end": 1069,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/alerts/alerts.ts": [
+          {
+            "start": 129,
+            "end": 199,
+            "construct": "FunctionDeclaration alertAfterSuccess"
+          },
+          {
+            "start": 207,
+            "end": 241,
+            "construct": "FunctionDeclaration alertAfterFailure"
+          }
+        ],
+        "src/lib/server/alerts/channel.ts": [
+          {
+            "start": 1,
+            "end": 2,
+            "construct": "hunk"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "TSTypeAliasDeclaration ChannelKind"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "hunk"
+          },
+          {
+            "start": 17,
+            "end": 18,
+            "construct": "TSTypeAliasDeclaration FailureReason"
+          },
+          {
+            "start": 21,
+            "end": 27,
+            "construct": "VariableDeclaration REASON_LABELS"
+          },
+          {
+            "start": 50,
+            "end": 53,
+            "construct": "hunk"
+          },
+          {
+            "start": 54,
+            "end": 60,
+            "construct": "TSTypeAliasDeclaration Alert"
+          }
+        ],
+        "src/lib/server/alerts/channels.spec.ts": [
+          {
+            "start": 9,
+            "end": 23,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 509,
+            "end": 592,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 593,
+            "end": 593,
+            "construct": "hunk"
+          }
+        ],
+        "src/lib/server/alerts/channels.ts": [
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 213,
+            "end": 220,
+            "construct": "hunk"
+          },
+          {
+            "start": 221,
+            "end": 246,
+            "construct": "FunctionDeclaration ensureChannel"
+          },
+          {
+            "start": 247,
+            "end": 247,
+            "construct": "hunk"
+          }
+        ],
+        "src/lib/server/alerts/desktop.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 19,
+            "end": 23,
+            "construct": "hunk"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "VariableDeclaration KEY"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "VariableDeclaration TOPIC"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "VariableDeclaration NOW"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "TSTypeAliasDeclaration Show"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "hunk"
+          },
+          {
+            "start": 30,
+            "end": 30,
+            "construct": "VariableDeclaration h"
+          },
+          {
+            "start": 31,
+            "end": 31,
+            "construct": "VariableDeclaration logs"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "VariableDeclaration fetch"
+          },
+          {
+            "start": 33,
+            "end": 33,
+            "construct": "VariableDeclaration show"
+          },
+          {
+            "start": 34,
+            "end": 34,
+            "construct": "VariableDeclaration notifier"
+          },
+          {
+            "start": 35,
+            "end": 35,
+            "construct": "VariableDeclaration unregister"
+          },
+          {
+            "start": 36,
+            "end": 36,
+            "construct": "hunk"
+          },
+          {
+            "start": 37,
+            "end": 37,
+            "construct": "VariableDeclaration watchExists"
+          },
+          {
+            "start": 38,
+            "end": 38,
+            "construct": "hunk"
+          },
+          {
+            "start": 39,
+            "end": 45,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 46,
+            "end": 52,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 53,
+            "end": 53,
+            "construct": "hunk"
+          },
+          {
+            "start": 54,
+            "end": 56,
+            "construct": "FunctionDeclaration install"
+          },
+          {
+            "start": 57,
+            "end": 57,
+            "construct": "hunk"
+          },
+          {
+            "start": 58,
+            "end": 67,
+            "construct": "FunctionDeclaration saveNtfy"
+          },
+          {
+            "start": 68,
+            "end": 68,
+            "construct": "hunk"
+          },
+          {
+            "start": 69,
+            "end": 80,
+            "construct": "FunctionDeclaration addWatch"
+          },
+          {
+            "start": 81,
+            "end": 81,
+            "construct": "hunk"
+          },
+          {
+            "start": 82,
+            "end": 83,
+            "construct": "VariableDeclaration setPrice"
+          },
+          {
+            "start": 84,
+            "end": 84,
+            "construct": "hunk"
+          },
+          {
+            "start": 85,
+            "end": 85,
+            "construct": "VariableDeclaration check"
+          },
+          {
+            "start": 86,
+            "end": 86,
+            "construct": "hunk"
+          },
+          {
+            "start": 87,
+            "end": 89,
+            "construct": "FunctionDeclaration deps"
+          },
+          {
+            "start": 90,
+            "end": 91,
+            "construct": "hunk"
+          },
+          {
+            "start": 92,
+            "end": 98,
+            "construct": "FunctionDeclaration deliveredKinds"
+          },
+          {
+            "start": 99,
+            "end": 100,
+            "construct": "hunk"
+          },
+          {
+            "start": 101,
+            "end": 101,
+            "construct": "VariableDeclaration notice"
+          },
+          {
+            "start": 102,
+            "end": 102,
+            "construct": "hunk"
+          },
+          {
+            "start": 103,
+            "end": 187,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 188,
+            "end": 188,
+            "construct": "hunk"
+          },
+          {
+            "start": 189,
+            "end": 250,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 251,
+            "end": 251,
+            "construct": "hunk"
+          },
+          {
+            "start": 252,
+            "end": 317,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 318,
+            "end": 318,
+            "construct": "hunk"
+          },
+          {
+            "start": 319,
+            "end": 373,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 374,
+            "end": 374,
+            "construct": "hunk"
+          },
+          {
+            "start": 375,
+            "end": 394,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/alerts/desktop.ts": [
+          {
+            "start": 1,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "TSTypeAliasDeclaration DesktopConfig"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "hunk"
+          },
+          {
+            "start": 22,
+            "end": 25,
+            "construct": "TSTypeAliasDeclaration DesktopDeps"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "hunk"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "VariableDeclaration TEST_CLICK_PATH"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "VariableDeclaration FALLBACK_CLICK_PATH"
+          },
+          {
+            "start": 29,
+            "end": 30,
+            "construct": "hunk"
+          },
+          {
+            "start": 31,
+            "end": 40,
+            "construct": "FunctionDeclaration clickPathFor"
+          },
+          {
+            "start": 41,
+            "end": 41,
+            "construct": "hunk"
+          },
+          {
+            "start": 42,
+            "end": 69,
+            "construct": "FunctionDeclaration createDesktopDriver"
+          },
+          {
+            "start": 70,
+            "end": 76,
+            "construct": "hunk"
+          },
+          {
+            "start": 77,
+            "end": 91,
+            "construct": "FunctionDeclaration installDesktop"
+          }
+        ],
+        "src/lib/server/alerts/ntfy.spec.ts": [
+          {
+            "start": 375,
+            "end": 388,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/notify-bridge.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "hunk"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "VariableDeclaration KEY"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "VariableDeclaration RUNTIME_KEY"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "TSTypeAliasDeclaration Holder"
+          },
+          {
+            "start": 10,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 15,
+            "construct": "FunctionDeclaration freshBridge"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "hunk"
+          },
+          {
+            "start": 17,
+            "end": 19,
+            "construct": "FunctionDeclaration fakeNotifier"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 23,
+            "construct": "FunctionDeclaration fakeRuntime"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 28,
+            "construct": "FunctionDeclaration clear"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "hunk"
+          },
+          {
+            "start": 30,
+            "end": 94,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/notify-bridge.ts": [
+          {
+            "start": 1,
+            "end": 7,
+            "construct": "hunk"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "VariableDeclaration NOTIFIER_KEY"
+          },
+          {
+            "start": 9,
+            "end": 10,
+            "construct": "hunk"
+          },
+          {
+            "start": 11,
+            "end": 15,
+            "construct": "TSTypeAliasDeclaration DesktopNotice"
+          },
+          {
+            "start": 16,
+            "end": 17,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "TSTypeAliasDeclaration DesktopFailure"
+          },
+          {
+            "start": 19,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 23,
+            "construct": "TSTypeAliasDeclaration DesktopNotifier"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "TSTypeAliasDeclaration NotifierHolder"
+          },
+          {
+            "start": 26,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 30,
+            "construct": "FunctionDeclaration publishNotifier"
+          },
+          {
+            "start": 31,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 33,
+            "end": 35,
+            "construct": "FunctionDeclaration readNotifier"
+          }
+        ],
+        "src/routes/account/alerts/+page.server.ts": [
+          {
+            "start": 41,
+            "end": 43,
+            "construct": "hunk"
+          },
+          {
+            "start": 44,
+            "end": 44,
+            "construct": "VariableDeclaration KEPT_KINDS"
+          },
+          {
+            "start": 45,
+            "end": 45,
+            "construct": "VariableDeclaration KEPT_MESSAGE"
+          },
+          {
+            "start": 46,
+            "end": 46,
+            "construct": "hunk"
+          },
+          {
+            "start": 82,
+            "end": 145,
+            "construct": "VariableDeclaration actions"
+          }
+        ],
+        "src/routes/account/alerts/+page.svelte": [
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "VariableDeclaration hasDesktop"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "VariableDeclaration desktop"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "VariableDeclaration desktopTicks"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 79,
+            "end": 79,
+            "construct": "hunk"
+          },
+          {
+            "start": 80,
+            "end": 108,
+            "construct": "SnippetBlock"
+          },
+          {
+            "start": 114,
+            "end": 364,
+            "construct": "Element main"
+          }
+        ],
+        "src/routes/account/alerts/alerts.e2e.ts": [
+          {
+            "start": 95,
+            "end": 105,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 106,
+            "end": 106,
+            "construct": "hunk"
+          }
+        ],
+        "src/routes/account/alerts/page.server.spec.ts": [
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 33,
+            "end": 33,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 807,
+            "end": 809,
+            "construct": "hunk"
+          },
+          {
+            "start": 810,
+            "end": 939,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 940,
+            "end": 940,
+            "construct": "hunk"
+          },
+          {
+            "start": 941,
+            "end": 952,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/routes/account/alerts/page.svelte.spec.ts": [
+          {
+            "start": 42,
+            "end": 42,
+            "construct": "hunk"
+          },
+          {
+            "start": 43,
+            "end": 43,
+            "construct": "VariableDeclaration seededDesktop"
+          },
+          {
+            "start": 44,
+            "end": 44,
+            "construct": "VariableDeclaration DESKTOP_DEFAULTS"
+          },
+          {
+            "start": 45,
+            "end": 45,
+            "construct": "hunk"
+          },
+          {
+            "start": 47,
+            "end": 47,
+            "construct": "hunk"
+          },
+          {
+            "start": 48,
+            "end": 65,
+            "construct": "VariableDeclaration props"
+          },
+          {
+            "start": 233,
+            "end": 233,
+            "construct": "hunk"
+          },
+          {
+            "start": 234,
+            "end": 333,
+            "construct": "ExpressionStatement"
+          }
+        ]
+      }
+    }
+  ],
+  "skipped": [
+    {
+      "file": ".gitleaks.toml",
+      "reason": "no mutation adapter for .toml"
+    },
+    {
+      "file": "package.json",
+      "reason": "no mutation adapter for .json"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/phases/03-desktop-shell/spec.toml",
+      ".dross/phases/04-desktop-notify/REVIEW-1.md",
+      ".dross/phases/04-desktop-notify/REVIEW.md",
+      ".dross/phases/04-desktop-notify/changes.json",
+      ".dross/phases/04-desktop-notify/panel/mvp.md",
+      ".dross/phases/04-desktop-notify/panel/risk.md",
+      ".dross/phases/04-desktop-notify/panel/synthesis.md",
+      ".dross/phases/04-desktop-notify/panel/verification.md",
+      ".dross/phases/04-desktop-notify/plan.toml",
+      ".dross/phases/04-desktop-notify/spec.toml",
+      ".dross/project.toml",
+      ".gitleaks.toml",
+      "e2e/desktop/desktop-alerts.e2e.ts",
+      "e2e/desktop/guard.e2e.ts",
+      "e2e/desktop/harness.e2e.ts",
+      "e2e/desktop/launch.ts",
+      "e2e/desktop/notify.e2e.ts",
+      "package.json",
+      "src/desktop/app-id.spec.ts",
+      "src/desktop/app-id.ts",
+      "src/desktop/lifecycle.spec.ts",
+      "src/desktop/lifecycle.ts",
+      "src/desktop/main.ts",
+      "src/desktop/notifier.spec.ts",
+      "src/desktop/notifier.ts",
+      "src/desktop/notify-seam.spec.ts",
+      "src/desktop/notify-seam.ts",
+      "src/desktop/server.spec.ts",
+      "src/desktop/server.ts",
+      "src/desktop/testing/fake-handler.ts",
+      "src/desktop/window.spec.ts",
+      "src/desktop/window.ts",
+      "src/hooks.server.spec.ts",
+      "src/hooks.server.ts",
+      "src/lib/server/alerts/alerts.spec.ts",
+      "src/lib/server/alerts/alerts.ts",
+      "src/lib/server/alerts/channel.ts",
+      "src/lib/server/alerts/channels.spec.ts",
+      "src/lib/server/alerts/channels.ts",
+      "src/lib/server/alerts/desktop.spec.ts",
+      "src/lib/server/alerts/desktop.ts",
+      "src/lib/server/alerts/ntfy.spec.ts",
+      "src/lib/server/notify-bridge.spec.ts",
+      "src/lib/server/notify-bridge.ts",
+      "src/routes/account/alerts/+page.server.ts",
+      "src/routes/account/alerts/+page.svelte",
+      "src/routes/account/alerts/alerts.e2e.ts",
+      "src/routes/account/alerts/page.server.spec.ts",
+      "src/routes/account/alerts/page.svelte.spec.ts"
+    ],
+    "hunks": {
+      ".dross/phases/03-desktop-shell/spec.toml": [
+        {
+          "start": 93,
+          "end": 93
+        }
+      ],
+      ".dross/phases/04-desktop-notify/REVIEW-1.md": [
+        {
+          "start": 1,
+          "end": 60
+        }
+      ],
+      ".dross/phases/04-desktop-notify/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 38
+        }
+      ],
+      ".dross/phases/04-desktop-notify/changes.json": [
+        {
+          "start": 1,
+          "end": 490
+        }
+      ],
+      ".dross/phases/04-desktop-notify/panel/mvp.md": [
+        {
+          "start": 1,
+          "end": 209
+        }
+      ],
+      ".dross/phases/04-desktop-notify/panel/risk.md": [
+        {
+          "start": 1,
+          "end": 214
+        }
+      ],
+      ".dross/phases/04-desktop-notify/panel/synthesis.md": [
+        {
+          "start": 1,
+          "end": 350
+        }
+      ],
+      ".dross/phases/04-desktop-notify/panel/verification.md": [
+        {
+          "start": 1,
+          "end": 308
+        }
+      ],
+      ".dross/phases/04-desktop-notify/plan.toml": [
+        {
+          "start": 1,
+          "end": 208
+        }
+      ],
+      ".dross/phases/04-desktop-notify/spec.toml": [
+        {
+          "start": 1,
+          "end": 100
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      ".gitleaks.toml": [
+        {
+          "start": 69,
+          "end": 69
+        }
+      ],
+      "e2e/desktop/desktop-alerts.e2e.ts": [
+        {
+          "start": 1,
+          "end": 300
+        }
+      ],
+      "e2e/desktop/guard.e2e.ts": [
+        {
+          "start": 135,
+          "end": 136
+        }
+      ],
+      "e2e/desktop/harness.e2e.ts": [
+        {
+          "start": 8,
+          "end": 9
+        },
+        {
+          "start": 16,
+          "end": 17
+        },
+        {
+          "start": 89,
+          "end": 96
+        }
+      ],
+      "e2e/desktop/launch.ts": [
+        {
+          "start": 13,
+          "end": 19
+        },
+        {
+          "start": 35,
+          "end": 39
+        },
+        {
+          "start": 48,
+          "end": 48
+        },
+        {
+          "start": 171,
+          "end": 173
+        },
+        {
+          "start": 179,
+          "end": 180
+        },
+        {
+          "start": 187,
+          "end": 188
+        },
+        {
+          "start": 199,
+          "end": 199
+        },
+        {
+          "start": 226,
+          "end": 227
+        },
+        {
+          "start": 351,
+          "end": 351
+        },
+        {
+          "start": 416,
+          "end": 456
+        }
+      ],
+      "e2e/desktop/notify.e2e.ts": [
+        {
+          "start": 1,
+          "end": 228
+        }
+      ],
+      "package.json": [
+        {
+          "start": 4,
+          "end": 4
+        }
+      ],
+      "src/desktop/app-id.spec.ts": [
+        {
+          "start": 1,
+          "end": 34
+        }
+      ],
+      "src/desktop/app-id.ts": [
+        {
+          "start": 1,
+          "end": 28
+        }
+      ],
+      "src/desktop/lifecycle.spec.ts": [
+        {
+          "start": 26,
+          "end": 26
+        },
+        {
+          "start": 76,
+          "end": 77
+        },
+        {
+          "start": 84,
+          "end": 85
+        },
+        {
+          "start": 99,
+          "end": 99
+        },
+        {
+          "start": 120,
+          "end": 121
+        },
+        {
+          "start": 133,
+          "end": 136
+        },
+        {
+          "start": 164,
+          "end": 165
+        },
+        {
+          "start": 171,
+          "end": 176
+        },
+        {
+          "start": 211,
+          "end": 211
+        },
+        {
+          "start": 325,
+          "end": 434
+        }
+      ],
+      "src/desktop/lifecycle.ts": [
+        {
+          "start": 4,
+          "end": 16
+        },
+        {
+          "start": 50,
+          "end": 50
+        },
+        {
+          "start": 77,
+          "end": 82
+        },
+        {
+          "start": 97,
+          "end": 98
+        },
+        {
+          "start": 100,
+          "end": 103
+        },
+        {
+          "start": 116,
+          "end": 116
+        },
+        {
+          "start": 118,
+          "end": 119
+        },
+        {
+          "start": 180,
+          "end": 187
+        },
+        {
+          "start": 194,
+          "end": 194
+        },
+        {
+          "start": 198,
+          "end": 199
+        },
+        {
+          "start": 203,
+          "end": 204
+        },
+        {
+          "start": 207,
+          "end": 209
+        },
+        {
+          "start": 211,
+          "end": 212
+        },
+        {
+          "start": 222,
+          "end": 222
+        },
+        {
+          "start": 279,
+          "end": 279
+        },
+        {
+          "start": 281,
+          "end": 282
+        }
+      ],
+      "src/desktop/main.ts": [
+        {
+          "start": 12,
+          "end": 16
+        },
+        {
+          "start": 19,
+          "end": 28
+        },
+        {
+          "start": 34,
+          "end": 34
+        },
+        {
+          "start": 38,
+          "end": 39
+        },
+        {
+          "start": 49,
+          "end": 50
+        },
+        {
+          "start": 70,
+          "end": 78
+        },
+        {
+          "start": 112,
+          "end": 114
+        },
+        {
+          "start": 125,
+          "end": 125
+        },
+        {
+          "start": 127,
+          "end": 127
+        },
+        {
+          "start": 129,
+          "end": 134
+        }
+      ],
+      "src/desktop/notifier.spec.ts": [
+        {
+          "start": 1,
+          "end": 257
+        }
+      ],
+      "src/desktop/notifier.ts": [
+        {
+          "start": 1,
+          "end": 158
+        }
+      ],
+      "src/desktop/notify-seam.spec.ts": [
+        {
+          "start": 1,
+          "end": 212
+        }
+      ],
+      "src/desktop/notify-seam.ts": [
+        {
+          "start": 1,
+          "end": 124
+        }
+      ],
+      "src/desktop/server.spec.ts": [
+        {
+          "start": 6,
+          "end": 7
+        },
+        {
+          "start": 346,
+          "end": 351
+        },
+        {
+          "start": 354,
+          "end": 354
+        },
+        {
+          "start": 359,
+          "end": 360
+        },
+        {
+          "start": 369,
+          "end": 369
+        },
+        {
+          "start": 373,
+          "end": 379
+        },
+        {
+          "start": 387,
+          "end": 388
+        },
+        {
+          "start": 392,
+          "end": 392
+        },
+        {
+          "start": 398,
+          "end": 409
+        },
+        {
+          "start": 411,
+          "end": 411
+        },
+        {
+          "start": 414,
+          "end": 416
+        }
+      ],
+      "src/desktop/server.ts": [
+        {
+          "start": 19,
+          "end": 19
+        },
+        {
+          "start": 116,
+          "end": 121
+        },
+        {
+          "start": 128,
+          "end": 131
+        },
+        {
+          "start": 136,
+          "end": 137
+        },
+        {
+          "start": 144,
+          "end": 144
+        }
+      ],
+      "src/desktop/testing/fake-handler.ts": [
+        {
+          "start": 3,
+          "end": 5
+        },
+        {
+          "start": 7,
+          "end": 7
+        },
+        {
+          "start": 11,
+          "end": 12
+        }
+      ],
+      "src/desktop/window.spec.ts": [
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 304,
+          "end": 426
+        }
+      ],
+      "src/desktop/window.ts": [
+        {
+          "start": 106,
+          "end": 110
+        },
+        {
+          "start": 133,
+          "end": 133
+        },
+        {
+          "start": 141,
+          "end": 155
+        },
+        {
+          "start": 160,
+          "end": 163
+        },
+        {
+          "start": 165,
+          "end": 166
+        },
+        {
+          "start": 169,
+          "end": 169
+        },
+        {
+          "start": 175,
+          "end": 177
+        }
+      ],
+      "src/hooks.server.spec.ts": [
+        {
+          "start": 2,
+          "end": 8
+        },
+        {
+          "start": 18,
+          "end": 18
+        },
+        {
+          "start": 22,
+          "end": 22
+        },
+        {
+          "start": 24,
+          "end": 29
+        },
+        {
+          "start": 49,
+          "end": 78
+        },
+        {
+          "start": 95,
+          "end": 95
+        },
+        {
+          "start": 97,
+          "end": 97
+        },
+        {
+          "start": 99,
+          "end": 99
+        },
+        {
+          "start": 101,
+          "end": 102
+        },
+        {
+          "start": 116,
+          "end": 119
+        },
+        {
+          "start": 270,
+          "end": 381
+        }
+      ],
+      "src/hooks.server.ts": [
+        {
+          "start": 4,
+          "end": 5
+        },
+        {
+          "start": 10,
+          "end": 10
+        },
+        {
+          "start": 14,
+          "end": 34
+        },
+        {
+          "start": 40,
+          "end": 41
+        },
+        {
+          "start": 50,
+          "end": 50
+        }
+      ],
+      "src/lib/server/alerts/alerts.spec.ts": [
+        {
+          "start": 255,
+          "end": 256
+        },
+        {
+          "start": 272,
+          "end": 273
+        },
+        {
+          "start": 279,
+          "end": 318
+        },
+        {
+          "start": 992,
+          "end": 993
+        },
+        {
+          "start": 1003,
+          "end": 1016
+        }
+      ],
+      "src/lib/server/alerts/alerts.ts": [
+        {
+          "start": 166,
+          "end": 168
+        },
+        {
+          "start": 226,
+          "end": 227
+        }
+      ],
+      "src/lib/server/alerts/channel.ts": [
+        {
+          "start": 1,
+          "end": 2
+        },
+        {
+          "start": 8,
+          "end": 8
+        },
+        {
+          "start": 16,
+          "end": 18
+        },
+        {
+          "start": 25,
+          "end": 26
+        },
+        {
+          "start": 50,
+          "end": 60
+        }
+      ],
+      "src/lib/server/alerts/channels.spec.ts": [
+        {
+          "start": 15,
+          "end": 15
+        },
+        {
+          "start": 509,
+          "end": 593
+        }
+      ],
+      "src/lib/server/alerts/channels.ts": [
+        {
+          "start": 8,
+          "end": 8
+        },
+        {
+          "start": 11,
+          "end": 17
+        },
+        {
+          "start": 213,
+          "end": 247
+        }
+      ],
+      "src/lib/server/alerts/desktop.spec.ts": [
+        {
+          "start": 1,
+          "end": 394
+        }
+      ],
+      "src/lib/server/alerts/desktop.ts": [
+        {
+          "start": 1,
+          "end": 91
+        }
+      ],
+      "src/lib/server/alerts/ntfy.spec.ts": [
+        {
+          "start": 381,
+          "end": 382
+        }
+      ],
+      "src/lib/server/notify-bridge.spec.ts": [
+        {
+          "start": 1,
+          "end": 94
+        }
+      ],
+      "src/lib/server/notify-bridge.ts": [
+        {
+          "start": 1,
+          "end": 35
+        }
+      ],
+      "src/routes/account/alerts/+page.server.ts": [
+        {
+          "start": 41,
+          "end": 46
+        },
+        {
+          "start": 106,
+          "end": 106
+        }
+      ],
+      "src/routes/account/alerts/+page.svelte": [
+        {
+          "start": 18,
+          "end": 22
+        },
+        {
+          "start": 79,
+          "end": 80
+        },
+        {
+          "start": 93,
+          "end": 98
+        },
+        {
+          "start": 122,
+          "end": 144
+        }
+      ],
+      "src/routes/account/alerts/alerts.e2e.ts": [
+        {
+          "start": 95,
+          "end": 106
+        }
+      ],
+      "src/routes/account/alerts/page.server.spec.ts": [
+        {
+          "start": 2,
+          "end": 2
+        },
+        {
+          "start": 6,
+          "end": 6
+        },
+        {
+          "start": 8,
+          "end": 10
+        },
+        {
+          "start": 18,
+          "end": 18
+        },
+        {
+          "start": 32,
+          "end": 33
+        },
+        {
+          "start": 807,
+          "end": 952
+        }
+      ],
+      "src/routes/account/alerts/page.svelte.spec.ts": [
+        {
+          "start": 42,
+          "end": 45
+        },
+        {
+          "start": 47,
+          "end": 47
+        },
+        {
+          "start": 52,
+          "end": 53
+        },
+        {
+          "start": 56,
+          "end": 62
+        },
+        {
+          "start": 233,
+          "end": 333
+        }
+      ]
+    },
+    "base": "15f0c389b7fdc7968ead0cedf08e774c6ab4a84e",
+    "source": "git+changes"
+  },
+  "measured_on": "local",
+  "measured_commit": "192ae9c12f8874c0b893b72a6c48493e9b7ff97d",
+  "measured_tree": "4e55aa6258f86bfb30ee0c24879212eec1c28111"
+}
