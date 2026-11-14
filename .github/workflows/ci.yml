@@ -36,6 +36,11 @@ jobs:
     name: static
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      # Lint and typecheck never launch Electron. Electron 45's install-electron
+      # (the root postinstall) does not read this variable yet, so today it saves
+      # nothing; it is set so an install that honours it skips the ~100 MB binary.
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -94,6 +99,10 @@ jobs:
     env:
       # One path on every OS, so the browser cache below works everywhere.
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
+      # Where the root postinstall (install-electron, via @electron/get) keeps the
+      # downloaded Electron zip. Inside the checkout, like the browsers above, so the
+      # cache step below can restore it before pnpm install looks for it.
+      electron_config_cache: ${{ github.workspace }}/.electron-cache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -103,6 +112,12 @@ jobs:
         with:
           node-version-file: .node-version
           cache: pnpm
+      - name: cache electron binary
+        # Before pnpm install: its postinstall downloads Electron unless the zip is here.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.electron_config_cache }}
+          key: electron-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile
       - name: cache playwright browsers
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -122,6 +137,21 @@ jobs:
         run: pnpm test:e2e
         env:
           CI: 'true'
+      - name: desktop e2e
+        # A shell branch, not a step `if:`, so the step runs (and gates) on every OS.
+        # Linux: Ubuntu 24.04's AppArmor denies the unprivileged user namespaces
+        # Chromium's sandbox needs. Lift that restriction rather than run without the
+        # sandbox, and give Electron a virtual display.
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+            xvfb-run -a pnpm test:e2e:desktop
+          else
+            pnpm test:e2e:desktop
+          fi
+        env:
+          CI: 'true'
+      # Covers the desktop suite too: its outputDir is test-results/desktop.
       - name: upload test reports
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

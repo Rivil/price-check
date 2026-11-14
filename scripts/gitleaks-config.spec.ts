@@ -1,7 +1,7 @@
 // c-3: the gitleaks allowlist stays narrow. Every entry names its rule and exact
 // files; generic-api-key entries also pin the fake value (condition AND), so a new
 // real key in an allowlisted file is still reported. No stopwords, no global paths.
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const config = readFileSync(new URL('../.gitleaks.toml', import.meta.url), 'utf8');
@@ -51,6 +51,28 @@ describe('.gitleaks.toml', () => {
 	const generic = entries
 		.map((entry, i) => [i, entry] as const)
 		.filter(([, entry]) => list(entry, 'targetRules')?.includes('generic-api-key'));
+
+	// dross verify writes each phase's tests.json with survivor ids that read as keys.
+	// A phase missing here fails the gitleaks job only once verify has run for it.
+	it('every phase allowlisted: each phase with a spec.toml has its exact tests.json path', () => {
+		// A branch that ships without .dross/phases has no phase to check, but 03 is
+		// always required, so the allowlist can never quietly lose this phase.
+		const phasesDir = new URL('../.dross/phases/', import.meta.url);
+		const onDisk = existsSync(phasesDir)
+			? readdirSync(phasesDir, { withFileTypes: true })
+					.filter((d) => d.isDirectory() && existsSync(new URL(`${d.name}/spec.toml`, phasesDir)))
+					.map((d) => d.name)
+			: [];
+		const phases = new Set(['03-desktop-shell', ...onDisk]);
+		const testsJson = entries.filter((entry) =>
+			(list(entry, 'paths') ?? []).some((p) => p.endsWith('/tests\\.json$'))
+		);
+		expect(testsJson).toHaveLength(1);
+		const paths = list(testsJson[0], 'paths') ?? [];
+		for (const id of phases) {
+			expect(paths, id).toContain(`^\\.dross/phases/${id.replace(/\./g, '\\.')}/tests\\.json$`);
+		}
+	});
 
 	it('has generic-api-key entries to check', () => {
 		expect(generic.length).toBeGreaterThan(0);
