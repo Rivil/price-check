@@ -44,6 +44,22 @@
         }
       ]
     },
+    "t-11": {
+      "files": [
+        "e2e/desktop/first-run.e2e.ts",
+        "e2e/desktop/quit-relaunch.e2e.ts"
+      ],
+      "commit": "42f96b3",
+      "completed_at": "2026-11-14T12:00:53.940196Z",
+      "landmarks": [
+        {
+          "feature": "desktop e2e lifecycle proof",
+          "symbol": "quitThroughApp",
+          "loc": "e2e/desktop/quit-relaunch.e2e.ts:50",
+          "what": "real-Electron specs proving first launch on empty userData, key reuse, app.quit exit 0 and immediate relaunch with data intact"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/scheduler.ts",
@@ -253,6 +269,42 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "e2e/desktop/*.ts is not in tsconfig include; only playwright.desktop.config.ts was added, as the task specified. This matches the existing e2e/ files, which are not included either.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-11": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-1",
+          "text": "The contract's 30s first-window bound is not enforced end to end. launchDesktop waits up to 30s for the listening line, then firstWindow, toHaveURL and toBeVisible each get their own 30s, and the desktop config's test timeout is 90s. A first launch taking 40-90s would still pass first-run.e2e.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-9",
+          "text": "quitThroughApp awaits app.evaluate(({ app }) =\u003e app.quit()). If the main process's shutdown is ever fast enough to close the Playwright connection before the evaluate reply arrives, evaluate rejects and the test fails on a clean quit. Firing the quit without awaiting the evaluate result, or catching a 'closed' rejection, would remove the race.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The test process inserts the watch while launch 1 holds the DB, and the app has no WAL or busy timeout. This is safe only because the scheduler is disabled and the UI is idle at that moment.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The key is only ever compared by hash or decoded length and never printed. The ntfy topic and the watch URL are on .invalid hosts and the scheduler stays disabled, so r-01 and r-03 hold.",
           "resolution": "non-blocking, left"
         }
       ]

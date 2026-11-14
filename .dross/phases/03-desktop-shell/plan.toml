@@ -211,7 +211,7 @@ test_contract = [
   '''if the relaunch started right after exit (no sleep; Windows CI included) fails to open the DB, logs 'database is locked', or loses the channel or a watch inserted before the first quit, quit-relaunch.e2e fails''',
   '''if, after relaunch, /account/alerts does not show launch 1's saved topic as readable, or its ?/test action reports the save-first or could-not-be-decrypted message instead of 'Not delivered' (a send attempt that failed on the .invalid host), quit-relaunch.e2e fails (c-2 "decrypt and send")''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-12"
