@@ -1,6 +1,6 @@
 {
   "phase": "02-single-user",
-  "generated_at": "2026-11-14T10:06:23.891036Z",
+  "generated_at": "2026-11-14T10:17:45.982548Z",
   "languages": [
     {
       "name": "typescript",
@@ -44,6 +44,7 @@
         "src/lib/server/db/watch.schema.spec.ts",
         "src/lib/server/db/watch.schema.ts",
         "src/lib/server/health.spec.ts",
+        "src/lib/server/health.ts",
         "src/lib/server/local-request.spec.ts",
         "src/lib/server/local-request.ts",
         "src/lib/server/scheduler.spec.ts",
@@ -78,182 +79,12 @@
       ],
       "mutation": {
         "Tool": "stryker",
-        "Killed": 574,
-        "Survived": 23,
-        "Timeout": 6,
+        "Killed": 627,
+        "Survived": 16,
+        "Timeout": 15,
         "Errors": 0,
-        "Score": 0.9519071310116086,
+        "Score": 0.952887537993921,
         "Surviving": [
-          {
-            "File": "src/lib/server/db/channel.schema.ts",
-            "Line": 15,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "4f8fded39e06f561",
-            "Lifecycle": "accepted",
-            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
-          },
-          {
-            "File": "src/lib/server/db/channel.schema.ts",
-            "Line": 14,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "cd8dc208215eed1b",
-            "Lifecycle": "accepted",
-            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
-          },
-          {
-            "File": "src/lib/server/db/channel.schema.ts",
-            "Line": 33,
-            "Op": "ArrowFunction",
-            "Snippet": "() =\u003e undefined",
-            "Origin": "inherited",
-            "Key": "4482ed5275ce6acc",
-            "Lifecycle": "accepted",
-            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
-          },
-          {
-            "File": "src/lib/server/db/channel.schema.ts",
-            "Line": 33,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "inherited",
-            "Key": "f13dcb9115977085",
-            "Lifecycle": "accepted",
-            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
-          },
-          {
-            "File": "src/lib/server/db/channel.schema.ts",
-            "Line": 36,
-            "Op": "ArrowFunction",
-            "Snippet": "() =\u003e undefined",
-            "Origin": "in-hunk",
-            "Key": "6de93198c34d82cb",
-            "Lifecycle": "accepted",
-            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
-          },
-          {
-            "File": "src/lib/server/db/channel.schema.ts",
-            "Line": 34,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "08258689131593c7",
-            "Lifecycle": "accepted",
-            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
-          },
-          {
-            "File": "src/lib/server/db/channel.schema.ts",
-            "Line": 33,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "inherited",
-            "Key": "b30e36170aeb2bf3",
-            "Lifecycle": "accepted",
-            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
-          },
-          {
-            "File": "src/lib/server/db/channel.schema.ts",
-            "Line": 36,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "9149bbeb9715cf36",
-            "Lifecycle": "accepted",
-            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
-          },
-          {
-            "File": "src/lib/server/db/channel.schema.ts",
-            "Line": 36,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "ad924df8ddd6c8c1",
-            "Lifecycle": "accepted",
-            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
-          },
-          {
-            "File": "src/routes/account/alerts/+page.server.ts",
-            "Line": 117,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "inherited",
-            "Key": "e431af43ffe57455",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent on the wire: only ntfy reads alert.kind, and for '' it sends priority NTFY_PRIORITY[''] = undefined, which JSON.stringify omits, the same body as kind 'test' (no priority); resend and smtp ignore kind"
-          },
-          {
-            "File": "src/lib/server/alerts/alerts.ts",
-            "Line": 142,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "inherited",
-            "Key": "d89779be41c89c48",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent for every stored price: with a null target, pricePence \u003c= null compares against 0, and adapters only ever store prices \u003e 0 (amazon/extract.ts:26 returns null for \u003c= 0), so dropped stays false"
-          },
-          {
-            "File": "src/lib/server/alerts/alerts.ts",
-            "Line": 216,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "6393b7616b8017c7",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: channelsFor picks priceDrops only for 'price_drop' and checkFailures for any other kind, so '' routes exactly like 'check_failed'"
-          },
-          {
-            "File": "src/lib/server/alerts/alerts.ts",
-            "Line": 216,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "cd27373a6379c454",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/lib/server/local-request.ts",
-            "Line": 12,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "4ff2f05c6d457098",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: without the null guard, LOOPBACK_HOST.exec(null) coerces to the string 'null', which never matches, so the function still returns false"
-          },
-          {
-            "File": "src/lib/server/local-request.ts",
-            "Line": 18,
-            "Op": "EqualityOperator",
-            "Snippet": "n \u003e 1",
-            "Origin": "in-hunk",
-            "Key": "e7ec8b0822acf4ea",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/lib/server/local-request.ts",
-            "Line": 33,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "9cb297f77f7bef3a",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: a Response with a string body defaults to content-type text/plain;charset=UTF-8, the same media type and charset as the explicit header; the 403 status and body are unchanged"
-          },
-          {
-            "File": "src/lib/server/watches.ts",
-            "Line": 214,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "inherited",
-            "Key": "9c54032ecc58cfe3",
-            "Lifecycle": "accepted",
-            "Note": "Both paths throw: with the guard skipped, already(null) throws a TypeError instead of rethrowing the unique-constraint error. Reachable only if the race winner's row is deleted between the failed batch and the lookup; the add fails either way"
-          },
           {
             "File": "src/lib/server/alerts/channels.ts",
             "Line": 62,
@@ -286,16 +117,6 @@
           },
           {
             "File": "src/lib/server/alerts/channels.ts",
-            "Line": 191,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "inherited",
-            "Key": "676b81e8d492f6c3",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: this branch runs only when the channel row exists, so the write is always the onConflictDoUpdate path; with kinds = {} the update sets only configEnc/updatedAt and leaves price_drops/check_failures as stored, which is the value the original copies back"
-          },
-          {
-            "File": "src/lib/server/alerts/channels.ts",
             "Line": 62,
             "Op": "ConditionalExpression",
             "Snippet": "false",
@@ -306,6 +127,16 @@
           },
           {
             "File": "src/lib/server/alerts/channels.ts",
+            "Line": 191,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "inherited",
+            "Key": "676b81e8d492f6c3",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: this branch runs only when the channel row exists, so the write is always the onConflictDoUpdate path; with kinds = {} the update sets only configEnc/updatedAt and leaves price_drops/check_failures as stored, which is the value the original copies back"
+          },
+          {
+            "File": "src/lib/server/alerts/channels.ts",
             "Line": 64,
             "Op": "ConditionalExpression",
             "Snippet": "false",
@@ -313,6 +144,106 @@
             "Key": "50ebc2d433ca9b7f",
             "Lifecycle": "accepted",
             "Note": "Equivalent: with the !opened.ok guard skipped, JSON.parse(undefined) throws a SyntaxError that the following catch turns into { ok: false }, the same result"
+          },
+          {
+            "File": "src/lib/server/local-request.ts",
+            "Line": 12,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "4ff2f05c6d457098",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: without the null guard, LOOPBACK_HOST.exec(null) coerces to the string 'null', which never matches, so the function still returns false"
+          },
+          {
+            "File": "src/lib/server/local-request.ts",
+            "Line": 33,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "9cb297f77f7bef3a",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: a Response with a string body defaults to content-type text/plain;charset=UTF-8, the same media type and charset as the explicit header; the 403 status and body are unchanged"
+          },
+          {
+            "File": "src/lib/server/alerts/alerts.ts",
+            "Line": 142,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "inherited",
+            "Key": "d89779be41c89c48",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent for every stored price: with a null target, pricePence \u003c= null compares against 0, and adapters only ever store prices \u003e 0 (amazon/extract.ts:26 returns null for \u003c= 0), so dropped stays false"
+          },
+          {
+            "File": "src/lib/server/alerts/alerts.ts",
+            "Line": 216,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "6393b7616b8017c7",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: channelsFor picks priceDrops only for 'price_drop' and checkFailures for any other kind, so '' routes exactly like 'check_failed'"
+          },
+          {
+            "File": "src/lib/server/watches.ts",
+            "Line": 214,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "inherited",
+            "Key": "9c54032ecc58cfe3",
+            "Lifecycle": "accepted",
+            "Note": "Both paths throw: with the guard skipped, already(null) throws a TypeError instead of rethrowing the unique-constraint error. Reachable only if the race winner's row is deleted between the failed batch and the lookup; the add fails either way"
+          },
+          {
+            "File": "src/lib/server/db/watch.schema.ts",
+            "Line": 9,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "04ecbe501faab5a6",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/lib/server/db/watch.schema.ts",
+            "Line": 11,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "29693a04c43754d4",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/lib/server/db/watch.schema.ts",
+            "Line": 17,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "bd47c67261a447ff",
+            "Lifecycle": "accepted",
+            "Note": "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+          },
+          {
+            "File": "src/routes/account/alerts/+page.server.ts",
+            "Line": 117,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "inherited",
+            "Key": "e431af43ffe57455",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent on the wire: only ntfy reads alert.kind, and for '' it sends priority NTFY_PRIORITY[''] = undefined, which JSON.stringify omits, the same body as kind 'test' (no priority); resend and smtp ignore kind"
+          },
+          {
+            "File": "src/lib/server/health.ts",
+            "Line": 16,
+            "Op": "MethodExpression",
+            "Snippet": "Object.values\u003cunknown\u003e(schema)",
+            "Origin": "inherited",
+            "Key": "e0b4a601aab496bb",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent today: every runtime export of db/schema.ts (watch, pricePoint, checkFailure, notifyChannel, priceDropDelivery) is a sqliteTable, so dropping the is(SQLiteTable) filter leaves TABLES unchanged; the filter only matters if a non-table export is added later. Touched by a comment-only t-15 edit, not phase logic."
           }
         ],
         "NotCovered": 0
@@ -1011,52 +942,52 @@
           },
           {
             "start": 32,
-            "end": 33,
+            "end": 36,
             "construct": "hunk"
           },
           {
-            "start": 34,
-            "end": 37,
+            "start": 37,
+            "end": 40,
             "construct": "VariableDeclaration POINTS"
           },
           {
-            "start": 38,
-            "end": 38,
+            "start": 41,
+            "end": 41,
             "construct": "hunk"
           },
           {
-            "start": 39,
-            "end": 39,
+            "start": 42,
+            "end": 42,
             "construct": "VariableDeclaration dir"
           },
           {
-            "start": 40,
-            "end": 40,
-            "construct": "hunk"
-          },
-          {
-            "start": 41,
+            "start": 43,
             "end": 43,
-            "construct": "ExpressionStatement"
+            "construct": "hunk"
           },
           {
             "start": 44,
-            "end": 44,
-            "construct": "hunk"
-          },
-          {
-            "start": 45,
-            "end": 47,
+            "end": 46,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 48,
-            "end": 48,
+            "start": 47,
+            "end": 47,
             "construct": "hunk"
           },
           {
-            "start": 49,
-            "end": 123,
+            "start": 48,
+            "end": 50,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 51,
+            "end": 51,
+            "construct": "hunk"
+          },
+          {
+            "start": 52,
+            "end": 133,
             "construct": "ExpressionStatement"
           }
         ],
@@ -1104,6 +1035,11 @@
             "start": 2,
             "end": 3,
             "construct": "hunk"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
           },
           {
             "start": 7,
@@ -1162,22 +1098,72 @@
           },
           {
             "start": 26,
-            "end": 26,
+            "end": 30,
             "construct": "hunk"
           },
           {
-            "start": 36,
-            "end": 84,
+            "start": 31,
+            "end": 31,
+            "construct": "VariableDeclaration STALE_ARCHITECTURE"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 33,
+            "end": 34,
+            "construct": "VariableDeclaration staleArchitecture"
+          },
+          {
+            "start": 35,
+            "end": 36,
+            "construct": "hunk"
+          },
+          {
+            "start": 37,
+            "end": 37,
+            "construct": "VariableDeclaration isTestFile"
+          },
+          {
+            "start": 38,
+            "end": 39,
+            "construct": "hunk"
+          },
+          {
+            "start": 40,
+            "end": 43,
+            "construct": "VariableDeclaration authSchemaMentions"
+          },
+          {
+            "start": 44,
+            "end": 44,
+            "construct": "hunk"
+          },
+          {
+            "start": 45,
+            "end": 51,
+            "construct": "VariableDeclaration srcFiles"
+          },
+          {
+            "start": 52,
+            "end": 52,
+            "construct": "hunk"
+          },
+          {
+            "start": 62,
+            "end": 110,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 85,
-            "end": 85,
+            "start": 111,
+            "end": 111,
             "construct": "hunk"
           },
           {
-            "start": 86,
-            "end": 113,
+            "start": 112,
+            "end": 162,
             "construct": "ExpressionStatement"
           }
         ],
@@ -1452,7 +1438,7 @@
           },
           {
             "start": 887,
-            "end": 988,
+            "end": 1012,
             "construct": "ExpressionStatement"
           }
         ],
@@ -2178,6 +2164,13 @@
             "construct": "ExpressionStatement"
           }
         ],
+        "src/lib/server/health.ts": [
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "hunk"
+          }
+        ],
         "src/lib/server/local-request.spec.ts": [
           {
             "start": 1,
@@ -2201,17 +2194,17 @@
           },
           {
             "start": 5,
-            "end": 38,
+            "end": 48,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 39,
-            "end": 39,
+            "start": 49,
+            "end": 49,
             "construct": "hunk"
           },
           {
-            "start": 40,
-            "end": 101,
+            "start": 50,
+            "end": 111,
             "construct": "ExpressionStatement"
           }
         ],
@@ -3940,7 +3933,10 @@
       ".dross/phases/02-single-user/panel/verification.md",
       ".dross/phases/02-single-user/plan.toml",
       ".dross/phases/02-single-user/spec.toml",
+      ".dross/phases/02-single-user/tests.json",
+      ".dross/phases/02-single-user/verify.toml",
       ".dross/project.toml",
+      ".dross/survivors.toml",
       ".env.example",
       "ARCHITECTURE.md",
       "README.md",
@@ -4006,6 +4002,7 @@
       "src/lib/server/db/watch.schema.spec.ts",
       "src/lib/server/db/watch.schema.ts",
       "src/lib/server/health.spec.ts",
+      "src/lib/server/health.ts",
       "src/lib/server/local-request.spec.ts",
       "src/lib/server/local-request.ts",
       "src/lib/server/login-limiter.spec.ts",
@@ -4081,7 +4078,7 @@
       ".dross/phases/02-single-user/changes.json": [
         {
           "start": 1,
-          "end": 636
+          "end": 703
         }
       ],
       ".dross/phases/02-single-user/panel/mvp.md": [
@@ -4111,7 +4108,7 @@
       ".dross/phases/02-single-user/plan.toml": [
         {
           "start": 1,
-          "end": 173
+          "end": 194
         }
       ],
       ".dross/phases/02-single-user/spec.toml": [
@@ -4120,10 +4117,32 @@
           "end": 73
         }
       ],
+      ".dross/phases/02-single-user/tests.json": [
+        {
+          "start": 1,
+          "end": 7198
+        }
+      ],
+      ".dross/phases/02-single-user/verify.toml": [
+        {
+          "start": 1,
+          "end": 330
+        }
+      ],
       ".dross/project.toml": [
         {
           "start": 3,
           "end": 3
+        }
+      ],
+      ".dross/survivors.toml": [
+        {
+          "start": 18,
+          "end": 23
+        },
+        {
+          "start": 312,
+          "end": 500
         }
       ],
       "ARCHITECTURE.md": [
@@ -4150,6 +4169,14 @@
         {
           "start": 79,
           "end": 79
+        },
+        {
+          "start": 122,
+          "end": 122
+        },
+        {
+          "start": 124,
+          "end": 126
         },
         {
           "start": 132,
@@ -4333,7 +4360,7 @@
       "e2e/restart.e2e.ts": [
         {
           "start": 1,
-          "end": 123
+          "end": 133
         }
       ],
       "e2e/seed.ts": [
@@ -4395,7 +4422,7 @@
       "scripts/readme.spec.ts": [
         {
           "start": 2,
-          "end": 3
+          "end": 4
         },
         {
           "start": 7,
@@ -4407,11 +4434,11 @@
         },
         {
           "start": 17,
-          "end": 26
+          "end": 52
         },
         {
-          "start": 67,
-          "end": 111
+          "start": 93,
+          "end": 160
         }
       ],
       "src/app.d.ts": [
@@ -4654,8 +4681,12 @@
           "end": 896
         },
         {
-          "start": 975,
-          "end": 975
+          "start": 973,
+          "end": 996
+        },
+        {
+          "start": 999,
+          "end": 999
         }
       ],
       "src/lib/server/alerts/alerts.ts": [
@@ -5618,10 +5649,16 @@
           "end": 94
         }
       ],
+      "src/lib/server/health.ts": [
+        {
+          "start": 15,
+          "end": 15
+        }
+      ],
       "src/lib/server/local-request.spec.ts": [
         {
           "start": 1,
-          "end": 101
+          "end": 111
         }
       ],
       "src/lib/server/local-request.ts": [
@@ -7193,6 +7230,6 @@
     "source": "git+changes"
   },
   "measured_on": "local",
-  "measured_commit": "243e34e6b9856a1813ab2f15a691efc2c6425bc0",
-  "measured_tree": "07c4e48986c2982b32c720c7be8123119f75dafc"
+  "measured_commit": "ae2eb5337d31e756f978ed1a1656476919dee293",
+  "measured_tree": "4debe8f95ee35ceea493b9f28831fc7ae5046bec"
 }

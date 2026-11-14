@@ -498,3 +498,39 @@
   line = 117
   accepted_in = "02-single-user"
   reason = "Equivalent on the wire: only ntfy reads alert.kind, and for '' it sends priority NTFY_PRIORITY[''] = undefined, which JSON.stringify omits, the same body as kind 'test' (no priority); resend and smtp ignore kind"
+
+[[accepted]]
+  key = "04ecbe501faab5a6"
+  file = "src/lib/server/db/watch.schema.ts"
+  op = "StringLiteral"
+  text = "id: text('id').primaryKey(),"
+  line = 9
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "29693a04c43754d4"
+  file = "src/lib/server/db/watch.schema.ts"
+  op = "StringLiteral"
+  text = "shop: text('shop').notNull(),"
+  line = 11
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "bd47c67261a447ff"
+  file = "src/lib/server/db/watch.schema.ts"
+  op = "StringLiteral"
+  text = "title: text('title'),"
+  line = 17
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "e0b4a601aab496bb"
+  file = "src/lib/server/health.ts"
+  op = "MethodExpression"
+  text = "const TABLES = Object.values<unknown>(schema).filter((value): value is SQLiteTable =>"
+  line = 16
+  accepted_in = "02-single-user"
+  reason = "Equivalent today: every runtime export of db/schema.ts (watch, pricePoint, checkFailure, notifyChannel, priceDropDelivery) is a sqliteTable, so dropping the is(SQLiteTable) filter leaves TABLES unchanged; the filter only matters if a non-table export is added later. Touched by a comment-only t-15 edit, not phase logic."
