@@ -248,7 +248,7 @@ test_contract = [
   '''if a second instance spawned on the same userData does not exit 0 within 15s, or prints a listening line of its own, background.e2e 'single instance' fails; afterwards the first app must have exactly one visible window on the original port, also when its window was closed first''',
   '''if a launch with '--login-launch' has any BrowserWindow once the server answers /health, or a second launch then fails to open one, background.e2e 'login launch is tray-only' fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-14"

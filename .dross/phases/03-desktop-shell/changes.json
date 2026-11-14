@@ -75,6 +75,21 @@
         }
       ]
     },
+    "t-13": {
+      "files": [
+        "e2e/desktop/background.e2e.ts"
+      ],
+      "commit": "b9fb305",
+      "completed_at": "2026-11-14T12:09:09.834214Z",
+      "landmarks": [
+        {
+          "feature": "desktop background running",
+          "symbol": "failureCounts",
+          "loc": "e2e/desktop/background.e2e.ts:111",
+          "what": "real-Electron e2e proving window close keeps serving, resume catch-up pass, single-instance relaunch and tray-only login launch"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/scheduler.ts",
@@ -340,6 +355,28 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The four tests in the 'guard in the app window' block share one app launch. This only works because the desktop config sets workers: 1 and fullyParallel: false, and test 1's saved ntfy channel is part of the 'before' snapshot that test 2 compares against.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-13": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-6",
+          "text": "On macOS and Windows the 'login launch is tray-only' test reads app.getLoginItemSettings() for the unpackaged electron binary, which reflects the host machine's real login-item state; a developer machine that once registered Electron would fail this check for reasons unrelated to the app",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-6",
+          "text": "The login-launch test waits for the 'activate' listener to be attached before asserting no window, which ties the check to lifecycle.ts's startup order and keeps it from passing vacuously while startup is still running",
           "resolution": "non-blocking, left"
         }
       ]
