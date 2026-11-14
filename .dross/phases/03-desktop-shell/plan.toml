@@ -105,7 +105,7 @@ test_contract = [
   '''if the window's 'close' event is preventDefault-ed (quit would hang behind it), window.spec fails''',
   '''if showWindow after the window was destroyed does not create exactly one new window, a minimised window is not restore()d, or showWindow on a visible window creates a second BrowserWindow, window.spec fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-6"

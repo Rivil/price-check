@@ -79,6 +79,22 @@
           "what": "127.0.0.1 port-0 node:http wrapper that 403s non-loopback Host, forces X-Forwarded-Proto http, and loads adapter-node handler after env+chdir"
         }
       ]
+    },
+    "t-5": {
+      "files": [
+        "src/desktop/window.ts",
+        "src/desktop/window.spec.ts"
+      ],
+      "commit": "453d539",
+      "completed_at": "2026-11-14T11:32:06.28654Z",
+      "landmarks": [
+        {
+          "feature": "desktop app window",
+          "symbol": "createMainWindow",
+          "loc": "src/desktop/window.ts:108",
+          "what": "sandboxed window on the local origin; window.open always denied, off-origin http(s) to default browser, off-origin navigation/redirect prevented; showWindow recreates/restores"
+        }
+      ]
     }
   },
   "reviews": {
@@ -197,6 +213,36 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The tests go beyond the contract: they also cover a handler that throws (500), next() (404), and a repeated X-Forwarded-Proto header line, and the rawHeaders rewrite stops headersDistinct from bringing the client value back.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-5": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "will-navigate to an off-origin http(s) URL also hands it to shell.openExternal. The task description only says such navigations are prevented, but this matches the external_links decision and is tested.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "The test 'never cancels close' exercises createMainWindow, which registers no 'close' listener, so it can only catch a listener added there. A close listener added in showWindow would still be caught indirectly, because 'creates exactly one new window after the old one was closed' would then fail.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-7",
+          "text": "windowOptions also sets webviewTag:false, beyond the stated preferences. It is a harmless hardening.",
           "resolution": "non-blocking, left"
         }
       ]
