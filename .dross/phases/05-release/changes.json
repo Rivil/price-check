@@ -21,6 +21,24 @@
           "what": "pins electron-updater/electron-builder/@electron/asar exactly and installs both darwin libsql arches for a universal build"
         }
       ]
+    },
+    "t-2": {
+      "files": [
+        "scripts/package-desktop.ts",
+        "scripts/package-desktop.spec.ts",
+        "package.json",
+        ".gitignore"
+      ],
+      "commit": "bf9ebbc",
+      "completed_at": "2026-11-14T18:38:20.159919Z",
+      "landmarks": [
+        {
+          "feature": "desktop packaging",
+          "symbol": "builderConfig",
+          "loc": "scripts/package-desktop.ts:167",
+          "what": "electron-builder config (universal mac, per-user NSIS, x64 AppImage, libsql unpacked) and host-only never-publish package CLI with --sign credential gate"
+        }
+      ]
     }
   },
   "reviews": {
@@ -47,6 +65,47 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The darwin libsql test checks more than resolution: it also asserts index.node exists next to each @libsql/darwin-* manifest, which is stronger than the test_contract requires.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-2": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/package-desktop.ts fileSize (catch at ~line 1078 of the diff) turns every statSync error into null with no comment, so EACCES or EIO on the APPLE_API_KEY path shows up as 'must name an existing, non-empty .p8 file'. It fails closed and the refusal is printed, but the real error is lost.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The files/asarUnpack tests (matchesAll, packed, unpacked in scripts/package-desktop.spec.ts) check against a hand-copied model of app-builder-lib's filter.js and fileMatcher.js, not electron-builder itself. If electron-builder 26 changes how it collects node_modules, these tests can keep passing while the real packaging changes.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "If NSIS gets a null arch for a single-arch build, electron-builder drops '-${arch}' from ARTIFACT_NAME and the installer is named price-check-\u003cv\u003e-win.exe, not ...-win-x64.exe. The spec's expand() always fills in x64, so it can't catch this. Check the real file name before c-4's release job lists its files.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The description says the executor saw 'pnpm package:desktop --version 0.1.4' produce dist-packaged/mac-universal/Price Check.app. That's a manual check the diff can't show.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The tests for refusing --sign also capture process.stdout/stderr and console output, so a leaked secret value would be caught on those paths as well as through the injected stdout/stderr.",
           "resolution": "non-blocking, left"
         }
       ]
