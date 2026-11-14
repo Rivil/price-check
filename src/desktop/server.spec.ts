@@ -3,7 +3,8 @@ import { Agent, request, type IncomingHttpHeaders, type OutgoingHttpHeaders } fr
 import { connect } from 'node:net';
 import { networkInterfaces, tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { readNotifier, type DesktopNotifier } from '#lib/server/notify-bridge.ts';
 import { removeTempDir } from '#lib/server/testing/temp-dir.ts';
 import { loadAdapterHandler, startDesktopServer, type DesktopServer } from './server.ts';
 
@@ -342,13 +343,21 @@ describe('startDesktopServer: close with keep-alive', () => {
 	});
 });
 
-describe('loadAdapterHandler: env and cwd before import', () => {
+type Recorded = { protocolHeader: string | null; cwd: string; notifierPublished: boolean };
+
+const NOTIFIER_KEY = Symbol.for('price-check.notifier');
+const notifier: DesktopNotifier = { show: async () => ({ ok: true }) };
+
+describe('loadAdapterHandler: env, cwd and notifier before import', () => {
 	const originalCwd = process.cwd();
 	const originalEnv = { ...process.env };
+	const moduleUrl = new URL('./testing/fake-handler.ts', import.meta.url).href;
 	let appRoot: string;
 
 	beforeEach(() => {
 		appRoot = mkdtempSync(join(tmpdir(), 'desktop-server-'));
+		// Each test imports fake-handler afresh, so its top-level reads see that test's state.
+		vi.resetModules();
 	});
 
 	afterEach(() => {
@@ -357,37 +366,54 @@ describe('loadAdapterHandler: env and cwd before import', () => {
 			if (!(name in originalEnv)) delete process.env[name];
 		}
 		Object.assign(process.env, originalEnv);
+		delete (globalThis as { [NOTIFIER_KEY]?: DesktopNotifier })[NOTIFIER_KEY];
 		removeTempDir(appRoot);
 	});
+
+	/** What fake-handler read at its import, fetched through a server running it. */
+	async function recordedBy(handler: Awaited<ReturnType<typeof loadAdapterHandler>>) {
+		const server = await startDesktopServer({ handler });
+		started.push(server);
+		return JSON.parse((await send(server.port)).body) as Recorded;
+	}
 
 	it('assigns env and chdirs to appRoot before importing the handler module', async () => {
 		process.env.PROTOCOL_HEADER = 'x-evil-proto';
 		process.env.HOST_HEADER = 'x-evil-host';
-		const moduleUrl = new URL('./testing/fake-handler.ts', import.meta.url).href;
 
 		const handler = await loadAdapterHandler(
 			{ PROTOCOL_HEADER: 'x-forwarded-proto', PATH: process.env.PATH ?? '' },
 			moduleUrl,
-			appRoot
+			appRoot,
+			{ notifier }
 		);
 
 		expect('HOST_HEADER' in process.env).toBe(false);
-		const server = await startDesktopServer({ handler });
-		started.push(server);
-		const recorded = JSON.parse((await send(server.port)).body) as {
-			protocolHeader: string | null;
-			cwd: string;
-		};
+		const recorded = await recordedBy(handler);
 		expect(recorded.protocolHeader).toBe('x-forwarded-proto');
 		// realpath both: macOS tmpdir is a /var -> /private/var symlink.
 		expect(realpathSync(recorded.cwd)).toBe(realpathSync(appRoot));
 	});
 
+	it('publishes the notifier before importing the handler module (notifier before import)', async () => {
+		expect(readNotifier()).toBeUndefined();
+
+		const handler = await loadAdapterHandler({ PATH: process.env.PATH ?? '' }, moduleUrl, appRoot, {
+			notifier
+		});
+
+		// The server's startup registers the desktop driver only if it sees a notifier.
+		expect((await recordedBy(handler)).notifierPublished).toBe(true);
+		expect(readNotifier()).toBe(notifier);
+	});
+
 	it('rejects a module without a handler export', async () => {
-		const moduleUrl = new URL('./app-paths.ts', import.meta.url).href;
+		const noHandlerUrl = new URL('./app-paths.ts', import.meta.url).href;
 
 		await expect(
-			loadAdapterHandler({ ...originalEnv } as Record<string, string>, moduleUrl, appRoot)
+			loadAdapterHandler({ ...originalEnv } as Record<string, string>, noHandlerUrl, appRoot, {
+				notifier
+			})
 		).rejects.toThrow('does not export a handler function');
 	});
 });

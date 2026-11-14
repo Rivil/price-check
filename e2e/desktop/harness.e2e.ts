@@ -5,12 +5,16 @@
 // Windows pins (t-15): no launch argument ends in a path separator, the DB seeding
 // runs outside this process so its temp userData can be removed, and a kill takes
 // the whole process tree.
+// The notification seam's variable is set only when a launch asks for it, so a plain
+// launch always runs Electron's real Notification class.
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import { databaseUrl } from '../../src/desktop/server-env.ts';
 import {
 	DB_FILE_NAME,
+	desktopEnv,
+	E2E_NOTIFY_ENV,
 	electronArgs,
 	INHERITED_ENV,
 	KEY_FILE_NAME,
@@ -82,6 +86,14 @@ test('launcher env', async () => {
 		]);
 		for (const name of Object.keys(desktop.env)) expect(allowed, name).toContain(name);
 		expect(desktop.env.PRICE_CHECK_USER_DATA).toBe(userData);
+		// No notify option: the seam's variable is absent, not empty.
+		expect(Object.keys(desktop.env)).not.toContain(E2E_NOTIFY_ENV);
+		const configHome = desktop.env.XDG_CONFIG_HOME;
+		expect(Object.keys(desktopEnv({ userData, configHome }))).not.toContain(E2E_NOTIFY_ENV);
+		expect(desktopEnv({ userData, configHome, notify: 'record' })[E2E_NOTIFY_ENV]).toBe('record');
+		expect(desktopEnv({ userData, configHome, notify: 'unsupported' })[E2E_NOTIFY_ENV]).toBe(
+			'unsupported'
+		);
 		// What electron.launch got: the app path with no trailing separator.
 		expect(desktop.args).toEqual(electronArgs());
 		for (const arg of desktop.args) expect(arg).not.toMatch(/[\\/]$/);

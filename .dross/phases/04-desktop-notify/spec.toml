@@ -1,0 +1,100 @@
+[phase]
+  id = "04-desktop-notify"
+  title = "04-desktop-notify"
+  milestone = "v0.1"
+
+[[criteria]]
+  id = "c-1"
+  text = "With no channel set up, a check that brings a watch to its target shows a native notification naming the item, its new price and the target. Saved ntfy, Resend and SMTP channels still get the alert as well."
+
+[[criteria]]
+  id = "c-2"
+  text = "Clicking that notification shows the app window on that watch's page. A closed window is reopened and a minimised one restored. A watch deleted since opens the watchlist instead."
+
+[[criteria]]
+  id = "c-3"
+  text = "A watch notifies once per target reached. Later checks at or below the target stay silent. After the price rises above the target, or the target changes, the next drop notifies again."
+
+[[criteria]]
+  id = "c-4"
+  text = "The Alerts page shows a Desktop card that starts on, with price drops ticked and failed checks unticked. Turning it off or unticking a kind stops those notifications, and the choice survives a relaunch."
+
+[[criteria]]
+  id = "c-5"
+  text = "Send test on the Desktop card shows a test notification and reports it sent. If the OS reports notifications unsupported, the card shows a failure instead."
+
+[[criteria]]
+  id = "c-6"
+  text = "On Windows, the app sets its AppUserModelId to the shared app ID before any notification is shown."
+  deferred = ["6068e133227d5e31"]
+
+[[decisions]]
+  key = "notify_bridge"
+  choice = "Main publishes a desktop notifier on globalThis under a Symbol.for key before importing the handler, mirroring runtime-bridge in reverse. The server's desktop driver calls it. The server bundle never imports electron."
+  why = "Main and the server are two bundles with two copies of every module, so a shared registry key is the only in-process hand-off. Keeping electron out of the server bundle keeps the driver testable with a fake notifier."
+  locked = true
+
+[[decisions]]
+  key = "desktop_only_driver"
+  choice = "The desktop driver is registered only when the notifier is present. Outside Electron (pnpm dev, browser e2e) there is no Desktop card, no desktop send and no failure log for it."
+  why = "A browser dev server cannot show OS notifications. A registered driver there would log a failed send on every check and put a dead card on the page."
+  locked = true
+
+[[decisions]]
+  key = "default_on_seed"
+  choice = "The desktop channel is a stored channel row like ntfy's. It is created at startup only when no desktop row exists: enabled, price drops on, failed checks off. The card offers on/off and the two ticks, but no Remove."
+  why = "Reusing the row keeps per-channel routing and delivery state unchanged. With no Remove, seeding only a missing row never re-enables a user's off. Failed-check alerts fire on every check with no dedupe, and Amazon's click-through wall fails checks now."
+  locked = true
+
+[[decisions]]
+  key = "click_target"
+  choice = "Desktop alerts carry the watch id. A click shows the window through the existing showWindow and loads /watches/<id>, or / if the watch is gone. A test notification opens /account/alerts. ntfy, Resend and SMTP keep the shop-URL click."
+  why = "Milestone criterion 3 says the click opens that watch in the app, and the shop link is one click away on the watch page. Remote channels run on other devices, where a 127.0.0.1 URL on a per-launch port means nothing."
+  locked = true
+
+[[decisions]]
+  key = "delivery_result"
+  choice = "A desktop send counts as delivered once the OS accepts it. An unsupported platform or an Electron 'failed' event is a send failure, retried on the next check. Suppression the OS does not report (permission denied, Focus, no Linux daemon) counts as delivered."
+  why = "Electron exposes no permission or delivery status on macOS and Linux. Treating the unknown as failure would re-notify on every check, and then flood the user once they allow notifications."
+  locked = true
+
+[[decisions]]
+  key = "app_user_model_id"
+  choice = "One exported APP_ID constant, io.github.rivil.price-check, in src/desktop. Packaged Windows runs call app.setAppUserModelId(APP_ID) at startup. Unpackaged runs use process.execPath. 05's electron-builder appId must read the same constant."
+  why = "Windows routes toasts by AUMID and silently drops one with no matching Start Menu shortcut, and only the 05 installer creates that shortcut. Dev runs keep execPath, which Windows resolves. One constant stops 04 and 05 drifting."
+  locked = true
+
+[[decisions]]
+  key = "macos_permission"
+  choice = "No first-launch welcome notification. macOS asks for permission the first time a notification is shown: a real alert, or Send test."
+  why = "A welcome toast is noise on Windows and Linux, which never ask. Send test already gives the user a deliberate way to trigger the prompt early."
+  locked = true
+
+[[edges]]
+  class = "idempotency"
+  outcome = "covered"
+  criteria = ["c-3", "c-4"]
+
+[[edges]]
+  class = "empty"
+  outcome = "covered"
+  criteria = ["c-2"]
+
+[[edges]]
+  class = "adjacency"
+  outcome = "covered"
+  criteria = ["c-1"]
+
+[[deferred]]
+  text = "electron-builder appId and the NSIS Start Menu shortcut both carry APP_ID, so packaged Windows toasts are not dropped"
+  why = "Only the installer creates the shortcut; packaging is 05's"
+  target = "05-release"
+
+[[deferred]]
+  text = "Packaged smoke test per OS: Send test shows a notification and a click opens the watch (signed macOS with its permission prompt, installed Windows, Linux AppImage)"
+  why = "Needs signed and installed artefacts, which 05 produces"
+  target = "05-release"
+
+[[deferred]]
+  text = "Clicking a Windows Action Center toast after the app quit or relaunched opens the watch (toast activation launch args)"
+  why = "Needs toast activation plumbing beyond Electron's Notification; a stale toast is an edge case, not the milestone's click path"

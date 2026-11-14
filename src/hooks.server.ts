@@ -1,20 +1,44 @@
 import type { Handle, HandleServerError, ServerInit } from '@sveltejs/kit/hooks';
 import { building } from '$app/env';
 import { ALERTS_ENCRYPTION_KEY, CHECK_INTERVAL_HOURS, SCHEDULER_DISABLED } from '$app/env/private';
-import { parseAlertsKey, setAlertsKey } from '#lib/server/alerts/crypto.ts';
+import { alertsKey, parseAlertsKey, setAlertsKey } from '#lib/server/alerts/crypto.ts';
+import { installDesktop } from '#lib/server/alerts/desktop.ts';
 import { db } from '#lib/server/db/index.ts';
 import { migrateDb } from '#lib/server/db/migrate.ts';
 import { formatError } from '#lib/server/error-log.ts';
 import { createLocalRequestHandle } from '#lib/server/local-request.ts';
+import { readNotifier } from '#lib/server/notify-bridge.ts';
 import { closeOnce, publishRuntime } from '#lib/server/runtime-bridge.ts';
 import { startScheduler, type SchedulerControls } from '#lib/server/scheduler.ts';
 import { checkUrl } from '#lib/server/shops/index.ts';
+import { getWatch } from '#lib/server/watches.ts';
+
+/**
+ * Inside Electron, registers the desktop channel and seeds its row before the first
+ * scheduler pass, so that pass already routes desktop alerts. Outside Electron there
+ * is no notifier and nothing happens (decision desktop_only_driver). A failure here
+ * never stops startup: installDesktop has already unregistered the driver, the app
+ * runs without desktop alerts this launch, and the log line carries the error's type
+ * and frames only, never its message (a failed query's text holds its params).
+ */
+async function setUpDesktopAlerts(): Promise<void> {
+	const notifier = readNotifier();
+	if (notifier === undefined) return;
+	try {
+		await installDesktop(db, alertsKey(), notifier, {
+			watchExists: async (id) => (await getWatch(db, id)) !== null
+		});
+	} catch (error) {
+		console.error(`[server] desktop alerts not set up: ${formatError(error)}`);
+	}
+}
 
 /**
  * Loads the alert-credentials key first — without a valid ALERTS_ENCRYPTION_KEY
  * the server refuses to start, naming the variable but never its value (decision
  * encryption_key) — then brings the database up to date before the first request
- * (a fresh volume has no tables), then re-checks due watches in the background.
+ * (a fresh volume has no tables), sets up desktop alerts when running in the app,
+ * then re-checks due watches in the background.
  * Last, it publishes the scheduler and database controls for the desktop main
  * process (resume runs a pass, quit stops the scheduler and closes the db); with
  * the scheduler off, requestPass and stop are no-ops, so main never needs to know.
@@ -23,6 +47,7 @@ export const init: ServerInit = async () => {
 	if (!building) {
 		setAlertsKey(parseAlertsKey(ALERTS_ENCRYPTION_KEY));
 		await migrateDb(db);
+		await setUpDesktopAlerts();
 	}
 	const scheduler: SchedulerControls = startScheduler({
 		env: { CHECK_INTERVAL_HOURS, SCHEDULER_DISABLED, VITEST: process.env.VITEST },

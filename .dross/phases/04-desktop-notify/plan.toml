@@ -1,0 +1,208 @@
+task_seq = 11
+[phase]
+id = "04-desktop-notify"
+
+[[task]]
+id            = "t-1"
+wave          = 1
+title         = "Add notify bridge and phase gitleaks entry"
+files         = [".gitleaks.toml", "src/lib/server/notify-bridge.ts", "src/lib/server/notify-bridge.spec.ts"]
+description   = '''
+The only wave-1 task; every other task depends on it, because vitest is red on this branch until the gitleaks entry lands (gitleaks-config.spec 'every phase allowlisted'). The .gitleaks.toml tests.json allowlist gains ^\.dross/phases/04-desktop-notify/tests\.json$ (survivor ids live in .dross/survivors.toml, already allowlisted). notify-bridge.ts (no imports at all) declares DesktopNotice {title, body, clickPath(): Promise<string>}, DesktopNotifier {show(n): Promise<{ok:true}|{ok:false; reason:'unsupported'|'failed'}>}, publishNotifier(n) and readNotifier(): DesktopNotifier | undefined on globalThis[Symbol.for('price-check.notifier')].
+'''
+covers        = ["c-1"]
+test_contract = [
+  '''if the .gitleaks.toml tests.json allowlist lacks the exact anchored ^\.dross/phases/04-desktop-notify/tests\.json$ path, gitleaks-config.spec 'every phase allowlisted' fails (red on this branch today)''',
+  '''if a notifier published by one module instance is not returned by readNotifier from a second instance (vi.resetModules + re-import, as the main and server bundles are), notify-bridge.spec fails''',
+  '''if readNotifier() before any publish throws or returns anything but undefined (absence means "not in Electron", decision desktop_only_driver), notify-bridge.spec fails''',
+  '''if the notifier key is the same symbol as runtime-bridge's 'price-check.runtime' key (publishing one clobbers the other), notify-bridge.spec fails''',
+  '''if notify-bridge.ts gains any import statement (source read ?raw), notify-bridge.spec fails (it is bundled into main, which refuses $app/* and libsql)''',
+]
+status        = "done"
+
+[[task]]
+id            = "t-2"
+wave          = 2
+depends_on    = ["t-1"]
+title         = "Add desktop kind, watch id, ensureChannel"
+files         = ["src/lib/server/alerts/channel.ts", "src/lib/server/alerts/channels.ts", "src/lib/server/alerts/channels.spec.ts", "src/lib/server/alerts/alerts.ts", "src/lib/server/alerts/alerts.spec.ts", "src/lib/server/alerts/ntfy.spec.ts"]
+description   = '''
+ChannelKind += 'desktop'. FailureReason += 'unsupported', label 'notifications not supported' (REASON_LABELS and ntfy.spec's Record<FailureReason,string> labels table both gain it, or pnpm check goes red). Alert gains optional watchId, set by alertAfterSuccess and alertAfterFailure; click stays canonicalUrl. channels.ts gains ensureChannel(db, key, kind, routing): insert-if-missing (onConflictDoNothing), enabled, sealed {} config; it re-seals only a row whose config cannot be opened and keeps that row's flags. No migration (kind is a plain-text PK with no CHECK). Executor also runs pnpm check.
+'''
+covers        = ["c-1", "c-2", "c-3", "c-4", "c-5"]
+test_contract = [
+  '''if describeFailure('unsupported') is not exactly 'notifications not supported', alerts.spec fails''',
+  '''if the Alert that alertAfterSuccess hands a registered fake driver lacks watchId === the watch's id, or its click is no longer the watch's canonicalUrl (ntfy/Resend/SMTP keep the shop click, decision click_target), alerts.spec fails''',
+  '''if alertAfterFailure's Alert lacks watchId === the watch's id, alerts.spec fails''',
+  '''if ensureChannel(db, key, 'desktop', {priceDrops:true, checkFailures:false}) on an empty table does not leave exactly one row {enabled:true, priceDrops:true, checkFailures:false} whose config_enc is non-null and opens to {}, channels.spec fails''',
+  '''if ensureChannel over an existing row the user set to {enabled:false, priceDrops:false, checkFailures:true} changes any of the three flags or updated_at, or a second call adds a row, channels.spec 'never overrides' fails (decision default_on_seed)''',
+  '''if a row sealed under another key stays undecryptable after ensureChannel (channelsFor would skip it forever with only a log line), or its flags change, channels.spec fails''',
+  '''if two concurrent ensureChannel calls (Promise.all) throw or leave other than one row, channels.spec fails''',
+]
+status        = "done"
+
+[[task]]
+id            = "t-3"
+wave          = 2
+depends_on    = ["t-1"]
+title         = "Show window on a same-origin path"
+files         = ["src/desktop/window.ts", "src/desktop/window.spec.ts"]
+description   = '''
+showWindow(state, path?) builds the URL with new URL(path, origin) and falls back to origin for one that fails isAppUrl. createMainWindow takes the URL to load, so a new window loads the target as its first and only loadURL. A live window is restored if minimised, loads the target, then shows and focuses. Without a path, a live window is not reloaded.
+'''
+covers        = ["c-2"]
+test_contract = [
+  '''if showWindow(state, '/watches/w1') on a destroyed or never-created window creates a window whose loadURL calls are not exactly [origin + '/watches/w1'] (origin first = a double load), window.spec fails''',
+  '''if showWindow(state, '/watches/w1') on a minimised live window does not restore(), loadURL(origin + '/watches/w1') once, show() and focus(), or creates a second BrowserWindow, window.spec fails''',
+  '''if a path of '//evil.example/x', 'https://evil.example/' or '/\\evil.example' leads to loadURL with any non-app origin, window.spec's path table fails (each must load the origin)''',
+  '''if showWindow(state) with no path calls loadURL on an already-open window (tray Open or a second instance would lose the current page), window.spec fails''',
+]
+status        = "done"
+
+[[task]]
+id            = "t-4"
+wave          = 2
+depends_on    = ["t-1"]
+title         = "Add e2e notification seam, unpackaged only"
+files         = ["src/desktop/notify-seam.ts", "src/desktop/notify-seam.spec.ts"]
+description   = '''
+notificationClassFor({isPackaged, env, Notification}) returns the real class unless the run is unpackaged and PRICE_CHECK_E2E_NOTIFY is 'record' or 'unsupported'; then it returns a recording fake (structural NotificationCtor: isSupported(), new({title, body}), on(event), show()) whose show() emits 'show'. 'unsupported' makes isSupported() false. Records live on globalThis[Symbol.for('price-check.e2e-notifications')] as {shown: {title, body}[], click(index)}; click(index) emits 'click' on that instance only.
+'''
+covers        = ["c-1", "c-2", "c-5"]
+test_contract = [
+  '''if a packaged run (isPackaged true) with PRICE_CHECK_E2E_NOTIFY='record' or 'unsupported' gets anything but the real Notification class, notify-seam.spec fails''',
+  '''if an unpackaged run with the variable unset, empty or 'yes' gets anything but the real class, notify-seam.spec fails''',
+  '''if in 'record' mode a show() is not appended to shown with its exact title and body, or click(i) does not fire the 'click' listener of the i-th instance only, notify-seam.spec fails''',
+  '''if in 'unsupported' mode isSupported() is not false, notify-seam.spec fails''',
+  '''if click(i) for an index never shown throws in main instead of rejecting with a message naming the index, notify-seam.spec fails''',
+]
+status        = "done"
+
+[[task]]
+id            = "t-5"
+wave          = 2
+depends_on    = ["t-1"]
+title         = "Add Electron notifier and APP_ID"
+files         = ["src/desktop/notifier.ts", "src/desktop/notifier.spec.ts", "src/desktop/app-id.ts", "src/desktop/app-id.spec.ts"]
+description   = '''
+app-id.ts (no imports, so 05's electron-builder config can import it) exports APP_ID = 'io.github.rivil.price-check' and appUserModelIdFor({platform, isPackaged, execPath}): win32 packaged -> APP_ID, win32 unpackaged -> execPath, else null. notifier.ts createNotifier({Notification, settleMs}) -> {notifier, setClickHandler(fn), retainedCount()}, Electron types via import type only. isSupported() false -> {ok:false,'unsupported'} with no construction; else construct and show, resolving ok on 'show', {ok:false,'failed'} on 'failed', ok at settleMs with neither. Each notification is retained until click, close or failed (newest 20 at most). 'click' awaits clickPath() and calls the handler with it, or '/' if it rejects or is not a single-slash path; a click before setClickHandler is buffered.
+'''
+covers        = ["c-1", "c-2", "c-5", "c-6"]
+test_contract = ["if APP_ID !== 'io.github.rivil.price-check', or app-id.ts (source ?raw) contains any import, app-id.spec fails", "if appUserModelIdFor is not APP_ID for win32 packaged, not the given execPath for win32 unpackaged, or not null for darwin/linux (packaged or not), app-id.spec's table fails", "if a fake Notification with isSupported() false is constructed or shown, or show() resolves anything but {ok:false, reason:'unsupported'}, notifier.spec fails (c-5)", "if a fake emitting 'show' does not resolve {ok:true}, or one emitting 'failed' first does not resolve {ok:false, reason:'failed'}, notifier.spec fails (decision delivery_result)", "if a fake emitting neither event does not resolve {ok:true} at exactly settleMs (fake timers; not before), notifier.spec fails (unreported suppression = delivered)", "if, after show() resolves on 'show', vi.getTimerCount() is not 0 (an armed settle timer would hold quit), notifier.spec fails", "if retainedCount() is not 1 after show and 0 after 'click', 'close' or 'failed', or 25 unclicked notifications leave more than 20 retained, notifier.spec fails (a collected Notification loses its click listener; Linux may never emit close)", "if 'click' does not call the handler exactly once with clickPath()'s resolved value ('/watches/w1'), a second 'click' on the same notification calls it again, or a rejecting clickPath / one resolving '//evil.example/x' or 'https://evil.example/' does not call it with '/', notifier.spec fails", "if a click before setClickHandler throws or is lost (the handler set later must receive the path), notifier.spec fails", "if the constructed notification's title/body differ from the notice's (truncated, re-encoded, markup-escaped), notifier.spec fails"]
+status        = "done"
+
+[[task]]
+id            = "t-6"
+wave          = 3
+depends_on    = ["t-1", "t-2"]
+title         = "Add desktop driver and install helper"
+files         = ["src/lib/server/alerts/desktop.ts", "src/lib/server/alerts/desktop.spec.ts"]
+description   = '''
+createDesktopDriver(notifier, {watchExists}) (watchExists async): kind 'desktop', defaultKinds ['price_drop'], parseConfig -> ok({}) ignoring the form, view -> {}. send maps Alert to DesktopNotice (title, message verbatim); clickPath resolves at click time: test -> '/account/alerts', a live watchId -> '/watches/' + encodeURIComponent(id), a gone one -> '/'. Notifier 'unsupported' -> reason 'unsupported', 'failed' -> 'refused', a throw -> 'unreachable'; send never throws. installDesktop(db, key, notifier, {watchExists}) registers the driver, calls ensureChannel(db, key, 'desktop', {priceDrops:true, checkFailures:false}) and returns the unregister. desktop.spec drives alertAfterSuccess/alertAfterFailure over createTestDb() with a fake notifier and, where named, a saved ntfy channel with a fake fetch (r-01).
+'''
+covers        = ["c-1", "c-2", "c-3", "c-4", "c-5"]
+test_contract = [
+  '''if, with installDesktop on an empty DB and no other channel, a check at 900 against a 1000 target does not end in exactly one show whose title contains the watch's title and whose body contains '£9.00' and '£10.00' (outcome 'sent', not 'no_channel'), desktop.spec fails (c-1)''',
+  '''if, with ntfy (fake fetch) also saved, the same drop does not reach both (fetch once, one show), desktop.spec fails (c-1 adjacency)''',
+  '''if, with ntfy and desktop routed and the notifier returning {ok:false,'failed'}, ntfy is not sent and recorded, or the next check re-sends ntfy or does not retry desktop, desktop.spec 'desktop failure isolated' fails''',
+  '''if a second alertAfterSuccess at 900 or 850 shows again (desktop outcome must be 'already_sent'), desktop.spec 'once per target' fails (c-3)''',
+  '''if price 1100 then 900 does not show a second time, or changing the target 1000 -> 950 with price 900 does not show on the next check, desktop.spec fails (c-3 re-arm)''',
+  '''if a show resolving {ok:false,'unsupported'} or {ok:false,'failed'} leaves a price_drop_delivery row for (watch,'desktop'), or the next check (notifier now ok) does not show, desktop.spec fails (delivery_result: retried)''',
+  '''if a show resolving ok does not record the delivery row, so the next at-target check shows again, desktop.spec fails (delivery_result: no flood)''',
+  '''if send returns anything but {ok:false, reason:'unsupported'} for an unsupported notifier or reason 'refused' for 'failed', or rejects when the notifier throws (must be 'unreachable'), desktop.spec fails''',
+  '''if clickPath() resolves anything but '/watches/a%2Fb%3Fc' for a live watch with id 'a/b?c', '/' once that watch is deleted, or '/account/alerts' for a 'test' alert, desktop.spec fails (c-2, click_target)''',
+  '''if a check_failed alert to desktop carries a clickPath that resolves to the shop URL instead of '/watches/<id>', desktop.spec fails''',
+  '''if alertAfterFailure with only the seeded desktop channel shows anything (failed checks off by default), or a desktop channel disabled via setEnabled still shows a drop, desktop.spec fails (c-4)''',
+  '''if installDesktop over a row the user set to {enabled:false, priceDrops:false, checkFailures:true} changes any flag, or a second installDesktop adds a row, desktop.spec 'seed never overwrites' fails''',
+  '''if, with no installDesktop, channelKinds() includes 'desktop' or saveChannel(..., 'desktop', ...) succeeds, or the unregister returned by installDesktop leaves 'desktop' in channelKinds(), desktop.spec fails (desktop_only_driver; no cross-spec leak)''',
+]
+status        = "done"
+
+[[task]]
+id            = "t-7"
+wave          = 3
+depends_on    = ["t-1", "t-3", "t-4", "t-5"]
+title         = "Publish notifier, set AUMID, route clicks"
+files         = ["src/desktop/server.ts", "src/desktop/server.spec.ts", "src/desktop/testing/fake-handler.ts", "src/desktop/lifecycle.ts", "src/desktop/lifecycle.spec.ts", "src/desktop/main.ts"]
+description   = '''
+loadAdapterHandler(env, url, appRoot, {notifier}) calls publishNotifier(notifier) with env and chdir, before the dynamic import; the argument is required (decision notify_bridge). LifecycleApp gains setAppUserModelId; LifecycleDeps gains appUserModelId: string | null, notifications: {setClickHandler(fn)}, and showWindow(origin, path?). runDesktop sets the AUMID after the lock, before loadKey/startServer (a throw is logged and skipped), and routes a click to showWindow(origin, path): held until ready (latest wins), dropped while quitting. main.ts builds the notifier from notificationClassFor + createNotifier, passes it to loadAdapterHandler, its setClickHandler to runDesktop, and appUserModelIdFor(...); main.ts stays the only electron value import. Executor also runs pnpm check.
+'''
+covers        = ["c-1", "c-2", "c-6"]
+test_contract = [
+  '''if fake-handler.ts (which records readNotifier() !== undefined at top level) records false after loadAdapterHandler, server.spec 'notifier before import' fails (published after import -> hooks init sees none -> no driver)''',
+  '''if 'aumid' is recorded after 'loadKey' or 'startServer' in lifecycle.spec's call-order log, or setAppUserModelId is called more than once per startup, lifecycle.spec fails (c-6)''',
+  '''if appUserModelId null (darwin/linux) still calls app.setAppUserModelId, or a lost single-instance lock calls it, lifecycle.spec fails''',
+  '''if a throwing setAppUserModelId ends startup (no server, no tray) instead of being logged and skipped, lifecycle.spec fails''',
+  '''if a click delivered after startup does not call deps.showWindow(origin, '/watches/w1') exactly once, including on a tray-only login launch with no window yet, lifecycle.spec fails (c-2 closed window reopened)''',
+  '''if a click before startup is ready opens a window early or is lost, or two such clicks show other than the latest path once startup ends, lifecycle.spec fails''',
+  '''if a click after before-quit started calls deps.showWindow, lifecycle.spec fails''',
+  '''if any non-spec src/desktop file other than main.ts (notifier.ts, notify-seam.ts and app-id.ts included) value-imports 'electron', the existing boundary.spec fails; if the real main.ts entry fails to build, the existing build-desktop.spec 'real entry' fails''',
+]
+status        = "done"
+
+[[task]]
+id            = "t-8"
+wave          = 4
+depends_on    = ["t-1", "t-2", "t-6", "t-7"]
+title         = "Install desktop channel at server init"
+files         = ["src/hooks.server.ts", "src/hooks.server.spec.ts", "e2e/desktop/guard.e2e.ts"]
+description   = "init: after migrateDb and before startScheduler, readNotifier(); if one is present, installDesktop(db, alertsKey(), notifier, {watchExists: async (id) => (await getWatch(db, id)) !== null}); if none, do nothing. Everything else in init stays as is. guard.e2e.ts's stored-channels assertion (toEqual(['ntfy'])) becomes ['desktop','ntfy'] in the same commit."
+covers        = ["c-1", "c-4"]
+test_contract = ["if init with a published fake notifier does not record order ['key','migrated','desktop','scheduler','published'], hooks.server.spec fails (the first scheduler pass must already route desktop)", "if init with no notifier published calls installDesktop, registers 'desktop' in channelKinds() or writes a notify_channel row, hooks.server.spec 'no Electron, no desktop' fails (decision desktop_only_driver)", "if the watchExists handed to installDesktop resolves true for an id with no watch row, hooks.server.spec fails", "if the registration made in one hooks.server.spec test is still in channelKinds() in the next (unregister not applied), hooks.server.spec fails", "if guard.e2e's stored channel kinds after saving ntfy in the desktop app are not exactly ['desktop','ntfy'] (the seeded desktop row plus the saved one), guard.e2e 'form posts reach their actions' fails (desktop e2e, not vitest-gated; executor observes pnpm test:e2e:desktop green for guard.e2e before committing)"]
+status        = "done"
+
+[[task]]
+id            = "t-9"
+wave          = 4
+depends_on    = ["t-2", "t-6"]
+title         = "Add Desktop card; refuse its removal"
+files         = ["src/routes/account/alerts/+page.server.ts", "src/routes/account/alerts/page.server.spec.ts", "src/routes/account/alerts/+page.svelte", "src/routes/account/alerts/page.svelte.spec.ts", "src/routes/account/alerts/alerts.e2e.ts"]
+description   = '''
+?/remove kind=desktop -> fail(400, {kind, message:"The desktop channel can't be removed; disable it instead."}) and the row is kept. ?/save, ?/enable, ?/disable and ?/test work for desktop through the existing code (sealed {} config). The Svelte Desktop section (data-testid channel-desktop, first on the page) renders only when data.channels has a 'desktop' key: on/off, Price drops and Failed checks ticks, Save and Send test, no fields and no Remove. channelActions gains a removable flag. The web alerts.e2e asserts there is no Desktop card under the node server.
+'''
+covers        = ["c-4", "c-5"]
+test_contract = [
+  '''if load without the desktop driver registered returns any 'desktop' key, or after installDesktop (fake notifier, test DB) does not return channels.desktop = {enabled:true, priceDrops:true, checkFailures:false} with no unreadable flag, page.server.spec fails''',
+  '''if POST ?/remove kind=desktop returns anything but 400, or the desktop row or its price_drop_delivery rows are gone afterwards, page.server.spec fails; ?/remove kind=ntfy must still remove ntfy''',
+  '''if ?/save kind=desktop with only check_failures ticked does not leave {enabled:true, priceDrops:false, checkFailures:true}, or with neither ticked does not return NO_KINDS_MESSAGE and leave the row unchanged, page.server.spec fails''',
+  '''if after ?/disable kind=desktop channelsFor('price_drop') still routes desktop, page.server.spec fails (c-4 off stops sends)''',
+  '''if ?/test kind=desktop with a supported fake notifier does not return {tested:'desktop'} after exactly one show whose clickPath resolves '/account/alerts', or with an unsupported one does not return 502 testMessage exactly 'Not delivered: notifications not supported.', page.server.spec fails (c-5)''',
+  '''if ?/test kind=desktop on a disabled desktop channel does not show (a test goes out whatever the enabled state), page.server.spec fails''',
+  '''if data.channels without a 'desktop' key renders any channel-desktop section, page.svelte.spec fails''',
+  '''if data.channels.desktop = {enabled:true, priceDrops:true, checkFailures:false} does not render 'Status: Enabled', a checked 'Price drops' and an unchecked 'Failed checks' inside channel-desktop, page.svelte.spec fails (c-4 default)''',
+  '''if channel-desktop contains a Remove button or any text/password input, or the ntfy/Resend/SMTP cards lose their Remove, page.svelte.spec fails''',
+  '''if {testKind:'desktop', testMessage:'Not delivered: notifications not supported.'} renders outside channel-desktop, or {tested:'desktop'} does not render 'Test alert sent.' inside it, page.svelte.spec fails''',
+  '''if the desktop save form does not post kind=desktop with price_drops/check_failures checkbox names, page.svelte.spec fails''',
+  '''if /account/alerts under the node server (no Electron) shows a channel-desktop section, alerts.e2e fails (not vitest-gated; executor observes pnpm test:e2e green)''',
+]
+status        = "done"
+
+[[task]]
+id            = "t-10"
+wave          = 5
+depends_on    = ["t-7", "t-8", "t-9"]
+title         = "Prove desktop delivery and click in Electron"
+files         = ["e2e/desktop/launch.ts", "e2e/desktop/harness.e2e.ts", "e2e/desktop/notify.e2e.ts"]
+description   = "LaunchOptions/desktopEnv gain notify?: 'record' | 'unsupported', passed as PRICE_CHECK_E2E_NOTIFY (unset by default); launch.ts gains recordedNotifications(app) and clickNotification(app, i) via electronApp.evaluate on the seam symbol. Alerts come from Send test and from 'Check now' on never-checked watches seeded with https://shop.e2e.invalid/... URLs (failed check, no fetch, r-01; one fresh watch per Check now because of the 15-min cooldown). Every OS (macOS, Windows, Linux under xvfb) takes the same recorder path, so delivery and click need no notification daemon; minimise is asserted on macOS/Windows only. No workflow edit (ci.yml already runs e2e/desktop/**). Executor observes pnpm test:e2e:desktop green locally before committing."
+covers        = ["c-1", "c-2", "c-4", "c-5"]
+test_contract = ["if desktopEnv without a notify option contains PRICE_CHECK_E2E_NOTIFY, or with 'record' does not set it to 'record', harness.e2e 'launcher env' fails", "if a fresh userData's /account/alerts in the app window does not show channel-desktop with 'Status: Enabled', Price drops checked, Failed checks unchecked and no Remove button, notify.e2e 'fresh install' fails (c-4 default; also fails if main published the notifier after the handler import)", "if Send test on channel-desktop does not show 'Test alert sent.' and add exactly one record, notify.e2e fails (c-5)", "if, with every window closed (BrowserWindow.close via evaluate), clicking that record does not leave exactly one visible window at <origin>/account/alerts, notify.e2e fails (c-2 closed window, test click target)", "if, after ticking Failed checks and saving, 'Check now' on /watches/w0 (title 'E2E Kettle') does not add exactly one record whose title contains 'E2E Kettle', notify.e2e fails (server alert -> driver -> bridge -> main)", "if, with the window on '/' and minimised, clicking that record does not leave the window visible, at <origin>/watches/w0 and (macOS/Windows, after asserting isMinimized() was true) not minimised, notify.e2e fails; on Linux the minimised precondition and claim are skipped (xvfb has no WM) and t-3 owns restore", "if, after 'Check now' on w1 then deleting w1 through its page, clicking w1's record does not land on <origin>/ showing the watchlist, notify.e2e fails (c-2 deleted watch)", "if a launch without the notify option has the recorder global defined (the real Notification class must be in use), notify.e2e fails"]
+status        = "done"
+
+[[task]]
+id            = "t-11"
+wave          = 6
+depends_on    = ["t-10"]
+title         = "Prove card settings, relaunch, unsupported, real class"
+files         = ["e2e/desktop/desktop-alerts.e2e.ts"]
+description   = '''
+Real Electron with the recorder. Card changes go through the window's forms; alerts come from 'Check now' on fresh unsupported-URL watches (checkNow awaits the hook, so the record count is final once the response renders). One test uses the real Electron Notification class per OS and tolerates isSupported() either way (Linux xvfb has no D-Bus session). Executor observes pnpm test:e2e:desktop green locally before committing.
+'''
+covers        = ["c-4", "c-5"]
+test_contract = [
+  '''if, with Failed checks unticked (Price drops left ticked), 'Check now' on a fresh watch adds any record, desktop-alerts.e2e fails (c-4 untick)''',
+  '''if, with the card disabled and Failed checks ticked, 'Check now' adds any record, desktop-alerts.e2e fails (c-4 off)''',
+  '''if, after Disable + Price drops unticked + Failed checks ticked, app.quit() and a relaunch on the same userData, the card does not show 'Status: Disabled' with those ticks, or dbSnapshot's desktop row has enabled true, desktop-alerts.e2e fails (c-4 survives relaunch; seed never re-enables)''',
+  '''if a launch with notify 'unsupported' shows anything but 'Not delivered: notifications not supported.' in channel-desktop after Send test, or adds a record, desktop-alerts.e2e fails (c-5)''',
+  '''if, with the real Notification class, Send test's card message disagrees with Notification.isSupported() read from main (false -> the unsupported message; true -> 'Test alert sent.' or 'Not delivered: refused.'), or reads 'Not delivered: unreachable.' (the driver caught a throw from the real Electron API), desktop-alerts.e2e fails on that OS''',
+]
+status        = "done"

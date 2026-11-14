@@ -5,10 +5,16 @@
 //
 // No $app imports: the server and tests call this with their own db and key. Log
 // lines name the channel kind only — never a topic, token or ciphertext.
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import type { Db } from '../db/client.ts';
 import { notifyChannel } from '../db/schema.ts';
-import type { ChannelDriver, ConfigForm, ConfigView, RoutedAlertKind } from './channel.ts';
+import type {
+	ChannelDriver,
+	ChannelKind,
+	ConfigForm,
+	ConfigView,
+	RoutedAlertKind
+} from './channel.ts';
 import { channelAad, decryptSecret, encryptSecret } from './crypto.ts';
 import { ntfyDriver } from './ntfy.ts';
 import { resendDriver } from './resend.ts';
@@ -202,6 +208,41 @@ export async function saveChannel(
 			set: { ...kinds, configEnc, updatedAt: new Date() }
 		});
 	return { ok: true };
+}
+
+/**
+ * Makes sure a channel of `kind` exists, for a channel with no settings of its own
+ * (the desktop's). Inserts one only if none is saved: enabled, with `routing`, its
+ * config sealed {} — so a user's off or unticked kind is never overridden (decision
+ * default_on_seed). A saved row whose config cannot be opened (another key, none
+ * stored) is re-sealed {} with its flags kept, else channelsFor would skip it forever.
+ * Safe to call concurrently.
+ */
+export async function ensureChannel(
+	db: Db,
+	key: Buffer,
+	kind: ChannelKind,
+	routing: Routing
+): Promise<void> {
+	await db
+		.insert(notifyChannel)
+		.values({ kind, enabled: true, ...routing, configEnc: sealConfig(key, kind, {}) })
+		.onConflictDoNothing({ target: notifyChannel.kind });
+
+	const [row] = await db.select().from(notifyChannel).where(eq(notifyChannel.kind, kind));
+	if (row === undefined || openConfig(key, row).ok) return;
+	// Only over the blob just read: a config saved meanwhile is left alone.
+	await db
+		.update(notifyChannel)
+		.set({ configEnc: sealConfig(key, kind, {}) })
+		.where(
+			and(
+				eq(notifyChannel.kind, kind),
+				row.configEnc === null
+					? isNull(notifyChannel.configEnc)
+					: eq(notifyChannel.configEnc, row.configEnc)
+			)
+		);
 }
 
 /** Turns a saved channel on or off, keeping its settings; false if there is none. */

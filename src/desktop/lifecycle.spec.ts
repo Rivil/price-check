@@ -23,6 +23,7 @@ const KEY_FILE = `${USER_DATA}/alerts.key`;
 const DB_FILE = `${USER_DATA}/price-check.db`;
 const ORIGIN = 'http://127.0.0.1:41234';
 const KEY = Buffer.from('k'.repeat(32));
+const AUMID = 'io.github.rivil.price-check';
 
 type Listener = (...args: unknown[]) => void;
 type QuitEvent = { preventDefault: () => void };
@@ -72,12 +73,16 @@ type Harness = {
 	windowOpen: boolean;
 	errorBoxes: { title: string; content: string }[];
 	trayActions: { showWindow(): void; quitApp(): void } | null;
+	/** Delivers a notification click to the handler runDesktop registered. */
+	click(path: string): void;
 };
 
 type HarnessOptions = {
 	lock?: boolean;
 	loginLaunch?: boolean;
 	whenReadyPending?: boolean;
+	/** deps.appUserModelId; null (macOS, Linux) unless given. */
+	appUserModelId?: string | null;
 };
 
 function harness(options: HarnessOptions = {}): Harness {
@@ -91,6 +96,7 @@ function harness(options: HarnessOptions = {}): Harness {
 			log.push('lock');
 			return options.lock ?? true;
 		}),
+		setAppUserModelId: vi.fn(() => void log.push('aumid')),
 		whenReady: vi.fn(() => {
 			log.push('whenReady');
 			return ready.promise;
@@ -111,6 +117,8 @@ function harness(options: HarnessOptions = {}): Harness {
 		close: vi.fn(async () => void log.push('server.close'))
 	};
 
+	let clickHandler: ((path: string) => void) | null = null;
+
 	const h: Harness = {
 		log,
 		app,
@@ -122,6 +130,10 @@ function harness(options: HarnessOptions = {}): Harness {
 		windowOpen: false,
 		errorBoxes: [],
 		trayActions: null,
+		click(path) {
+			if (clickHandler === null) throw new Error('no click handler registered');
+			clickHandler(path);
+		},
 		deps: {
 			app,
 			powerMonitor,
@@ -149,13 +161,19 @@ function harness(options: HarnessOptions = {}): Harness {
 				h.trayActions = actions;
 				return { tray: 'held' };
 			}),
-			showWindow: vi.fn((origin: string) => {
-				log.push(`showWindow:${origin}`);
+			showWindow: vi.fn((origin: string, path?: string) => {
+				log.push(`showWindow:${origin}${path ?? ''}`);
 				if (!h.windowOpen) {
 					h.windowsCreated += 1;
 					h.windowOpen = true;
 				}
 			}),
+			appUserModelId: options.appUserModelId ?? null,
+			notifications: {
+				setClickHandler: vi.fn((handler: (path: string) => void) => {
+					clickHandler = handler;
+				})
+			},
 			loginItem: {
 				ensureRegisteredOnce: vi.fn(() => {
 					log.push('ensureRegisteredOnce');
@@ -190,6 +208,7 @@ describe('single instance', () => {
 		expect(h.deps.createTray).not.toHaveBeenCalled();
 		expect(h.deps.showWindow).not.toHaveBeenCalled();
 		expect(h.deps.loginItem.ensureRegisteredOnce).not.toHaveBeenCalled();
+		expect(h.deps.notifications.setClickHandler).not.toHaveBeenCalled();
 		expect(h.app.exit).not.toHaveBeenCalled();
 	});
 
@@ -300,6 +319,116 @@ describe('startup', () => {
 		expect(h.windowsCreated).toBe(1);
 		h.trayActions?.quitApp();
 		expect(h.app.quit).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe('AppUserModelId (c-6)', () => {
+	it('is set once, after the lock and before the key and server', async () => {
+		const h = harness({ appUserModelId: AUMID });
+		await expect(runDesktop(h.deps)).resolves.toBe('started');
+		expect(h.app.setAppUserModelId).toHaveBeenCalledTimes(1);
+		expect(h.app.setAppUserModelId).toHaveBeenCalledWith(AUMID);
+		const aumid = h.log.indexOf('aumid');
+		expect(aumid).toBeGreaterThan(h.log.indexOf('lock'));
+		expect(aumid).toBeLessThan(h.log.indexOf('loadKey'));
+		expect(aumid).toBeLessThan(h.log.indexOf('startServer'));
+	});
+
+	it('is not set where the ID is null (macOS, Linux)', async () => {
+		const h = harness({ appUserModelId: null });
+		await expect(runDesktop(h.deps)).resolves.toBe('started');
+		expect(h.app.setAppUserModelId).not.toHaveBeenCalled();
+	});
+
+	it('is not set by a launch that lost the lock', async () => {
+		const h = harness({ lock: false, appUserModelId: AUMID });
+		await expect(runDesktop(h.deps)).resolves.toBe('second-instance');
+		expect(h.app.setAppUserModelId).not.toHaveBeenCalled();
+	});
+
+	it('a throwing setAppUserModelId is logged and startup carries on', async () => {
+		const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const h = harness({ appUserModelId: AUMID });
+		vi.mocked(h.app.setAppUserModelId).mockImplementation(() => {
+			throw new Error('no AUMID for you');
+		});
+		await expect(runDesktop(h.deps)).resolves.toBe('started');
+		expect(logged).toHaveBeenCalled();
+		expect(h.deps.startServer).toHaveBeenCalledTimes(1);
+		expect(h.deps.createTray).toHaveBeenCalledTimes(1);
+		expect(h.deps.showWindow).toHaveBeenCalledWith(ORIGIN);
+		expect(h.app.exit).not.toHaveBeenCalled();
+		expect(h.errorBoxes).toHaveLength(0);
+	});
+});
+
+describe('notification clicks (c-2)', () => {
+	it('a click after startup shows the window on its path, reopening a closed one', async () => {
+		const h = harness();
+		await runDesktop(h.deps);
+		h.windowOpen = false; // the user closed it
+		h.click('/watches/w1');
+		expect(vi.mocked(h.deps.showWindow).mock.calls).toEqual([[ORIGIN], [ORIGIN, '/watches/w1']]);
+		expect(h.windowsCreated).toBe(2);
+	});
+
+	it('a click on a tray-only login launch opens the window on its path', async () => {
+		const h = harness({ loginLaunch: true });
+		await runDesktop(h.deps);
+		expect(h.deps.showWindow).not.toHaveBeenCalled();
+		h.click('/watches/w1');
+		expect(h.deps.showWindow).toHaveBeenCalledTimes(1);
+		expect(h.deps.showWindow).toHaveBeenCalledWith(ORIGIN, '/watches/w1');
+		expect(h.windowsCreated).toBe(1);
+	});
+
+	it.each([
+		['a normal launch', false],
+		['a login launch', true]
+	])('a click before startup ends is held and shown once on %s', async (_name, loginLaunch) => {
+		const h = harness({ loginLaunch, whenReadyPending: true });
+		const run = runDesktop(h.deps);
+		h.click('/watches/w1');
+		await settle();
+		expect(h.deps.showWindow).not.toHaveBeenCalled();
+		h.ready.resolve();
+		await run;
+		expect(vi.mocked(h.deps.showWindow).mock.calls).toEqual([[ORIGIN, '/watches/w1']]);
+		expect(h.windowsCreated).toBe(1);
+	});
+
+	it('two clicks before startup ends show only the latest path, once', async () => {
+		const h = harness({ loginLaunch: true, whenReadyPending: true });
+		const run = runDesktop(h.deps);
+		h.click('/watches/w1');
+		h.click('/watches/w2');
+		h.ready.resolve();
+		await run;
+		expect(vi.mocked(h.deps.showWindow).mock.calls).toEqual([[ORIGIN, '/watches/w2']]);
+	});
+
+	it('a relaunch after a held click keeps the click path', async () => {
+		const h = harness({ loginLaunch: true, whenReadyPending: true });
+		const run = runDesktop(h.deps);
+		h.click('/watches/w1');
+		h.app.emit('second-instance', {}, [], '/');
+		h.ready.resolve();
+		await run;
+		expect(vi.mocked(h.deps.showWindow).mock.calls).toEqual([[ORIGIN, '/watches/w1']]);
+	});
+
+	it('a click after quit started opens nothing', async () => {
+		const h = harness({ loginLaunch: true });
+		const stopped = deferred();
+		vi.mocked(h.runtime.stop).mockImplementation(() => stopped.promise);
+		await runDesktop(h.deps);
+		beforeQuit(h);
+		await settle();
+		h.click('/watches/w1');
+		stopped.resolve();
+		await settle();
+		expect(h.app.exit).toHaveBeenCalledWith(0);
+		expect(h.deps.showWindow).not.toHaveBeenCalled();
 	});
 });
 

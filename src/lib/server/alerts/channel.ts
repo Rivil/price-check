@@ -1,11 +1,11 @@
-// The contract every alert channel type implements (ntfy, Resend and SMTP, at most
-// one of each per user — decision channels_per_type).
+// The contract every alert channel type implements (ntfy, Resend, SMTP and the
+// desktop app's native notifications, at most one of each — decision channels_per_type).
 //
 // A send result carries a fixed failure reason and never free text: an error's
 // own message can name a host, a topic or a credential, and results end up in
 // logs and on the account page (c-7).
 
-export type ChannelKind = 'ntfy' | 'resend' | 'smtp';
+export type ChannelKind = 'ntfy' | 'resend' | 'smtp' | 'desktop';
 
 /** What an alert is about; 'test' is the account page's Send test and is never routed. */
 export type AlertKind = 'price_drop' | 'check_failed' | 'test';
@@ -13,14 +13,17 @@ export type AlertKind = 'price_drop' | 'check_failed' | 'test';
 /** The alert kinds a channel can be set to receive. */
 export type RoutedAlertKind = Exclude<AlertKind, 'test'>;
 
-export type FailureReason = 'bad_credentials' | 'refused' | 'unreachable' | 'timeout';
+/** 'unsupported' is a desktop send on a platform whose OS reports no notification support. */
+export type FailureReason =
+	'bad_credentials' | 'refused' | 'unreachable' | 'timeout' | 'unsupported';
 
 /** The words shown on the page and written to logs for each reason. */
 export const REASON_LABELS: Readonly<Record<FailureReason, string>> = {
 	bad_credentials: 'bad credentials',
 	refused: 'refused',
 	unreachable: 'unreachable',
-	timeout: 'timeout'
+	timeout: 'timeout',
+	unsupported: 'notifications not supported'
 };
 
 export function describeFailure(reason: FailureReason): string {
@@ -44,7 +47,17 @@ export const HINT_COPY: Readonly<Record<FailureHint, string>> = {
 export type SendResult =
 	{ ok: true } | { ok: false; reason: FailureReason; status?: number; hint?: FailureHint };
 
-export type Alert = { kind: AlertKind; title: string; message: string; click?: string };
+/**
+ * click is the shop URL, which ntfy, Resend and SMTP link to; watchId is the watch
+ * the alert is about, which the desktop driver opens in the app (decision click_target).
+ */
+export type Alert = {
+	kind: AlertKind;
+	title: string;
+	message: string;
+	click?: string;
+	watchId?: string;
+};
 
 export type DriverDeps = {
 	fetch: (input: string, init: RequestInit) => Promise<Response>;

@@ -1,9 +1,19 @@
 // The desktop app's lifecycle (spec c-5..c-9, decisions window_close and login_start).
 //
 // Startup, in order: point userData at the app's dir, take the single-instance lock
-// (keyed by userData, so the path is set first), wait for Electron, load the alerts
-// key, start the server, read the runtime it published, create the tray, register
-// start-at-login, and open the window unless this is a login launch (tray only).
+// (keyed by userData, so the path is set first), set the Windows AppUserModelId, wait
+// for Electron, load the alerts key, start the server, read the runtime it published,
+// create the tray, register start-at-login, and open the window unless this is a
+// login launch (tray only).
+//
+// The AppUserModelId is set before the server starts, so before any notification can
+// be shown (spec c-6): Windows routes toasts by it. A throw there is logged and
+// skipped; a lost toast is better than no app.
+//
+// A notification click shows the window on its in-app path (spec c-2), reopening a
+// closed window and restoring a minimised one, on a tray-only login launch too. A
+// click before startup ends is held, the latest one winning, and shown once ready; a
+// click after Quit started opens nothing.
 //
 // A launch that loses the lock touches nothing (no key, DB or server) and quits: the
 // running instance gets 'second-instance' and shows its window instead. Closing the
@@ -37,6 +47,7 @@ export const STARTUP_ERROR_TITLE = 'Price Check could not start';
 export type LifecycleApp = {
 	setPath(name: string, path: string): void;
 	requestSingleInstanceLock(): boolean;
+	setAppUserModelId(id: string): void;
 	whenReady(): Promise<void>;
 	on(event: 'second-instance', listener: () => void): unknown;
 	on(event: 'window-all-closed', listener: () => void): unknown;
@@ -63,6 +74,12 @@ export type LifecycleLoginItem = {
 /** What the tray needs from the lifecycle; main.ts adds the login item and icon dir. */
 export type LifecycleTrayActions = { showWindow(): void; quitApp(): void };
 
+/** Where notification clicks are routed (notifier.ts's handle provides it). */
+export type LifecycleNotifications = {
+	/** Receives the in-app path each clicked notification opens. */
+	setClickHandler(handler: (path: string) => void): void;
+};
+
 export type LifecycleDeps = {
 	app: LifecycleApp;
 	powerMonitor: { on(event: 'resume', listener: () => void): unknown };
@@ -77,9 +94,13 @@ export type LifecycleDeps = {
 	createTray(actions: LifecycleTrayActions): unknown;
 	/**
 	 * Shows the app window on `origin`: creates it if none is open (never a second
-	 * one), else restores and focuses it (window.ts showWindow).
+	 * one), else restores and focuses it (window.ts showWindow). With `path`, the
+	 * window loads that in-app page; without, it keeps the page it is on.
 	 */
-	showWindow(origin: string): void;
+	showWindow(origin: string, path?: string): void;
+	/** The ID for app.setAppUserModelId (app-id.ts), or null where none is set. */
+	appUserModelId: string | null;
+	notifications: LifecycleNotifications;
 	loginItem: LifecycleLoginItem;
 };
 
@@ -92,8 +113,10 @@ type Running = {
 	ready: boolean;
 	/** Held so the tray is never garbage-collected (it would vanish from the menu bar). */
 	tray: unknown;
-	/** A relaunch arrived before the window could be shown; show it once startup ends. */
+	/** A relaunch or click came before the window could be shown; show it once ready. */
 	showRequested: boolean;
+	/** The latest notification click's path held for that show, if any. */
+	requestedPath: string | undefined;
 	quitting: boolean;
 };
 
@@ -154,23 +177,39 @@ export async function runDesktop(deps: LifecycleDeps): Promise<DesktopOutcome> {
 		return 'second-instance';
 	}
 
+	if (deps.appUserModelId !== null) {
+		try {
+			app.setAppUserModelId(deps.appUserModelId);
+		} catch (error) {
+			console.error('desktop startup: setting the AppUserModelId failed', error);
+		}
+	}
+
 	const running: Running = {
 		server: null,
 		runtime: null,
 		ready: false,
 		tray: null,
 		showRequested: false,
+		requestedPath: undefined,
 		quitting: false
 	};
 
-	const showWindow = (): void => {
+	/** Shows the window, on `path` if given; before startup ends, holds the request. */
+	const show = (path: string | undefined): void => {
 		if (running.quitting) return;
 		if (!running.ready || running.server === null) {
 			running.showRequested = true;
+			// A relaunch names no page, so it never drops a held click's path.
+			if (path !== undefined) running.requestedPath = path;
 			return;
 		}
-		deps.showWindow(running.server.origin);
+		const { origin } = running.server;
+		if (path === undefined) deps.showWindow(origin);
+		else deps.showWindow(origin, path);
 	};
+	// Takes no arguments: Electron passes event objects to the listeners it is attached to.
+	const showWindow = (): void => show(undefined);
 
 	const shutdown = async (): Promise<void> => {
 		const { runtime, server } = running;
@@ -180,6 +219,7 @@ export async function runDesktop(deps: LifecycleDeps): Promise<DesktopOutcome> {
 	};
 
 	app.on('second-instance', showWindow);
+	deps.notifications.setClickHandler((path) => show(path));
 	// Present but empty: closing the last window must not quit (decision window_close).
 	app.on('window-all-closed', () => {});
 	app.on('before-quit', (event) => {
@@ -236,8 +276,10 @@ export async function runDesktop(deps: LifecycleDeps): Promise<DesktopOutcome> {
 	// activation at launch cannot open a window on a login launch.
 	app.on('activate', showWindow);
 	if (!deps.loginItem.isLoginLaunch() || running.showRequested) {
+		const path = running.requestedPath;
 		running.showRequested = false;
-		showWindow();
+		running.requestedPath = undefined;
+		show(path);
 	}
 	return 'started';
 }

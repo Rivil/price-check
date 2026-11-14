@@ -90,6 +90,7 @@
   target = "05-release"
 
 [[deferred]]
+  id = "6068e133227d5e31"
   text = "Windows app user model ID and Start Menu shortcut, so tray and notifications carry the app's identity"
   why = "Only matters for notifications and the installer, which belong to 04 and 05"
   target = "04-desktop-notify"

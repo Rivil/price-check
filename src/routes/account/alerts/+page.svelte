@@ -15,6 +15,11 @@
 		checkFailures: card?.checkFailures ?? data.defaults[kind]?.checkFailures ?? false
 	});
 
+	// Only the desktop app registers this channel (decision desktop_only_driver).
+	const hasDesktop = $derived('desktop' in data.channels);
+	const desktop = $derived(data.channels.desktop ?? null);
+	const desktopTicks = $derived(ticks('desktop', desktop));
+
 	const ntfy = $derived(data.channels.ntfy);
 	const topic = $derived(text(ntfy, 'topic'));
 	const ntfyTicks = $derived(ticks('ntfy', ntfy));
@@ -71,7 +76,8 @@
 	</p>
 {/snippet}
 
-{#snippet channelActions(kind: string, card: Card)}
+<!-- removable false: the card is turned off instead (decision default_on_seed). -->
+{#snippet channelActions(kind: string, card: Card, removable = true)}
 	{#if card}
 		<div class="actions">
 			<form method="post" action={card.enabled ? '?/disable' : '?/enable'} use:enhance>
@@ -84,10 +90,12 @@
 				<button>Send test</button>
 			</form>
 
-			<form method="post" action="?/remove" use:enhance>
-				<input type="hidden" name="kind" value={kind} />
-				<button>Remove</button>
-			</form>
+			{#if removable}
+				<form method="post" action="?/remove" use:enhance>
+					<input type="hidden" name="kind" value={kind} />
+					<button>Remove</button>
+				</form>
+			{/if}
 		</div>
 		{#if form?.testKind === kind && form?.testMessage}
 			<p role="alert">{form.testMessage}</p>
@@ -110,6 +118,29 @@
 		Choose where price drops and failed checks are sent. Each channel can get either kind of alert,
 		or both, and can be switched off without losing its settings.
 	</p>
+
+	{#if hasDesktop}
+		<section class="channel" aria-labelledby="desktop-heading" data-testid="channel-desktop">
+			<h2 id="desktop-heading">Desktop</h2>
+			<p>
+				Alerts show as notifications on this computer, and clicking one opens the watch here. On
+				macOS the first notification asks for permission: Send test asks now.
+			</p>
+
+			{#if desktop}
+				{@render channelState(desktop)}
+			{/if}
+
+			<form method="post" action="?/save" use:enhance>
+				<input type="hidden" name="kind" value="desktop" />
+				{@render sendMe(desktopTicks)}
+				{@render saveMessage('desktop')}
+				<button>Save desktop settings</button>
+			</form>
+
+			{@render channelActions('desktop', desktop, false)}
+		</section>
+	{/if}
 
 	<section class="channel" aria-labelledby="ntfy-heading" data-testid="channel-ntfy">
 		<h2 id="ntfy-heading">ntfy</h2>

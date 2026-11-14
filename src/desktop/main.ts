@@ -9,17 +9,34 @@
 // loadAdapterHandler, only after the desktop env and cwd are in place: a static
 // import would run the server's module-level env reads against the user's shell.
 //
+// The desktop notifier is built here, before startup, and published on the notify
+// bridge by loadAdapterHandler ahead of that import. Its clicks route to the window
+// through runDesktop. The e2e seam reads PRICE_CHECK_E2E_NOTIFY from the user's env
+// now, before loadAdapterHandler swaps process.env for the server's.
+//
 // '[desktop] listening on http://127.0.0.1:<port>' is printed once the server is up:
 // the desktop e2e harness reads it to find the per-launch port.
-import { app, BrowserWindow, dialog, Menu, powerMonitor, shell, Tray } from 'electron';
+import {
+	app,
+	BrowserWindow,
+	dialog,
+	Menu,
+	Notification,
+	powerMonitor,
+	shell,
+	Tray
+} from 'electron';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readRuntime } from '#lib/server/runtime-bridge.ts';
 import { loadOrCreateAlertsKey } from './alerts-key.ts';
+import { appUserModelIdFor } from './app-id.ts';
 import { desktopPaths, resolveUserDataDir } from './app-paths.ts';
 import { runDesktop, STARTUP_ERROR_TITLE } from './lifecycle.ts';
 import { createLoginItem } from './login-item.ts';
+import { createNotifier } from './notifier.ts';
+import { notificationClassFor } from './notify-seam.ts';
 import { serverEnv } from './server-env.ts';
 import { loadAdapterHandler, startDesktopServer } from './server.ts';
 import { createTray } from './tray.ts';
@@ -29,6 +46,8 @@ import { createWindowState, showWindow, type WindowState } from './window.ts';
 const APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const HANDLER_URL = new URL('../build/handler.js', import.meta.url).href;
 const ICON_DIR = join(APP_ROOT, 'src', 'desktop', 'assets');
+/** How long a notification may go unreported before it counts as delivered. */
+const NOTIFY_SETTLE_MS = 4_000;
 
 const paths = desktopPaths(
 	resolveUserDataDir({
@@ -46,6 +65,15 @@ const loginItem = createLoginItem({
 	execPath: process.execPath,
 	homeDir: homedir(),
 	userData: paths.userData
+});
+
+const notifications = createNotifier({
+	Notification: notificationClassFor({
+		isPackaged: app.isPackaged,
+		env: process.env,
+		Notification
+	}),
+	settleMs: NOTIFY_SETTLE_MS
 });
 
 let windowState: WindowState | null = null;
@@ -81,7 +109,9 @@ runDesktop({
 	loadKey: loadOrCreateAlertsKey,
 	async startServer(key) {
 		const env = serverEnv(process.env, { dbFile: paths.dbFile, key });
-		const handler = await loadAdapterHandler(env, HANDLER_URL, APP_ROOT);
+		const handler = await loadAdapterHandler(env, HANDLER_URL, APP_ROOT, {
+			notifier: notifications.notifier
+		});
 		const server = await startDesktopServer({ handler });
 		console.log(`[desktop] listening on ${server.origin}`);
 		return server;
@@ -92,10 +122,16 @@ runDesktop({
 			{ Tray, Menu, platform: process.platform },
 			{ ...actions, loginItem, iconDir: ICON_DIR }
 		),
-	showWindow(origin) {
+	showWindow(origin, path) {
 		windowState ??= createWindowState({ BrowserWindow, shell }, origin);
-		showWindow(windowState);
+		showWindow(windowState, path);
 	},
+	appUserModelId: appUserModelIdFor({
+		platform: process.platform,
+		isPackaged: app.isPackaged,
+		execPath: process.execPath
+	}),
+	notifications,
 	loginItem
 }).then(
 	(outcome) => {

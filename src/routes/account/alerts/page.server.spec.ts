@@ -1,9 +1,13 @@
 import { randomBytes } from 'node:crypto';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { isActionFailure } from '@sveltejs/kit';
 import { HINT_COPY, type ChannelDriver, type ChannelKind } from '#lib/server/alerts/channel.ts';
 import {
+	NO_KINDS_MESSAGE,
 	UNKNOWN_KIND_MESSAGE,
+	channelKinds,
+	channelsFor,
+	ensureChannel,
 	loadChannelConfig,
 	registerDriver,
 	saveChannel,
@@ -11,6 +15,7 @@ import {
 	type AnyDriver
 } from '#lib/server/alerts/channels.ts';
 import { setAlertsKey } from '#lib/server/alerts/crypto.ts';
+import { installDesktop } from '#lib/server/alerts/desktop.ts';
 import { SEND_TIMEOUT_MS } from '#lib/server/alerts/ntfy.ts';
 import { API_KEY_MESSAGE, RECIPIENT_MESSAGE, SENDER_MESSAGE } from '#lib/server/alerts/resend.ts';
 import {
@@ -24,7 +29,8 @@ import {
 	type SmtpConfig
 } from '#lib/server/alerts/smtp.ts';
 import { startSmtpServer, type FakeSmtpServer } from '#lib/server/testing/smtp-server.ts';
-import { notifyChannel } from '#lib/server/db/schema.ts';
+import { notifyChannel, priceDropDelivery, watch } from '#lib/server/db/schema.ts';
+import type { DesktopNotice, DesktopNotifier } from '#lib/server/notify-bridge.ts';
 import { createTestDb, type TestDb } from '#lib/server/testing/test-db.ts';
 
 const KEY = randomBytes(32);
@@ -796,5 +802,151 @@ describe('smtp card', () => {
 			from: 'alerts@example.test',
 			to: 'other@example.test'
 		});
+	});
+});
+
+// The desktop card runs over a fake notifier: nothing here touches Electron or the
+// OS. Global fetch is stubbed, so a desktop test that wrongly reached for it is caught.
+describe('desktop card', () => {
+	type Show = DesktopNotifier['show'];
+	let show: Mock<Show>;
+	let undo: (() => void) | null = null;
+
+	const KEPT_MESSAGE = "The desktop channel can't be removed; disable it instead.";
+	const SEEDED = { enabled: true, priceDrops: true, checkFailures: false };
+
+	/** The notice passed to the nth show. */
+	const notice = (n = 0): DesktopNotice => show.mock.calls[n][0];
+
+	/** The desktop row's flags, or undefined when there is none. */
+	async function desktopRow() {
+		const rows = await db().select().from(notifyChannel);
+		const row = rows.find((r) => r.kind === 'desktop');
+		return (
+			row && {
+				enabled: row.enabled,
+				priceDrops: row.priceDrops,
+				checkFailures: row.checkFailures
+			}
+		);
+	}
+
+	const routed = async () =>
+		(await channelsFor(db(), KEY, 'price_drop')).map((channel) => channel.kind);
+
+	beforeEach(async () => {
+		show = vi.fn<Show>(async () => ({ ok: true }));
+		undo = await installDesktop(db(), KEY, { show }, { watchExists: async () => true });
+	});
+	afterEach(() => {
+		undo?.();
+		undo = null;
+		// No cross-test leak: the rest of this file runs with no desktop driver.
+		expect(channelKinds()).not.toContain('desktop');
+	});
+
+	it('load desktop', async () => {
+		const loaded = await load(event());
+		expect(loaded).toEqual({
+			channels: { ntfy: null, resend: null, smtp: null, desktop: SEEDED },
+			defaults: { ...DEFAULTS, desktop: { priceDrops: true, checkFailures: false } }
+		});
+		expect(loaded).not.toHaveProperty(['channels', 'desktop', 'unreadable']);
+	});
+
+	it('remove refused', async () => {
+		await save('https://ntfy.sh/alice-own');
+		await db().insert(watch).values({
+			id: 'w1',
+			shop: 'amazon-uk',
+			productId: 'B000000001',
+			canonicalUrl: 'https://www.amazon.co.uk/dp/B000000001'
+		});
+		await db()
+			.insert(priceDropDelivery)
+			.values([
+				{ watchId: 'w1', kind: 'desktop', targetPence: 1000 },
+				{ watchId: 'w1', kind: 'ntfy', targetPence: 1000 }
+			]);
+		const deliveries = async () =>
+			(await db().select().from(priceDropDelivery)).map((row) => row.kind).sort();
+
+		expect(failure(await actions.remove!(event({ kind: 'desktop' })))).toEqual({
+			status: 400,
+			data: { kind: 'desktop', message: KEPT_MESSAGE }
+		});
+		expect(await desktopRow()).toEqual(SEEDED);
+		expect(await loadChannelConfig(db(), KEY, 'desktop')).toEqual({});
+		expect(await deliveries()).toEqual(['desktop', 'ntfy']);
+
+		// Other kinds are still removable, and take only their own rows with them.
+		expect(await actions.remove!(event({ kind: 'ntfy' }))).toEqual({ removed: 'ntfy' });
+		expect((await db().select().from(notifyChannel)).map((row) => row.kind)).toEqual(['desktop']);
+		expect(await deliveries()).toEqual(['desktop']);
+	});
+
+	it('save desktop', async () => {
+		expect(await actions.save!(event({ kind: 'desktop', check_failures: 'on' }))).toEqual({
+			saved: 'desktop'
+		});
+		const failuresOnly = { enabled: true, priceDrops: false, checkFailures: true };
+		expect(await desktopRow()).toEqual(failuresOnly);
+		expect(await load(event())).toMatchObject({ channels: { desktop: failuresOnly } });
+
+		// Neither kind ticked: refused, nothing changed.
+		expect(failure(await actions.save!(event({ kind: 'desktop' })))).toEqual({
+			status: 400,
+			data: { kind: 'desktop', message: NO_KINDS_MESSAGE }
+		});
+		expect(await desktopRow()).toEqual(failuresOnly);
+		expect(await loadChannelConfig(db(), KEY, 'desktop')).toEqual({});
+	});
+
+	it('disable desktop', async () => {
+		expect(await routed()).toEqual(['desktop']);
+
+		expect(await actions.disable!(event({ kind: 'desktop' }))).toEqual({ disabled: 'desktop' });
+		expect(await desktopRow()).toEqual({ ...SEEDED, enabled: false });
+		expect(await routed()).toEqual([]);
+
+		expect(await actions.enable!(event({ kind: 'desktop' }))).toEqual({ enabled: 'desktop' });
+		expect(await routed()).toEqual(['desktop']);
+	});
+
+	it('test desktop', async () => {
+		const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
+		vi.stubGlobal('fetch', fetch);
+
+		expect(await actions.test!(event({ kind: 'desktop' }))).toEqual({ tested: 'desktop' });
+		expect(show).toHaveBeenCalledOnce();
+		expect(await notice().clickPath()).toBe('/account/alerts');
+
+		show.mockResolvedValueOnce({ ok: false, reason: 'unsupported' });
+		expect(failure(await actions.test!(event({ kind: 'desktop' })))).toEqual({
+			status: 502,
+			data: { testKind: 'desktop', testMessage: 'Not delivered: notifications not supported.' }
+		});
+		expect(show).toHaveBeenCalledTimes(2);
+		expect(fetch).not.toHaveBeenCalled();
+	});
+
+	it('test disabled desktop', async () => {
+		await actions.disable!(event({ kind: 'desktop' }));
+
+		expect(await actions.test!(event({ kind: 'desktop' }))).toEqual({ tested: 'desktop' });
+		expect(show).toHaveBeenCalledOnce();
+	});
+});
+
+describe('no desktop driver', () => {
+	it('no desktop key', async () => {
+		// Even a stored desktop row stays off the page while no notifier is published.
+		await ensureChannel(db(), KEY, 'desktop', { priceDrops: true, checkFailures: false });
+		expect(channelKinds()).not.toContain('desktop');
+
+		const loaded = await load(event());
+		expect(loaded).not.toHaveProperty(['channels', 'desktop']);
+		expect(loaded).not.toHaveProperty(['defaults', 'desktop']);
+		expect(loaded).toEqual(page({ ntfy: null, resend: null, smtp: null }));
 	});
 });

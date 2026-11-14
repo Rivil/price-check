@@ -16,6 +16,7 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { isLoopbackHost } from '#lib/server/local-request.ts';
+import { publishNotifier, type DesktopNotifier } from '#lib/server/notify-bridge.ts';
 
 export const LOOPBACK_ADDRESS = '127.0.0.1';
 export const PROTOCOL_HEADER = 'x-forwarded-proto';
@@ -112,23 +113,35 @@ export function startDesktopServer({ handler }: { handler: NodeHandler }): Promi
 	});
 }
 
+/** What main hands the server beyond its environment. */
+export type ServerBridges = {
+	/** Published on the notify bridge, where the server's desktop driver finds it. */
+	notifier: DesktopNotifier;
+};
+
 /**
  * Imports adapter-node's handler module (build/handler.js) under the server's own
  * environment. adapter-node reads PROTOCOL_HEADER and friends at module load, and
  * migrate.ts resolves drizzle/ against the cwd, so process.env is replaced with `env`
  * and the cwd moved to `appRoot` BEFORE the import. Replaced, not merged: a variable
  * serverEnv dropped (HOST_HEADER, PORT_HEADER...) must not survive in process.env.
+ *
+ * The notifier is published before the import too (decision notify_bridge): the
+ * server's startup decides whether to register the desktop driver by whether one is
+ * there, so one published after the import would never be seen.
  */
 export async function loadAdapterHandler(
 	env: Record<string, string>,
 	moduleUrl: string,
-	appRoot: string
+	appRoot: string,
+	{ notifier }: ServerBridges
 ): Promise<NodeHandler> {
 	for (const name of Object.keys(process.env)) {
 		if (!(name in env)) delete process.env[name];
 	}
 	Object.assign(process.env, env);
 	process.chdir(appRoot);
+	publishNotifier(notifier);
 	const mod = (await import(/* @vite-ignore */ moduleUrl)) as { handler?: unknown };
 	if (typeof mod.handler !== 'function') {
 		throw new Error(`${moduleUrl} does not export a handler function`);

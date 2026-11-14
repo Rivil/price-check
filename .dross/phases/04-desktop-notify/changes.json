@@ -1,0 +1,492 @@
+{
+  "phase": "04-desktop-notify",
+  "pr": 10,
+  "base": "milestone/v0.1",
+  "base_commit": "15f0c389b7fdc7968ead0cedf08e774c6ab4a84e",
+  "status": "shipped",
+  "tasks": {
+    "t-1": {
+      "files": [
+        ".gitleaks.toml",
+        "src/lib/server/notify-bridge.ts",
+        "src/lib/server/notify-bridge.spec.ts"
+      ],
+      "commit": "3b59163",
+      "completed_at": "2026-11-14T15:01:46.747932Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "readNotifier",
+          "loc": "src/lib/server/notify-bridge.ts:33",
+          "what": "globalThis Symbol.for('price-check.notifier') hand-off of main's DesktopNotifier to the server bundle; undefined outside Electron"
+        }
+      ]
+    },
+    "t-10": {
+      "files": [
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/harness.e2e.ts",
+        "e2e/desktop/notify.e2e.ts"
+      ],
+      "commit": "982b562",
+      "completed_at": "2026-11-14T17:01:31.003512Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "recordedNotifications",
+          "loc": "e2e/desktop/launch.ts:423",
+          "what": "e2e launcher notify option plus recorder read/click helpers; notify.e2e proves delivery and click routing in real Electron"
+        }
+      ]
+    },
+    "t-11": {
+      "files": [
+        "e2e/desktop/desktop-alerts.e2e.ts"
+      ],
+      "commit": "15c2572",
+      "completed_at": "2026-11-14T17:08:29.892403Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "saveTicks",
+          "loc": "e2e/desktop/desktop-alerts.e2e.ts:87",
+          "what": "Electron e2e proving Desktop card ticks/off survive relaunch, unsupported and real-class Send test, card axe and focus"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "src/lib/server/alerts/channel.ts",
+        "src/lib/server/alerts/channels.ts",
+        "src/lib/server/alerts/channels.spec.ts",
+        "src/lib/server/alerts/alerts.ts",
+        "src/lib/server/alerts/alerts.spec.ts",
+        "src/lib/server/alerts/ntfy.spec.ts"
+      ],
+      "commit": "b39ea7a",
+      "completed_at": "2026-11-14T15:31:10.086091Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "ensureChannel",
+          "loc": "src/lib/server/alerts/channels.ts:221",
+          "what": "seeds the desktop alert channel row once (never overriding user flags) and alerts now carry watchId plus an 'unsupported' failure reason"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "src/desktop/window.ts",
+        "src/desktop/window.spec.ts"
+      ],
+      "commit": "b94c08d",
+      "completed_at": "2026-11-14T15:33:40.592107Z",
+      "landmarks": [
+        {
+          "feature": "desktop notification click-through",
+          "symbol": "showWindow",
+          "loc": "src/desktop/window.ts:165",
+          "what": "shows the app window on a same-origin path, falling back to the origin for off-app paths and never reloading a live window without one"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "src/desktop/notify-seam.ts",
+        "src/desktop/notify-seam.spec.ts"
+      ],
+      "commit": "f80379b",
+      "completed_at": "2026-11-14T15:37:06.145252Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "notificationClassFor",
+          "loc": "src/desktop/notify-seam.ts:116",
+          "what": "unpackaged runs with PRICE_CHECK_E2E_NOTIFY=record|unsupported swap Electron's Notification for a recorder on globalThis; packaged runs never read it"
+        }
+      ]
+    },
+    "t-5": {
+      "files": [
+        "src/desktop/notifier.ts",
+        "src/desktop/notifier.spec.ts",
+        "src/desktop/app-id.ts",
+        "src/desktop/app-id.spec.ts"
+      ],
+      "commit": "54e6f9c",
+      "completed_at": "2026-11-14T15:41:13.012366Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "createNotifier",
+          "loc": "src/desktop/notifier.ts:70",
+          "what": "wraps Electron Notification: settle-or-fail results, GC retention, click path routing; APP_ID shared with packaging"
+        }
+      ]
+    },
+    "t-6": {
+      "files": [
+        "src/lib/server/alerts/desktop.ts",
+        "src/lib/server/alerts/desktop.spec.ts"
+      ],
+      "commit": "c604835",
+      "completed_at": "2026-11-14T15:44:39.322076Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "createDesktopDriver",
+          "loc": "src/lib/server/alerts/desktop.ts:42",
+          "what": "desktop channel driver over the bridged notifier; click opens the watch; installDesktop registers and seeds the row"
+        }
+      ]
+    },
+    "t-7": {
+      "files": [
+        "src/desktop/server.ts",
+        "src/desktop/server.spec.ts",
+        "src/desktop/testing/fake-handler.ts",
+        "src/desktop/lifecycle.ts",
+        "src/desktop/lifecycle.spec.ts",
+        "src/desktop/main.ts"
+      ],
+      "commit": "e7fdf5b",
+      "completed_at": "2026-11-14T16:25:24.319999Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "runDesktop",
+          "loc": "src/desktop/lifecycle.ts:172",
+          "what": "sets the AUMID before key/server start and routes notification clicks to showWindow (held until ready, dropped on quit); notifier published before handler import"
+        }
+      ]
+    },
+    "t-8": {
+      "files": [
+        "src/hooks.server.ts",
+        "src/hooks.server.spec.ts",
+        "e2e/desktop/guard.e2e.ts"
+      ],
+      "commit": "a907513",
+      "completed_at": "2026-11-14T16:29:30.148826Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "setUpDesktopAlerts",
+          "loc": "src/hooks.server.ts:24",
+          "what": "init installs the desktop driver and seeds its row before the first scheduler pass when a notifier is published; a failure is logged and startup continues"
+        }
+      ]
+    },
+    "t-9": {
+      "files": [
+        "src/routes/account/alerts/+page.server.ts",
+        "src/routes/account/alerts/page.server.spec.ts",
+        "src/routes/account/alerts/+page.svelte",
+        "src/routes/account/alerts/page.svelte.spec.ts",
+        "src/routes/account/alerts/alerts.e2e.ts"
+      ],
+      "commit": "a45cebf",
+      "completed_at": "2026-11-14T16:56:20.515491Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "KEPT_KINDS",
+          "loc": "src/routes/account/alerts/+page.server.ts:44",
+          "what": "Alerts page shows a Desktop card (on/off, kind ticks, Send test) only when the driver is registered, and refuses its removal with a 400"
+        }
+      ]
+    }
+  },
+  "reviews": {
+    "t-1": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "package.json version bump 0.1.3 -\u003e 0.1.4 is not among the task's declared files (.gitleaks.toml, notify-bridge.ts, notify-bridge.spec.ts); confirm it belongs in this commit",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "notify-bridge.spec's no-import check also covers dynamic import(), require() and re-exports with 'from', which goes beyond the test_contract",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-10": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "e2e/desktop/notify.e2e.ts: the 'exactly one record' checks wait until the count reaches before+1 and then check it once more straight away. A duplicate notification recorded slightly later would slip through. A short settle before the final count would make 'exactly one' hold.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "c-1 is exercised through a failed-check alert (Failed checks ticked), not a price drop reaching its target, which is what the test_contract specifies. The test never asserts that the notification body names the price or the target.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "On Linux the minimise test skips both the precondition and the not-minimised claim, as the record says. Window restore there relies on t-3.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-11": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-4",
+          "text": "e2e/desktop/desktop-alerts.e2e.ts:258 — the second saveTicks in the untick test runs while 'Saved.' is still showing from the first save (line 257), so the 'Saved.' check at line 153 passes at once, and expectTicks only reads the client-side checkboxes just set by setChecked. checkNow's page.goto can then cut off the in-flight save, so Failed checks is still on and the test fails intermittently. Wait for the save itself (e.g. the POST response, or reload and re-read the ticks) before navigating.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "saveTicks' doc comment says 'the reloaded form must show them', but expectTicks reads the same checkboxes setChecked just set; it does not show the stored state. The relaunch test's dbSnapshot and the reloads in openAlerts do cover persistence.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The axe and keyboard focus-walk test on the Desktop card goes beyond this task's test_contract; it is in the declared file and is useful coverage.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-4",
+          "text": "quitThroughApp in desktop-alerts.e2e.ts waits for the process exit with no deadline and never checks the exit code. A hung quit only fails when the test times out. quit-relaunch.e2e.ts races the exit against QUIT_TIMEOUT_MS and asserts code 0.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The axe and Tab-walk accessibility test on the Desktop card goes beyond test_contract. Its non-vacuity checks (emulated scheme matches, axe passes include color-contrast, button-name and label) are sound, and the stops/visited index alignment in tabWalk holds.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-4",
+          "text": "The c-4 off and untick cases are paired with a control check that must add exactly one record, so a count of 0 cannot pass just because the recorder recorded nothing.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-2": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ensureChannel works for any ChannelKind: if it were ever called for ntfy/resend/smtp, an unreadable row would be overwritten with an empty {} config. That is harmless for desktop, the only intended caller, and the old config could not be opened anyway.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The re-seal update only matches the blob it just read (configEnc equal to it, or null), so a config saved in between is left alone. The concurrent test covers the double-insert case.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-3": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "src/desktop/window.ts:150 appUrl's catch returns origin on an unparseable path with nothing logged; the fallback is spec-mandated (fails isAppUrl) and the JSDoc states the off-app fallback, but the parse-failure case itself is not named and a dropped click target leaves no trace",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "the minimised-window test asserts restore() precedes show(), but not that restore() precedes the loadURL of the target, which the description's order (restore, load, then show/focus) implies",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "off-origin table goes beyond the contract (adjacent port, javascript:, unparseable 'http://[') and checks both the new-window and live-window paths",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-4": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "notificationClassFor returns createRecorder(mode) as C (notify-seam.ts:405). The recorder is only a NotificationCtor, so a caller that relies on C-specific members of Electron's real class would type-check but fail at runtime in e2e mode. Returning NotificationCtor, or limiting what C can add, would keep this honest.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "RecordingNotification.emit always passes a single {} to listeners. Nothing fires 'failed' in the recorder now, but a later fake 'failed' path would need to pass the (event, error) pair that NotificationLike declares.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The compile-time check realClassFits makes sure Electron's real Notification fits the structural NotificationCtor slice, and the spec also covers show order versus construction order, multiple listeners and recorder replacement.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-5": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "src/desktop/notifier.ts show(): Notification.isSupported() is called outside any try, and show is not async, so if it throws, the caller gets a synchronous throw instead of a {ok:false, reason:'failed'} result. The same goes for a throwing notification.on() inside the Promise executor: the promise rejects and the settle timer stays armed. This is rare, but it is the only path that breaks the resolve-only contract.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "pendingClick holds one slot. If several clicks arrive before setClickHandler, only the last one's path is delivered. That fits a single window navigation, and the test_contract only asks that a click is not lost.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The click spec goes beyond the contract: it also covers backslash protocol-relative paths, relative paths, empty paths and a throwing handler, plus a construction or show() throw mapped to 'failed'.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-6": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "clickPathFor (desktop.ts) catches a watchExists failure and falls back to '/' without logging. The comment states why, so this is not a silent swallow, but a broken DB lookup on click leaves no trace.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "afterEach asserts channelKinds() has no 'desktop' entry after every test, so a missed unregister fails the spec instead of leaking into other specs.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "'seed never overwrites' installs twice over a user-edited row and checks both the flags and the row count, which covers both halves of its contract line.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-7": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "A click held during startup is dropped without a log if startup then fails or quit begins (lifecycle.ts show/held path). That is acceptable because the app is exiting anyway.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "server.spec 'notifier before import' relies on vi.resetModules() so fake-handler's top-level readNotifier() runs again for each test. The afterEach also removes the Symbol.for key so no notifier leaks between tests.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-8": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/hooks.server.ts setUpDesktopAlerts adds a log-and-continue catch around installDesktop that the task description does not mention ('everything else in init stays as is'). It is commented, logged without the error message, and covered by 'a failed desktop seed is logged and startup goes on', so it is extra behaviour rather than a quiet fallback.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "hooks.server.spec now mocks #lib/server/db/index.ts with a getter so the desktop tests can swap in a real temp-file db. The existing tests still receive the fake db through beforeEach.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-9": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "KEPT_MESSAGE is a private constant in +page.server.ts and is duplicated as a literal in page.server.spec.ts and page.svelte.spec.ts; exporting it would keep the copies in step",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the desktop afterEach asserts channelKinds() no longer contains 'desktop', guarding the rest of page.server.spec.ts against a leaked driver registration",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    }
+  }
+}

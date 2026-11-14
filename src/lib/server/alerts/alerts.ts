@@ -163,7 +163,9 @@ export async function alertAfterSuccess(
 			kind: 'price_drop',
 			title: `Price drop: ${label}`,
 			message: `${label} is now ${formatPence(w.pricePence!)}, at or below your ${formatPence(targetPence)} target.`,
-			click: w.canonicalUrl
+			// The shop link for remote channels; the watch for the desktop (decision click_target).
+			click: w.canonicalUrl,
+			watchId: w.id
 		};
 		const now = deps.now ?? (() => new Date());
 
@@ -221,7 +223,8 @@ export async function alertAfterFailure(
 			kind: 'check_failed',
 			title: `Check failed: ${label}`,
 			message: `Couldn't check ${label}: ${result.message}.`,
-			click: w.canonicalUrl
+			click: w.canonicalUrl,
+			watchId: w.id
 		};
 		const channels: Record<string, ChannelOutcome> = {};
 		await Promise.allSettled(
