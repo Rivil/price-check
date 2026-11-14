@@ -7,6 +7,8 @@
 // the whole process tree.
 // The notification seam's variable is set only when a launch asks for it, so a plain
 // launch always runs Electron's real Notification class.
+// An unpackaged launch builds no updater (05-release c-5): main publishes no
+// Symbol.for('price-check.updater') handle.
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
@@ -168,6 +170,20 @@ test("electron's node major matches .node-version", async () => {
 		desktop = await launchDesktop();
 		const node = await desktop.app.evaluate(() => process.versions.node);
 		expect(node.split('.')[0]).toBe(pinned.split('.')[0]);
+	} finally {
+		await desktop?.close();
+	}
+});
+
+test('an unpackaged launch builds no updater', async () => {
+	let desktop: DesktopApp | undefined;
+	try {
+		desktop = await launchDesktop();
+		const main = await desktop.app.evaluate(({ app }) => ({
+			isPackaged: app.isPackaged,
+			hasHandle: Symbol.for('price-check.updater') in globalThis
+		}));
+		expect(main).toEqual({ isPackaged: false, hasHandle: false });
 	} finally {
 		await desktop?.close();
 	}

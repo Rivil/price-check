@@ -240,3 +240,157 @@ describe('desktop import boundary', () => {
 		expect(violations).toEqual([]);
 	});
 });
+
+// 05-release c-1, c-5, c-6: main.ts is the only module that loads electron-updater,
+// builds and publishes the updater only when packaged, and reads the predecessor PID
+// before loadAdapterHandler replaces process.env.
+const isUpdater = (specifier: string) =>
+	specifier === 'electron-updater' || specifier.startsWith('electron-updater/');
+
+const FEED_OVERRIDE = /setFeedURL|forceDevUpdateConfig|updateConfigPath/;
+
+const mainSource = readFileSync(MAIN, 'utf8');
+const mainFile = ts.createSourceFile(MAIN, mainSource, ts.ScriptTarget.Latest, true);
+
+function callsTo(name: string): ts.CallExpression[] {
+	const calls: ts.CallExpression[] = [];
+	const visit = (node: ts.Node): void => {
+		if (
+			ts.isCallExpression(node) &&
+			ts.isIdentifier(node.expression) &&
+			node.expression.text === name
+		) {
+			calls.push(node);
+		}
+		ts.forEachChild(node, visit);
+	};
+	visit(mainFile);
+	return calls;
+}
+
+/** The value of property `name` in an object literal: assigned, shorthand or a method. */
+function propertyOf(object: ts.Node | undefined, name: string): ts.Node | undefined {
+	if (!object || !ts.isObjectLiteralExpression(object)) return undefined;
+	for (const p of object.properties) {
+		if (p.name?.getText(mainFile) !== name) continue;
+		if (ts.isPropertyAssignment(p)) return p.initializer;
+		if (ts.isShorthandPropertyAssignment(p)) return p.name;
+		if (ts.isMethodDeclaration(p)) return p;
+	}
+	return undefined;
+}
+
+/** True when `condition` holds only if app.isPackaged does (itself or an && operand). */
+function requiresPackaged(condition: ts.Expression, sf: ts.SourceFile = mainFile): boolean {
+	if (ts.isParenthesizedExpression(condition)) return requiresPackaged(condition.expression, sf);
+	if (condition.getText(sf) === 'app.isPackaged') return true;
+	return (
+		ts.isBinaryExpression(condition) &&
+		condition.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken &&
+		(requiresPackaged(condition.left, sf) || requiresPackaged(condition.right, sf))
+	);
+}
+
+/** True when `node` runs only on a branch an app.isPackaged condition guards. */
+function inPackagedBranch(node: ts.Node): boolean {
+	for (let child = node, parent = node.parent; parent; child = parent, parent = parent.parent) {
+		if (ts.isIfStatement(parent) && parent.thenStatement === child) {
+			if (requiresPackaged(parent.expression)) return true;
+		}
+		if (ts.isConditionalExpression(parent) && parent.whenTrue === child) {
+			if (requiresPackaged(parent.condition)) return true;
+		}
+	}
+	return false;
+}
+
+describe('desktop updater wiring', () => {
+	it('main.ts is the only module that value-imports electron-updater', () => {
+		const valueImporters = desktopSources
+			.filter((file) => refsOf(file).some((r) => isUpdater(r.specifier) && !r.typeOnly))
+			.map(rel);
+		expect(valueImporters).toEqual([rel(MAIN)]);
+	});
+
+	it('no runtime feed override: no desktop module names one', () => {
+		const offenders = desktopSources
+			.filter((file) => FEED_OVERRIDE.test(readFileSync(file, 'utf8')))
+			.map(rel);
+		expect(offenders).toEqual([]);
+	});
+
+	it('reads PRICE_CHECK_PREDECESSOR_PID before the loadAdapterHandler call', () => {
+		const [load] = callsTo('loadAdapterHandler');
+		expect(load).toBeDefined();
+		expect(mainSource).toMatch(/process\.env\[PREDECESSOR_PID_ENV\]/);
+		const mentions = [...mainSource.matchAll(/PREDECESSOR_PID/g)].map((m) => m.index);
+		expect(mentions.length).toBeGreaterThan(0);
+		for (const at of mentions) expect(at).toBeLessThan(load.getStart(mainFile));
+	});
+
+	it('builds and publishes the updater only in an app.isPackaged branch', () => {
+		const calls = [...callsTo('createUpdater'), ...callsTo('publishUpdaterHandle')];
+		expect(calls.map((c) => c.expression.getText(mainFile)).sort()).toEqual([
+			'createUpdater',
+			'publishUpdaterHandle'
+		]);
+		for (const call of calls) expect(inPackagedBranch(call), call.getText(mainFile)).toBe(true);
+	});
+
+	it('the guard accepts only conditions that need app.isPackaged', () => {
+		for (const [text, expected] of [
+			['app.isPackaged', true],
+			['app.isPackaged && updater', true],
+			['updater && (app.isPackaged)', true],
+			['app.isPackaged || updater', false],
+			['!app.isPackaged', false],
+			['updater', false]
+		] as const) {
+			const sf = ts.createSourceFile('c.ts', `${text};`, ts.ScriptTarget.Latest, true);
+			const statement = sf.statements[0] as ts.ExpressionStatement;
+			expect(requiresPackaged(statement.expression, sf), text).toBe(expected);
+		}
+	});
+
+	it('publishes status, the tray restart action and checkNow', () => {
+		const [publish] = callsTo('publishUpdaterHandle');
+		const handle = publish.arguments[0];
+		expect(propertyOf(handle, 'status')).toBeDefined();
+		expect(propertyOf(handle, 'checkNow')).toBeDefined();
+
+		// restart is the very action runDesktop handed the tray (c-5 tray item reachable).
+		const restart = propertyOf(handle, 'restart');
+		expect(restart && ts.isIdentifier(restart)).toBe(true);
+		const [run] = callsTo('runDesktop');
+		const trayFactory = propertyOf(run.arguments[0], 'createTray');
+		expect(trayFactory && ts.isArrowFunction(trayFactory)).toBe(true);
+		const factory = trayFactory as ts.ArrowFunction;
+		const actions = factory.parameters[0].name.getText(mainFile);
+		const factoryText = factory.getText(mainFile);
+		expect(factoryText).toMatch(
+			new RegExp(`\\b${restart?.getText(mainFile)}\\s*=\\s*${actions}\\.restartToUpdate\\b`)
+		);
+		const [trayCall] = callsTo('createTray');
+		const trayActions = trayCall.arguments[1];
+		expect(trayActions && ts.isObjectLiteralExpression(trayActions)).toBe(true);
+		const spreads = (trayActions as ts.ObjectLiteralExpression).properties
+			.filter(ts.isSpreadAssignment)
+			.map((s) => s.expression.getText(mainFile));
+		expect(spreads).toContain(actions);
+		expect(propertyOf(trayActions, 'restartToUpdate')).toBeUndefined();
+	});
+
+	it('builds the updater with the existing notifier and an onReady that shows the tray item', () => {
+		const [create] = callsTo('createUpdater');
+		const input = create.arguments[0];
+		const [load] = callsTo('loadAdapterHandler');
+		const serverNotifier = propertyOf(load.arguments[3], 'notifier');
+		expect(serverNotifier).toBeDefined();
+		expect(propertyOf(input, 'notifier')?.getText(mainFile)).toBe(
+			serverNotifier?.getText(mainFile)
+		);
+		expect(propertyOf(input, 'onReady')?.getText(mainFile)).toMatch(
+			/\btray\??\.setUpdateReady\(\s*true\s*\)/
+		);
+	});
+});
