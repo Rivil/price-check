@@ -1,6 +1,6 @@
 {
   "phase": "03-desktop-shell",
-  "generated_at": "2026-11-14T13:25:04.041717Z",
+  "generated_at": "2026-11-14T13:58:09.183261Z",
   "languages": [
     {
       "name": "typescript",
@@ -47,1195 +47,12 @@
       ],
       "mutation": {
         "Tool": "stryker",
-        "Killed": 496,
-        "Survived": 149,
-        "Timeout": 3,
+        "Killed": 535,
+        "Survived": 103,
+        "Timeout": 12,
         "Errors": 0,
-        "Score": 0.7654320987654321,
+        "Score": 0.823076923076923,
         "Surviving": [
-          {
-            "File": "src/lib/server/scheduler.ts",
-            "Line": 82,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "68ab1882916c3b67",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: tick() returns at once while stopped, so a followUp set or kept after stop() can never start a pass."
-          },
-          {
-            "File": "src/lib/server/scheduler.ts",
-            "Line": 92,
-            "Op": "BooleanLiteral",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "b28f3c24ef003a03",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: tick() returns at once while stopped, so a followUp set or kept after stop() can never start a pass."
-          },
-          {
-            "File": "src/lib/server/scheduler.ts",
-            "Line": 93,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "cb9cce29bafc1dff",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/lib/server/scheduler.ts",
-            "Line": 93,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "cb9cce29bafc1dff",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/lib/server/scheduler.ts",
-            "Line": 93,
-            "Op": "EqualityOperator",
-            "Snippet": "interval === null",
-            "Origin": "in-hunk",
-            "Key": "bd796426e110e05d",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/lib/server/scheduler.ts",
-            "Line": 103,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "02ce7ca0b3cf0d5f",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/lib/server/scheduler.ts",
-            "Line": 99,
-            "Op": "ArrowFunction",
-            "Snippet": "() =\u003e undefined",
-            "Origin": "in-hunk",
-            "Key": "5d16404ef90a4974",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/lib/server/scheduler.ts",
-            "Line": 99,
-            "Op": "BooleanLiteral",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "f0aa0b414456bce2",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 81,
-            "Op": "ArrowFunction",
-            "Snippet": "() =\u003e undefined",
-            "NotCovered": true,
-            "Origin": "in-hunk",
-            "Key": "89f002ae7480dfc6",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 51,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "89011207f83d607b",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 51,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "dca00d0e92a9e6fb",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 38,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "48aa8dd11e051ca5",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 53,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "c71ab6e4ddbaed0b",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 54,
-            "Op": "ArithmeticOperator",
-            "Snippet": "i - 1",
-            "Origin": "in-hunk",
-            "Key": "0582b811bfdb2de4",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 51,
-            "Op": "EqualityOperator",
-            "Snippet": "i \u003e= req.rawHeaders.length",
-            "Origin": "in-hunk",
-            "Key": "6bea00188ea70db8",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 61,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "beff93833ef79b51",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 63,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "6267d7b0b7dd66f7",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 62,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "e333e2948188ee73",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 77,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "03b19bccd05c3053",
-            "Lifecycle": "accepted",
-            "Note": "next() is only reached when the handler declines a request; adapter-node's handler never calls next after ending the response, so the writableEnded guard never changes an outcome."
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 81,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "794797731df8a606",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 81,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "794797731df8a606",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 88,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "7565d901d08cc046",
-            "Lifecycle": "accepted",
-            "Note": "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 90,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "a5da1890d023603d",
-            "Lifecycle": "accepted",
-            "Note": "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
-          },
-          {
-            "File": "src/desktop/server.ts",
-            "Line": 119,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "8fe9f2c38e0ff2e8",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: deleting every variable and then Object.assign(process.env, env) leaves process.env equal to env, the same as deleting only those absent from env."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 79,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "NotCovered": true,
-            "Origin": "in-hunk",
-            "Key": "5a1e89931b47ced1",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 80,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "NotCovered": true,
-            "Origin": "in-hunk",
-            "Key": "63a4c190849381ad",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 78,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "dc1b1af7136c0004",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 87,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "20aa20157d747f8e",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 101,
-            "Op": "BooleanLiteral",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "71d9d52a7fa974cb",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 147,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "42a99ea3e2844d9b",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 148,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "8c96b0e42ef203d8",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 148,
-            "Op": "EqualityOperator",
-            "Snippet": "state.window !== created",
-            "Origin": "in-hunk",
-            "Key": "e56a1a5bbc9fc131",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 113,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "37def2591c9a9102",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 147,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "31492305523989f5",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 148,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "8c96b0e42ef203d8",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 130,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "88ba330aa8026940",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 19,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "ee3b0511ff0cda34",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/window.ts",
-            "Line": 56,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "537a7b6fb80cfb9f",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 23,
-            "Op": "OptionalChaining",
-            "Snippet": "(error as NodeJS.ErrnoException | undefined).code",
-            "Origin": "in-hunk",
-            "Key": "adf376c4546d03b5",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 35,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "ebccb95ca4998c1a",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 31,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "82d084e92b9def6c",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 34,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "5f21d05d73e547dc",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 36,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "327eca6678f6b0e8",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 46,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "cd3b19658cb89eb3",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 52,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "f72eea9f89a5550b",
-            "Lifecycle": "accepted",
-            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 53,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "d804617b07ee19ca",
-            "Lifecycle": "accepted",
-            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 53,
-            "Op": "EqualityOperator",
-            "Snippet": "process.platform !== 'win32'",
-            "Origin": "in-hunk",
-            "Key": "c916bd26691573c7",
-            "Lifecycle": "accepted",
-            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 53,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "d804617b07ee19ca",
-            "Lifecycle": "accepted",
-            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 53,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "3bd26808560d55d1",
-            "Lifecycle": "accepted",
-            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 55,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "1701741f079e37e4",
-            "Lifecycle": "accepted",
-            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 57,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "456ac163283b77bf",
-            "Lifecycle": "accepted",
-            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 73,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "601eb8d3d40eb855",
-            "Lifecycle": "accepted",
-            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 75,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "7adfcf737e75d375",
-            "Lifecycle": "accepted",
-            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 81,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "8478b3cd9e54d8be",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 88,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "95c5b3c7bf6a7879",
-            "Lifecycle": "accepted",
-            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 88,
-            "Op": "BooleanLiteral",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "2f6a48107591a868",
-            "Lifecycle": "accepted",
-            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
-          },
-          {
-            "File": "src/desktop/alerts-key.ts",
-            "Line": 100,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "7bf10e2565d2d61e",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 109,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "e78f9be146d52499",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 118,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "42901f1b53b9b5ea",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 119,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "3680405b3a8bbe62",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 131,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "0362aa9d872bc084",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 131,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "58702bb169945291",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 132,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "146f3737bc35f974",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 135,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "c301044ff5eb8ee2",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 138,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "673ecfa924b64bd3",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 139,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "963ca174c8874673",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 157,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "28319e8d25644b20",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 167,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "7dfc1ea9981c1b80",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 168,
-            "Op": "LogicalOperator",
-            "Snippet": "!running.ready \u0026\u0026 running.server === null",
-            "Origin": "in-hunk",
-            "Key": "71c391493b922ba9",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 168,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "bc96a77e858aabdd",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 177,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "e1e204b3fe674130",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 178,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "7ff998abd0f89e94",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 178,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "61950c81be14a669",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 179,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "8a623c770e7cfe17",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 179,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "cca13982bf5e04ba",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 192,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "a6f27f3fbb6da065",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 208,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "c09e9231916ab4fe",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 217,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "125a9fbe0185dc27",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 160,
-            "Op": "BooleanLiteral",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "5fc33fef75d73b35",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 223,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "0188855cb6fa56ec",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 226,
-            "Op": "BlockStatement",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "5dda0ee0870dde5b",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 177,
-            "Op": "ConditionalExpression",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "1aca24ef5d5114c8",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 227,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "d7c7f995c082ed25",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 239,
-            "Op": "BooleanLiteral",
-            "Snippet": "true",
-            "Origin": "in-hunk",
-            "Key": "325c9379b7d2fd52",
-            "Lifecycle": "accepted",
-            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
-          },
-          {
-            "File": "src/desktop/lifecycle.ts",
-            "Line": 34,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "fde40685676f11cf",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 86,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "a0ec46b0f49c51ea",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 95,
-            "Op": "MethodExpression",
-            "Snippet": "env.APPIMAGE",
-            "Origin": "in-hunk",
-            "Key": "c71c97ced996c5f9",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 98,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "60b09042f83e516d",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 99,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "2eca39cf0cd5beaf",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 100,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "5556719a0c6dfb40",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 101,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "ae8e698e90f1bb39",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 102,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "d600542099d40b1e",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 104,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "644a02ade01440b6",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 105,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "8aab167a541d5851",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 112,
-            "Op": "Regex",
-            "Snippet": "/\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s*$/m",
-            "Origin": "in-hunk",
-            "Key": "6ac6b7d5dee4c210",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 112,
-            "Op": "Regex",
-            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s*/m",
-            "Origin": "in-hunk",
-            "Key": "6ac6b7d5dee4c210",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 112,
-            "Op": "Regex",
-            "Snippet": "/^\\S*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s*$/m",
-            "Origin": "in-hunk",
-            "Key": "6ac6b7d5dee4c210",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 112,
-            "Op": "Regex",
-            "Snippet": "/^\\s*(Hidden\\S*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s*$/m",
-            "Origin": "in-hunk",
-            "Key": "6ac6b7d5dee4c210",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 112,
-            "Op": "Regex",
-            "Snippet": "/^\\s*(Hidden\\s*=\\S*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s*$/m",
-            "Origin": "in-hunk",
-            "Key": "6ac6b7d5dee4c210",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 112,
-            "Op": "Regex",
-            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s=\\s*false)\\s*$/m",
-            "Origin": "in-hunk",
-            "Key": "6ac6b7d5dee4c210",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 112,
-            "Op": "Regex",
-            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\S*=\\s*false)\\s*$/m",
-            "Origin": "in-hunk",
-            "Key": "6ac6b7d5dee4c210",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 112,
-            "Op": "Regex",
-            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\sfalse)\\s*$/m",
-            "Origin": "in-hunk",
-            "Key": "6ac6b7d5dee4c210",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 112,
-            "Op": "Regex",
-            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\S*false)\\s*$/m",
-            "Origin": "in-hunk",
-            "Key": "6ac6b7d5dee4c210",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 112,
-            "Op": "Regex",
-            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s$/m",
-            "Origin": "in-hunk",
-            "Key": "6ac6b7d5dee4c210",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 112,
-            "Op": "Regex",
-            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\S*$/m",
-            "Origin": "in-hunk",
-            "Key": "6ac6b7d5dee4c210",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 127,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "ae1376eefcc00ae9",
-            "Lifecycle": "accepted",
-            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 139,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "234c4002b93688bc",
-            "Lifecycle": "accepted",
-            "Note": "rmSync without force throws only when the autostart entry is already gone; the tray catches a throwing setEnabled and re-reads the OS state (tray.spec 'a throwing setEnabled leaves the checkbox showing the real OS state')."
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 139,
-            "Op": "BooleanLiteral",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "79f97e72119c4f05",
-            "Lifecycle": "accepted",
-            "Note": "rmSync without force throws only when the autostart entry is already gone; the tray catches a throwing setEnabled and re-reads the OS state (tray.spec 'a throwing setEnabled leaves the checkbox showing the real OS state')."
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 84,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "3441cf6d400b551b",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 149,
-            "Op": "BooleanLiteral",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "295d2a80ae1ccf6a",
-            "Lifecycle": "accepted",
-            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 150,
-            "Op": "StringLiteral",
-            "Snippet": "``",
-            "Origin": "in-hunk",
-            "Key": "efa2fd090be820fc",
-            "Lifecycle": "accepted",
-            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 137,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "9578f8b06c9a7f78",
-            "Lifecycle": "accepted",
-            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 150,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "efa2fd090be820fc",
-            "Lifecycle": "accepted",
-            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 149,
-            "Op": "ObjectLiteral",
-            "Snippet": "{}",
-            "Origin": "in-hunk",
-            "Key": "f5938f375cbf8833",
-            "Lifecycle": "accepted",
-            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 169,
-            "Op": "ConditionalExpression",
-            "Snippet": "false",
-            "Origin": "in-hunk",
-            "Key": "7d4474ce391e5322",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/login-item.ts",
-            "Line": 27,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "56123fa545ff1e81",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "src/desktop/tray.ts",
-            "Line": 92,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "a33b0ef6ee785bdc",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "src/desktop/tray.ts",
-            "Line": 19,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "99503e9f5613e260",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
           {
             "File": "scripts/build-desktop.ts",
             "Line": 87,
@@ -1392,21 +209,11 @@
           },
           {
             "File": "scripts/build-desktop.ts",
-            "Line": 38,
+            "Line": 39,
             "Op": "StringLiteral",
             "Snippet": "\"\"",
             "Origin": "in-hunk",
-            "Key": "f508b1d54dec9e9c",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "scripts/build-desktop.ts",
-            "Line": 37,
-            "Op": "MethodExpression",
-            "Snippet": "path.endsWith('$app')",
-            "Origin": "in-hunk",
-            "Key": "b34695ae66c06cb3",
+            "Key": "c62c15842122cc33",
             "Lifecycle": "accepted",
             "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
           },
@@ -1422,11 +229,21 @@
           },
           {
             "File": "scripts/build-desktop.ts",
-            "Line": 39,
+            "Line": 38,
             "Op": "StringLiteral",
             "Snippet": "\"\"",
             "Origin": "in-hunk",
-            "Key": "c62c15842122cc33",
+            "Key": "f508b1d54dec9e9c",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 37,
+            "Op": "MethodExpression",
+            "Snippet": "path.endsWith('$app')",
+            "Origin": "in-hunk",
+            "Key": "b34695ae66c06cb3",
             "Lifecycle": "accepted",
             "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
           },
@@ -1452,6 +269,26 @@
           },
           {
             "File": "scripts/build-desktop.ts",
+            "Line": 73,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "dc9563f41702681f",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: packages:'external' already leaves every bare import, electron included, external. Probed with esbuild 2026-11-14: external ['electron'], [''] and [] give identical stdin output and a byte-identical src/desktop/main.ts bundle (20685 bytes)."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 73,
+            "Op": "ArrayDeclaration",
+            "Snippet": "[]",
+            "Origin": "in-hunk",
+            "Key": "c795612e971c2408",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: packages:'external' already leaves every bare import, electron included, external. Probed with esbuild 2026-11-14: external ['electron'], [''] and [] give identical stdin output and a byte-identical src/desktop/main.ts bundle (20685 bytes)."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
             "Line": 75,
             "Op": "BooleanLiteral",
             "Snippet": "false",
@@ -1459,6 +296,16 @@
             "Key": "c4e13500029cafd1",
             "Lifecycle": "accepted",
             "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 76,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "2cd819635311b9c6",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
           },
           {
             "File": "scripts/build-desktop.ts",
@@ -1482,16 +329,6 @@
           },
           {
             "File": "scripts/build-desktop.ts",
-            "Line": 76,
-            "Op": "StringLiteral",
-            "Snippet": "\"\"",
-            "Origin": "in-hunk",
-            "Key": "2cd819635311b9c6",
-            "Lifecycle": "accepted",
-            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
-          },
-          {
-            "File": "scripts/build-desktop.ts",
             "Line": 28,
             "Op": "StringLiteral",
             "Snippet": "\"\"",
@@ -1499,36 +336,6 @@
             "Key": "34d06b2bfb21d7e3",
             "Lifecycle": "accepted",
             "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
-          },
-          {
-            "File": "scripts/build-desktop.ts",
-            "Line": 34,
-            "Op": "Regex",
-            "Snippet": "/(\\$app(\\/|$)|@libsql\\/|libsql(\\/|$)|drizzle-orm\\/libsql(\\/|$))/",
-            "Origin": "in-hunk",
-            "Key": "09e133641f288ba9",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/build-desktop.ts",
-            "Line": 34,
-            "Op": "Regex",
-            "Snippet": "/^(\\$app(\\/)|@libsql\\/|libsql(\\/|$)|drizzle-orm\\/libsql(\\/|$))/",
-            "Origin": "in-hunk",
-            "Key": "09e133641f288ba9",
-            "Lifecycle": "in-diff",
-            "Note": ""
-          },
-          {
-            "File": "scripts/build-desktop.ts",
-            "Line": 34,
-            "Op": "Regex",
-            "Snippet": "/^(\\$app(\\/|$)|@libsql\\/|libsql(\\/)|drizzle-orm\\/libsql(\\/|$))/",
-            "Origin": "in-hunk",
-            "Key": "09e133641f288ba9",
-            "Lifecycle": "in-diff",
-            "Note": ""
           },
           {
             "File": "scripts/build-desktop.ts",
@@ -1544,7 +351,7 @@
             "File": "scripts/build-desktop.ts",
             "Line": 88,
             "Op": "ConditionalExpression",
-            "Snippet": "true",
+            "Snippet": "false",
             "Origin": "in-hunk",
             "Key": "b8701de8eb8e62ff",
             "Lifecycle": "accepted",
@@ -1554,14 +361,746 @@
             "File": "scripts/build-desktop.ts",
             "Line": 88,
             "Op": "ConditionalExpression",
-            "Snippet": "false",
+            "Snippet": "true",
             "Origin": "in-hunk",
             "Key": "b8701de8eb8e62ff",
             "Lifecycle": "accepted",
             "Note": "isEntry forced true runs one extra real build when a spec imports the module, and forced false skips the CLI build; the first changes no assertion, the second fails pnpm test:e2e:desktop and CI (no dist-desktop/main.js on a fresh checkout)."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 79,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "5a1e89931b47ced1",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 80,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "63a4c190849381ad",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 78,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "dc1b1af7136c0004",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 87,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "20aa20157d747f8e",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 113,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "37def2591c9a9102",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 147,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "31492305523989f5",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 147,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "42a99ea3e2844d9b",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 148,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "8c96b0e42ef203d8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 148,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "8c96b0e42ef203d8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 148,
+            "Op": "EqualityOperator",
+            "Snippet": "state.window !== created",
+            "Origin": "in-hunk",
+            "Key": "e56a1a5bbc9fc131",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 130,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "88ba330aa8026940",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 19,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "ee3b0511ff0cda34",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 23,
+            "Op": "OptionalChaining",
+            "Snippet": "(error as NodeJS.ErrnoException | undefined).code",
+            "Origin": "in-hunk",
+            "Key": "adf376c4546d03b5",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 31,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "82d084e92b9def6c",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 35,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "ebccb95ca4998c1a",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 36,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "327eca6678f6b0e8",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 34,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "5f21d05d73e547dc",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 46,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "cd3b19658cb89eb3",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 52,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "f72eea9f89a5550b",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 53,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "d804617b07ee19ca",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 53,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "3bd26808560d55d1",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 53,
+            "Op": "EqualityOperator",
+            "Snippet": "process.platform !== 'win32'",
+            "Origin": "in-hunk",
+            "Key": "c916bd26691573c7",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 53,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "d804617b07ee19ca",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 57,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "456ac163283b77bf",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 55,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "1701741f079e37e4",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 81,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "8478b3cd9e54d8be",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 73,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "601eb8d3d40eb855",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 75,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "7adfcf737e75d375",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 88,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "95c5b3c7bf6a7879",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 88,
+            "Op": "BooleanLiteral",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "2f6a48107591a868",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 100,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "7bf10e2565d2d61e",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 109,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "e78f9be146d52499",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 118,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "42901f1b53b9b5ea",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 119,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "Origin": "in-hunk",
+            "Key": "3680405b3a8bbe62",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 135,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "Origin": "in-hunk",
+            "Key": "c301044ff5eb8ee2",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 138,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "673ecfa924b64bd3",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 139,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "963ca174c8874673",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 157,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "28319e8d25644b20",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 160,
+            "Op": "BooleanLiteral",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "5fc33fef75d73b35",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 168,
+            "Op": "LogicalOperator",
+            "Snippet": "!running.ready \u0026\u0026 running.server === null",
+            "Origin": "in-hunk",
+            "Key": "71c391493b922ba9",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 168,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "bc96a77e858aabdd",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 177,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "1aca24ef5d5114c8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 178,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "7ff998abd0f89e94",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 177,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "e1e204b3fe674130",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 178,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "61950c81be14a669",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 179,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "8a623c770e7cfe17",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 179,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "cca13982bf5e04ba",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 192,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "Origin": "in-hunk",
+            "Key": "a6f27f3fbb6da065",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 217,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "125a9fbe0185dc27",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 223,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "0188855cb6fa56ec",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 226,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "5dda0ee0870dde5b",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 227,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "d7c7f995c082ed25",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 239,
+            "Op": "BooleanLiteral",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "325c9379b7d2fd52",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 34,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "fde40685676f11cf",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 70,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "beff93833ef79b51",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 86,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "03b19bccd05c3053",
+            "Lifecycle": "accepted",
+            "Note": "next() is only reached when the handler declines a request; adapter-node's handler never calls next after ending the response, so the writableEnded guard never changes an outcome."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 38,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "48aa8dd11e051ca5",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 97,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "7565d901d08cc046",
+            "Lifecycle": "accepted",
+            "Note": "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 99,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "a5da1890d023603d",
+            "Lifecycle": "accepted",
+            "Note": "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 128,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "8fe9f2c38e0ff2e8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: deleting every variable and then Object.assign(process.env, env) leaves process.env equal to env, the same as deleting only those absent from env."
+          },
+          {
+            "File": "src/lib/server/scheduler.ts",
+            "Line": 82,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "68ab1882916c3b67",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: tick() returns at once while stopped, so a followUp set or kept after stop() can never start a pass."
+          },
+          {
+            "File": "src/lib/server/scheduler.ts",
+            "Line": 93,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "cb9cce29bafc1dff",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: with the guard forced true, stop() calls clearInterval(null) when start() never ran; Node's clearInterval(null) and @sinonjs fake-timers' clearInterval(null) are both no-ops (checked: node -e 'clearInterval(null)' runs clean), and interval is set to null on the next line either way."
+          },
+          {
+            "File": "src/lib/server/scheduler.ts",
+            "Line": 92,
+            "Op": "BooleanLiteral",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "b28f3c24ef003a03",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: tick() returns at once while stopped, so a followUp set or kept after stop() can never start a pass."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 127,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "ae1376eefcc00ae9",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 139,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "234c4002b93688bc",
+            "Lifecycle": "accepted",
+            "Note": "rmSync without force throws only when the autostart entry is already gone; the tray catches a throwing setEnabled and re-reads the OS state (tray.spec 'a throwing setEnabled leaves the checkbox showing the real OS state')."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 139,
+            "Op": "BooleanLiteral",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "79f97e72119c4f05",
+            "Lifecycle": "accepted",
+            "Note": "rmSync without force throws only when the autostart entry is already gone; the tray catches a throwing setEnabled and re-reads the OS state (tray.spec 'a throwing setEnabled leaves the checkbox showing the real OS state')."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 137,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "9578f8b06c9a7f78",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 149,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "f5938f375cbf8833",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 150,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "Origin": "in-hunk",
+            "Key": "efa2fd090be820fc",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 149,
+            "Op": "BooleanLiteral",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "295d2a80ae1ccf6a",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 150,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "efa2fd090be820fc",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/tray.ts",
+            "Line": 92,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "a33b0ef6ee785bdc",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/tray.ts",
+            "Line": 19,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "99503e9f5613e260",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
           }
         ],
-        "NotCovered": 17
+        "NotCovered": 16
       },
       "measured_on": "local",
       "ranges": {
@@ -2991,48 +2530,28 @@
           },
           {
             "start": 112,
-            "end": 198,
+            "end": 211,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 199,
-            "end": 199,
+            "start": 212,
+            "end": 212,
             "construct": "hunk"
           },
           {
-            "start": 200,
-            "end": 200,
+            "start": 213,
+            "end": 213,
             "construct": "TSTypeAliasDeclaration FileMatcher"
           },
           {
-            "start": 201,
-            "end": 202,
+            "start": 214,
+            "end": 215,
             "construct": "hunk"
           },
           {
-            "start": 203,
-            "end": 205,
-            "construct": "VariableDeclaration"
-          },
-          {
-            "start": 206,
-            "end": 206,
-            "construct": "hunk"
-          },
-          {
-            "start": 207,
-            "end": 207,
-            "construct": "VariableDeclaration DEFAULT_TEST_MATCH"
-          },
-          {
-            "start": 208,
-            "end": 209,
-            "construct": "hunk"
-          },
-          {
-            "start": 210,
+            "start": 216,
             "end": 218,
-            "construct": "FunctionDeclaration collects"
+            "construct": "VariableDeclaration"
           },
           {
             "start": 219,
@@ -3041,7 +2560,27 @@
           },
           {
             "start": 220,
-            "end": 264,
+            "end": 220,
+            "construct": "VariableDeclaration DEFAULT_TEST_MATCH"
+          },
+          {
+            "start": 221,
+            "end": 222,
+            "construct": "hunk"
+          },
+          {
+            "start": 223,
+            "end": 231,
+            "construct": "FunctionDeclaration collects"
+          },
+          {
+            "start": 232,
+            "end": 232,
+            "construct": "hunk"
+          },
+          {
+            "start": 233,
+            "end": 277,
             "construct": "ExpressionStatement"
           }
         ],
@@ -4274,17 +3813,17 @@
           },
           {
             "start": 342,
-            "end": 428,
+            "end": 452,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 429,
-            "end": 429,
+            "start": 453,
+            "end": 453,
             "construct": "hunk"
           },
           {
-            "start": 430,
-            "end": 489,
+            "start": 454,
+            "end": 536,
             "construct": "ExpressionStatement"
           }
         ],
@@ -4638,37 +4177,37 @@
           },
           {
             "start": 244,
-            "end": 286,
+            "end": 335,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 287,
-            "end": 287,
+            "start": 336,
+            "end": 336,
             "construct": "hunk"
           },
           {
-            "start": 288,
-            "end": 324,
+            "start": 337,
+            "end": 373,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 325,
-            "end": 325,
+            "start": 374,
+            "end": 374,
             "construct": "hunk"
           },
           {
-            "start": 326,
-            "end": 383,
+            "start": 375,
+            "end": 470,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 384,
-            "end": 384,
+            "start": 471,
+            "end": 471,
             "construct": "hunk"
           },
           {
-            "start": 385,
-            "end": 413,
+            "start": 472,
+            "end": 500,
             "construct": "ExpressionStatement"
           }
         ],
@@ -5148,137 +4687,137 @@
           },
           {
             "start": 10,
-            "end": 10,
+            "end": 15,
             "construct": "TSTypeAliasDeclaration Seen"
           },
           {
-            "start": 11,
-            "end": 11,
-            "construct": "hunk"
-          },
-          {
-            "start": 12,
-            "end": 12,
-            "construct": "VariableDeclaration started"
-          },
-          {
-            "start": 13,
-            "end": 13,
-            "construct": "hunk"
-          },
-          {
-            "start": 14,
+            "start": 16,
             "end": 16,
-            "construct": "ExpressionStatement"
+            "construct": "hunk"
           },
           {
             "start": 17,
+            "end": 17,
+            "construct": "VariableDeclaration started"
+          },
+          {
+            "start": 18,
             "end": 18,
             "construct": "hunk"
           },
           {
             "start": 19,
-            "end": 33,
+            "end": 21,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 22,
+            "end": 23,
+            "construct": "hunk"
+          },
+          {
+            "start": 24,
+            "end": 39,
             "construct": "FunctionDeclaration startRecording"
           },
           {
-            "start": 34,
-            "end": 34,
+            "start": 40,
+            "end": 40,
             "construct": "hunk"
           },
           {
-            "start": 35,
-            "end": 35,
+            "start": 41,
+            "end": 41,
             "construct": "TSTypeAliasDeclaration Sent"
           },
           {
-            "start": 36,
-            "end": 36,
+            "start": 42,
+            "end": 42,
             "construct": "hunk"
           },
           {
-            "start": 37,
-            "end": 51,
+            "start": 43,
+            "end": 57,
             "construct": "FunctionDeclaration send"
           },
           {
-            "start": 52,
-            "end": 53,
+            "start": 58,
+            "end": 59,
             "construct": "hunk"
           },
           {
-            "start": 54,
-            "end": 67,
+            "start": 60,
+            "end": 73,
             "construct": "FunctionDeclaration tryConnect"
           },
           {
-            "start": 68,
-            "end": 68,
+            "start": 74,
+            "end": 74,
             "construct": "hunk"
           },
           {
-            "start": 69,
-            "end": 71,
+            "start": 75,
+            "end": 77,
             "construct": "VariableDeclaration lanAddress"
           },
           {
-            "start": 72,
-            "end": 72,
+            "start": 78,
+            "end": 78,
             "construct": "hunk"
           },
           {
-            "start": 73,
-            "end": 101,
+            "start": 79,
+            "end": 107,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 102,
-            "end": 102,
+            "start": 108,
+            "end": 108,
             "construct": "hunk"
           },
           {
-            "start": 103,
-            "end": 136,
+            "start": 109,
+            "end": 142,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 137,
-            "end": 137,
+            "start": 143,
+            "end": 143,
             "construct": "hunk"
           },
           {
-            "start": 138,
-            "end": 167,
+            "start": 144,
+            "end": 225,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 168,
-            "end": 168,
+            "start": 226,
+            "end": 226,
             "construct": "hunk"
           },
           {
-            "start": 169,
-            "end": 187,
+            "start": 227,
+            "end": 298,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 188,
-            "end": 188,
+            "start": 299,
+            "end": 299,
             "construct": "hunk"
           },
           {
-            "start": 189,
-            "end": 232,
+            "start": 300,
+            "end": 343,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 233,
-            "end": 233,
+            "start": 344,
+            "end": 344,
             "construct": "hunk"
           },
           {
-            "start": 234,
-            "end": 282,
+            "start": 345,
+            "end": 393,
             "construct": "ExpressionStatement"
           }
         ],
@@ -5355,42 +4894,42 @@
           },
           {
             "start": 41,
-            "end": 46,
+            "end": 52,
             "construct": "hunk"
           },
           {
-            "start": 47,
-            "end": 58,
+            "start": 53,
+            "end": 67,
             "construct": "FunctionDeclaration forcePlainHttp"
           },
           {
-            "start": 59,
-            "end": 59,
+            "start": 68,
+            "end": 68,
             "construct": "hunk"
           },
           {
-            "start": 60,
-            "end": 64,
+            "start": 69,
+            "end": 73,
             "construct": "FunctionDeclaration failRequest"
           },
           {
-            "start": 65,
-            "end": 66,
+            "start": 74,
+            "end": 75,
             "construct": "hunk"
           },
           {
-            "start": 67,
-            "end": 104,
+            "start": 76,
+            "end": 113,
             "construct": "FunctionDeclaration startDesktopServer"
           },
           {
-            "start": 105,
-            "end": 112,
+            "start": 114,
+            "end": 121,
             "construct": "hunk"
           },
           {
-            "start": 113,
-            "end": 128,
+            "start": 122,
+            "end": 137,
             "construct": "FunctionDeclaration loadAdapterHandler"
           }
         ],
@@ -5838,27 +5377,27 @@
           },
           {
             "start": 127,
-            "end": 227,
+            "end": 230,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 228,
-            "end": 228,
+            "start": 231,
+            "end": 231,
             "construct": "hunk"
           },
           {
-            "start": 229,
-            "end": 236,
+            "start": 232,
+            "end": 239,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 237,
-            "end": 237,
+            "start": 240,
+            "end": 240,
             "construct": "hunk"
           },
           {
-            "start": 238,
-            "end": 299,
+            "start": 241,
+            "end": 302,
             "construct": "ExpressionStatement"
           }
         ],
@@ -6255,27 +5794,27 @@
           },
           {
             "start": 22,
-            "end": 350,
+            "end": 387,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 351,
-            "end": 351,
+            "start": 388,
+            "end": 388,
             "construct": "hunk"
           },
           {
-            "start": 352,
-            "end": 394,
+            "start": 389,
+            "end": 431,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 396,
-            "end": 466,
+            "start": 433,
+            "end": 503,
             "construct": "ExpressionStatement"
           },
           {
-            "start": 468,
-            "end": 513,
+            "start": 505,
+            "end": 550,
             "construct": "ExpressionStatement"
           }
         ],
@@ -6378,7 +5917,10 @@
       ".dross/phases/03-desktop-shell/panel/verification.md",
       ".dross/phases/03-desktop-shell/plan.toml",
       ".dross/phases/03-desktop-shell/spec.toml",
+      ".dross/phases/03-desktop-shell/tests.json",
+      ".dross/phases/03-desktop-shell/verify.toml",
       ".dross/project.toml",
+      ".dross/survivors.toml",
       ".github/workflows/ci.yml",
       ".gitignore",
       ".gitleaks.toml",
@@ -6443,7 +5985,7 @@
       ".dross/phases/03-desktop-shell/changes.json": [
         {
           "start": 1,
-          "end": 734
+          "end": 917
         }
       ],
       ".dross/phases/03-desktop-shell/panel/mvp.md": [
@@ -6473,7 +6015,7 @@
       ".dross/phases/03-desktop-shell/plan.toml": [
         {
           "start": 1,
-          "end": 284
+          "end": 334
         }
       ],
       ".dross/phases/03-desktop-shell/spec.toml": [
@@ -6482,10 +6024,32 @@
           "end": 95
         }
       ],
+      ".dross/phases/03-desktop-shell/tests.json": [
+        {
+          "start": 1,
+          "end": 6988
+        }
+      ],
+      ".dross/phases/03-desktop-shell/verify.toml": [
+        {
+          "start": 1,
+          "end": 369
+        }
+      ],
       ".dross/project.toml": [
         {
           "start": 3,
           "end": 3
+        }
+      ],
+      ".dross/survivors.toml": [
+        {
+          "start": 25,
+          "end": 48
+        },
+        {
+          "start": 561,
+          "end": 1397
         }
       ],
       ".github/workflows/ci.yml": [
@@ -6665,7 +6229,7 @@
       "scripts/build-desktop.spec.ts": [
         {
           "start": 1,
-          "end": 264
+          "end": 277
         }
       ],
       "scripts/build-desktop.ts": [
@@ -6723,7 +6287,7 @@
       "src/desktop/lifecycle.spec.ts": [
         {
           "start": 1,
-          "end": 489
+          "end": 536
         }
       ],
       "src/desktop/lifecycle.ts": [
@@ -6735,7 +6299,7 @@
       "src/desktop/login-item.spec.ts": [
         {
           "start": 1,
-          "end": 413
+          "end": 500
         }
       ],
       "src/desktop/login-item.ts": [
@@ -6765,13 +6329,13 @@
       "src/desktop/server.spec.ts": [
         {
           "start": 1,
-          "end": 282
+          "end": 393
         }
       ],
       "src/desktop/server.ts": [
         {
           "start": 1,
-          "end": 128
+          "end": 137
         }
       ],
       "src/desktop/testing/fake-handler.ts": [
@@ -6795,7 +6359,7 @@
       "src/desktop/window.spec.ts": [
         {
           "start": 1,
-          "end": 299
+          "end": 302
         }
       ],
       "src/desktop/window.ts": [
@@ -6895,35 +6459,35 @@
         },
         {
           "start": 161,
-          "end": 392
+          "end": 429
         },
         {
-          "start": 402,
-          "end": 405
-        },
-        {
-          "start": 412,
-          "end": 412
-        },
-        {
-          "start": 423,
-          "end": 425
+          "start": 439,
+          "end": 442
         },
         {
           "start": 449,
           "end": 449
         },
         {
-          "start": 457,
-          "end": 457
+          "start": 460,
+          "end": 462
         },
         {
-          "start": 503,
-          "end": 503
+          "start": 486,
+          "end": 486
         },
         {
-          "start": 507,
-          "end": 507
+          "start": 494,
+          "end": 494
+        },
+        {
+          "start": 540,
+          "end": 540
+        },
+        {
+          "start": 544,
+          "end": 544
         }
       ],
       "src/lib/server/scheduler.ts": [
@@ -6983,6 +6547,6 @@
     "source": "git+changes"
   },
   "measured_on": "local",
-  "measured_commit": "1245ea2f579458bc329dc7edd7aecc2ce54a6107",
-  "measured_tree": "4024dffd0f8f1ef770b365006b8182db899b709a"
+  "measured_commit": "53c41dc15a9815082337de88745a0cd2499347bb",
+  "measured_tree": "6419d315469c13ef9568327cac8ea71362373ef1"
 }

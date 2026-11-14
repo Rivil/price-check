@@ -1,4 +1,4 @@
-task_seq = 21
+task_seq = 22
 [phase]
 id = "03-desktop-shell"
 
@@ -332,3 +332,13 @@ description = "Verify 03 left 3 Regex survivors on scripts/build-desktop.ts:34 (
 covers = ["c-1"]
 test_contract = ["if REFUSED loses its ^ anchor, build-desktop.spec fails: a fixture importing a bare package that merely contains libsql/ (e.g. x-libsql/y) builds, staying external", "if REFUSED stops refusing a bare $app or a bare libsql import (the (/|$) alternative cut to /), build-desktop.spec fails: both fail with an error naming the import"]
 status = "done"
+
+[[task]]
+id = "t-22"
+wave = 1
+title = "Stop node-server e2e servers without the 30s drain"
+files = ["e2e/node-server.ts", "e2e/harness.e2e.ts"]
+description = "Verify 03 (second run) saw e2e/restart.e2e.ts 'data survives a restart on the same database' time out at 30.1s in 2 of 4 runs (1/3 in isolation). Cause: NodeServer.stop() sends SIGTERM and awaits exit, and adapter-node's graceful_shutdown waits up to SHUTDOWN_TIMEOUT (default 30s) for a connection the Playwright page still holds; the test timeout is also 30s. Probe: the same spec with SHUTDOWN_TIMEOUT='1' passed 8/8, 3 runs paying ~1s extra. Pre-existing harness bug from 02 (node-server.ts), on this branch's web e2e/CI. Fix in the harness, not in the app: nodeServerEnv defaults SHUTDOWN_TIMEOUT to a small value (caller env may override), and/or stop() escalates to SIGKILL after a short grace, still resolving only after 'exit' (Windows libsql file release). Test/harness only; no src change."
+covers = ["c-9"]
+test_contract = ["if nodeServerEnv stops defaulting SHUTDOWN_TIMEOUT to at most 2 seconds (with a caller-supplied env value still winning), harness.e2e.ts 'node-server env' fails", "if stop() on a server whose client still holds an open keep-alive or in-flight connection takes longer than 5s to resolve, a harness.e2e.ts test that opens such a connection (e.g. an unfinished request or a page left on the server) and then awaits stop() fails", "if stop() resolves before the child process has emitted 'exit', harness.e2e.ts fails (the DB file must be released for the restart and Windows cleanup)"]
+status = "pending"

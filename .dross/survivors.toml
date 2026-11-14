@@ -1395,3 +1395,30 @@
   line = 19
   category = "desk-message-text"
   accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "cb9cce29bafc1dff"
+  file = "src/lib/server/scheduler.ts"
+  op = "ConditionalExpression"
+  text = "if (interval !== null) clearInterval(interval);"
+  line = 93
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: with the guard forced true, stop() calls clearInterval(null) when start() never ran; Node's clearInterval(null) and @sinonjs fake-timers' clearInterval(null) are both no-ops (checked: node -e 'clearInterval(null)' runs clean), and interval is set to null on the next line either way."
+
+[[accepted]]
+  key = "dc9563f41702681f"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "external: ['electron'],"
+  line = 73
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: packages:'external' already leaves every bare import, electron included, external. Probed with esbuild 2026-11-14: external ['electron'], [''] and [] give identical stdin output and a byte-identical src/desktop/main.ts bundle (20685 bytes)."
+
+[[accepted]]
+  key = "c795612e971c2408"
+  file = "scripts/build-desktop.ts"
+  op = "ArrayDeclaration"
+  text = "external: ['electron'],"
+  line = 73
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: packages:'external' already leaves every bare import, electron included, external. Probed with esbuild 2026-11-14: external ['electron'], [''] and [] give identical stdin output and a byte-identical src/desktop/main.ts bundle (20685 bytes)."
