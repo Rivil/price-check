@@ -50,6 +50,7 @@
   locked = true
 
 [[deferred]]
+  id = "21ac42705d627801"
   text = "Generate ALERTS_ENCRYPTION_KEY on first launch and persist it under userData, so no env is needed"
   why = "Needs the Electron main process and app.getPath('userData'), which 03-desktop-shell creates"
   target = "03-desktop-shell"

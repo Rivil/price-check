@@ -65,6 +65,7 @@ condition = "AND"
 paths = [
   '''^\.dross/phases/01-public-ci/tests\.json$''',
   '''^\.dross/phases/02-single-user/tests\.json$''',
+  '''^\.dross/phases/03-desktop-shell/tests\.json$''',
 ]
 regexTarget = "line"
 regexes = ['''^\s*"Key": "[0-9a-f]{16}",?$''']

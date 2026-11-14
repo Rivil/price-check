@@ -16,6 +16,20 @@ const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 /** The only variables taken from this process: enough to run node on every OS. */
 const INHERITED = ['PATH', 'SystemRoot', 'HOME'] as const;
 
+/**
+ * adapter-node's drain on SIGTERM, in seconds (its default is 30). A connection a
+ * client still holds open — a page left on the server, a preconnected socket —
+ * keeps the drain waiting that long, past a 30s test timeout.
+ */
+export const E2E_SHUTDOWN_TIMEOUT = '1';
+
+/**
+ * How long stop() waits after SIGTERM before SIGKILL, for a child whose drain runs
+ * longer (a caller-set SHUTDOWN_TIMEOUT, a hung handler). Above the 1s drain, so a
+ * server with the default env always gets its graceful shutdown.
+ */
+export const STOP_GRACE_MS = 3_000;
+
 export type NodeServerOptions = {
 	port: number;
 	/** SQLite file the server opens (DATABASE_URL=file:<dbFile>). */
@@ -30,7 +44,10 @@ export type NodeServerOptions = {
 
 export type NodeServer = {
 	url: string;
-	/** Kills the server and resolves once it has exited (its DB file is released). */
+	/**
+	 * SIGTERM, then SIGKILL past STOP_GRACE_MS; resolves only once the server has
+	 * exited (its DB file is released).
+	 */
 	stop(): Promise<void>;
 };
 
@@ -52,6 +69,7 @@ export function nodeServerEnv({
 		DATABASE_URL: `file:${resolve(dbFile)}`,
 		// A spawned server must never re-check watches: that would be a live fetch (r-01).
 		SCHEDULER_DISABLED: '1',
+		SHUTDOWN_TIMEOUT: E2E_SHUTDOWN_TIMEOUT,
 		...env
 	};
 }
@@ -116,10 +134,19 @@ export async function startNodeServer({
 	});
 
 	// Awaiting exit matters on Windows: libsql holds the DB file open until the
-	// process is gone, so a restart or cleanup right after kill() would fail.
+	// process is gone, so a restart or cleanup right after kill() would fail. The
+	// SIGKILL only cuts a drain short; stop() still resolves on 'exit' alone.
 	const stop = async () => {
-		if (!exited) child.kill();
-		await exit;
+		if (exited) return;
+		child.kill('SIGTERM');
+		const escalate = setTimeout(() => {
+			if (!exited) child.kill('SIGKILL');
+		}, STOP_GRACE_MS);
+		try {
+			await exit;
+		} finally {
+			clearTimeout(escalate);
+		}
 	};
 
 	const url = `http://127.0.0.1:${port}`;

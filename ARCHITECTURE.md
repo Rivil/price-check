@@ -23,14 +23,17 @@ regenerate the whole document from a scan of the code and git history.
 
 ### Access control
 
-Every request, /health included, must be addressed to a loopback Host (localhost or 127.0.0.1, any port) or gets a plain 403 before any route runs, and Kit's CSRF origin check rejects cross-origin form POSTs; there is no sign-in and no session.
+Every request, /health included, must be addressed to a loopback Host (localhost or 127.0.0.1, any port) or gets a plain 403 before any route runs, and Kit's CSRF origin check rejects cross-origin form POSTs; there is no sign-in and no session. In the desktop app, a node:http wrapper listens on 127.0.0.1 only, on an OS-assigned port, 403s a non-loopback Host before any asset or route (/_app/immutable/* included), and hands the request on as plain http so the window's own form posts pass the origin check.
 
 - isLoopbackHost — src/lib/server/local-request.ts:11
 - createLocalRequestHandle — src/lib/server/local-request.ts:28
 - handle — src/hooks.server.ts:37
 - ACTION_ENDPOINTS — e2e/action-endpoints.ts:9
+- startDesktopServer — src/desktop/server.ts:76
+- forcePlainHttp — src/desktop/server.ts:53
+- guard in the app window — e2e/desktop/guard.e2e.ts:105
 
-_introduced accounts · 8be9d9c · extended health · a1e390e · extended 02-single-user · 7d337c3_
+_introduced accounts · 8be9d9c · extended health · a1e390e · extended 02-single-user · 7d337c3 · extended 03-desktop-shell · e6b1e47_
 
 ### Accessibility checks
 
@@ -101,6 +104,14 @@ Every failed check and failed first add stores its own check_failure row atomica
 
 _introduced price-chart · 042974d_
 
+### Continuous integration
+
+Public CI runs tests, typecheck, lint, the web e2e suite and the Electron desktop e2e suite on Linux, macOS and Windows (Linux under xvfb with the AppArmor user-namespace restriction lifted), with the Electron download cached before install.
+
+- desktop e2e — .github/workflows/ci.yml:137
+
+_introduced 03-desktop-shell · 79bbc38_
+
 ### Design tokens
 
 Every page takes its colours (light and dark), type and spacing from shared tokens and token-only base styles; a source scan fails on any colour literal outside tokens.css.
@@ -109,6 +120,43 @@ Every page takes its colours (light and dark), type and spacing from shared toke
 - base.css — src/lib/styles/base.css:1
 
 _introduced app-design · ae4d978_
+
+### Desktop app window
+
+The app window is sandboxed on the local origin and never leaves it: window.open is always denied, off-origin http(s) links open in the default browser, and off-origin navigations and redirects are prevented; showing the window restores it or creates a new one.
+
+- createMainWindow — src/desktop/window.ts:107
+
+_introduced 03-desktop-shell · 453d539 · extended 03-desktop-shell · 68af770_
+
+### Desktop background running
+
+The desktop app keeps running in the tray after its window closes: a single-instance lock refocuses the running app, a resume from sleep runs one scheduler pass at once, and Quit stops the scheduler, server and database within a deadline before exiting; the tray offers Open, Start at login and Quit.
+
+- runDesktop — src/desktop/lifecycle.ts:149
+- createTray — src/desktop/tray.ts:80
+- publishRuntime — src/lib/server/runtime-bridge.ts:21
+- runDesktop wiring — src/desktop/main.ts:76
+
+_introduced 03-desktop-shell · 40cba9a · extended 03-desktop-shell · e7f79f2_
+
+### Desktop build
+
+esbuild bundles the Electron main process to dist-desktop/main.js and refuses any $app, libsql or drizzle-orm/libsql import, so the server stays in the adapter-node build.
+
+- buildDesktop — scripts/build-desktop.ts:80
+- REFUSED — scripts/build-desktop.ts:34
+
+_introduced 03-desktop-shell · 981d0d9 · extended 03-desktop-shell · 2674302_
+
+### Desktop first launch
+
+A first launch on an empty userData dir opens the empty watchlist with no setup: the database lives in userData and a 32-byte alerts key is created once (0600 on POSIX) and never regenerated, so saved channel credentials survive relaunches.
+
+- loadOrCreateAlertsKey — src/desktop/alerts-key.ts:97
+- quitThroughApp — e2e/desktop/quit-relaunch.e2e.ts:47
+
+_introduced 03-desktop-shell · 40971db · extended 03-desktop-shell · 42f96b3_
 
 ### Docs checks
 
@@ -120,14 +168,16 @@ _introduced 01-public-ci · 19df497 · extended 02-single-user · 00118d3_
 
 ### E2E test harness
 
-Playwright runs against a freshly migrated database seeded with one install's data (watches with long content, chart and card watches timed relative to seeding, failures and an ntfy channel, no accounts) built and previewed before the suite; node-build specs spawn the built server with an allowlisted env.
+Playwright runs against a freshly migrated database seeded with one install's data (watches with long content, chart and card watches timed relative to seeding, failures and an ntfy channel, no accounts) built and previewed before the suite; node-build specs spawn the built server with an allowlisted env and stop it without the 30s drain; desktop specs launch real Electron through Playwright on a temp userData, seed through a child process, and kill the process tree on Windows.
 
 - webServer — playwright.config.ts:12
 - SEEDED_DESIGN_TOPIC_URL — e2e/accounts.ts:24
 - chartFull — e2e/accounts.ts:181
 - startNodeServer — e2e/node-server.ts:80
+- startNodeServer.stop — e2e/node-server.ts:139
+- launchDesktop — e2e/desktop/launch.ts:310
 
-_introduced accounts · 62effc6 · extended app-design · 5944cfe · extended price-chart · 54fd517 · extended 02-single-user · 93a5f70_
+_introduced accounts · 62effc6 · extended app-design · 5944cfe · extended price-chart · 54fd517 · extended 02-single-user · 93a5f70 · extended 03-desktop-shell · 84ac028_
 
 ### Failed-check alerts
 
@@ -209,6 +259,15 @@ One install owns all data with no accounts, sign-in or admin: / opens straight o
 - data survives a restart on the same database — e2e/restart.e2e.ts:52
 
 _introduced 02-single-user · 4d5a234_
+
+### Start at login
+
+A packaged first launch registers the app to start at login once (Electron's login item on macOS and Windows, an XDG autostart entry on Linux) and never re-asserts it; a login launch shows only the tray, and the tray's toggle reads and writes the OS state.
+
+- createLoginItem — src/desktop/login-item.ts:115
+- autostartEntry — src/desktop/login-item.ts:94
+
+_introduced 03-desktop-shell · 2df5492 · extended 03-desktop-shell · 5556161_
 
 ### Test database harness
 
