@@ -2,5 +2,63 @@
   "phase": "03-desktop-shell",
   "base": "milestone/v0.1",
   "base_commit": "6cd3a06b93a9df48600440bd34d3e5db90138959",
-  "tasks": {}
+  "tasks": {
+    "t-1": {
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        ".gitignore",
+        "scripts/build-desktop.ts",
+        "scripts/build-desktop.spec.ts"
+      ],
+      "commit": "981d0d9",
+      "completed_at": "2026-11-14T11:13:50.835424Z",
+      "landmarks": [
+        {
+          "feature": "desktop bundle build",
+          "symbol": "buildDesktop",
+          "loc": "scripts/build-desktop.ts:80",
+          "what": "esbuild bundles src/desktop/main.ts to dist-desktop/main.js (ESM, packages external, #lib inlined) and rejects $app/@libsql/drizzle-orm/libsql imports; electron 45.2.3 + esbuild pinned"
+        }
+      ]
+    }
+  },
+  "reviews": {
+    "t-1": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-1",
+          "text": "The root package.json postinstall 'install-electron' runs on every pnpm install, including `pnpm install --prod` or any install where devDependencies are skipped. In those cases the electron bin is missing and the install fails with command-not-found. Both CI jobs running `pnpm install --frozen-lockfile` will now also download the Electron binary, around 100 MB per job, unless it is cached. A guard such as an ELECTRON_SKIP_BINARY_DOWNLOAD-style env check, or tolerating a missing bin, would limit this.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Electron 45 has no install script of its own (its package.json has bin install-electron but no scripts.postinstall). So the 'electron' entry in onlyBuiltDependencies does nothing, and the binary actually comes from the root postinstall. The test contract still requires the allowlist, so this is fine as written.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The test contract says onlyBuiltDependencies must be exactly ['electron','esbuild']. The spec's yamlList helper checks this in order, and also rejects dangerouslyAllowAllBuilds, onlyBuiltDependenciesFile and a pnpm.onlyBuiltDependencies override in package.json, which is more than the contract asks.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "`packages: 'external'` already makes electron external. The explicit `external: ['electron']` repeats it, which does no harm.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    }
+  }
 }

@@ -20,7 +20,7 @@ test_contract = [
   '''if package.json main !== the build's outfile ('dist-desktop/main.js'), the default entry is not src/desktop/main.ts, or the output contains the repo's absolute path, build-desktop.spec fails''',
   '''if .gitignore does not ignore /dist-desktop (prettier and eslint would then scan the bundle), build-desktop.spec fails''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id            = "t-2"
