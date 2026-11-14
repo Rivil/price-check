@@ -1,8 +1,9 @@
 // Pins how CI runs the desktop e2e suite (spec c-1 to c-9 run there on all three OSes):
 // the test matrix keeps linux, macos and windows, each runs `pnpm test:e2e:desktop`,
 // Linux runs it under xvfb with the AppArmor userns sysctl and never --no-sandbox,
-// the Electron zip cache restores before `pnpm install` from inside the checkout, and
-// failures upload the desktop results. SHA pins and permissions are `pnpm ci:policy`'s.
+// the Electron zip cache restores before `pnpm install` from inside the checkout (and
+// is gitignored with the browser cache), the static job installs with --ignore-scripts,
+// and failures upload the desktop results. SHA pins and permissions are `pnpm ci:policy`'s.
 //
 // No YAML library (same reason as scripts/workflow-policy.ts): a line reader that
 // knows only the shape ci.yml uses, and throws when a job or step it needs is missing.
@@ -94,7 +95,11 @@ function steps(body: string[]): Step[] {
 const testJob = job('test');
 const testSteps = steps(testJob);
 const testEnv = map(block(testJob, 'env', 4));
-const staticEnv = map(block(job('static'), 'env', 4));
+const staticJob = job('static');
+const staticSteps = steps(staticJob);
+const gitignore = readFileSync(join(ROOT, '.gitignore'), 'utf8')
+	.split(/\r?\n/)
+	.map((l) => l.trim());
 
 const desktopSteps = testSteps.filter((s) => s.run.some((r) => r.includes(DESKTOP_RUN)));
 const desktop = desktopSteps[0];
@@ -203,9 +208,44 @@ describe('the Electron binary cache', () => {
 	});
 });
 
+describe('the desktop e2e test process never opens a userData DB', () => {
+	// On Windows a libsql handle left in the Playwright worker locks the DB file, so
+	// removing the temp userData fails with EPERM. seed-child.ts runs as its own process.
+	const files = readdirSync(join(ROOT, 'e2e/desktop'), { recursive: true, encoding: 'utf8' })
+		.filter((f) => f.endsWith('.ts'))
+		.map((f) => join('e2e/desktop', f));
+
+	it.each(files.filter((f) => !f.endsWith('seed-child.ts')))('%s', (file) => {
+		const code = readFileSync(join(ROOT, file), 'utf8');
+		expect(code).not.toMatch(
+			/\bcreateDb\b|\/db\/client(\.ts)?['"]|@libsql\/client|drizzle-orm\/libsql/
+		);
+	});
+
+	it('leaves the DB to seed-child.ts', () => {
+		const child = readFileSync(join(ROOT, 'e2e/desktop/seed-child.ts'), 'utf8');
+		expect(child).toContain('createDb(');
+		expect(child).toContain('db.$client.close()');
+	});
+});
+
+describe('the CI caches inside the checkout are gitignored', () => {
+	it.each(['electron_config_cache', 'PLAYWRIGHT_BROWSERS_PATH'])('%s', (name) => {
+		const dir = /^\$\{\{ github\.workspace \}\}\/([A-Za-z0-9._-]+)$/.exec(testEnv[name] ?? '')?.[1];
+		expect(dir, `${name}: ${testEnv[name]}`).toBeDefined();
+		expect(gitignore).toContain(`/${dir}/`);
+	});
+});
+
 describe('the static job', () => {
-	it('sets ELECTRON_SKIP_BINARY_DOWNLOAD=1', () => {
-		expect(staticEnv.ELECTRON_SKIP_BINARY_DOWNLOAD).toBe('1');
+	it('installs with --ignore-scripts', () => {
+		const installs = staticSteps.flatMap((s) => s.run.filter((r) => r.startsWith('pnpm install')));
+		expect(installs).toEqual(['pnpm install --frozen-lockfile --ignore-scripts']);
+	});
+
+	it('no longer sets the ELECTRON_SKIP_BINARY_DOWNLOAD the installer ignores', () => {
+		expect(ci).not.toContain('ELECTRON_SKIP_BINARY_DOWNLOAD');
+		expect(block(staticJob, 'env', 4)).toEqual([]);
 	});
 });
 

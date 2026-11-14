@@ -36,11 +36,6 @@ jobs:
     name: static
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    env:
-      # Lint and typecheck never launch Electron. Electron 45's install-electron
-      # (the root postinstall) does not read this variable yet, so today it saves
-      # nothing; it is set so an install that honours it skips the ~100 MB binary.
-      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -50,7 +45,9 @@ jobs:
         with:
           node-version-file: .node-version
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      # Lint, typecheck and the policy check run no install script: none at all here,
+      # so no dependency code runs at install and the Electron binary is not fetched.
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: lint
         run: pnpm lint
       - name: typecheck

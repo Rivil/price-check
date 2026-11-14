@@ -13,11 +13,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
-import { createDb } from '../../src/lib/server/db/client.ts';
-import { watch } from '../../src/lib/server/db/schema.ts';
-import { databaseUrl } from '../../src/desktop/server-env.ts';
 import {
-	DB_FILE_NAME,
+	insertWatches,
 	KEY_FILE_NAME,
 	launchDesktop,
 	makeTempDir,
@@ -91,13 +88,9 @@ test('quit ends the process and a relaunch reuses the key and data', async () =>
 		await expect(ntfyCard(page).getByRole('status')).toHaveText('Saved.');
 		const firstKey = keyHash(userData);
 
-		// A watch in launch 1's DB, written while it runs.
-		const db = createDb(databaseUrl(join(userData, DB_FILE_NAME)));
-		try {
-			await db.insert(watch).values(WATCH);
-		} finally {
-			db.$client.close();
-		}
+		// A watch in launch 1's DB, written while it runs, by a child process that has
+		// exited before anything removes the userData (Windows EPERM).
+		await insertWatches(userData, [WATCH]);
 
 		// app.quit() ends the process, cleanly, within the deadline.
 		const exit = await quitThroughApp(first);

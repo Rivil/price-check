@@ -2,21 +2,24 @@
 // userData with an allowlisted env, the scheduler stays off unless a spec opts into
 // 'unsupported-only', and that mode refuses to start against a DB holding a shop URL.
 // Every test quits its app in a finally, so no Electron process outlives it.
+// Windows pins (t-15): no launch argument ends in a path separator, the DB seeding
+// runs outside this process so its temp userData can be removed, and a kill takes
+// the whole process tree.
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
-import { createDb } from '../../src/lib/server/db/client.ts';
-import { migrateDb, migrationsFolder } from '../../src/lib/server/db/migrate.ts';
-import { watch } from '../../src/lib/server/db/schema.ts';
 import { databaseUrl } from '../../src/desktop/server-env.ts';
 import {
 	DB_FILE_NAME,
+	electronArgs,
 	INHERITED_ENV,
 	KEY_FILE_NAME,
 	launchDesktop,
 	makeTempDir,
 	rawRequest,
 	REPO_ROOT,
+	seedWatches,
+	treeKillCommand,
 	type DesktopApp
 } from './launch.ts';
 
@@ -40,27 +43,28 @@ async function withParentEnv<T>(vars: Record<string, string>, run: () => Promise
 	}
 }
 
-/** A migrated DB in `userData` holding one watch per URL. */
-async function seedWatches(userData: string, urls: string[]): Promise<void> {
-	const db = createDb(databaseUrl(join(userData, DB_FILE_NAME)));
-	try {
-		await migrateDb(db, migrationsFolder(REPO_ROOT));
-		for (const [i, url] of urls.entries()) {
-			await db
-				.insert(watch)
-				.values({ id: `w${i}`, shop: 'e2e', productId: `p${i}`, canonicalUrl: url });
-		}
-	} finally {
-		db.$client.close();
-	}
-}
-
 const mainEnv = (desktop: DesktopApp) =>
 	desktop.app.evaluate(() => ({ ...process.env }) as Record<string, string | undefined>);
 
 test('serial workers, no web server', () => {
 	expect(test.info().config.workers).toBe(1);
 	expect(test.info().config.webServer).toBeNull();
+});
+
+test('launch args have no trailing separator', () => {
+	expect(REPO_ROOT).not.toMatch(/[\\/]$/);
+	for (const arg of electronArgs(['--login-launch'])) expect(arg).not.toMatch(/[\\/]$/);
+	expect(electronArgs(['--login-launch'])).toEqual([REPO_ROOT, '--login-launch']);
+});
+
+test('kill path takes the whole tree on win32 only', () => {
+	expect(treeKillCommand(4242, 'win32')).toEqual({
+		file: 'taskkill',
+		args: ['/pid', '4242', '/T', '/F']
+	});
+	expect(treeKillCommand(undefined, 'win32')).toBeUndefined();
+	expect(treeKillCommand(4242, 'linux')).toBeUndefined();
+	expect(treeKillCommand(4242, 'darwin')).toBeUndefined();
 });
 
 test('launcher env', async () => {
@@ -78,6 +82,9 @@ test('launcher env', async () => {
 		]);
 		for (const name of Object.keys(desktop.env)) expect(allowed, name).toContain(name);
 		expect(desktop.env.PRICE_CHECK_USER_DATA).toBe(userData);
+		// What electron.launch got: the app path with no trailing separator.
+		expect(desktop.args).toEqual(electronArgs());
+		for (const arg of desktop.args) expect(arg).not.toMatch(/[\\/]$/);
 
 		// What the running main process ended up with, after it set the server's env.
 		const env = await mainEnv(desktop);
@@ -120,6 +127,9 @@ test('scheduler unsupported-only refuses a shop URL before launch', async () => 
 		);
 		// Electron never ran: it would have written the alerts key on first launch.
 		expect(existsSync(join(userData, KEY_FILE_NAME))).toBe(false);
+		// No DB handle survives in this process: on Windows one would make this EPERM.
+		rmSync(userData, { recursive: true, force: true });
+		expect(existsSync(userData)).toBe(false);
 	} finally {
 		rmSync(userData, { recursive: true, force: true });
 	}

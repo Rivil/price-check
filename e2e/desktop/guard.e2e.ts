@@ -15,11 +15,7 @@ import { connect } from 'node:net';
 import { networkInterfaces } from 'node:os';
 import { join, relative, sep } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
-import { asc } from 'drizzle-orm';
-import { createDb } from '../../src/lib/server/db/client.ts';
-import { notifyChannel, watch } from '../../src/lib/server/db/schema.ts';
-import { databaseUrl } from '../../src/desktop/server-env.ts';
-import { DB_FILE_NAME, launchDesktop, rawRequest, REPO_ROOT, type DesktopApp } from './launch.ts';
+import { dbSnapshot, launchDesktop, rawRequest, REPO_ROOT, type DesktopApp } from './launch.ts';
 
 /** A test-only topic on a .invalid host (r-01). */
 const TOPIC = 'https://ntfy.e2e.invalid/e2e-guard-topic';
@@ -52,18 +48,11 @@ function immutableAssetPath(): string {
 	return `/_app/immutable/${relative(IMMUTABLE_DIR, file).split(sep).join('/')}`;
 }
 
-/** Every watch and alert channel in the app's DB, as stored (channel config encrypted). */
-async function snapshot(desktop: DesktopApp) {
-	const db = createDb(databaseUrl(join(desktop.userData, DB_FILE_NAME)));
-	try {
-		return {
-			watches: await db.select().from(watch).orderBy(asc(watch.id)),
-			channels: await db.select().from(notifyChannel).orderBy(asc(notifyChannel.kind))
-		};
-	} finally {
-		db.$client.close();
-	}
-}
+/**
+ * Every watch and alert channel in the app's DB, as stored (channel config encrypted),
+ * read by a child process so this one never holds the DB open (Windows EPERM).
+ */
+const snapshot = (desktop: DesktopApp) => dbSnapshot(desktop.userData);
 
 const loopbackHost = (desktop: DesktopApp) => `127.0.0.1:${desktop.port}`;
 

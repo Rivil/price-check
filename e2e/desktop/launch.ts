@@ -9,21 +9,28 @@
 // the app and the developer's real userData is never opened. The scheduler is off
 // (SCHEDULER_DISABLED=1) unless a spec asks for 'unsupported-only', which refuses to
 // launch while the userData DB holds any watch a shop adapter would fetch (r-01).
-import { spawn, type ChildProcess } from 'node:child_process';
+//
+// Windows: the test process never opens a userData DB itself. A libsql handle in
+// this process keeps the file locked after close(), so removing the temp dir fails
+// with EPERM; seed-child.ts does the DB work in a process that has exited before
+// any rmSync. And app.process() is Playwright's cmd wrapper there, so a kill takes
+// the whole tree (taskkill /T /F), not just the wrapper.
+import { execFile, spawn, type ChildProcess } from 'node:child_process';
 import { existsSync, mkdtempSync, realpathSync, rmSync } from 'node:fs';
 import { request } from 'node:http';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { _electron, type ElectronApplication } from '@playwright/test';
-import { createDb } from '../../src/lib/server/db/client.ts';
-import { watch } from '../../src/lib/server/db/schema.ts';
 import { defaultRegistry } from '../../src/lib/server/shops/index.ts';
 import { DB_FILE_NAME, KEY_FILE_NAME } from '../../src/desktop/app-paths.ts';
-import { databaseUrl } from '../../src/desktop/server-env.ts';
 
-export const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+// resolve() drops the trailing separator fileURLToPath keeps for a directory URL. On
+// Windows a trailing backslash breaks Playwright's shell quoting of the app path:
+// Electron then shows a modal "cannot find app" box and the launch times out.
+export const REPO_ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
+const SEED_CHILD = join(REPO_ROOT, 'e2e', 'desktop', 'seed-child.ts');
 export const MAIN_JS = join(REPO_ROOT, 'dist-desktop', 'main.js');
 export const HANDLER_JS = join(REPO_ROOT, 'build', 'handler.js');
 export { DB_FILE_NAME, KEY_FILE_NAME };
@@ -42,6 +49,99 @@ export const INHERITED_ENV = [
 	'XAUTHORITY',
 	'XDG_RUNTIME_DIR'
 ] as const;
+
+/** The command line Electron gets: the app path, then any extra arguments. */
+export function electronArgs(extra: string[] = []): string[] {
+	return [REPO_ROOT, ...extra];
+}
+
+/**
+ * The tree kill for `pid` on `platform`, or undefined where a plain SIGKILL to the
+ * process is enough. On win32 the launched process is a cmd wrapper around Electron.
+ */
+export function treeKillCommand(
+	pid: number | undefined,
+	platform: NodeJS.Platform = process.platform
+): { file: string; args: string[] } | undefined {
+	if (platform !== 'win32' || pid === undefined) return undefined;
+	return { file: 'taskkill', args: ['/pid', String(pid), '/T', '/F'] };
+}
+
+/**
+ * Runs seed-child.ts in its own Node process and resolves with its stdout once it
+ * has exited, so any DB handle it opened is gone with it.
+ */
+function runSeedChild(args: string[]): Promise<string> {
+	return new Promise((done, fail) => {
+		execFile(
+			process.execPath,
+			[SEED_CHILD, ...args],
+			{ cwd: REPO_ROOT, windowsHide: true },
+			(error, stdout, stderr) => {
+				if (error) fail(new Error(`seed-child ${args[0]} failed: ${error.message}\n${stderr}`));
+				else done(stdout);
+			}
+		);
+	});
+}
+
+/** A watch row as the specs seed it. */
+export type SeedWatch = {
+	id: string;
+	shop: string;
+	productId: string;
+	canonicalUrl: string;
+	title?: string;
+};
+
+/**
+ * Inserts `watches` into the userData DB from a child process, migrating it first
+ * when `migrate` is set (a userData no app has opened yet).
+ */
+export async function insertWatches(
+	userData: string,
+	watches: SeedWatch[],
+	{ migrate = false }: { migrate?: boolean } = {}
+): Promise<void> {
+	await runSeedChild(['insert', userData, JSON.stringify({ migrate, watches })]);
+}
+
+/** A migrated DB in `userData` holding one watch per URL, written by a child process. */
+export async function seedWatches(userData: string, urls: string[]): Promise<void> {
+	const watches = urls.map((canonicalUrl, i) => ({
+		id: `w${i}`,
+		shop: 'e2e',
+		productId: `p${i}`,
+		canonicalUrl
+	}));
+	await insertWatches(userData, watches, { migrate: true });
+}
+
+/** Sets lastCheckedAt on the given watches, from a child process. */
+export async function ageLastChecks(userData: string, ids: string[], at: Date): Promise<void> {
+	await runSeedChild(['age', userData, JSON.stringify({ ids, at: at.getTime() })]);
+}
+
+/** Stored rows as JSON (dates as ISO strings, channel config still encrypted). */
+export type DbSnapshot = {
+	watches: Record<string, unknown>[];
+	channels: Record<string, unknown>[];
+};
+
+/** Every watch and alert channel in the userData DB, read by a child process. */
+export async function dbSnapshot(userData: string): Promise<DbSnapshot> {
+	return JSON.parse(await runSeedChild(['snapshot', userData])) as DbSnapshot;
+}
+
+/** Every watch URL in the userData DB, read by a child process; [] without a DB. */
+export async function watchUrls(userData: string): Promise<string[]> {
+	if (!existsSync(join(userData, DB_FILE_NAME))) return [];
+	const urls: unknown = JSON.parse(await runSeedChild(['urls', userData]));
+	if (!Array.isArray(urls) || !urls.every((url) => typeof url === 'string')) {
+		throw new Error(`seed-child urls: not a string array: ${JSON.stringify(urls)}`);
+	}
+	return urls;
+}
 
 /** Printed by src/desktop/main.ts once its server is up. */
 const LISTENING = /^\[desktop\] listening on (http:\/\/127\.0\.0\.1:(\d+))\s*$/m;
@@ -87,15 +187,7 @@ export function desktopEnv({
  * userData with no DB yet holds no watches.
  */
 export async function assertOnlyUnsupportedWatches(userData: string): Promise<void> {
-	const dbFile = join(userData, DB_FILE_NAME);
-	if (!existsSync(dbFile)) return;
-	const db = createDb(databaseUrl(dbFile));
-	let urls: string[];
-	try {
-		urls = (await db.select({ url: watch.canonicalUrl }).from(watch)).map((row) => row.url);
-	} finally {
-		db.$client.close();
-	}
+	const urls = await watchUrls(userData);
 	const fetchable = urls.filter((url) => defaultRegistry.identify(url).kind !== 'unsupported');
 	if (fetchable.length > 0) {
 		throw new Error(
@@ -125,6 +217,8 @@ export type DesktopApp = {
 	port: number;
 	/** The environment the app was launched with. */
 	env: Record<string, string>;
+	/** The arguments handed to electron.launch. */
+	args: string[];
 	/** Everything the app wrote to stdout and stderr so far. */
 	output(): string;
 	/**
@@ -190,6 +284,20 @@ function exited(child: ChildProcess): Promise<void> {
 	return new Promise((done) => child.once('exit', () => done()));
 }
 
+/** Kills `child` and everything it started (see treeKillCommand), then waits for its exit. */
+async function killTree(child: ChildProcess): Promise<void> {
+	if (child.exitCode !== null || child.signalCode !== null) return;
+	const tree = treeKillCommand(child.pid);
+	if (tree) {
+		await new Promise<void>((done) => {
+			// A failed taskkill falls through to the plain kill below.
+			execFile(tree.file, tree.args, { windowsHide: true }, () => done());
+		});
+	}
+	if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+	await exited(child);
+}
+
 function assertBuilt(): void {
 	for (const file of [MAIN_JS, HANDLER_JS]) {
 		if (!existsSync(file)) {
@@ -220,9 +328,10 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 		// Before anything starts: a refused launch must never reach Electron.
 		if (scheduler === 'unsupported-only') await assertOnlyUnsupportedWatches(userData);
 		const env = desktopEnv({ userData, configHome, scheduler });
+		const args = electronArgs(options.args);
 
 		app = await _electron.launch({
-			args: [REPO_ROOT, ...(options.args ?? [])],
+			args,
 			cwd,
 			env,
 			// Keep Chromium's sandbox on Linux too: Playwright would otherwise add --no-sandbox.
@@ -249,12 +358,9 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 			})();
 			return closing;
 		};
-		return { app: launched, userData, cwd, origin, port, env, output, close };
+		return { app: launched, userData, cwd, origin, port, env, args, output, close };
 	} catch (error) {
-		if (app) {
-			app.process().kill('SIGKILL');
-			await exited(app.process());
-		}
+		if (app) await killTree(app.process());
 		removeOwned();
 		throw error;
 	}
@@ -269,8 +375,7 @@ async function quit(app: ElectronApplication, output: () => string): Promise<voi
 	const outcome = await Promise.race([app.close().then(() => 'closed' as const), deadline]);
 	clearTimeout(timer);
 	if (outcome === 'timeout') {
-		child.kill('SIGKILL');
-		await exited(child);
+		await killTree(child);
 		throw new Error(
 			`launchDesktop: the app did not quit within ${CLOSE_TIMEOUT_MS}ms:\n${tail(output())}`
 		);
@@ -294,7 +399,7 @@ export type SecondInstance = {
 export function spawnSecondInstance(first: DesktopApp, args: string[] = []): SecondInstance {
 	assertBuilt();
 	const binary = createRequire(import.meta.url)('electron') as string;
-	const child = spawn(binary, [REPO_ROOT, ...args], {
+	const child = spawn(binary, electronArgs(args), {
 		cwd: first.cwd,
 		env: first.env,
 		stdio: ['ignore', 'pipe', 'pipe']

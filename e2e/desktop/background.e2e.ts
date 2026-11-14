@@ -20,19 +20,14 @@
 // on the machine running it.
 import { existsSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { eq } from 'drizzle-orm';
 import { expect, test } from '@playwright/test';
-import { createDb } from '../../src/lib/server/db/client.ts';
-import { migrateDb, migrationsFolder } from '../../src/lib/server/db/migrate.ts';
-import { watch } from '../../src/lib/server/db/schema.ts';
-import { databaseUrl } from '../../src/desktop/server-env.ts';
 import { LOGIN_LAUNCH_ARG, MARKER_FILE_NAME } from '../../src/desktop/login-item.ts';
 import {
-	DB_FILE_NAME,
+	ageLastChecks as ageLastChecksTo,
+	insertWatches,
 	launchDesktop,
 	makeTempDir,
 	rawRequest,
-	REPO_ROOT,
 	spawnSecondInstance,
 	type DesktopApp,
 	type SecondInstance
@@ -109,31 +104,19 @@ async function failureRows(desktop: DesktopApp, id: string): Promise<number> {
 const failureCounts = (desktop: DesktopApp) =>
 	Promise.all(WATCHES.map(({ id }) => failureRows(desktop, id)));
 
-const dbUrl = (userData: string) => databaseUrl(join(userData, DB_FILE_NAME));
+// The DB writes below run in a child process (launch.ts), so this one never holds
+// the DB open and can remove the temp userData on Windows too.
 
 /** A migrated DB in `userData` holding WATCHES, never checked. */
-async function seedWatches(userData: string): Promise<void> {
-	const db = createDb(dbUrl(userData));
-	try {
-		await migrateDb(db, migrationsFolder(REPO_ROOT));
-		await db.insert(watch).values(WATCHES);
-	} finally {
-		db.$client.close();
-	}
-}
+const seedWatches = (userData: string) => insertWatches(userData, WATCHES, { migrate: true });
 
-/** Moves every watch's last check `ms` into the past, through a separate client that is then closed. */
-async function ageLastChecks(userData: string, ms: number): Promise<void> {
-	const db = createDb(dbUrl(userData));
-	try {
-		const agedAt = new Date(Date.now() - ms);
-		for (const { id } of WATCHES) {
-			await db.update(watch).set({ lastCheckedAt: agedAt }).where(eq(watch.id, id));
-		}
-	} finally {
-		db.$client.close();
-	}
-}
+/** Moves every watch's last check `ms` into the past. */
+const ageLastChecks = (userData: string, ms: number) =>
+	ageLastChecksTo(
+		userData,
+		WATCHES.map(({ id }) => id),
+		new Date(Date.now() - ms)
+	);
 
 /** Resolves with the second instance's exit, or 'timeout' after SECOND_INSTANCE_EXIT_MS. */
 async function exitOf(second: SecondInstance) {
