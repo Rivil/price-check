@@ -169,6 +169,22 @@
         }
       ]
     },
+    "t-18": {
+      "files": [
+        "src/desktop/server.spec.ts",
+        "src/desktop/server.ts"
+      ],
+      "commit": "8555356",
+      "completed_at": "2026-11-14T13:37:59.433312Z",
+      "landmarks": [
+        {
+          "feature": "desktop loopback server",
+          "symbol": "forcePlainHttp",
+          "loc": "src/desktop/server.ts:53",
+          "what": "builds req.headers/headersDistinct from the original rawHeaders before rewriting all three so headersDistinct never throws or drops the forced X-Forwarded-Proto http"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "src/lib/server/scheduler.ts",
@@ -538,6 +554,27 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "the entryDisabled table removes the stock X-GNOME-Autostart-enabled=true line and puts each case mid-entry, so dropping the ^ or $ anchors, the m flag, or any \\s* allowance makes at least one row fail",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-18": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-3",
+          "text": "server.ts forcePlainHttp now reads req.headers and req.headersDistinct before replacing rawHeaders, so neither is built from the shrunken or grown array. The task allows this change because the new consistency test exposes a real bug.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The empty res.on('error', () =\u003e {}) in the headers-sent abort test is test-only. The comment above it says it exists so an abort is treated as an expected outcome, not an unhandled error.",
           "resolution": "non-blocking, left"
         }
       ]

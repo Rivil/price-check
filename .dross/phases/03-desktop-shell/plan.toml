@@ -301,7 +301,7 @@ files = ["src/desktop/server.spec.ts", "src/desktop/server.ts"]
 description = "Verify 03 left 9 server.ts survivors (lines 51 x3, 53, 54, 62, 81 x3): server.spec checks req.headers but never req.rawHeaders/headersDistinct, never a handler whose promise rejects (adapter-node's handler is async), and never a throw after headers were sent. Tests only; no production change unless a test exposes a real bug."
 covers = ["c-3", "c-4"]
 test_contract = ["if forcePlainHttp stops rewriting req.rawHeaders (loop skipped, the X-Forwarded-Proto/X-Forwarded-Host filter removed, or the value index off by one), server.spec fails: a request sending X-Forwarded-Proto: https, X-Forwarded-Host: evil.example and X-Test: 1 must reach the handler with headersDistinct['x-forwarded-proto'] exactly ['http'], no x-forwarded-host in headersDistinct, and X-Test and Host present in rawHeaders with their own values", "if a handler that returns a rejecting promise no longer gets a 500 (the .catch dropped, or the instanceof Promise check forced either way), server.spec fails", "if a handler that has already sent headers and then throws gets a 500 attempt instead of the response being destroyed, server.spec fails: the client sees an aborted response and the server still answers the next request", "if forcePlainHttp's rawHeaders rewrite leaves req.headersDistinct (or req.headers) inconsistent with the rewritten headers, so reading headersDistinct throws or omits the forced x-forwarded-proto: http, the server spec 'rewritten request headers stay consistent' fails"]
-status = "pending"
+status = "done"
 
 [[task]]
 id = "t-19"
