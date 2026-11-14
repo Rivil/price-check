@@ -1,4 +1,8 @@
-import type { App, Dialog, PowerMonitor } from 'electron';
+import type { App, AutoUpdater, Dialog, PowerMonitor } from 'electron';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ServerRuntime } from '#lib/server/runtime-bridge.ts';
 import {
@@ -8,20 +12,29 @@ import {
 	runDesktop,
 	SCHEDULER_DRAIN_MS,
 	SHUTDOWN_DEADLINE_MS,
+	SQUIRREL_HANDOFF_MS,
+	SQUIRREL_STAGE_WAIT_MS,
 	STARTUP_ERROR_TITLE,
 	type LifecycleApp,
 	type LifecycleDeps,
+	type LifecycleNativeUpdater,
 	type LifecycleServer,
 	type LifecycleTrayActions,
 	type LifecycleUpdates
 } from './lifecycle.ts';
 import type { ExitMode, UpdaterController } from './updater.ts';
 
-// Compile-time only (pnpm check): the real Electron app, powerMonitor and dialog must
-// satisfy the structural deps main.ts passes in.
-type RealDeps = { app: App; powerMonitor: PowerMonitor; dialog: Dialog };
-const realDepsFit = (deps: RealDeps): Pick<LifecycleDeps, 'app' | 'powerMonitor' | 'dialog'> =>
-	deps;
+// Compile-time only (pnpm check): the real Electron app, powerMonitor, dialog and
+// native autoUpdater must satisfy the structural deps main.ts passes in.
+type RealDeps = {
+	app: App;
+	powerMonitor: PowerMonitor;
+	dialog: Dialog;
+	nativeUpdater: AutoUpdater;
+};
+const realDepsFit = (
+	deps: RealDeps
+): Pick<LifecycleDeps, 'app' | 'powerMonitor' | 'dialog' | 'nativeUpdater'> => deps;
 void realDepsFit;
 // The updater's controller is what main.ts passes as deps.updates.
 const updaterFits = (controller: UpdaterController): LifecycleUpdates => controller;
@@ -70,6 +83,7 @@ class FakeEmitter {
 }
 
 type FakeApp = FakeEmitter & LifecycleApp & { relaunch: ReturnType<typeof vi.fn> };
+type FakeNative = FakeEmitter & LifecycleNativeUpdater;
 
 type Harness = {
 	deps: LifecycleDeps;
@@ -84,6 +98,8 @@ type Harness = {
 	windowOpen: boolean;
 	errorBoxes: { title: string; content: string }[];
 	trayActions: LifecycleTrayActions | null;
+	/** deps.nativeUpdater (Squirrel.Mac), when the options asked for one. */
+	native: FakeNative | null;
 	/** Delivers a notification click to the handler runDesktop registered. */
 	click(path: string): void;
 };
@@ -102,6 +118,10 @@ type HarnessOptions = {
 	whenReadyPending?: boolean;
 	/** deps.appUserModelId; null (macOS, Linux) unless given. */
 	appUserModelId?: string | null;
+	/** deps.platform; 'linux' unless given. */
+	platform?: NodeJS.Platform;
+	/** Gives deps.nativeUpdater, a fake Squirrel.Mac. */
+	nativeUpdater?: boolean;
 };
 
 function harness(options: HarnessOptions = {}): Harness {
@@ -155,6 +175,7 @@ function harness(options: HarnessOptions = {}): Harness {
 		windowOpen: false,
 		errorBoxes: [],
 		trayActions: null,
+		native: options.nativeUpdater ? (new FakeEmitter() as FakeNative) : null,
 		click(path) {
 			if (clickHandler === null) throw new Error('no click handler registered');
 			clickHandler(path);
@@ -194,6 +215,7 @@ function harness(options: HarnessOptions = {}): Harness {
 				}
 			}),
 			appUserModelId: options.appUserModelId ?? null,
+			platform: options.platform ?? 'linux',
 			notifications: {
 				setClickHandler: vi.fn((handler: (path: string) => void) => {
 					clickHandler = handler;
@@ -218,6 +240,7 @@ function harness(options: HarnessOptions = {}): Harness {
 			})
 		};
 	}
+	if (h.native) h.deps.nativeUpdater = h.native;
 	if (options.predecessorPid !== undefined) h.deps.predecessorPid = options.predecessorPid;
 	if (options.isProcessAlive) h.deps.isProcessAlive = vi.fn(options.isProcessAlive);
 	return h;
@@ -969,6 +992,136 @@ describe('update install on quit (05-release c-5, c-6)', () => {
 			expect(h.app.relaunch).not.toHaveBeenCalled();
 		}
 	});
+
+	describe('macOS: Squirrel stages the update before the app exits (c-5)', () => {
+		function nativeOf(h: Harness): FakeNative {
+			if (h.native === null) throw new Error('no native updater in deps');
+			return h.native;
+		}
+
+		it('macOS waits for Squirrel before exiting', async () => {
+			const h = await started({
+				platform: 'darwin',
+				nativeUpdater: true,
+				pending: true,
+				quitEmitsBeforeQuit: true
+			});
+			vi.useFakeTimers();
+			restartToUpdate(h);
+			await settle();
+			expect(h.log).toEqual([
+				'quit',
+				'runtime.stop',
+				'server.close',
+				'runtime.closeDb',
+				'install:restart'
+			]);
+			await vi.advanceTimersByTimeAsync(SQUIRREL_STAGE_WAIT_MS - 1);
+			expect(h.app.exit).not.toHaveBeenCalled();
+
+			nativeOf(h).emit('update-downloaded');
+			// electron-updater now has Squirrel install and end the app: its quit goes through.
+			const installerQuit = beforeQuit(h);
+			expect(installerQuit.preventDefault).not.toHaveBeenCalled();
+			await vi.advanceTimersByTimeAsync(SQUIRREL_HANDOFF_MS - 1);
+			expect(h.app.exit).not.toHaveBeenCalled();
+			await vi.advanceTimersByTimeAsync(1);
+			expect(h.log.slice(-1)).toEqual(['exit:0']);
+			expect(h.app.exit).toHaveBeenCalledTimes(1);
+			expect(updatesOf(h).installOnExit).toHaveBeenCalledTimes(1);
+		});
+
+		it('macOS install wait times out to a normal quit', async () => {
+			const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+			const h = await started({ platform: 'darwin', nativeUpdater: true, pending: true });
+			vi.useFakeTimers();
+			beforeQuit(h);
+			await settle();
+			expect(h.log.slice(-1)).toEqual(['install:quit']);
+			await vi.advanceTimersByTimeAsync(SQUIRREL_STAGE_WAIT_MS - 1);
+			expect(h.app.exit).not.toHaveBeenCalled();
+			await vi.advanceTimersByTimeAsync(1);
+			expect(h.app.exit).toHaveBeenCalledTimes(1);
+			expect(h.app.exit).toHaveBeenCalledWith(0);
+			expect(error).toHaveBeenCalledWith(expect.stringContaining('did not stage the update'));
+			// A signal after the exit changes nothing.
+			nativeOf(h).emit('update-downloaded');
+			await vi.advanceTimersByTimeAsync(SQUIRREL_HANDOFF_MS);
+			expect(h.app.exit).toHaveBeenCalledTimes(1);
+		});
+
+		it('a Squirrel error exits at once', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {});
+			const h = await started({ platform: 'darwin', nativeUpdater: true, pending: true });
+			vi.useFakeTimers();
+			beforeQuit(h);
+			await settle();
+			expect(h.app.exit).not.toHaveBeenCalled();
+			nativeOf(h).emit('error', new Error('code signature mismatch'));
+			await settle();
+			expect(h.app.exit).toHaveBeenCalledTimes(1);
+			expect(h.app.exit).toHaveBeenCalledWith(0);
+		});
+
+		it('listens before the hand-over, so a signal raised during it counts', async () => {
+			const h = await started({ platform: 'darwin', nativeUpdater: true, pending: true });
+			vi.mocked(updatesOf(h).installOnExit).mockImplementation((mode) => {
+				h.log.push(`install:${mode}`);
+				nativeOf(h).emit('update-downloaded');
+				return true;
+			});
+			vi.useFakeTimers();
+			beforeQuit(h);
+			await settle();
+			await vi.advanceTimersByTimeAsync(SQUIRREL_HANDOFF_MS - 1);
+			expect(h.app.exit).not.toHaveBeenCalled();
+			await vi.advanceTimersByTimeAsync(1);
+			expect(h.log.slice(-2)).toEqual(['install:quit', 'exit:0']);
+		});
+
+		it('macOS with nothing handed over exits at once', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {});
+			const none = await started({ platform: 'darwin', nativeUpdater: true, pending: false });
+			beforeQuit(none);
+			await settle();
+			expect(none.log).toEqual(['runtime.stop', 'server.close', 'runtime.closeDb', 'exit:0']);
+
+			const refused = await started({ platform: 'darwin', nativeUpdater: true, pending: true });
+			vi.mocked(updatesOf(refused).installOnExit).mockReturnValue(false);
+			beforeQuit(refused);
+			await settle();
+			expect(refused.app.exit).toHaveBeenCalledWith(0);
+
+			const unwired = await started({ platform: 'darwin', pending: true });
+			beforeQuit(unwired);
+			await settle();
+			expect(unwired.log.slice(-2)).toEqual(['install:quit', 'exit:0']);
+		});
+
+		it.each(['win32', 'linux'] as const)(
+			'%s exits right after the hand-over and never listens to Squirrel',
+			async (platform) => {
+				const q = await started({ platform, nativeUpdater: true, pending: true });
+				beforeQuit(q);
+				await settle();
+				expect(q.log.slice(-2)).toEqual(['install:quit', 'exit:0']);
+
+				const r = await started({
+					platform,
+					nativeUpdater: true,
+					pending: true,
+					quitEmitsBeforeQuit: true
+				});
+				restartToUpdate(r);
+				await settle();
+				expect(r.log.slice(-2)).toEqual(['install:restart', 'exit:0']);
+				for (const h of [q, r]) {
+					expect(nativeOf(h).has('update-downloaded')).toBe(false);
+					expect(nativeOf(h).has('error')).toBe(false);
+				}
+			}
+		);
+	});
 });
 
 describe('waiting for the version an update replaced (05-release c-6)', () => {
@@ -1072,5 +1225,74 @@ describe('waiting for the version an update replaced (05-release c-6)', () => {
 		await expect(run).resolves.toBe('started');
 		expect(h.deps.isProcessAlive).not.toHaveBeenCalled();
 		expect(h.app.requestSingleInstanceLock).toHaveBeenCalledTimes(1);
+	});
+});
+
+// 05-release c-5: main.ts hands runDesktop the platform and Electron's own native
+// autoUpdater, so the macOS install wait has Squirrel.Mac to listen to.
+describe('main.ts wiring for the macOS install wait', () => {
+	const MAIN = join(dirname(fileURLToPath(import.meta.url)), 'main.ts');
+	const source = readFileSync(MAIN, 'utf8');
+	const file = ts.createSourceFile(MAIN, source, ts.ScriptTarget.Latest, true);
+
+	function runDesktopInput(): ts.ObjectLiteralExpression {
+		const found: ts.CallExpression[] = [];
+		const visit = (node: ts.Node): void => {
+			if (
+				ts.isCallExpression(node) &&
+				ts.isIdentifier(node.expression) &&
+				node.expression.text === 'runDesktop'
+			) {
+				found.push(node);
+			}
+			ts.forEachChild(node, visit);
+		};
+		visit(file);
+		expect(found).toHaveLength(1);
+		const input = found[0].arguments[0];
+		if (!input || !ts.isObjectLiteralExpression(input))
+			throw new Error('runDesktop({...}) expected');
+		return input;
+	}
+
+	/** An unconditional property of the literal: assigned or shorthand, never in a spread. */
+	function property(object: ts.ObjectLiteralExpression, name: string): ts.Expression | undefined {
+		for (const p of object.properties) {
+			if (p.name?.getText(file) !== name) continue;
+			if (ts.isPropertyAssignment(p)) return p.initializer;
+			if (ts.isShorthandPropertyAssignment(p)) return p.name;
+		}
+		return undefined;
+	}
+
+	/** The local names bound to `exported` by value imports from `module`. */
+	function valueImportsOf(module: string, exported: string): string[] {
+		const names: string[] = [];
+		for (const statement of file.statements) {
+			if (!ts.isImportDeclaration(statement)) continue;
+			if (!ts.isStringLiteral(statement.moduleSpecifier)) continue;
+			if (statement.moduleSpecifier.text !== module) continue;
+			const clause = statement.importClause;
+			if (!clause || clause.isTypeOnly) continue;
+			const bindings = clause.namedBindings;
+			if (!bindings || !ts.isNamedImports(bindings)) continue;
+			for (const element of bindings.elements) {
+				if (element.isTypeOnly) continue;
+				if ((element.propertyName ?? element.name).text === exported) {
+					names.push(element.name.text);
+				}
+			}
+		}
+		return names;
+	}
+
+	it('passes process.platform as platform', () => {
+		expect(property(runDesktopInput(), 'platform')?.getText(file)).toBe('process.platform');
+	});
+
+	it("runDesktop receives a nativeUpdater on darwin: electron's autoUpdater, unconditionally", () => {
+		const native = property(runDesktopInput(), 'nativeUpdater');
+		expect(native && ts.isIdentifier(native)).toBe(true);
+		expect(valueImportsOf('electron', 'autoUpdater')).toContain(native?.getText(file));
 	});
 });

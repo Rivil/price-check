@@ -25,11 +25,14 @@
 // updater and publishes no handle. The feed comes only from app-update.yml.
 // PRICE_CHECK_PREDECESSOR_PID (set by the version an update replaced) is read and
 // removed now, before loadAdapterHandler swaps process.env for the server's.
+// runDesktop gets process.platform and Electron's native autoUpdater (Squirrel.Mac):
+// on macOS, quit waits for it to stage a handed-over update before exiting.
 //
 // '[desktop] listening on http://127.0.0.1:<port>' is printed once the server is up:
 // the desktop e2e harness reads it to find the per-launch port.
 import {
 	app,
+	autoUpdater,
 	BrowserWindow,
 	dialog,
 	Menu,
@@ -191,7 +194,9 @@ runDesktop({
 	}),
 	notifications,
 	loginItem,
+	platform: process.platform,
 	...(updater ? { updates: updater } : {}),
+	nativeUpdater: autoUpdater,
 	predecessorPid,
 	isProcessAlive
 }).then(
