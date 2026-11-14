@@ -12,6 +12,7 @@ import {
 	channelKinds,
 	channelsFor,
 	driverFor,
+	ensureChannel,
 	listChannels,
 	loadChannelConfig,
 	registerDriver,
@@ -502,6 +503,91 @@ describe('channelsFor', () => {
 		]);
 
 		expect(await setEnabled(h.db, 'resend', true)).toBe(false);
+	});
+});
+
+describe('ensureChannel', () => {
+	const DROPS_ONLY = { priceDrops: true, checkFailures: false };
+	/** A past time the row is stamped with, so any write to it shows. */
+	const STAMP = new Date('2026-01-01T00:00:00Z');
+
+	it('seeds a missing row', async () => {
+		await ensureChannel(h.db, KEY, 'desktop', DROPS_ONLY);
+
+		const all = await rows();
+		expect(all).toMatchObject([
+			{ kind: 'desktop', enabled: true, priceDrops: true, checkFailures: false }
+		]);
+		expect(all[0].configEnc).toMatch(/^v1:/);
+		expect(await loadChannelConfig(h.db, KEY, 'desktop')).toEqual({});
+	});
+
+	it('never overrides', async () => {
+		await ensureChannel(h.db, KEY, 'desktop', DROPS_ONLY);
+		// The user turned it off and swapped the kinds it receives.
+		await h.db
+			.update(notifyChannel)
+			.set({ enabled: false, priceDrops: false, checkFailures: true, updatedAt: STAMP })
+			.where(eq(notifyChannel.kind, 'desktop'));
+		const before = await rows();
+		expect(before).toMatchObject([
+			{ enabled: false, priceDrops: false, checkFailures: true, updatedAt: STAMP }
+		]);
+
+		await ensureChannel(h.db, KEY, 'desktop', DROPS_ONLY);
+		await ensureChannel(h.db, KEY, 'desktop', { priceDrops: true, checkFailures: true });
+		expect(await rows()).toEqual(before);
+	});
+
+	it('re-seals an unreadable row and keeps its flags', async () => {
+		const sealedBy = {
+			'wrong key': encryptSecret(randomBytes(32), '{}', channelAad('desktop')),
+			'not JSON': encryptSecret(KEY, 'not json {', channelAad('desktop')),
+			none: null
+		};
+		for (const [label, configEnc] of Object.entries(sealedBy)) {
+			await h.db.delete(notifyChannel);
+			await h.db.insert(notifyChannel).values({
+				kind: 'desktop',
+				enabled: false,
+				priceDrops: false,
+				checkFailures: true,
+				configEnc
+			});
+			expect(await loadChannelConfig(h.db, KEY, 'desktop'), label).toBeNull();
+
+			await ensureChannel(h.db, KEY, 'desktop', DROPS_ONLY);
+
+			const all = await rows();
+			expect(all, label).toMatchObject([
+				{ kind: 'desktop', enabled: false, priceDrops: false, checkFailures: true }
+			]);
+			expect(all[0].configEnc, label).not.toBe(configEnc);
+			expect(await loadChannelConfig(h.db, KEY, 'desktop'), label).toEqual({});
+		}
+
+		// Readable from then on: routed for the kinds it was set to, with no log line.
+		await setEnabled(h.db, 'desktop', true);
+		unregister.push(registerDriver(fakeDriver('desktop'), 'desktop'));
+		const routed = await channelsFor(h.db, KEY, 'check_failed', { log });
+		expect(routed.map(({ kind, config }) => ({ kind, config }))).toEqual([
+			{ kind: 'desktop', config: {} }
+		]);
+		expect(logs).toEqual([]);
+	});
+
+	it('concurrent calls', async () => {
+		await expect(
+			Promise.all([
+				ensureChannel(h.db, KEY, 'desktop', DROPS_ONLY),
+				ensureChannel(h.db, KEY, 'desktop', DROPS_ONLY)
+			])
+		).resolves.toBeDefined();
+		expect(await rows()).toMatchObject([
+			{ kind: 'desktop', enabled: true, priceDrops: true, checkFailures: false }
+		]);
+		expect(await rows()).toHaveLength(1);
+		expect(await loadChannelConfig(h.db, KEY, 'desktop')).toEqual({});
 	});
 });
 

@@ -252,7 +252,8 @@ describe('alertAfterSuccess', () => {
 				kind: 'price_drop',
 				title: 'Price drop: Acme Kettle™',
 				message: 'Acme Kettle™ is now £19.99, at or below your £20.00 target.',
-				click: 'https://www.amazon.co.uk/dp/w1'
+				click: 'https://www.amazon.co.uk/dp/w1',
+				watchId: 'w1'
 			},
 			{ fetch }
 		);
@@ -268,10 +269,51 @@ describe('alertAfterSuccess', () => {
 				kind: 'price_drop',
 				title: 'Price drop: https://www.amazon.co.uk/dp/w2',
 				message: 'https://www.amazon.co.uk/dp/w2 is now £20.00, at or below your £20.00 target.',
-				click: 'https://www.amazon.co.uk/dp/w2'
+				click: 'https://www.amazon.co.uk/dp/w2',
+				watchId: 'w2'
 			},
 			{ fetch }
 		);
+	});
+
+	it('watch id', async () => {
+		// Every driver gets the watch's id beside the shop click: the desktop driver
+		// opens the watch in the app, the remote ones keep the shop link (click_target).
+		const desktop = fakeKind('desktop');
+		await saveFake('desktop', DROPS);
+		await saveNtfy(DROPS);
+		await addWatch('w7', { canonicalUrl: 'https://www.amazon.co.uk/dp/B0SEVEN' });
+
+		expect((await alertAfterSuccess(h.db, 'w7', deps())).channels).toEqual({
+			ntfy: 'sent',
+			desktop: 'sent'
+		});
+		for (const send of [desktop, ntfySend]) {
+			expect(send).toHaveBeenCalledOnce();
+			expect(send.mock.calls[0][1]).toMatchObject({
+				kind: 'price_drop',
+				watchId: 'w7',
+				click: 'https://www.amazon.co.uk/dp/B0SEVEN'
+			});
+		}
+	});
+
+	it('unsupported', async () => {
+		const desktop = fakeKind('desktop');
+		await saveFake('desktop', DROPS);
+		await addWatch('w1');
+		desktop.mockResolvedValueOnce({ ok: false, reason: 'unsupported' });
+
+		// An OS without notifications is a failed send, logged with its fixed label, and retried.
+		expect(await alertAfterSuccess(h.db, 'w1', deps())).toEqual({
+			outcome: 'send_failed',
+			channels: { desktop: 'send_failed' }
+		});
+		expect(logs).toEqual([
+			'[alerts] alert for watch w1 (desktop) not delivered: notifications not supported'
+		]);
+		expect(await deliveries()).toEqual([]);
+		expect((await alertAfterSuccess(h.db, 'w1', deps())).channels).toEqual({ desktop: 'sent' });
 	});
 
 	it('retry only failed', async () => {
@@ -947,7 +989,8 @@ describe('alertAfterFailure', () => {
 				kind: 'check_failed',
 				title: 'Check failed: Acme Kettle™',
 				message: "Couldn't check Acme Kettle™: Amazon served a robot-check (captcha) page.",
-				click: 'https://www.amazon.co.uk/dp/w1'
+				click: 'https://www.amazon.co.uk/dp/w1',
+				watchId: 'w1'
 			},
 			{ fetch }
 		);
@@ -955,6 +998,20 @@ describe('alertAfterFailure', () => {
 		// An untitled watch is named by its URL.
 		await alertAfterFailure(h.db, 'w2', blocked, deps());
 		expect(ntfySend.mock.calls[1][1].title).toBe('Check failed: https://www.amazon.co.uk/dp/w2');
+	});
+
+	it('watch id', async () => {
+		const desktop = fakeKind('desktop');
+		await saveFake('desktop', FAILURES);
+		await addWatch('w7', { canonicalUrl: 'https://www.amazon.co.uk/dp/B0SEVEN' });
+
+		expect((await alertAfterFailure(h.db, 'w7', blocked, deps())).outcome).toBe('sent');
+		expect(desktop).toHaveBeenCalledOnce();
+		expect(desktop.mock.calls[0][1]).toMatchObject({
+			kind: 'check_failed',
+			watchId: 'w7',
+			click: 'https://www.amazon.co.uk/dp/B0SEVEN'
+		});
 	});
 
 	it('parallel', async () => {
