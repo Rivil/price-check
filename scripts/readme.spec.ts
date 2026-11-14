@@ -1,7 +1,7 @@
 // Pins README.md's shape (spec c-6): end users first, developers after, and no
 // leftover instructions for the dropped container/server deployment. Also pins the
 // single-user docs and package.json: no auth secret, admin CLI or auth library.
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
@@ -23,6 +23,32 @@ const pnpmCommands = (text: string) =>
 
 /** Traces of the deleted auth stack (02-single-user c-2): the secret, the admin CLI, the library. */
 const AUTH_TRACES = ['BETTER_AUTH_SECRET', 'admin:create', 'auth:schema', 'better-auth'];
+
+/**
+ * Multi-user leftovers in ARCHITECTURE.md: the old admin/member seed and the
+ * SEEDED_DESIGN landmark (only SEEDED_DESIGN_TOPIC_URL exists now).
+ */
+const STALE_ARCHITECTURE = [/\bone admin\b/i, /\bone member\b/i, /\bSEEDED_DESIGN\b/];
+
+const staleArchitecture = (text: string) =>
+	STALE_ARCHITECTURE.filter((pattern) => pattern.test(text)).map(String);
+
+/** Spec, test and e2e files may name deleted modules on purpose (to pin they stay gone). */
+const isTestFile = (path: string) => /\.(?:spec|test|e2e)\.[jt]s$/.test(path);
+
+/** Non-test files under src/ that still mention the deleted auth.schema module. */
+const authSchemaMentions = (files: [path: string, text: string][]) =>
+	files
+		.filter(([path, text]) => !isTestFile(path) && text.includes('auth.schema'))
+		.map(([path]) => path);
+
+const srcFiles = (): [string, string][] =>
+	readdirSync(new URL('../src', import.meta.url), { recursive: true, withFileTypes: true })
+		.filter((entry) => entry.isFile())
+		.map((entry) => {
+			const path = `${entry.parentPath}/${entry.name}`;
+			return [path, readFileSync(path, 'utf8')];
+		});
 
 /** `## ` sections in order: [heading, body]. */
 const sections = readme
@@ -102,6 +128,29 @@ describe('single user: no auth stack left (02-single-user c-2)', () => {
 		]) {
 			for (const trace of AUTH_TRACES) expect(text, `${name}: ${trace}`).not.toContain(trace);
 		}
+	});
+
+	it('ARCHITECTURE.md describes the one-install seed, not admin/member accounts', () => {
+		expect(staleArchitecture(architecture)).toEqual([]);
+	});
+
+	it('no non-test file under src/ mentions the deleted auth.schema module', () => {
+		expect(authSchemaMentions(srcFiles())).toEqual([]);
+	});
+
+	it('stale-note scan fixtures', () => {
+		expect(
+			staleArchitecture('Seeded with one admin, one member.\n- SEEDED_DESIGN — x:1')
+		).toHaveLength(3);
+		expect(staleArchitecture('- SEEDED_DESIGN_TOPIC_URL — e2e/accounts.ts:24')).toEqual([]);
+		expect(
+			authSchemaMentions([
+				['src/lib/server/health.ts', '// drops what auth.schema.ts exports'],
+				['src/routes/removed-routes.spec.ts', "'/src/lib/server/db/auth.schema'"],
+				['src/routes/page.svelte.e2e.ts', 'auth.schema'],
+				['src/lib/server/db/schema.ts', "export * from './watch.schema.ts';"]
+			])
+		).toEqual(['src/lib/server/health.ts']);
 	});
 
 	it('.env.example sets only what the server reads, and no ORIGIN', () => {

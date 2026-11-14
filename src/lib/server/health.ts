@@ -12,7 +12,7 @@ const BUSY_RETRY_WINDOW_MS = 1000;
 const BUSY_RETRY_DELAY_MS = 100;
 
 // From the schema, so a new table is probed without touching this file. The filter
-// drops the relations auth.schema.ts also exports.
+// keeps only tables, so any other export of the schema module is skipped.
 const TABLES = Object.values<unknown>(schema).filter((value): value is SQLiteTable =>
 	is(value, SQLiteTable)
 );

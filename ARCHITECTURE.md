@@ -119,11 +119,11 @@ _introduced app-design · ae4d978_
 
 ### E2E test harness
 
-Playwright runs against a freshly migrated, seeded database (one admin, one member, plus a design edge-case user with long content, and chart and card watches timed relative to seeding) built and previewed before the suite.
+Playwright runs against a freshly migrated database seeded with one install's data (watches with long content, chart and card watches timed relative to seeding, failures and an ntfy channel, no accounts) built and previewed before the suite.
 
-- webServer — playwright.config.ts:9
-- SEEDED_DESIGN — e2e/accounts.ts:43
-- chartFull — e2e/accounts.ts:232
+- webServer — playwright.config.ts:12
+- SEEDED_DESIGN_TOPIC_URL — e2e/accounts.ts:24
+- chartFull — e2e/accounts.ts:181
 
 _introduced accounts · 62effc6 · extended app-design · 5944cfe · extended price-chart · 54fd517_
 
