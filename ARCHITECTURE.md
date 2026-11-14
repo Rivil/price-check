@@ -28,8 +28,9 @@ Every request, /health included, must be addressed to a loopback Host (localhost
 - isLoopbackHost — src/lib/server/local-request.ts:11
 - createLocalRequestHandle — src/lib/server/local-request.ts:28
 - handle — src/hooks.server.ts:37
+- ACTION_ENDPOINTS — e2e/action-endpoints.ts:9
 
-_introduced accounts · 8be9d9c · extended health · a1e390e · extended 02-single-user_
+_introduced accounts · 8be9d9c · extended health · a1e390e · extended 02-single-user · 7d337c3_
 
 ### Accessibility checks
 
@@ -83,14 +84,6 @@ One encrypted channel per kind with write-only secrets and per-watch, per-channe
 
 _introduced alert-channels · d9672c0_
 
-### Alert channels upgrade
-
-On startup, legacy plaintext ntfy rows are copied into encrypted channels without overwriting a re-saved one, then deleted and VACUUMed so no topic or token stays in the DB file.
-
-- backfillLegacyNtfy — src/lib/server/alerts/backfill.ts:26
-
-_introduced alert-channels · affb2b3_
-
 ### At-target price highlight
 
 A successful price at or below the watch's target shows in the ok colour, with a visible "at or below target" label, on the watchlist and on the watch page.
@@ -117,24 +110,44 @@ Every page takes its colours (light and dark), type and spacing from shared toke
 
 _introduced app-design · ae4d978_
 
+### Docs checks
+
+A spec pins the README's end-user-first shape and fails on auth-stack traces in the docs, package.json or src, and on multi-user leftovers in this document.
+
+- staleArchitecture — scripts/readme.spec.ts:33
+
+_introduced 01-public-ci · 19df497 · extended 02-single-user · 00118d3_
+
 ### E2E test harness
 
-Playwright runs against a freshly migrated database seeded with one install's data (watches with long content, chart and card watches timed relative to seeding, failures and an ntfy channel, no accounts) built and previewed before the suite.
+Playwright runs against a freshly migrated database seeded with one install's data (watches with long content, chart and card watches timed relative to seeding, failures and an ntfy channel, no accounts) built and previewed before the suite; node-build specs spawn the built server with an allowlisted env.
 
 - webServer — playwright.config.ts:12
 - SEEDED_DESIGN_TOPIC_URL — e2e/accounts.ts:24
 - chartFull — e2e/accounts.ts:181
+- startNodeServer — e2e/node-server.ts:80
 
-_introduced accounts · 62effc6 · extended app-design · 5944cfe · extended price-chart · 54fd517_
+_introduced accounts · 62effc6 · extended app-design · 5944cfe · extended price-chart · 54fd517 · extended 02-single-user · 93a5f70_
 
-### Header navigation
+### Failed-check alerts
 
-Every page shows a header with Watchlist and Alerts; the current link is marked with aria-current.
+A failed check tells every enabled failures channel in parallel, every time, with no claim and no retry; a channel this install's key cannot decrypt is logged by kind and skipped while the others are still told, and the check never fails.
+
+- alertAfterFailure — src/lib/server/alerts/alerts.ts:205
+- undecryptable channel — src/lib/server/alerts/alerts.spec.ts:973
+
+_extended 02-single-user · aa810e8_
+
+### Header and footer
+
+Every page shows a header with Watchlist and Alerts only (the current link marked with aria-current, no sign-in chrome) and a footer Source link to the public repo (AGPL-3.0 §13).
 
 - navItems — src/lib/nav.ts:29
 - Main nav — src/routes/+layout.svelte:25
+- SiteFooter — src/lib/components/SiteFooter.svelte:9
+- source link on every page — src/routes/header.e2e.ts:48
 
-_introduced app-design · 2f29576 · extended 02-single-user_
+_introduced app-design · 2f29576 · extended 02-single-user · 32275bd_
 
 ### Health probe
 
@@ -184,6 +197,26 @@ Server and scheduler errors log only their type, route or watch id, and real sta
 - handleError — src/hooks.server.ts:46
 
 _introduced alert-fixes · d00d0dc_
+
+### Single-user install
+
+One install owns all data with no accounts, sign-in or admin: / opens straight on the watchlist, only DATABASE_URL and ALERTS_ENCRYPTION_KEY are required, the removed auth routes are plain 404s, and watches (unique per shop and product) and channels (one per kind) survive a restart.
+
+- addWatch — src/lib/server/watches.ts:54
+- variables — src/env.ts:3
+- 0011_drop_auth — drizzle/0011_drop_auth.sql:1
+- opens without login — src/routes/watchlist.e2e.ts:26
+- data survives a restart on the same database — e2e/restart.e2e.ts:52
+
+_introduced 02-single-user · 4d5a234_
+
+### Test database harness
+
+Unit tests get a freshly migrated temp-file SQLite per call; dispose() closes the client and removes its directory.
+
+- createTestDb — src/lib/server/testing/test-db.ts:24
+
+_introduced 02-single-user · c5fd8f4_
 
 ### Watch page history
 
