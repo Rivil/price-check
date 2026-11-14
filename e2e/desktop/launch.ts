@@ -10,6 +10,13 @@
 // (SCHEDULER_DISABLED=1) unless a spec asks for 'unsupported-only', which refuses to
 // launch while the userData DB holds any watch a shop adapter would fetch (r-01).
 //
+// Notifications: a launch with notify: 'record' (or 'unsupported') sets
+// PRICE_CHECK_E2E_NOTIFY, so the unpackaged app swaps Electron's Notification class
+// for the seam's recorder (src/desktop/notify-seam.ts) on every OS: no notification
+// daemon, no OS prompt. recordedNotifications and clickNotification reach it through
+// electronApp.evaluate. Without the option the variable is unset and the real class
+// is in use.
+//
 // Windows: the test process never opens a userData DB itself. A libsql handle in
 // this process keeps the file locked after close(), so removing the temp dir fails
 // with EPERM; seed-child.ts does the DB work in a process that has exited before
@@ -25,6 +32,11 @@ import { fileURLToPath } from 'node:url';
 import { _electron, type ElectronApplication } from '@playwright/test';
 import { defaultRegistry } from '../../src/lib/server/shops/index.ts';
 import { DB_FILE_NAME, KEY_FILE_NAME } from '../../src/desktop/app-paths.ts';
+import {
+	E2E_NOTIFICATIONS_KEY,
+	E2E_NOTIFY_ENV,
+	type ShownNotification
+} from '../../src/desktop/notify-seam.ts';
 
 // resolve() drops the trailing separator fileURLToPath keeps for a directory URL. On
 // Windows a trailing backslash breaks Playwright's shell quoting of the app path:
@@ -33,7 +45,7 @@ export const REPO_ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)
 const SEED_CHILD = join(REPO_ROOT, 'e2e', 'desktop', 'seed-child.ts');
 export const MAIN_JS = join(REPO_ROOT, 'dist-desktop', 'main.js');
 export const HANDLER_JS = join(REPO_ROOT, 'build', 'handler.js');
-export { DB_FILE_NAME, KEY_FILE_NAME };
+export { DB_FILE_NAME, E2E_NOTIFY_ENV, KEY_FILE_NAME };
 
 /** The only variables taken from this process: enough to run Electron on every OS. */
 export const INHERITED_ENV = [
@@ -156,18 +168,24 @@ export function makeTempDir(prefix: string): string {
 
 export type SchedulerMode = 'disabled' | 'unsupported-only';
 
+/** The notification seam's mode: 'record' shows nothing and records; 'unsupported' also fails isSupported(). */
+export type NotifyMode = 'record' | 'unsupported';
+
 export type DesktopEnvInput = {
 	userData: string;
 	/** XDG_CONFIG_HOME, so a Linux autostart entry could only land in a temp dir. */
 	configHome: string;
 	scheduler?: SchedulerMode;
+	/** Unset by default: the app uses Electron's real Notification class. */
+	notify?: NotifyMode;
 };
 
 /** The launched app's whole environment: the allowlist plus the harness's own settings. */
 export function desktopEnv({
 	userData,
 	configHome,
-	scheduler = 'disabled'
+	scheduler = 'disabled',
+	notify
 }: DesktopEnvInput): Record<string, string> {
 	const env: Record<string, string> = {};
 	for (const name of INHERITED_ENV) {
@@ -178,6 +196,7 @@ export function desktopEnv({
 	env.XDG_CONFIG_HOME = configHome;
 	// A launched app must never check a real shop (r-01).
 	if (scheduler !== 'unsupported-only') env.SCHEDULER_DISABLED = '1';
+	if (notify !== undefined) env[E2E_NOTIFY_ENV] = notify;
 	return env;
 }
 
@@ -204,6 +223,8 @@ export type LaunchOptions = {
 	/** Extra command-line arguments, e.g. '--login-launch'. */
 	args?: string[];
 	scheduler?: SchedulerMode;
+	/** Swaps in the notification recorder (see the header); unset uses the real class. */
+	notify?: NotifyMode;
 	/** How long to wait for the listening line. */
 	timeoutMs?: number;
 };
@@ -327,7 +348,7 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 		const configHome = own('xdg-config');
 		// Before anything starts: a refused launch must never reach Electron.
 		if (scheduler === 'unsupported-only') await assertOnlyUnsupportedWatches(userData);
-		const env = desktopEnv({ userData, configHome, scheduler });
+		const env = desktopEnv({ userData, configHome, scheduler, notify: options.notify });
 		const args = electronArgs(options.args);
 
 		app = await _electron.launch({
@@ -390,6 +411,47 @@ async function quit(
 		);
 	}
 	await exited(child);
+}
+
+/** The seam's registry key, passed into evaluate: a Symbol cannot cross into it. */
+const NOTIFICATIONS_KEY = E2E_NOTIFICATIONS_KEY.description ?? '';
+
+/**
+ * Every notification the app has shown so far, in order, as the seam recorded them.
+ * Throws if the recorder is not installed (a launch without notify: 'record').
+ */
+export async function recordedNotifications(
+	app: ElectronApplication
+): Promise<ShownNotification[]> {
+	return app.evaluate((_electron, key) => {
+		const records = (globalThis as Record<symbol, { shown: ShownNotification[] } | undefined>)[
+			Symbol.for(key)
+		];
+		if (!records) throw new Error('no e2e notification recorder: launch with notify set');
+		return records.shown.map(({ title, body }) => ({ title, body }));
+	}, NOTIFICATIONS_KEY);
+}
+
+/** Clicks the index-th shown notification, as the user clicking it in the OS would. */
+export async function clickNotification(app: ElectronApplication, index: number): Promise<void> {
+	await app.evaluate(
+		async (_electron, { key, index }) => {
+			const records = (
+				globalThis as Record<symbol, { click(i: number): Promise<void> } | undefined>
+			)[Symbol.for(key)];
+			if (!records) throw new Error('no e2e notification recorder: launch with notify set');
+			await records.click(index);
+		},
+		{ key: NOTIFICATIONS_KEY, index }
+	);
+}
+
+/** Whether the seam's recorder global exists in the app's main process. */
+export async function hasNotificationRecorder(app: ElectronApplication): Promise<boolean> {
+	return app.evaluate(
+		(_electron, key) => (globalThis as Record<symbol, unknown>)[Symbol.for(key)] !== undefined,
+		NOTIFICATIONS_KEY
+	);
 }
 
 export type SecondInstance = {
