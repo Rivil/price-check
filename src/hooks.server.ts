@@ -6,7 +6,6 @@ import {
 } from '@sveltejs/kit/hooks';
 import { building } from '$app/env';
 import { ALERTS_ENCRYPTION_KEY, CHECK_INTERVAL_HOURS, SCHEDULER_DISABLED } from '$app/env/private';
-import { backfillLegacyNtfy } from '#lib/server/alerts/backfill.ts';
 import { parseAlertsKey, setAlertsKey } from '#lib/server/alerts/crypto.ts';
 import { auth } from '#lib/server/auth.ts';
 import { createAccessHandle } from '#lib/server/access.ts';
@@ -21,15 +20,12 @@ import { checkUrl } from '#lib/server/shops/index.ts';
  * Loads the alert-credentials key first — without a valid ALERTS_ENCRYPTION_KEY
  * the server refuses to start, naming the variable but never its value (decision
  * encryption_key) — then brings the database up to date before the first request
- * (a fresh volume has no tables), moves legacy plaintext ntfy channels into
- * encrypted storage, then re-checks due watches in the background.
+ * (a fresh volume has no tables), then re-checks due watches in the background.
  */
 export const init: ServerInit = async () => {
 	if (!building) {
-		const key = parseAlertsKey(ALERTS_ENCRYPTION_KEY);
-		setAlertsKey(key);
+		setAlertsKey(parseAlertsKey(ALERTS_ENCRYPTION_KEY));
 		await migrateDb(db);
-		await backfillLegacyNtfy(db, key);
 	}
 	startScheduler({
 		env: { CHECK_INTERVAL_HOURS, SCHEDULER_DISABLED, VITEST: process.env.VITEST },

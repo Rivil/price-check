@@ -9,7 +9,9 @@ import {
 } from './crypto.ts';
 
 const KEY = randomBytes(32);
-const AAD = channelAad('alice', 'ntfy');
+const AAD = channelAad('ntfy');
+/** The AAD a channel was sealed under before 02-single-user: per user as well as kind. */
+const LEGACY_AAD = JSON.stringify(['alert-channel', 'alice', 'ntfy']);
 const URL = 'https://ntfy.sh/t';
 
 function refusal(raw: string | undefined): Error {
@@ -106,8 +108,9 @@ describe('decryptSecret', () => {
 			['iv byte', KEY, flipped(0), AAD],
 			['tag byte', KEY, flipped(12), AAD],
 			['other key', randomBytes(32), sealed, AAD],
-			['other user', KEY, sealed, channelAad('bob', 'ntfy')],
-			['other kind', KEY, sealed, channelAad('alice', 'resend')],
+			['legacy per-user AAD', KEY, sealed, LEGACY_AAD],
+			['other kind', KEY, sealed, channelAad('smtp')],
+			['another kind', KEY, sealed, channelAad('resend')],
 			['v2 prefix', KEY, `v2:${sealed.slice(3)}`, AAD],
 			['no prefix', KEY, sealed.slice(3), AAD],
 			['truncated', KEY, sealed.slice(0, 20), AAD],
@@ -125,9 +128,20 @@ describe('decryptSecret', () => {
 });
 
 describe('channelAad', () => {
-	it('separates user and kind unambiguously', () => {
-		expect(channelAad('a:b', 'c')).not.toBe(channelAad('a', 'b:c'));
-		expect(channelAad('alice', 'ntfy')).not.toBe(channelAad('alice', 'resend'));
+	it('names the kind only', () => {
+		expect(channelAad('ntfy')).toBe('["alert-channel","ntfy"]');
+		expect(channelAad('ntfy')).not.toBe(channelAad('smtp'));
+		expect(channelAad('ntfy')).not.toBe(LEGACY_AAD);
+	});
+
+	it('a blob sealed for one kind opens only as that kind', () => {
+		const sealed = encryptSecret(KEY, URL, channelAad('ntfy'));
+		expect(decryptSecret(KEY, sealed, channelAad('smtp'))).toEqual({ ok: false });
+		expect(decryptSecret(KEY, sealed, channelAad('ntfy'))).toEqual({ ok: true, plaintext: URL });
+
+		// Sealed under the old per-user AAD: no longer opens as the kind's channel.
+		const legacy = encryptSecret(KEY, URL, LEGACY_AAD);
+		expect(decryptSecret(KEY, legacy, channelAad('ntfy'))).toEqual({ ok: false });
 	});
 });
 

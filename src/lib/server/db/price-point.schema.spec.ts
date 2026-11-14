@@ -1,24 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
-import { createAuthHarness, type AuthHarness } from '../testing/auth-harness.ts';
+import { createTestDb, type TestDb } from '../testing/test-db.ts';
 import { pricePoint, watch } from './schema.ts';
 
-let h: AuthHarness;
+let h: TestDb;
 
 beforeEach(async () => {
-	h = await createAuthHarness();
-	const userId = (await h.createUser({ email: 'alice@example.test' })).id;
+	h = await createTestDb();
 	for (const id of ['w1', 'w2']) {
 		await h.db.insert(watch).values({
 			id,
-			userId,
 			shop: 'amazon-uk',
 			productId: `B0${id.toUpperCase()}000000`.slice(0, 10),
 			canonicalUrl: `https://www.amazon.co.uk/dp/${id}`
 		});
 	}
 });
-afterEach(() => h.cleanup());
+afterEach(() => h.dispose());
 
 const point = (id: string, watchId: string) => ({
 	id,

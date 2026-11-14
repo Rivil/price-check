@@ -1,16 +1,12 @@
-// A user's watch on one shop product. Per-user by design (no shared watches): the
-// same product watched by two household members is two rows with their own targets.
+// A watch on one shop product. The data belongs to the install, not a user (decision
+// data_scope): one watch per product, whoever added it.
 import { sql } from 'drizzle-orm';
-import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
-import { user } from './auth.schema.ts';
+import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const watch = sqliteTable(
 	'watch',
 	{
 		id: text('id').primaryKey(),
-		userId: text('user_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
 		/** Shop adapter id, e.g. 'amazon-uk'. */
 		shop: text('shop').notNull(),
 		/** The shop's product id, e.g. the ASIN. */
@@ -31,8 +27,5 @@ export const watch = sqliteTable(
 			.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 			.notNull()
 	},
-	(table) => [
-		uniqueIndex('watch_user_product_uq').on(table.userId, table.shop, table.productId),
-		index('watch_userId_idx').on(table.userId)
-	]
+	(table) => [uniqueIndex('watch_product_uq').on(table.shop, table.productId)]
 );

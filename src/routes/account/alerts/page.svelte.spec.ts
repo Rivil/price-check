@@ -38,7 +38,6 @@ const DEFAULTS = {
 	resend: { priceDrops: true, checkFailures: false },
 	smtp: { priceDrops: true, checkFailures: false }
 };
-const LOGIN_EMAIL = 'alice@example.test';
 
 type Props = Parameters<typeof render<typeof Page>>[1];
 const props = (
@@ -48,7 +47,7 @@ const props = (
 	smtp: typeof savedSmtp | null = null
 ) =>
 	({
-		data: { channels: { ntfy, resend, smtp }, defaults: DEFAULTS, loginEmail: LOGIN_EMAIL },
+		data: { channels: { ntfy, resend, smtp }, defaults: DEFAULTS },
 		form,
 		params: {}
 	}) as unknown as Props;
@@ -115,9 +114,13 @@ describe('account alerts page', () => {
 		// Ticks come from load's resend defaults: drops only (c-3).
 		await expect.element(card.getByLabelText('Price drops')).toBeChecked();
 		await expect.element(card.getByLabelText('Failed checks')).not.toBeChecked();
-		await expect.element(card.getByLabelText('Recipient address')).toHaveValue(LOGIN_EMAIL);
+		// No login email to start from: the recipient starts empty.
+		await expect.element(card.getByLabelText('Recipient address')).toHaveValue('');
 		await expect.element(card.getByLabelText('Sender address')).toHaveValue('');
 		await expect.element(card.getByLabelText('Resend API key')).toHaveValue('');
+		await expect
+			.element(card.getByTestId('current-email'))
+			.toHaveTextContent('No email settings saved');
 		await expect.element(card.getByTestId('key-state')).toHaveTextContent('API key: none.');
 		expect(card.getByRole('button', { name: 'Send test' }).elements()).toHaveLength(0);
 		expect(card.getByTestId('channel-state').elements()).toHaveLength(0);
@@ -141,11 +144,11 @@ describe('account alerts page', () => {
 	it('smtp new', async () => {
 		render(Page, props(saved, null, savedResend));
 		const card = smtpCard();
-		// Port 587 (decision port_default), drops only (c-3), recipient = login email.
+		// Port 587 (decision port_default), drops only (c-3), recipient empty.
 		await expect.element(card.getByLabelText('Port')).toHaveValue('587');
 		await expect.element(card.getByLabelText('Price drops')).toBeChecked();
 		await expect.element(card.getByLabelText('Failed checks')).not.toBeChecked();
-		await expect.element(card.getByLabelText('Recipient address')).toHaveValue(LOGIN_EMAIL);
+		await expect.element(card.getByLabelText('Recipient address')).toHaveValue('');
 		await expect.element(card.getByLabelText('SMTP server host')).toHaveValue('');
 		await expect.element(card.getByLabelText('Password')).toHaveValue('');
 		await expect.element(card.getByTestId('password-state')).toHaveTextContent('Password: none.');

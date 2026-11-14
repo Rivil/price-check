@@ -8,7 +8,7 @@ import { saveChannel } from './alerts/channels.ts';
 import { setAlertsKey } from './alerts/crypto.ts';
 import { TICK_MS, createScheduler, startScheduler } from './scheduler.ts';
 import type { CheckResult } from './shops/types.ts';
-import { createAuthHarness, type AuthHarness } from './testing/auth-harness.ts';
+import { createTestDb, type TestDb } from './testing/test-db.ts';
 
 const w = (id: string): DueWatch => ({ id, canonicalUrl: `https://www.amazon.co.uk/dp/${id}` });
 
@@ -161,16 +161,16 @@ describe('createScheduler', () => {
 });
 
 describe('startScheduler', () => {
-	let h: AuthHarness;
+	let h: TestDb;
 	const HOUR = 60 * 60 * 1000;
 
 	beforeEach(async () => {
-		h = await createAuthHarness();
+		h = await createTestDb();
 		vi.useFakeTimers({ now: new Date('2026-11-02T12:00:00Z'), toFake: ['setInterval', 'Date'] });
 	});
 	afterEach(() => {
 		vi.useRealTimers();
-		h.cleanup();
+		h.dispose();
 	});
 
 	it('gating', () => {
@@ -190,7 +190,6 @@ describe('startScheduler', () => {
 	});
 
 	it('interval wiring', async () => {
-		const userId = (await h.createUser({ email: 'alice@example.test' })).id;
 		const at = (hoursAgo: number) => new Date(Date.now() - hoursAgo * HOUR);
 		for (const [id, hoursAgo] of [
 			['two', 2],
@@ -198,7 +197,6 @@ describe('startScheduler', () => {
 		] as const) {
 			await h.db.insert(watch).values({
 				id,
-				userId,
 				shop: 'amazon-uk',
 				productId: `B0${id.toUpperCase()}`.padEnd(10, '0'),
 				canonicalUrl: `https://www.amazon.co.uk/dp/${id}`,
@@ -233,26 +231,24 @@ describe('startScheduler', () => {
 
 describe('startScheduler alerts', () => {
 	const KEY = randomBytes(32);
-	let h: AuthHarness;
+	let h: TestDb;
 
 	beforeEach(async () => {
-		h = await createAuthHarness();
+		h = await createTestDb();
 		setAlertsKey(KEY);
 	});
 	afterEach(() => {
 		vi.unstubAllGlobals();
-		h.cleanup();
+		h.dispose();
 	});
 
 	it('alerts', async () => {
 		// Global fetch is stubbed: the alert never reaches a real ntfy server.
 		const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
 		vi.stubGlobal('fetch', fetch);
-		const userId = (await h.createUser({ email: 'alice@example.test' })).id;
-		await saveChannel(h.db, KEY, userId, 'ntfy', { topic: 'https://ntfy.sh/sched-topic' });
+		await saveChannel(h.db, KEY, 'ntfy', { topic: 'https://ntfy.sh/sched-topic' });
 		await h.db.insert(watch).values({
 			id: 'w1',
-			userId,
 			shop: 'amazon-uk',
 			productId: 'B0ABC12345',
 			canonicalUrl: 'https://www.amazon.co.uk/dp/B0ABC12345',

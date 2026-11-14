@@ -1,7 +1,7 @@
 // Re-checking watches: applying a check's result, choosing which watches are due,
-// a user's "Check now", and the price and failure history those checks build. Shop
+// "Check now", and the price and failure history those checks build. Shop
 // access is injected (check), so nothing here can reach the network on its own (r-01).
-import { and, asc, desc, eq, isNull, lte, or, sql } from 'drizzle-orm';
+import { asc, desc, eq, isNull, lte, or, sql } from 'drizzle-orm';
 import type { Db } from './db/client.ts';
 import { checkFailure, pricePoint, watch } from './db/schema.ts';
 import type { CheckFailure, CheckResult } from './shops/types.ts';
@@ -136,14 +136,9 @@ export type CheckNowResult =
 	| { kind: 'cooldown'; message: string }
 	| { kind: 'not_found' };
 
-/** A user's "Check now" on their own watch, refused within the cooldown. */
-export async function checkNow(
-	db: Db,
-	userId: string,
-	watchId: string,
-	deps: CheckDeps
-): Promise<CheckNowResult> {
-	const own = await getWatch(db, userId, watchId);
+/** "Check now" on one watch, refused within the cooldown. */
+export async function checkNow(db: Db, watchId: string, deps: CheckDeps): Promise<CheckNowResult> {
+	const own = await getWatch(db, watchId);
 	if (own === null) return { kind: 'not_found' };
 	const now = (deps.now ?? (() => new Date()))();
 	if (
@@ -158,20 +153,19 @@ export async function checkNow(
 
 export type HistoryPoint = { pricePence: number; checkedAt: Date };
 
-/** The user's watch's history, newest first; empty for another user's watch. */
-export function priceHistory(db: Db, userId: string, watchId: string): Promise<HistoryPoint[]> {
+/** A watch's price history, newest first; empty for an unknown watch. */
+export function priceHistory(db: Db, watchId: string): Promise<HistoryPoint[]> {
 	return db
 		.select({ pricePence: pricePoint.pricePence, checkedAt: pricePoint.checkedAt })
 		.from(pricePoint)
-		.innerJoin(watch, eq(watch.id, pricePoint.watchId))
-		.where(and(eq(watch.id, watchId), eq(watch.userId, userId)))
+		.where(eq(pricePoint.watchId, watchId))
 		.orderBy(desc(pricePoint.checkedAt), desc(pricePoint.id));
 }
 
 export type FailurePoint = { reason: string; message: string | null; checkedAt: Date };
 
-/** The user's watch's failed checks, newest first; empty for another user's watch. */
-export function failureHistory(db: Db, userId: string, watchId: string): Promise<FailurePoint[]> {
+/** A watch's failed checks, newest first; empty for an unknown watch. */
+export function failureHistory(db: Db, watchId: string): Promise<FailurePoint[]> {
 	return db
 		.select({
 			reason: checkFailure.reason,
@@ -179,7 +173,6 @@ export function failureHistory(db: Db, userId: string, watchId: string): Promise
 			checkedAt: checkFailure.checkedAt
 		})
 		.from(checkFailure)
-		.innerJoin(watch, eq(watch.id, checkFailure.watchId))
-		.where(and(eq(watch.id, watchId), eq(watch.userId, userId)))
+		.where(eq(checkFailure.watchId, watchId))
 		.orderBy(desc(checkFailure.checkedAt), desc(checkFailure.id));
 }

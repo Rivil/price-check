@@ -1,7 +1,7 @@
-// A user's watchlist: add (one check, at add time), list, get, change the target,
-// delete. Every read and write is scoped by userId — a watch that is not the
-// caller's behaves exactly like one that does not exist. Shop access is injected
-// (identify + check), so nothing here can reach the network on its own (r-01).
+// The watchlist: add (one check, at add time), list, get, change the target,
+// delete. The watches belong to the install (decision data_scope), one per product.
+// Shop access is injected (identify + check), so nothing here can reach the network
+// on its own (r-01).
 import { and, desc, eq } from 'drizzle-orm';
 import { parsePounds } from '../money.ts';
 import type { Db } from './db/client.ts';
@@ -51,12 +51,7 @@ export function parseTarget(input: string): ParsedTarget {
 	return parsed.ok ? { ok: true, pence: parsed.pence } : parsed;
 }
 
-export async function addWatch(
-	db: Db,
-	userId: string,
-	input: AddInput,
-	deps: WatchDeps
-): Promise<AddResult> {
+export async function addWatch(db: Db, input: AddInput, deps: WatchDeps): Promise<AddResult> {
 	// The target is validated first: a bad one never costs a request.
 	const target = parseTarget(input.target);
 	if (!target.ok) return { ok: false, field: 'target', message: target.message };
@@ -69,7 +64,7 @@ export async function addWatch(
 		return { ok: false, field: 'url', message: unsupported().message };
 	}
 	if (identity.kind === 'product') {
-		const existing = await findOwn(db, userId, identity.shop, identity.productId);
+		const existing = await findWatched(db, identity.shop, identity.productId);
 		if (existing !== null) return already(existing);
 	}
 
@@ -78,13 +73,12 @@ export async function addWatch(
 
 	if (result.ok) {
 		// A short link is only named by its check, so dedupe again here.
-		const existing = await findOwn(db, userId, result.shop, result.productId);
+		const existing = await findWatched(db, result.shop, result.productId);
 		if (existing !== null) return already(existing);
 		const added = await insert(
 			db,
 			deps,
 			{
-				userId,
 				shop: result.shop,
 				productId: result.productId,
 				canonicalUrl: result.canonicalUrl,
@@ -110,7 +104,6 @@ export async function addWatch(
 		db,
 		deps,
 		{
-			userId,
 			shop: identity.shop,
 			productId: identity.productId,
 			canonicalUrl: identity.canonicalUrl,
@@ -124,21 +117,14 @@ export async function addWatch(
 	);
 }
 
-/** The user's watches, newest first. */
-export function listWatches(db: Db, userId: string): Promise<Watch[]> {
-	return db
-		.select()
-		.from(watch)
-		.where(eq(watch.userId, userId))
-		.orderBy(desc(watch.createdAt), desc(watch.id));
+/** Every watch, newest first. */
+export function listWatches(db: Db): Promise<Watch[]> {
+	return db.select().from(watch).orderBy(desc(watch.createdAt), desc(watch.id));
 }
 
-/** The user's watch, or null — also for another user's watch. */
-export async function getWatch(db: Db, userId: string, id: string): Promise<Watch | null> {
-	const [row] = await db
-		.select()
-		.from(watch)
-		.where(and(eq(watch.id, id), eq(watch.userId, userId)));
+/** The watch with this id, or null. */
+export async function getWatch(db: Db, id: string): Promise<Watch | null> {
+	const [row] = await db.select().from(watch).where(eq(watch.id, id));
 	return row ?? null;
 }
 
@@ -147,24 +133,16 @@ export type SetTargetResult =
 	| { kind: 'invalid'; message: string }
 	| { kind: 'not_found' };
 
-/** Changes (or, with an empty input, clears) the target of the user's own watch. */
-export async function setTarget(
-	db: Db,
-	userId: string,
-	id: string,
-	input: string
-): Promise<SetTargetResult> {
+/** Changes (or, with an empty input, clears) a watch's target. */
+export async function setTarget(db: Db, id: string, input: string): Promise<SetTargetResult> {
 	const target = parseTarget(input);
 	if (!target.ok) return { kind: 'invalid', message: target.message };
-	const own = await getWatch(db, userId, id);
+	const own = await getWatch(db, id);
 	if (own === null) return { kind: 'not_found' };
 	// A real change re-arms the price-drop alert on every channel (its delivery rows
 	// go); re-saving the same target leaves them, so one drop never alerts twice.
 	const changed = own.targetPence !== target.pence;
-	await db
-		.update(watch)
-		.set({ targetPence: target.pence })
-		.where(and(eq(watch.id, id), eq(watch.userId, userId)));
+	await db.update(watch).set({ targetPence: target.pence }).where(eq(watch.id, id));
 	if (changed) await db.delete(priceDropDelivery).where(eq(priceDropDelivery.watchId, id));
 	return { kind: 'updated', targetPence: target.pence };
 }
@@ -186,25 +164,17 @@ export async function runAfterSuccess(
 	}
 }
 
-/** Deletes the user's own watch; false when there is no such watch of theirs. */
-export async function deleteWatch(db: Db, userId: string, id: string): Promise<boolean> {
-	const deleted = await db
-		.delete(watch)
-		.where(and(eq(watch.id, id), eq(watch.userId, userId)))
-		.returning({ id: watch.id });
+/** Deletes a watch; false when there is no such watch. */
+export async function deleteWatch(db: Db, id: string): Promise<boolean> {
+	const deleted = await db.delete(watch).where(eq(watch.id, id)).returning({ id: watch.id });
 	return deleted.length > 0;
 }
 
-async function findOwn(
-	db: Db,
-	userId: string,
-	shop: string,
-	productId: string
-): Promise<Watch | null> {
+async function findWatched(db: Db, shop: string, productId: string): Promise<Watch | null> {
 	const [row] = await db
 		.select()
 		.from(watch)
-		.where(and(eq(watch.userId, userId), eq(watch.shop, shop), eq(watch.productId, productId)));
+		.where(and(eq(watch.shop, shop), eq(watch.productId, productId)));
 	return row ?? null;
 }
 
@@ -223,33 +193,31 @@ async function insert(
 	const values = { ...fields, id: (deps.newId ?? (() => crypto.randomUUID()))() };
 	try {
 		// The add's own check is the watch's first history entry (scheduled-checks c-5),
-		// a price or a failure: the two land together or not at all.
-		const row = await db.transaction(async (tx) => {
-			const [inserted] = await tx.insert(watch).values(values).returning();
-			const first = { id: crypto.randomUUID(), watchId: inserted.id, checkedAt };
-			if (result.ok) {
-				await tx.insert(pricePoint).values({ ...first, pricePence: result.pricePence });
-			} else {
-				await tx
+		// a price or a failure: the two land together or not at all. A batch, not an
+		// interactive transaction: libsql runs a batch on its shared connection in one
+		// go, so two adds at once queue up, where a second transaction would open a
+		// connection of its own and fail with SQLITE_BUSY.
+		const first = { id: crypto.randomUUID(), watchId: values.id, checkedAt };
+		const history = result.ok
+			? db.insert(pricePoint).values({ ...first, pricePence: result.pricePence })
+			: db
 					.insert(checkFailure)
 					.values({ ...first, reason: result.reason, message: result.message });
-			}
-			return inserted;
-		});
+		const [[row]] = await db.batch([db.insert(watch).values(values).returning(), history]);
 		return { ok: true, watch: row };
 	} catch (error) {
 		// Two adds of the same product racing past the lookup: the product's unique
 		// index decides, and the loser is told it is already watched. Any other
 		// failure (an id collision included) is not a race and propagates.
 		if (!isProductRace(error)) throw error;
-		const existing = await findOwn(db, values.userId, values.shop, values.productId);
+		const existing = await findWatched(db, values.shop, values.productId);
 		if (existing === null) throw error;
 		return already(existing);
 	}
 }
 
-/** SQLite's message for the watch_user_product_uq index, anywhere in the cause chain. */
-const PRODUCT_RACE = /UNIQUE constraint failed: watch\.user_id, watch\.shop, watch\.product_id/;
+/** SQLite's message for the watch_product_uq index, anywhere in the cause chain. */
+const PRODUCT_RACE = /UNIQUE constraint failed: watch\.shop, watch\.product_id/;
 
 function isProductRace(error: unknown): boolean {
 	for (let e: unknown = error; e instanceof Error; e = e.cause) {

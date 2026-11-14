@@ -10,7 +10,6 @@ const mocks = vi.hoisted(() => ({
 	db: { name: 'the app db' },
 	env: { building: false, key: undefined as string | undefined },
 	setAlertsKey: vi.fn(),
-	backfill: vi.fn(),
 	order: [] as string[],
 	migrateDb: vi.fn(),
 	startScheduler: vi.fn(),
@@ -22,7 +21,6 @@ vi.mock('$app/env', () => ({
 	}
 }));
 vi.mock('#lib/server/db/migrate.ts', () => ({ migrateDb: mocks.migrateDb }));
-vi.mock('#lib/server/alerts/backfill.ts', () => ({ backfillLegacyNtfy: mocks.backfill }));
 vi.mock('$app/env/private', () => ({
 	CHECK_INTERVAL_HOURS: '12',
 	SCHEDULER_DISABLED: '',
@@ -47,11 +45,6 @@ beforeEach(() => {
 	mocks.setAlertsKey.mockReset().mockImplementation(() => {
 		mocks.order.push('key');
 	});
-	mocks.backfill.mockReset().mockImplementation(async () => {
-		await new Promise((done) => setTimeout(done, 5));
-		mocks.order.push('backfilled');
-		return { moved: 0 };
-	});
 	mocks.migrateDb.mockReset().mockImplementation(async () => {
 		// Resolves on a later tick: init must wait for it before starting the scheduler.
 		await new Promise((done) => setTimeout(done, 5));
@@ -70,33 +63,19 @@ describe('hooks.server', () => {
 		await hooks.init();
 
 		expect(mocks.migrateDb).toHaveBeenCalledExactlyOnceWith(mocks.db);
-		expect(mocks.order).toEqual(['key', 'migrated', 'backfilled', 'scheduler']);
+		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler']);
 	});
 
 	it('order', async () => {
 		const hooks = await import('./hooks.server.ts');
 		await hooks.init();
 
-		expect(mocks.order).toEqual(['key', 'migrated', 'backfilled', 'scheduler']);
+		// No legacy-channel backfill step any more: key, migrate, scheduler.
+		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler']);
 		expect(mocks.setAlertsKey).toHaveBeenCalledOnce();
 		const [key] = mocks.setAlertsKey.mock.calls[0] as [Buffer];
 		expect(Buffer.isBuffer(key)).toBe(true);
 		expect(key.equals(Buffer.alloc(32, 7))).toBe(true);
-
-		// The backfill gets the app db and the same parsed key.
-		expect(mocks.backfill).toHaveBeenCalledOnce();
-		const [db, backfillKey] = mocks.backfill.mock.calls[0] as [unknown, Buffer];
-		expect(db).toBe(mocks.db);
-		expect(backfillKey).toBe(key);
-	});
-
-	it('a failed backfill stops startup', async () => {
-		mocks.backfill.mockRejectedValueOnce(new Error('backfill broke'));
-		const hooks = await import('./hooks.server.ts');
-
-		await expect(hooks.init()).rejects.toThrow('backfill broke');
-		expect(mocks.order).toEqual(['key', 'migrated']);
-		expect(mocks.startScheduler).not.toHaveBeenCalled();
 	});
 
 	it('refuses', async () => {
@@ -132,7 +111,6 @@ describe('hooks.server', () => {
 		await expect(hooks.init()).resolves.toBeUndefined();
 		expect(mocks.setAlertsKey).not.toHaveBeenCalled();
 		expect(mocks.migrateDb).not.toHaveBeenCalled();
-		expect(mocks.backfill).not.toHaveBeenCalled();
 	});
 
 	it('init does not migrate while building', async () => {

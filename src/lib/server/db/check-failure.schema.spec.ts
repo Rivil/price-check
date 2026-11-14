@@ -3,33 +3,30 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createAuthHarness, MIGRATIONS_FOLDER, type AuthHarness } from '../testing/auth-harness.ts';
+import { createTestDb, MIGRATIONS_FOLDER, type TestDb } from '../testing/test-db.ts';
 import { createDb, type Db } from './client.ts';
 import { migrateDb } from './migrate.ts';
-import { checkFailure, user, watch } from './schema.ts';
+import { checkFailure, watch } from './schema.ts';
 import { removeTempDir } from '../testing/temp-dir.ts';
 
 const CHECKED_AT = new Date(1_700_000_000_000);
 const CREATED_AT = new Date(1_690_000_000_000);
 
 describe('check_failure table', () => {
-	let h: AuthHarness;
-	let userId: string;
+	let h: TestDb;
 
 	beforeEach(async () => {
-		h = await createAuthHarness();
-		userId = (await h.createUser({ email: 'alice@example.test' })).id;
+		h = await createTestDb();
 		for (const id of ['w1', 'w2']) {
 			await h.db.insert(watch).values({
 				id,
-				userId,
 				shop: 'amazon-uk',
 				productId: `B0${id.toUpperCase()}000000`.slice(0, 10),
 				canonicalUrl: `https://www.amazon.co.uk/dp/${id}`
 			});
 		}
 	});
-	afterEach(() => h.cleanup());
+	afterEach(() => h.dispose());
 
 	const failure = (id: string, watchId: string) => ({
 		id,
@@ -48,7 +45,7 @@ describe('check_failure table', () => {
 		const left = await h.db.select({ id: checkFailure.id }).from(checkFailure);
 		expect(left.map((row) => row.id)).toEqual(['f3']);
 
-		await h.db.delete(user).where(eq(user.id, userId));
+		await h.db.delete(watch).where(eq(watch.id, 'w2'));
 		expect(await h.db.select().from(checkFailure)).toEqual([]);
 	});
 
@@ -86,22 +83,31 @@ describe('0006 backfill', () => {
 
 		db = createDb(`file:${join(dir, 'app.db')}`);
 		await migrateDb(db, folder);
-		await db.insert(user).values({ id: 'u1', name: 'Alice', email: 'alice@example.test' });
+		// Raw SQL: the 0005 shape, whatever the schema says now.
+		await db.$client.execute(
+			"insert into user (id, name, email) values ('u1', 'Alice', 'alice@example.test')"
+		);
 	});
 	afterEach(() => {
 		db.$client.close();
 		removeTempDir(dir);
 	});
 
-	const addWatch = (id: string, values: Partial<typeof watch.$inferInsert>) =>
-		db.insert(watch).values({
-			id,
-			userId: 'u1',
-			shop: 'amazon-uk',
-			productId: id,
-			canonicalUrl: `https://www.amazon.co.uk/dp/${id}`,
-			createdAt: CREATED_AT,
-			...values
+	type Fields = { lastCheckedAt?: Date; lastCheckReason?: string; lastCheckMessage?: string };
+	const addWatch = (id: string, values: Fields) =>
+		db.$client.execute({
+			sql: `insert into watch (id, user_id, shop, product_id, canonical_url, created_at,
+					last_checked_at, last_check_reason, last_check_message)
+				values (?, 'u1', 'amazon-uk', ?, ?, ?, ?, ?, ?)`,
+			args: [
+				id,
+				id,
+				`https://www.amazon.co.uk/dp/${id}`,
+				CREATED_AT.getTime(),
+				values.lastCheckedAt?.getTime() ?? null,
+				values.lastCheckReason ?? null,
+				values.lastCheckMessage ?? null
+			]
 		});
 
 	const migrateToLatest = () => migrateDb(db, MIGRATIONS_FOLDER);

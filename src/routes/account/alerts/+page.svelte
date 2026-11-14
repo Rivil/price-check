@@ -21,8 +21,8 @@
 
 	const resend = $derived(data.channels.resend);
 	const sender = $derived(text(resend, 'from'));
-	// A new card's recipient starts as the login email (decision recipient_default).
-	const recipient = $derived(text(resend, 'to') ?? data.loginEmail);
+	// A new card's recipient starts empty: there is no login email to default to.
+	const recipient = $derived(text(resend, 'to'));
 	const resendTicks = $derived(ticks('resend', resend));
 
 	const smtp = $derived(data.channels.smtp);
@@ -31,7 +31,7 @@
 	const smtpPort = $derived(text(smtp, 'port') ?? '587');
 	const smtpUsername = $derived(text(smtp, 'username'));
 	const smtpSender = $derived(text(smtp, 'from'));
-	const smtpRecipient = $derived(text(smtp, 'to') ?? data.loginEmail);
+	const smtpRecipient = $derived(text(smtp, 'to'));
 	const smtpTicks = $derived(ticks('smtp', smtp));
 
 	// The card a save or enable/disable refusal belongs to.

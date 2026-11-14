@@ -14,15 +14,13 @@ import {
 } from './checks.ts';
 import { checkFailure, pricePoint, watch } from './db/schema.ts';
 import { failure, type CheckResult, type FailureReason } from './shops/types.ts';
-import { createAuthHarness, type AuthHarness } from './testing/auth-harness.ts';
+import { createTestDb, type TestDb } from './testing/test-db.ts';
 
 const HOUR = 60 * 60 * 1000;
 const NOW = new Date('2026-11-02T12:00:00.000Z');
 const ago = (ms: number) => new Date(NOW.getTime() - ms);
 
-let h: AuthHarness;
-let alice: string;
-let bob: string;
+let h: TestDb;
 let ids = 0;
 const newId = () => `p${++ids}`;
 
@@ -39,14 +37,9 @@ function ok(pricePence = 1999, extra: Partial<CheckResult> = {}): CheckResult {
 	} as CheckResult;
 }
 
-async function addWatchRow(
-	id: string,
-	userId: string,
-	fields: Partial<typeof watch.$inferInsert> = {}
-) {
+async function addWatchRow(id: string, fields: Partial<typeof watch.$inferInsert> = {}) {
 	await h.db.insert(watch).values({
 		id,
-		userId,
 		shop: 'amazon-uk',
 		productId: `B0${id.padEnd(8, '0')}`.slice(0, 10),
 		canonicalUrl: `https://www.amazon.co.uk/dp/${id}`,
@@ -65,15 +58,13 @@ const failures = (watchId: string) =>
 
 beforeEach(async () => {
 	ids = 0;
-	h = await createAuthHarness();
-	alice = (await h.createUser({ email: 'alice@example.test' })).id;
-	bob = (await h.createUser({ email: 'bob@example.test' })).id;
+	h = await createTestDb();
 });
-afterEach(() => h.cleanup());
+afterEach(() => h.dispose());
 
 describe('recordCheck', () => {
 	it('success', async () => {
-		await addWatchRow('w1', alice, {
+		await addWatchRow('w1', {
 			lastCheckedAt: ago(HOUR),
 			lastCheckReason: 'blocked',
 			lastCheckMessage: 'captcha'
@@ -109,7 +100,7 @@ describe('recordCheck', () => {
 			'unsupported'
 		];
 		for (const reason of reasons) {
-			await addWatchRow(reason, alice, { lastCheckedAt: ago(HOUR) });
+			await addWatchRow(reason, { lastCheckedAt: ago(HOUR) });
 
 			await recordCheck(h.db, reason, failure(reason, `${reason} message`), NOW, newId);
 
@@ -126,7 +117,7 @@ describe('recordCheck', () => {
 	});
 
 	it('failure recorded', async () => {
-		await addWatchRow('w1', alice);
+		await addWatchRow('w1');
 
 		await recordCheck(h.db, 'w1', failure('blocked', 'captcha'), NOW, newId);
 
@@ -138,14 +129,14 @@ describe('recordCheck', () => {
 	});
 
 	it('consecutive failures', async () => {
-		await addWatchRow('w1', alice);
+		await addWatchRow('w1');
 
 		// The same reason and message each time: every one is still its own row.
 		for (const at of [ago(3 * HOUR), ago(2 * HOUR), ago(1 * HOUR)]) {
 			await recordCheck(h.db, 'w1', failure('blocked', 'captcha'), at, newId);
 		}
 
-		expect(await failureHistory(h.db, alice, 'w1')).toEqual([
+		expect(await failureHistory(h.db, 'w1')).toEqual([
 			{ reason: 'blocked', message: 'captcha', checkedAt: ago(1 * HOUR) },
 			{ reason: 'blocked', message: 'captcha', checkedAt: ago(2 * HOUR) },
 			{ reason: 'blocked', message: 'captcha', checkedAt: ago(3 * HOUR) }
@@ -153,7 +144,7 @@ describe('recordCheck', () => {
 	});
 
 	it('success keeps failures', async () => {
-		await addWatchRow('w1', alice);
+		await addWatchRow('w1');
 		await recordCheck(h.db, 'w1', failure('blocked', 'captcha'), ago(HOUR), newId);
 		const before = await failures('w1');
 		expect(before).toHaveLength(1);
@@ -165,7 +156,7 @@ describe('recordCheck', () => {
 	});
 
 	it('atomic', async () => {
-		await addWatchRow('w1', alice);
+		await addWatchRow('w1');
 		await recordCheck(h.db, 'w1', failure('blocked', 'captcha'), ago(HOUR), () => 'same-id');
 		const before = await stored('w1');
 
@@ -179,8 +170,8 @@ describe('recordCheck', () => {
 	});
 
 	it('only the checked watch changes', async () => {
-		await addWatchRow('w1', alice);
-		await addWatchRow('w2', alice);
+		await addWatchRow('w1');
+		await addWatchRow('w2');
 
 		await recordCheck(h.db, 'w1', ok(1000), NOW, newId);
 		await recordCheck(h.db, 'w1', failure('blocked', 'captcha'), NOW, newId);
@@ -196,12 +187,12 @@ describe('recordCheck', () => {
 
 describe('dueWatches', () => {
 	it('due', async () => {
-		await addWatchRow('fresh', alice, { lastCheckedAt: ago(HOUR) });
-		await addWatchRow('edge', alice, { lastCheckedAt: ago(6 * HOUR) });
-		await addWatchRow('old', bob, { lastCheckedAt: ago(30 * HOUR) });
-		await addWatchRow('older', alice, { lastCheckedAt: ago(40 * HOUR) });
-		await addWatchRow('never2', bob);
-		await addWatchRow('never1', alice);
+		await addWatchRow('fresh', { lastCheckedAt: ago(HOUR) });
+		await addWatchRow('edge', { lastCheckedAt: ago(6 * HOUR) });
+		await addWatchRow('old', { lastCheckedAt: ago(30 * HOUR) });
+		await addWatchRow('older', { lastCheckedAt: ago(40 * HOUR) });
+		await addWatchRow('never2');
+		await addWatchRow('never1');
 
 		const due = await dueWatches(h.db, NOW, 6 * HOUR);
 
@@ -213,7 +204,7 @@ describe('dueWatches', () => {
 
 	it('due after failure', async () => {
 		for (const reason of ['not_found', 'variant_required', 'blocked'] as const) {
-			await addWatchRow(reason, alice, {
+			await addWatchRow(reason, {
 				lastCheckedAt: ago(7 * HOUR),
 				lastCheckReason: reason,
 				lastCheckMessage: 'x'
@@ -228,7 +219,7 @@ describe('dueWatches', () => {
 
 describe('checkWatch', () => {
 	it('checks the canonical URL and records the result', async () => {
-		await addWatchRow('w1', alice);
+		await addWatchRow('w1');
 		const check = vi.fn<CheckDeps['check']>(async () => ok(1500));
 
 		const result = await checkWatch(
@@ -244,8 +235,8 @@ describe('checkWatch', () => {
 	});
 
 	it('after success', async () => {
-		await addWatchRow('w1', alice);
-		await addWatchRow('w2', alice);
+		await addWatchRow('w1');
+		await addWatchRow('w2');
 		const afterSuccess = vi.fn(async () => {});
 		const due = (id: string) => ({ id, canonicalUrl: `https://www.amazon.co.uk/dp/${id}` });
 
@@ -285,8 +276,8 @@ describe('checkWatch', () => {
 		}
 
 		// 'Check now' passes the hook through.
-		await addWatchRow('w3', alice);
-		await checkNow(h.db, alice, 'w3', {
+		await addWatchRow('w3');
+		await checkNow(h.db, 'w3', {
 			check: async () => ok(),
 			afterSuccess,
 			now: () => NOW,
@@ -296,8 +287,8 @@ describe('checkWatch', () => {
 	});
 
 	it('after failure', async () => {
-		await addWatchRow('w1', alice);
-		await addWatchRow('w2', alice);
+		await addWatchRow('w1');
+		await addWatchRow('w2');
 		const blocked = failure('blocked', 'captcha');
 		const afterFailure = vi.fn(async () => {});
 		const due = (id: string) => ({ id, canonicalUrl: `https://www.amazon.co.uk/dp/${id}` });
@@ -337,8 +328,8 @@ describe('checkWatch', () => {
 		}
 
 		// 'Check now' passes the hook through.
-		await addWatchRow('w3', alice);
-		await checkNow(h.db, alice, 'w3', {
+		await addWatchRow('w3');
+		await checkNow(h.db, 'w3', {
 			check: async () => blocked,
 			afterFailure,
 			now: () => NOW,
@@ -348,7 +339,7 @@ describe('checkWatch', () => {
 	});
 
 	it('default clock and id', async () => {
-		await addWatchRow('w1', alice);
+		await addWatchRow('w1');
 		const before = Date.now();
 
 		await checkWatch(
@@ -368,29 +359,27 @@ describe('checkWatch', () => {
 
 describe('checkNow', () => {
 	it('check now', async () => {
-		await addWatchRow('recent', alice, { lastCheckedAt: ago(CHECK_COOLDOWN_MS - 1) });
-		await addWatchRow('future', alice, { lastCheckedAt: new Date(NOW.getTime() + HOUR) });
-		await addWatchRow('stale', alice, { lastCheckedAt: ago(CHECK_COOLDOWN_MS) });
-		await addWatchRow('never', alice);
-		await addWatchRow('theirs', bob);
+		await addWatchRow('recent', { lastCheckedAt: ago(CHECK_COOLDOWN_MS - 1) });
+		await addWatchRow('future', { lastCheckedAt: new Date(NOW.getTime() + HOUR) });
+		await addWatchRow('stale', { lastCheckedAt: ago(CHECK_COOLDOWN_MS) });
+		await addWatchRow('never');
 		const check = vi.fn<CheckDeps['check']>(async () => ok(1234));
 		const deps: CheckDeps = { check, now: () => NOW, newId };
 
 		for (const id of ['recent', 'future']) {
-			expect(await checkNow(h.db, alice, id, deps), id).toEqual({
+			expect(await checkNow(h.db, id, deps), id).toEqual({
 				kind: 'cooldown',
 				message: COOLDOWN_MESSAGE
 			});
 		}
 		expect(check).not.toHaveBeenCalled();
 
-		expect(await checkNow(h.db, alice, 'theirs', deps)).toEqual({ kind: 'not_found' });
-		expect(await checkNow(h.db, alice, 'missing', deps)).toEqual({ kind: 'not_found' });
+		// An unknown id is not found, without a check.
+		expect(await checkNow(h.db, 'missing', deps)).toEqual({ kind: 'not_found' });
 		expect(check).not.toHaveBeenCalled();
-		expect(await stored('theirs')).toMatchObject({ lastCheckedAt: null });
 
 		for (const id of ['stale', 'never']) {
-			expect(await checkNow(h.db, alice, id, deps), id).toEqual({
+			expect(await checkNow(h.db, id, deps), id).toEqual({
 				kind: 'checked',
 				result: ok(1234)
 			});
@@ -400,21 +389,21 @@ describe('checkNow', () => {
 		expect(check).toHaveBeenCalledTimes(2);
 
 		// A manual check counts for the cooldown too.
-		expect(await checkNow(h.db, alice, 'stale', deps)).toMatchObject({ kind: 'cooldown' });
+		expect(await checkNow(h.db, 'stale', deps)).toMatchObject({ kind: 'cooldown' });
 	});
 
 	it('check now failure', async () => {
-		await addWatchRow('w1', alice);
+		await addWatchRow('w1');
 		const check = vi.fn<CheckDeps['check']>(async () => failure('blocked', 'captcha'));
 		const deps: CheckDeps = { check, now: () => NOW, newId };
 
-		expect(await checkNow(h.db, alice, 'w1', deps)).toMatchObject({ kind: 'checked' });
+		expect(await checkNow(h.db, 'w1', deps)).toMatchObject({ kind: 'checked' });
 		expect(await failures('w1')).toMatchObject([
 			{ reason: 'blocked', message: 'captcha', checkedAt: NOW }
 		]);
 
 		// The failed check started the cooldown: the refusal is not a failed check.
-		expect(await checkNow(h.db, alice, 'w1', deps)).toMatchObject({ kind: 'cooldown' });
+		expect(await checkNow(h.db, 'w1', deps)).toMatchObject({ kind: 'cooldown' });
 		expect(check).toHaveBeenCalledOnce();
 		expect(await failures('w1')).toHaveLength(1);
 	});
@@ -422,33 +411,29 @@ describe('checkNow', () => {
 
 describe('priceHistory', () => {
 	it('history', async () => {
-		await addWatchRow('w1', alice);
-		await addWatchRow('w2', alice);
-		await addWatchRow('b1', bob);
+		await addWatchRow('w1');
+		await addWatchRow('w2');
 		await h.db.insert(pricePoint).values([
 			{ id: 'a', watchId: 'w1', pricePence: 100, checkedAt: ago(3 * HOUR) },
 			{ id: 'b', watchId: 'w1', pricePence: 300, checkedAt: ago(1 * HOUR) },
 			{ id: 'c', watchId: 'w1', pricePence: 200, checkedAt: ago(2 * HOUR) },
-			{ id: 'd', watchId: 'w2', pricePence: 999, checkedAt: ago(1 * HOUR) },
-			{ id: 'e', watchId: 'b1', pricePence: 555, checkedAt: ago(1 * HOUR) }
+			{ id: 'd', watchId: 'w2', pricePence: 999, checkedAt: ago(1 * HOUR) }
 		]);
 
-		expect(await priceHistory(h.db, alice, 'w1')).toEqual([
+		expect(await priceHistory(h.db, 'w1')).toEqual([
 			{ pricePence: 300, checkedAt: ago(1 * HOUR) },
 			{ pricePence: 200, checkedAt: ago(2 * HOUR) },
 			{ pricePence: 100, checkedAt: ago(3 * HOUR) }
 		]);
-		expect(await priceHistory(h.db, alice, 'b1')).toEqual([]);
-		expect(await priceHistory(h.db, bob, 'w1')).toEqual([]);
-		expect(await priceHistory(h.db, alice, 'missing')).toEqual([]);
+		expect(await priceHistory(h.db, 'w2')).toEqual([{ pricePence: 999, checkedAt: ago(1 * HOUR) }]);
+		expect(await priceHistory(h.db, 'missing')).toEqual([]);
 	});
 });
 
 describe('failureHistory', () => {
 	it('failure history', async () => {
-		await addWatchRow('w1', alice);
-		await addWatchRow('w2', alice);
-		await addWatchRow('b1', bob);
+		await addWatchRow('w1');
+		await addWatchRow('w2');
 		const row = (
 			id: string,
 			watchId: string,
@@ -463,20 +448,20 @@ describe('failureHistory', () => {
 				row('b', 'w1', 'unavailable', ago(1 * HOUR), null),
 				row('c', 'w1', 'parse_failed', ago(2 * HOUR), 'no price'),
 				row('d', 'w1', 'fetch_failed', ago(2 * HOUR), 'timed out'),
-				row('e', 'w2', 'blocked', ago(1 * HOUR), 'other watch'),
-				row('f', 'b1', 'blocked', ago(1 * HOUR), 'other user')
+				row('e', 'w2', 'blocked', ago(1 * HOUR), 'other watch')
 			]);
 
-		expect(await failureHistory(h.db, alice, 'w1')).toEqual([
+		expect(await failureHistory(h.db, 'w1')).toEqual([
 			{ reason: 'unavailable', message: null, checkedAt: ago(1 * HOUR) },
 			// One millisecond, two failures: the order is still the same on every read.
 			{ reason: 'fetch_failed', message: 'timed out', checkedAt: ago(2 * HOUR) },
 			{ reason: 'parse_failed', message: 'no price', checkedAt: ago(2 * HOUR) },
 			{ reason: 'blocked', message: 'captcha', checkedAt: ago(3 * HOUR) }
 		]);
-		expect(await failureHistory(h.db, alice, 'b1')).toEqual([]);
-		expect(await failureHistory(h.db, bob, 'w1')).toEqual([]);
-		expect(await failureHistory(h.db, alice, 'missing')).toEqual([]);
+		expect(await failureHistory(h.db, 'w2')).toEqual([
+			{ reason: 'blocked', message: 'other watch', checkedAt: ago(1 * HOUR) }
+		]);
+		expect(await failureHistory(h.db, 'missing')).toEqual([]);
 	});
 });
 

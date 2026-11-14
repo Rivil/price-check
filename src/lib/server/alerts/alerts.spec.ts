@@ -9,9 +9,9 @@ import {
 	type Mock,
 	type MockInstance
 } from 'vitest';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { notifyChannel, priceDropDelivery, watch } from '../db/schema.ts';
-import { createAuthHarness, type AuthHarness } from '../testing/auth-harness.ts';
+import { createTestDb, type TestDb } from '../testing/test-db.ts';
 import { setTarget } from '../watches.ts';
 import { failure } from '../shops/types.ts';
 import { startSmtpServer, type FakeSmtpServer } from '../testing/smtp-server.ts';
@@ -48,18 +48,14 @@ const blocked = failure('blocked', 'Amazon served a robot-check (captcha) page')
 type Send = AnyDriver['send'];
 type SendStub = MockInstance<Send>;
 
-let h: AuthHarness;
-let alice: string;
-let bob: string;
+let h: TestDb;
 let logs: string[];
 let fetch: Mock<AlertDeps['fetch']>;
 let ntfySend: SendStub;
 let unregister: (() => void)[] = [];
 
 beforeEach(async () => {
-	h = await createAuthHarness();
-	alice = (await h.createUser({ email: 'alice@example.test' })).id;
-	bob = (await h.createUser({ email: 'bob@example.test' })).id;
+	h = await createTestDb();
 	logs = [];
 	fetch = vi.fn<AlertDeps['fetch']>();
 	ntfySend = vi.spyOn(ntfyDriver as AnyDriver, 'send').mockResolvedValue({ ok: true });
@@ -69,7 +65,7 @@ afterEach(() => {
 	unregister = [];
 	const fetched = fetch.mock.calls.length;
 	vi.restoreAllMocks();
-	h.cleanup();
+	h.dispose();
 	expect(fetched, 'the injected fetch was called').toBe(0);
 });
 const smtpServers: FakeSmtpServer[] = [];
@@ -108,30 +104,20 @@ function fakeKind(kind: string): SendStub {
 	return send;
 }
 
-async function saveNtfy(routing: Routing = BOTH, userId = alice) {
-	const saved = await saveChannel(
-		h.db,
-		KEY,
-		userId,
-		'ntfy',
-		{ topic: TOPIC, token: TOKEN },
-		routing
-	);
+async function saveNtfy(routing: Routing = BOTH) {
+	const saved = await saveChannel(h.db, KEY, 'ntfy', { topic: TOPIC, token: TOKEN }, routing);
 	expect(saved).toEqual({ ok: true });
 }
 
-async function saveFake(kind: string, routing: Routing = BOTH, userId = alice) {
-	expect(await saveChannel(h.db, KEY, userId, kind, { value: kind }, routing)).toEqual({
-		ok: true
-	});
+async function saveFake(kind: string, routing: Routing = BOTH) {
+	expect(await saveChannel(h.db, KEY, kind, { value: kind }, routing)).toEqual({ ok: true });
 }
 
 async function addWatch(id: string, fields: Partial<typeof watch.$inferInsert> = {}) {
 	await h.db.insert(watch).values({
 		id,
-		userId: alice,
 		shop: 'amazon-uk',
-		// One product per watch: the per-user unique index allows no repeats.
+		// One product per watch: the (shop, product_id) unique index allows no repeats.
 		productId: `B0${id}`.padEnd(10, '0'),
 		canonicalUrl: `https://www.amazon.co.uk/dp/${id}`,
 		title: 'Acme Kettle™',
@@ -194,7 +180,7 @@ describe('alertAfterSuccess', () => {
 		await saveFake('fake');
 		await saveFake('failures-only', FAILURES);
 		await saveFake('disabled');
-		expect(await setEnabled(h.db, alice, 'disabled', false)).toBe(true);
+		expect(await setEnabled(h.db, 'disabled', false)).toBe(true);
 		await addWatch('w1');
 
 		expect(await alertAfterSuccess(h.db, 'w1', deps())).toEqual({
@@ -221,6 +207,39 @@ describe('alertAfterSuccess', () => {
 		for (const send of [failuresOnly, disabled]) expect(send).not.toHaveBeenCalled();
 	});
 
+	it('once per drop', async () => {
+		await saveNtfy();
+		await addWatch('w1');
+		const check = async () => (await alertAfterSuccess(h.db, 'w1', deps())).outcome;
+
+		// At target with an enabled ntfy channel: sent exactly once, however many checks.
+		expect(await check()).toBe('sent');
+		expect(await check()).toBe('already_sent');
+		expect(await check()).toBe('already_sent');
+		expect(ntfySend).toHaveBeenCalledOnce();
+
+		// A changed target re-arms: once more, then quiet again.
+		expect(await setTarget(h.db, 'w1', '25.00')).toMatchObject({ kind: 'updated' });
+		expect(await check()).toBe('sent');
+		expect(await check()).toBe('already_sent');
+		expect(ntfySend).toHaveBeenCalledTimes(2);
+
+		// The channel removed and added again: its deliveries went with it, so once more.
+		await removeChannel(h.db, 'ntfy');
+		expect(await deliveries()).toEqual([]);
+		await saveNtfy();
+		expect(await check()).toBe('sent');
+		expect(await check()).toBe('already_sent');
+		expect(ntfySend).toHaveBeenCalledTimes(3);
+
+		// Disabled: a re-armed drop sends nothing.
+		expect(await setEnabled(h.db, 'ntfy', false)).toBe(true);
+		expect(await setTarget(h.db, 'w1', '30.00')).toMatchObject({ kind: 'updated' });
+		expect(await check()).toBe('no_channel');
+		expect(ntfySend).toHaveBeenCalledTimes(3);
+		expect(sentKinds(ntfySend)).toEqual(['price_drop', 'price_drop', 'price_drop']);
+	});
+
 	it('alert', async () => {
 		await saveNtfy();
 		await addWatch('w1');
@@ -238,13 +257,7 @@ describe('alertAfterSuccess', () => {
 			{ fetch }
 		);
 		const [row] = await h.db.select().from(priceDropDelivery);
-		expect(row).toEqual({
-			watchId: 'w1',
-			kind: 'ntfy',
-			userId: alice,
-			targetPence: 2000,
-			deliveredAt: NOW
-		});
+		expect(row).toEqual({ watchId: 'w1', kind: 'ntfy', targetPence: 2000, deliveredAt: NOW });
 
 		// Exactly at target counts as a drop; an untitled watch is named by its URL.
 		await addWatch('w2', { title: null, pricePence: 2000 });
@@ -341,7 +354,7 @@ describe('alertAfterSuccess', () => {
 		const fake = fakeKind('fake');
 		await saveNtfy();
 		await saveFake('fake');
-		await setEnabled(h.db, alice, 'fake', false);
+		await setEnabled(h.db, 'fake', false);
 		await addWatch('w1');
 
 		expect(await alertAfterSuccess(h.db, 'w1', deps())).toEqual({
@@ -351,7 +364,7 @@ describe('alertAfterSuccess', () => {
 		expect(fake).not.toHaveBeenCalled();
 
 		// Turned back on while the price is still at target: it gets the drop once.
-		await setEnabled(h.db, alice, 'fake', true);
+		await setEnabled(h.db, 'fake', true);
 		expect(await alertAfterSuccess(h.db, 'w1', deps())).toEqual({
 			outcome: 'sent',
 			channels: { ntfy: 'already_sent', fake: 'sent' }
@@ -370,7 +383,7 @@ describe('alertAfterSuccess', () => {
 
 		const first = alertAfterSuccess(h.db, 'w1', deps());
 		await vi.waitFor(() => expect(ntfySend).toHaveBeenCalledOnce());
-		expect(await setTarget(h.db, alice, 'w1', '25.00')).toMatchObject({ kind: 'updated' });
+		expect(await setTarget(h.db, 'w1', '25.00')).toMatchObject({ kind: 'updated' });
 		release();
 
 		// Delivered, but for a target that no longer stands: no row for it.
@@ -396,7 +409,7 @@ describe('alertAfterSuccess', () => {
 
 		const first = alertAfterSuccess(h.db, 'w1', deps());
 		await vi.waitFor(() => expect(ntfySend).toHaveBeenCalledOnce());
-		await removeChannel(h.db, alice, 'ntfy');
+		await removeChannel(h.db, 'ntfy');
 		release();
 
 		// Delivered, but the channel is gone, so there is nothing to record it against.
@@ -410,9 +423,7 @@ describe('alertAfterSuccess', () => {
 		await saveNtfy();
 		await addWatch('w1');
 		// Delivered for an older target that was since changed.
-		await h.db
-			.insert(priceDropDelivery)
-			.values({ watchId: 'w1', kind: 'ntfy', userId: alice, targetPence: 1500 });
+		await h.db.insert(priceDropDelivery).values({ watchId: 'w1', kind: 'ntfy', targetPence: 1500 });
 
 		expect(await alertAfterSuccess(h.db, 'w1', deps())).toEqual({
 			outcome: 'sent',
@@ -420,7 +431,7 @@ describe('alertAfterSuccess', () => {
 		});
 		expect(ntfySend).toHaveBeenCalledOnce();
 		expect(await h.db.select().from(priceDropDelivery)).toEqual([
-			{ watchId: 'w1', kind: 'ntfy', userId: alice, targetPence: 2000, deliveredAt: NOW }
+			{ watchId: 'w1', kind: 'ntfy', targetPence: 2000, deliveredAt: NOW }
 		]);
 
 		expect(await alertAfterSuccess(h.db, 'w1', deps())).toEqual({
@@ -451,7 +462,7 @@ describe('alertAfterSuccess', () => {
 		await h.db
 			.update(notifyChannel)
 			.set({ configEnc: 'v1:garbage' })
-			.where(and(eq(notifyChannel.userId, alice), eq(notifyChannel.kind, 'ntfy')));
+			.where(eq(notifyChannel.kind, 'ntfy'));
 		logs = [];
 		expect(await alertAfterSuccess(h.db, 'w2', deps())).toEqual({
 			outcome: 'sent',
@@ -459,7 +470,7 @@ describe('alertAfterSuccess', () => {
 		});
 		expect(fake).toHaveBeenCalledTimes(2);
 		expect(ntfySend).toHaveBeenCalledOnce();
-		expect(logs).toEqual([`[alerts] channel ${alice} (ntfy) could not be decrypted`]);
+		expect(logs).toEqual(['[alerts] channel (ntfy) could not be decrypted']);
 	});
 
 	it('parallel', async () => {
@@ -641,7 +652,7 @@ describe('alertAfterSuccess', () => {
 
 		await saveNtfy(DROPS);
 		expect(
-			await saveChannel(h.db, KEY, alice, 'resend', {
+			await saveChannel(h.db, KEY, 'resend', {
 				api_key: RESEND_KEY,
 				from: 'alerts@alice-shop.test',
 				to: 'alice@example.test'
@@ -736,7 +747,7 @@ describe('alertAfterSuccess', () => {
 
 		await saveNtfy(DROPS);
 		expect(
-			await saveChannel(h.db, KEY, alice, 'resend', {
+			await saveChannel(h.db, KEY, 'resend', {
 				api_key: RESEND_KEY,
 				from: 'alerts@alice-shop.test',
 				to: 'alice@example.test'
@@ -744,7 +755,7 @@ describe('alertAfterSuccess', () => {
 		).toEqual({ ok: true });
 		// Saved without routing: a new SMTP channel gets price drops.
 		expect(
-			await saveChannel(h.db, KEY, alice, 'smtp', {
+			await saveChannel(h.db, KEY, 'smtp', {
 				host: smtp.host,
 				port: String(smtp.port),
 				username: 'alice@alice-mail.test',
@@ -843,14 +854,13 @@ describe('alertAfterSuccess', () => {
 	it('nothing to send', async () => {
 		const fake = fakeKind('fake');
 
-		// No channel at all, or only a failures-only one; another user's never counts.
+		// No channel at all, or only a failures-only one.
 		await addWatch('w1');
 		expect(await alertAfterSuccess(h.db, 'w1', deps())).toEqual({
 			outcome: 'no_channel',
 			channels: {}
 		});
 		await saveFake('fake', FAILURES);
-		await saveNtfy(BOTH, bob);
 		expect((await alertAfterSuccess(h.db, 'w1', deps())).outcome).toBe('no_channel');
 
 		await saveNtfy(DROPS);
@@ -883,7 +893,7 @@ describe('alertAfterFailure', () => {
 		await saveFake('drops-only', DROPS);
 		await saveFake('failures-only', FAILURES);
 		await saveFake('disabled', FAILURES);
-		await setEnabled(h.db, alice, 'disabled', false);
+		await setEnabled(h.db, 'disabled', false);
 		await addWatch('w1');
 		failuresOnly.mockResolvedValueOnce({ ok: false, reason: 'bad_credentials', status: 403 });
 
@@ -962,8 +972,7 @@ describe('alertAfterFailure', () => {
 
 	it('nothing to send', async () => {
 		await addWatch('w1');
-		// Only another user's channel, and a drops-only one of alice's.
-		await saveNtfy(BOTH, bob);
+		// No channel at all, then only a drops-only one.
 		expect(await alertAfterFailure(h.db, 'w1', blocked, deps())).toEqual({
 			outcome: 'no_channel',
 			channels: {}

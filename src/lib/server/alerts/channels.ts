@@ -1,11 +1,10 @@
-// A user's alert channels (at most one per type — decision channels_per_type), with
-// each channel's settings stored as one AES-256-GCM blob (decision encryption_key).
-// Secrets are write-only: the owner sees whether one is set, never its value, and a
-// blank secret on save keeps the saved one (c-7).
+// The install's alert channels (at most one per type — decision channels_per_type),
+// with each channel's settings stored as one AES-256-GCM blob (decision
+// encryption_key). Secrets are write-only: the page shows whether one is set, never
+// its value, and a blank secret on save keeps the saved one (c-7).
 //
-// No $app imports: the server, the backfill and tests call this with their own db
-// and key. Log lines name the user and channel kind only — never a topic, token or
-// ciphertext.
+// No $app imports: the server and tests call this with their own db and key. Log
+// lines name the channel kind only — never a topic, token or ciphertext.
 import { and, eq } from 'drizzle-orm';
 import type { Db } from '../db/client.ts';
 import { notifyChannel } from '../db/schema.ts';
@@ -53,15 +52,15 @@ export function channelKinds(): string[] {
 export type Logger = (message: string) => void;
 const defaultLog: Logger = (message) => console.error(message);
 
-function undecryptable(log: Logger, userId: string, kind: string) {
-	log(`[alerts] channel ${userId} (${kind}) could not be decrypted`);
+function undecryptable(log: Logger, kind: string) {
+	log(`[alerts] channel (${kind}) could not be decrypted`);
 }
 
 type Row = typeof notifyChannel.$inferSelect;
 
 function openConfig(key: Buffer, row: Row): { ok: true; config: unknown } | { ok: false } {
 	if (row.configEnc === null) return { ok: false };
-	const opened = decryptSecret(key, row.configEnc, channelAad(row.userId, row.kind));
+	const opened = decryptSecret(key, row.configEnc, channelAad(row.kind));
 	if (!opened.ok) return { ok: false };
 	try {
 		return { ok: true, config: JSON.parse(opened.plaintext) as unknown };
@@ -70,14 +69,15 @@ function openConfig(key: Buffer, row: Row): { ok: true; config: unknown } | { ok
 	}
 }
 
-function sealConfig(key: Buffer, userId: string, kind: string, config: unknown): string {
-	return encryptSecret(key, JSON.stringify(config), channelAad(userId, kind));
+function sealConfig(key: Buffer, kind: string, config: unknown): string {
+	return encryptSecret(key, JSON.stringify(config), channelAad(kind));
 }
 
 /**
- * What the owner sees of one saved channel. `view` is the driver's public fields plus
+ * What the page sees of one saved channel. `view` is the driver's public fields plus
  * a set/unset flag per secret; `unreadable` (view null) means the saved settings
- * cannot be decrypted with this key, or have not been moved across yet.
+ * cannot be decrypted with this key (another key, or sealed before 02-single-user),
+ * or there are none.
  */
 export type ChannelView = {
 	enabled: boolean;
@@ -87,20 +87,19 @@ export type ChannelView = {
 	view: ConfigView | null;
 };
 
-/** The user's saved channels of registered kinds, keyed by kind. */
+/** The saved channels of registered kinds, keyed by kind. */
 export async function listChannels(
 	db: Db,
 	key: Buffer,
-	userId: string,
 	{ log = defaultLog }: { log?: Logger } = {}
 ): Promise<Record<string, ChannelView>> {
-	const rows = await db.select().from(notifyChannel).where(eq(notifyChannel.userId, userId));
+	const rows = await db.select().from(notifyChannel);
 	const views: Record<string, ChannelView> = {};
 	for (const row of rows) {
 		const driver = drivers.get(row.kind);
 		if (driver === undefined) continue;
 		const opened = openConfig(key, row);
-		if (!opened.ok && row.configEnc !== null) undecryptable(log, userId, row.kind);
+		if (!opened.ok && row.configEnc !== null) undecryptable(log, row.kind);
 		views[row.kind] = {
 			enabled: row.enabled,
 			priceDrops: row.priceDrops,
@@ -114,11 +113,10 @@ export async function listChannels(
 
 export type RoutedChannel = { kind: string; driver: AnyDriver; config: unknown };
 
-/** Decrypted configs of the user's enabled channels that are set to receive `alertKind`. */
+/** Decrypted configs of the enabled channels that are set to receive `alertKind`. */
 export async function channelsFor(
 	db: Db,
 	key: Buffer,
-	userId: string,
 	alertKind: RoutedAlertKind,
 	{ log = defaultLog }: { log?: Logger } = {}
 ): Promise<RoutedChannel[]> {
@@ -127,20 +125,18 @@ export async function channelsFor(
 	const rows = await db
 		.select()
 		.from(notifyChannel)
-		.where(
-			and(eq(notifyChannel.userId, userId), eq(notifyChannel.enabled, true), eq(kindColumn, true))
-		);
+		.where(and(eq(notifyChannel.enabled, true), eq(kindColumn, true)));
 	const routed: RoutedChannel[] = [];
 	for (const kind of drivers.keys()) {
 		const row = rows.find((r) => r.kind === kind);
 		if (row === undefined) continue;
 		if (row.configEnc === null) {
-			log(`[alerts] channel ${userId} (${kind}) has no settings yet, skipped`);
+			log(`[alerts] channel (${kind}) has no settings, skipped`);
 			continue;
 		}
 		const opened = openConfig(key, row);
 		if (!opened.ok) {
-			undecryptable(log, userId, kind);
+			undecryptable(log, kind);
 			continue;
 		}
 		routed.push({ kind, driver: drivers.get(kind)!, config: opened.config });
@@ -149,16 +145,8 @@ export async function channelsFor(
 }
 
 /** The decrypted config of one saved channel, or null (none saved, or unreadable). */
-export async function loadChannelConfig(
-	db: Db,
-	key: Buffer,
-	userId: string,
-	kind: string
-): Promise<unknown> {
-	const [row] = await db
-		.select()
-		.from(notifyChannel)
-		.where(and(eq(notifyChannel.userId, userId), eq(notifyChannel.kind, kind)));
+export async function loadChannelConfig(db: Db, key: Buffer, kind: string): Promise<unknown> {
+	const [row] = await db.select().from(notifyChannel).where(eq(notifyChannel.kind, kind));
 	if (row === undefined) return null;
 	const opened = openConfig(key, row);
 	return opened.ok ? opened.config : null;
@@ -174,15 +162,14 @@ export const NO_KINDS_MESSAGE = 'Choose at least one: price drops or failed chec
 export const UNKNOWN_KIND_MESSAGE = 'Unknown channel type.';
 
 /**
- * Creates or replaces the user's channel of `kind`. The driver parses the form against
- * the saved config, so a blank secret keeps the saved one. `routing` omitted keeps the
+ * Creates or replaces the channel of `kind`. The driver parses the form against the
+ * saved config, so a blank secret keeps the saved one. `routing` omitted keeps the
  * saved kinds, or for a new channel uses the driver's defaults; a new channel starts
  * enabled. Any refusal writes nothing.
  */
 export async function saveChannel(
 	db: Db,
 	key: Buffer,
-	userId: string,
 	kind: string,
 	form: ConfigForm,
 	routing?: Routing
@@ -193,10 +180,7 @@ export async function saveChannel(
 		return { ok: false, message: NO_KINDS_MESSAGE };
 	}
 
-	const [existing] = await db
-		.select()
-		.from(notifyChannel)
-		.where(and(eq(notifyChannel.userId, userId), eq(notifyChannel.kind, kind)));
+	const [existing] = await db.select().from(notifyChannel).where(eq(notifyChannel.kind, kind));
 	const previous = existing === undefined ? null : openConfig(key, existing);
 	const parsed = driver.parseConfig(form, previous?.ok ? previous.config : null);
 	if (!parsed.ok) return { ok: false, message: parsed.message };
@@ -209,35 +193,28 @@ export async function saveChannel(
 					priceDrops: driver.defaultKinds.includes('price_drop'),
 					checkFailures: driver.defaultKinds.includes('check_failed')
 				});
-	const configEnc = sealConfig(key, userId, kind, parsed.config);
+	const configEnc = sealConfig(key, kind, parsed.config);
 	await db
 		.insert(notifyChannel)
-		.values({ userId, kind, enabled: true, ...kinds, configEnc })
+		.values({ kind, enabled: true, ...kinds, configEnc })
 		.onConflictDoUpdate({
-			target: [notifyChannel.userId, notifyChannel.kind],
+			target: notifyChannel.kind,
 			set: { ...kinds, configEnc, updatedAt: new Date() }
 		});
 	return { ok: true };
 }
 
 /** Turns a saved channel on or off, keeping its settings; false if there is none. */
-export async function setEnabled(
-	db: Db,
-	userId: string,
-	kind: string,
-	enabled: boolean
-): Promise<boolean> {
+export async function setEnabled(db: Db, kind: string, enabled: boolean): Promise<boolean> {
 	const updated = await db
 		.update(notifyChannel)
 		.set({ enabled, updatedAt: new Date() })
-		.where(and(eq(notifyChannel.userId, userId), eq(notifyChannel.kind, kind)))
+		.where(eq(notifyChannel.kind, kind))
 		.returning({ kind: notifyChannel.kind });
 	return updated.length > 0;
 }
 
 /** Deletes the channel; its price-drop delivery rows go with it (FK cascade). */
-export async function removeChannel(db: Db, userId: string, kind: string): Promise<void> {
-	await db
-		.delete(notifyChannel)
-		.where(and(eq(notifyChannel.userId, userId), eq(notifyChannel.kind, kind)));
+export async function removeChannel(db: Db, kind: string): Promise<void> {
+	await db.delete(notifyChannel).where(eq(notifyChannel.kind, kind));
 }
