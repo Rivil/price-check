@@ -1,10 +1,14 @@
 // Pins spec c-1's toolchain: the Electron binary is installed by `pnpm install`, the
-// build-script allowlist and the pins stay exact, and the main bundle keeps
-// `electron` external, inlines #lib/* and refuses server-only imports.
-import { existsSync, readFileSync } from 'node:fs';
+// build-script allowlist and the pins stay exact, the main bundle keeps `electron`
+// external, inlines #lib/* and refuses server-only imports, and the desktop e2e
+// suite has its own Playwright config that the web suite never collects.
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import type { PlaywrightTestConfig } from '@playwright/test';
 import { describe, expect, it } from 'vitest';
+import webConfig from '../playwright.config.ts';
+import desktopConfig from '../playwright.desktop.config.ts';
 import {
 	buildDesktop,
 	DEFAULT_ENTRY,
@@ -190,5 +194,71 @@ describe('desktop bundle', () => {
 		const at = lines.findIndex((l) => l === '/dist-desktop' || l === '/dist-desktop/');
 		expect(at).toBeGreaterThanOrEqual(0);
 		expect(lines.slice(at + 1).filter((l) => /^!\/?dist-desktop/.test(l))).toEqual([]);
+	});
+});
+
+type FileMatcher = (file: string) => boolean;
+// Playwright's own matcher (lib/util is an exported entry), so the check below
+// collects exactly as `playwright test` would, not as a hand-rolled glob guesses.
+const { createFileMatcher } = createRequire(import.meta.url)('playwright/lib/util') as {
+	createFileMatcher(patterns: string | RegExp | (string | RegExp)[]): FileMatcher;
+};
+/** Playwright's default testMatch. */
+const DEFAULT_TEST_MATCH = '**/*.@(spec|test).?(c|m)[jt]s?(x)';
+
+/** Whether `playwright test --config <config>` would collect `file` (repo-relative). */
+function collects(config: PlaywrightTestConfig, file: string): boolean {
+	const abs = join(ROOT, file);
+	const testDir = resolve(ROOT, config.testDir ?? '.');
+	const rel = relative(testDir, abs);
+	if (rel === '' || rel.startsWith('..') || isAbsolute(rel)) return false;
+	const match = createFileMatcher(config.testMatch ?? DEFAULT_TEST_MATCH);
+	const ignore = createFileMatcher(config.testIgnore ?? []);
+	return match(abs) && !ignore(abs);
+}
+
+describe('playwright config split', () => {
+	const desktopSpecs = readdirSync(join(ROOT, 'e2e', 'desktop'))
+		.filter((name) => name.endsWith('.e2e.ts'))
+		.map((name) => `e2e/desktop/${name}`);
+
+	it('the default config never collects e2e/desktop', () => {
+		expect(desktopSpecs).toContain('e2e/desktop/harness.e2e.ts');
+		for (const file of [...desktopSpecs, 'e2e/desktop/nested/later.e2e.ts']) {
+			expect(collects(webConfig, file), file).toBe(false);
+		}
+		// Control: the web suite is still collected.
+		for (const file of ['e2e/harness.e2e.ts', 'e2e/a11y.e2e.ts']) {
+			expect(collects(webConfig, file), file).toBe(true);
+		}
+	});
+
+	it('the desktop config runs serially with no web server', () => {
+		expect(desktopConfig.webServer).toBeUndefined();
+		expect(desktopConfig.workers).toBe(1);
+		expect(desktopConfig.retries ?? 0).toBe(0);
+	});
+
+	it('the desktop config collects only e2e/desktop', () => {
+		expect(resolve(ROOT, desktopConfig.testDir ?? '.')).toBe(join(ROOT, 'e2e', 'desktop'));
+		for (const file of desktopSpecs) expect(collects(desktopConfig, file), file).toBe(true);
+		for (const file of [
+			'e2e/harness.e2e.ts',
+			'e2e/a11y.e2e.ts',
+			'src/desktop/x.e2e.ts',
+			'e2e/desktop/launch.ts'
+		]) {
+			expect(collects(desktopConfig, file), file).toBe(false);
+		}
+	});
+
+	it('test:e2e:desktop builds both bundles, then runs the desktop config', () => {
+		const steps = (pkg.scripts?.['test:e2e:desktop'] ?? '').split('&&').map((s) => s.trim());
+		expect(steps).toEqual([
+			'vite build',
+			'node scripts/build-desktop.ts',
+			'playwright test --config playwright.desktop.config.ts'
+		]);
+		expect(pkg.scripts?.['test:e2e']).toBe('playwright test');
 	});
 });

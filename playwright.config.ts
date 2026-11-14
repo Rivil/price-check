@@ -26,6 +26,7 @@ export default defineConfig({
 		}
 	},
 	// e2e specs live across the repo; CI caches browsers inside the checkout, so skip that.
-	testIgnore: ['**/.playwright-browsers/**'],
+	// e2e/desktop launches Electron and runs under playwright.desktop.config.ts only.
+	testIgnore: ['**/.playwright-browsers/**', '**/e2e/desktop/**'],
 	testMatch: '**/*.e2e.{ts,js}'
 });
