@@ -59,6 +59,22 @@
         }
       ]
     },
+    "t-12": {
+      "files": [
+        "e2e/packaged/update.packaged.ts",
+        "e2e/packaged/launch-packaged.ts"
+      ],
+      "commit": "be5d71a",
+      "completed_at": "2026-11-14T21:10:32.140499Z",
+      "landmarks": [
+        {
+          "feature": "auto-update",
+          "symbol": "packaged update",
+          "loc": "e2e/packaged/update.packaged.ts:123",
+          "what": "packaged e2e proving B downloads, notifies once, installs and relaunches after A exits on Windows and Linux"
+        }
+      ]
+    },
     "t-13": {
       "files": [
         ".github/workflows/release.yml",
@@ -384,111 +400,38 @@
       ]
     },
     "t-12": {
-      "outcome": "exhausted",
-      "rounds": 2,
-      "cause": "still blocked after the one fix round",
+      "outcome": "pass",
+      "rounds": 1,
       "findings": [
         {
           "round": 1,
           "kind": "quality",
-          "severity": "BLOCKING",
-          "criterion": "c-6",
-          "text": "Uncommented swallowed error at e2e/packaged/launch-packaged.ts:628: stopInstance drops taskkill's failure with .catch(() =\u003e undefined) and no comment saying why. The later isAlive poll catches a survivor, but the taskkill error text is lost. Add a comment giving the reason (e.g. the process is already gone; the poll below decides), or keep the error and put it in the 'still running' exception, as killTree does with its taskkill discard.",
-          "resolution": "unresolved — task failed"
-        },
-        {
-          "round": 1,
-          "kind": "quality",
           "severity": "FLAG",
           "criterion": "c-6",
-          "text": "The 'database is locked' check only reads the output of Playwright launches. The instances the installer or updater relaunch ('relaunch after exit' on Windows, 'restart through the predecessor wait' on Linux) write to stdout/stderr that nothing captures. Those are the instances most likely to race their predecessor for the DB, so a lock error there is only caught indirectly, through the GET / watch-title check.",
+          "text": "The 'database is locked' check (update.packaged.ts 'relaunch is B with its data') only reads output from Playwright launches; the installer-relaunched Windows instance and the updater-started Linux B instance are found through the OS, their output is never captured, and those are the runs most at risk of a lock error (c-6)",
           "resolution": "non-blocking, left"
         },
         {
           "round": 1,
           "kind": "quality",
-          "severity": "FLAG",
+          "severity": "NOTE",
           "criterion": "c-5",
-          "text": "appImageOf (e2e/packaged/launch-packaged.ts:573) maps every /proc/\u003cpid\u003e/environ read failure to null. Its doc comment only explains the 'gone' case; an EACCES would quietly leave the instance out and show up as 'no B process served'.",
+          "text": "integrityCheck (launch-packaged.ts) runs PRAGMA integrity_check in an inline short-lived Node child with the same createDb/databaseUrl imports as seed-child.ts, not through seed-child itself; equivalent in effect, and seed-child.ts is not in this task's files",
           "resolution": "non-blocking, left"
         },
         {
           "round": 1,
           "kind": "quality",
           "severity": "NOTE",
-          "text": "On win32, exitedAt is when the test process saw Playwright's cmd wrapper exit. That is at or after Electron main's real exit, so the c-6 check 'StartTime \u003e exitedAt' can only be stricter than needed, never more lenient.",
-          "resolution": "non-blocking, left"
-        },
-        {
-          "round": 1,
-          "kind": "quality",
-          "severity": "NOTE",
-          "text": "The description says Linux quits 'via app.close()'. The diff calls app.quit() through PackagedApp.quit(), which is what Playwright's close() runs anyway and matches the tray's Quit.",
-          "resolution": "non-blocking, left"
-        },
-        {
-          "round": 1,
-          "kind": "quality",
-          "severity": "NOTE",
-          "text": "feed.requests() records HEAD as well as GET, and strips the query, so electron-updater's noCache query cannot break the launch-check match.",
-          "resolution": "non-blocking, left"
-        },
-        {
-          "round": 2,
-          "kind": "quality",
-          "severity": "BLOCKING",
           "criterion": "c-6",
-          "text": "e2e/packaged/launch-packaged.ts:558 windowsAppInstances runs Get-NetTCPConnection with -ErrorAction SilentlyContinue and no comment. That suppresses the legitimate 'no matching connections' error, but also every real cmdlet failure, which quietly falls back to an empty ListenMap (port null for every instance). The 'relaunch after exit' poll then times out after 180 s with a misleading 'no relaunch served' instead of the real error. Comment the reason, or suppress only the ObjectNotFound case and surface everything else.",
-          "resolution": "unresolved — task failed"
-        },
-        {
-          "round": 2,
-          "kind": "quality",
-          "severity": "FLAG",
-          "criterion": "c-5",
-          "text": "update.packaged.ts 'one notification per version': updater.checkNow() resolves when checkForUpdates settles (checkOnce does not await downloadPromise). With autoDownload on, electron-updater re-validates the cached B and emits update-downloaded again asynchronously, so status().notified is read before a second emit can land. The check could pass even if per-version dedupe were broken. Poll status() for a short window, or wait for the re-download, before asserting notified == [B].",
+          "text": "On win32 exitedAt is when the test saw the launched process exit, which can trail Electron's real exit, so 'StartTime after A's exit' is checked against a later time: stricter, never vacuous",
           "resolution": "non-blocking, left"
         },
         {
-          "round": 2,
-          "kind": "quality",
-          "severity": "FLAG",
-          "text": "e2e/packaged/launch-packaged.ts:690 integrityCheck calls JSON.parse(stdout) inside the execFile callback without try/catch. Non-JSON output (for example a warning written to stdout) throws an uncaught exception in the Playwright worker instead of rejecting the promise with stdout attached.",
-          "resolution": "non-blocking, left"
-        },
-        {
-          "round": 2,
-          "kind": "quality",
-          "severity": "FLAG",
-          "text": "e2e/packaged/launch-packaged.ts:623 isAlive treats any process.kill(pid, 0) error other than EPERM as 'gone', so stopInstance can return without the process being dead. In practice only ESRCH and EPERM occur. Matching ESRCH explicitly and rethrowing anything else would fail loudly.",
-          "resolution": "non-blocking, left"
-        },
-        {
-          "round": 2,
+          "round": 1,
           "kind": "quality",
           "severity": "NOTE",
-          "text": "The integrity check runs PRAGMA integrity_check in an inline short-lived Node child (mirroring seed-child.ts) rather than through seed-child.ts itself. That is consistent with the task's file list, which does not include seed-child.ts.",
-          "resolution": "non-blocking, left"
-        },
-        {
-          "round": 2,
-          "kind": "quality",
-          "severity": "NOTE",
-          "text": "feed.requests() records paths for HEAD as well as GET, so the launch-check assertion proves a request for latest*.yml but not that it was a GET. electron-updater issues a GET, so this is academic.",
-          "resolution": "non-blocking, left"
-        },
-        {
-          "round": 2,
-          "kind": "quality",
-          "severity": "NOTE",
-          "text": "The 'database is locked' scan covers only output from Playwright-launched instances. Output from the installer- or updater-started relaunch is not captured, and the app writes no log file. That relaunch is checked through GET / serving the seeded watch instead.",
-          "resolution": "non-blocking, left"
-        },
-        {
-          "round": 2,
-          "kind": "quality",
-          "severity": "NOTE",
-          "text": "On win32 exitedAt is when the cmd wrapper exits, which comes after Electron's real exit. That makes 'StartTime \u003e exitedAt' stricter, not looser, so the c-6 check stays sound.",
+          "text": "'check at launch' measures LAUNCH_CHECK_MS from launchedAt, which includes up to 60 s of launch wait; a slow launch leaves a 1 ms poll window (false-fail risk only)",
           "resolution": "non-blocking, left"
         }
       ]
