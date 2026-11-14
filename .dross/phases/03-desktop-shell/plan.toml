@@ -331,4 +331,4 @@ files = ["scripts/build-desktop.spec.ts"]
 description = "Verify 03 left 3 Regex survivors on scripts/build-desktop.ts:34 (REFUSED): the spec only tries $app/env, @libsql/client and drizzle-orm/libsql, so the ^ anchor and the bare-name (/|$) alternatives are unpinned. Tests only."
 covers = ["c-1"]
 test_contract = ["if REFUSED loses its ^ anchor, build-desktop.spec fails: a fixture importing a bare package that merely contains libsql/ (e.g. x-libsql/y) builds, staying external", "if REFUSED stops refusing a bare $app or a bare libsql import (the (/|$) alternative cut to /), build-desktop.spec fails: both fail with an error naming the import"]
-status = "pending"
+status = "done"

@@ -236,6 +236,21 @@
         }
       ]
     },
+    "t-21": {
+      "files": [
+        "scripts/build-desktop.spec.ts"
+      ],
+      "commit": "2674302",
+      "completed_at": "2026-11-14T13:46:06.625994Z",
+      "landmarks": [
+        {
+          "feature": "desktop import boundary",
+          "symbol": "REFUSED",
+          "loc": "scripts/build-desktop.ts:34",
+          "what": "spec pins the ^ anchor and bare $app/libsql refusals of the main-bundle import filter"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "src/desktop/app-paths.ts",
@@ -685,6 +700,20 @@
           "severity": "NOTE",
           "criterion": "c-9",
           "text": "The drain test checks getTimerCount() before advancing time, so it also pins clearTimeout(timer) at scheduler.ts:102 in addition to the log condition at :103",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-21": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "New cases pin the ^ anchor for all three alternative families ($app, libsql, drizzle-orm/libsql) and the bare-name (/|$) branch for $app and libsql; drizzle-orm/libsql's bare form was already covered by the existing table row.",
           "resolution": "non-blocking, left"
         }
       ]
