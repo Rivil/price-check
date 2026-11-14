@@ -1,4 +1,4 @@
-task_seq = 16
+task_seq = 21
 [phase]
 id = "03-desktop-shell"
 
@@ -282,3 +282,53 @@ description = "PR #8 run 43597167874 macOS attempt 1 flaked: background.e2e.ts w
 covers = ["c-5", "c-7"]
 test_contract = ["if windows() evaluates isVisible on a destroyed BrowserWindow, background.e2e.ts throws 'Object has been destroyed' intermittently; with the fix, 10 consecutive local runs of background.e2e.ts (--repeat-each 10) all pass", "if PR #8's desktop e2e job on windows-2025, ubuntu or macOS needs a rerun to pass, the task is not done (first attempt must be green)"]
 status = "done"
+
+[[task]]
+id = "t-17"
+wave = 6
+title = "Pin Linux autostart entry and login-item edges"
+files = ["src/desktop/login-item.spec.ts"]
+description = "Verify 03 left 22 login-item.ts survivors (lines 27, 84, 86, 95, 98-105, 112 x10, 169): login-item.spec never asserts the autostart entry's content beyond Exec, so a broken .desktop file would stop Linux start-at-login undetected. Tests only; no production change unless a test exposes a real bug."
+covers = ["c-6"]
+test_contract = ["if autostartEntry drops or changes any line ([Desktop Entry], Type=Application, Version=1.0, Name=Price Check, the Comment line, Terminal=false, X-GNOME-Autostart-enabled=true, trailing newline), login-item.spec fails: assert the whole entry text for a fixed execPath", "if quoteExecArg stops turning a newline into the two characters backslash-n, or a carriage return into backslash-r, inside the quoted Exec argument, login-item.spec fails", "if autostartEntry stops trimming APPIMAGE (a whitespace-only APPIMAGE must fall back to execPath), login-item.spec fails", "if entryDisabled loses its ^ or $ anchors or its \\s* tolerance, login-item.spec fails: a table where 'Hidden=true', 'Hidden = true', '  X-GNOME-Autostart-enabled =false  ' and 'X-GNOME-Autostart-enabled=false' (each inside a full entry) read as off, and 'NoHidden=true', 'X-Hidden=true' and 'X-GNOME-Autostart-enabled=falsey' read as on", "if isEnabled stops returning false on an unpackaged run while the OS (getLoginItemSettings or the autostart file) reports enabled, login-item.spec fails"]
+status = "pending"
+
+[[task]]
+id = "t-18"
+wave = 6
+title = "Pin raw-header rewrite and async handler failure"
+files = ["src/desktop/server.spec.ts"]
+description = "Verify 03 left 9 server.ts survivors (lines 51 x3, 53, 54, 62, 81 x3): server.spec checks req.headers but never req.rawHeaders/headersDistinct, never a handler whose promise rejects (adapter-node's handler is async), and never a throw after headers were sent. Tests only; no production change unless a test exposes a real bug."
+covers = ["c-3", "c-4"]
+test_contract = ["if forcePlainHttp stops rewriting req.rawHeaders (loop skipped, the X-Forwarded-Proto/X-Forwarded-Host filter removed, or the value index off by one), server.spec fails: a request sending X-Forwarded-Proto: https, X-Forwarded-Host: evil.example and X-Test: 1 must reach the handler with headersDistinct['x-forwarded-proto'] exactly ['http'], no x-forwarded-host in headersDistinct, and X-Test and Host present in rawHeaders with their own values", "if a handler that returns a rejecting promise no longer gets a 500 (the .catch dropped, or the instanceof Promise check forced either way), server.spec fails", "if a handler that has already sent headers and then throws gets a 500 attempt instead of the response being destroyed, server.spec fails: the client sees an aborted response and the server still answers the next request"]
+status = "pending"
+
+[[task]]
+id = "t-19"
+wave = 6
+title = "Pin webviewTag off and plain-http external links"
+files = ["src/desktop/window.spec.ts"]
+description = "Verify 03 left 2 window.ts survivors (56 'http:', 101 webviewTag). Decision external_links says off-origin links open in the default browser; window.spec only uses https URLs, and its webPreferences lock-down test never asserts webviewTag. Tests only."
+covers = ["c-5", "c-7"]
+test_contract = ["if windowOptions stops setting webPreferences.webviewTag to false, window.spec fails", "if an off-origin plain http:// link, from window.open or from a will-navigate, is no longer handed to shell.openExternal, window.spec fails"]
+status = "pending"
+
+[[task]]
+id = "t-20"
+wave = 6
+title = "Pin startup error lead, quit guard, scheduler stop"
+files = ["src/desktop/lifecycle.spec.ts", "src/lib/server/scheduler.spec.ts"]
+description = "Verify 03 left 5 lifecycle.ts survivors (131 x2, 132, 167, 208) and 6 scheduler.ts survivors (93 x3, 99 x2, 103). lifecycle.spec never checks which file the startup error dialog leads with, nor that a relaunch during shutdown opens no window; scheduler.spec never checks that stop() disarms the interval (the reviewer's t-2 FLAG) or that a pass finishing in time logs no drain timeout. Tests only."
+covers = ["c-7", "c-8", "c-9"]
+test_contract = ["if a key-stage startup failure's dialog content no longer starts with 'The alerts key file could not be used:' and the keyFile path on the next line (or a server-stage one no longer starts with the dbFile lead), lifecycle.spec fails; the injected error's message must not contain either path", "if a second-instance or activate event that arrives after before-quit started the shutdown shows or creates a window, lifecycle.spec fails", "if stop() on a started scheduler leaves its setInterval armed (fake timers: vi.getTimerCount() is 0 after stop with no pass in flight), scheduler.spec fails", "if stop() logs 'did not finish within' when the in-flight pass settles before drainMs, scheduler.spec fails"]
+status = "pending"
+
+[[task]]
+id = "t-21"
+wave = 6
+title = "Pin desktop import-boundary regex edges"
+files = ["scripts/build-desktop.spec.ts"]
+description = "Verify 03 left 3 Regex survivors on scripts/build-desktop.ts:34 (REFUSED): the spec only tries $app/env, @libsql/client and drizzle-orm/libsql, so the ^ anchor and the bare-name (/|$) alternatives are unpinned. Tests only."
+covers = ["c-1"]
+test_contract = ["if REFUSED loses its ^ anchor, build-desktop.spec fails: a fixture importing a bare package that merely contains libsql/ (e.g. x-libsql/y) builds, staying external", "if REFUSED stops refusing a bare $app or a bare libsql import (the (/|$) alternative cut to /), build-desktop.spec fails: both fail with an error naming the import"]
+status = "pending"

@@ -1,0 +1,6988 @@
+{
+  "phase": "03-desktop-shell",
+  "generated_at": "2026-11-14T13:25:04.041717Z",
+  "languages": [
+    {
+      "name": "typescript",
+      "tool": "stryker",
+      "files": [
+        "e2e/desktop/background.e2e.ts",
+        "e2e/desktop/first-run.e2e.ts",
+        "e2e/desktop/guard.e2e.ts",
+        "e2e/desktop/harness.e2e.ts",
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/quit-relaunch.e2e.ts",
+        "e2e/desktop/seed-child.ts",
+        "playwright.config.ts",
+        "playwright.desktop.config.ts",
+        "scripts/build-desktop.spec.ts",
+        "scripts/build-desktop.ts",
+        "scripts/ci-desktop.spec.ts",
+        "scripts/gitleaks-config.spec.ts",
+        "src/desktop/alerts-key.spec.ts",
+        "src/desktop/alerts-key.ts",
+        "src/desktop/app-paths.spec.ts",
+        "src/desktop/app-paths.ts",
+        "src/desktop/boundary.spec.ts",
+        "src/desktop/lifecycle.spec.ts",
+        "src/desktop/lifecycle.ts",
+        "src/desktop/login-item.spec.ts",
+        "src/desktop/login-item.ts",
+        "src/desktop/main.ts",
+        "src/desktop/server-env.spec.ts",
+        "src/desktop/server-env.ts",
+        "src/desktop/server.spec.ts",
+        "src/desktop/server.ts",
+        "src/desktop/testing/fake-handler.ts",
+        "src/desktop/tray.spec.ts",
+        "src/desktop/tray.ts",
+        "src/desktop/window.spec.ts",
+        "src/desktop/window.ts",
+        "src/hooks.server.spec.ts",
+        "src/hooks.server.ts",
+        "src/lib/server/runtime-bridge.spec.ts",
+        "src/lib/server/runtime-bridge.ts",
+        "src/lib/server/scheduler.spec.ts",
+        "src/lib/server/scheduler.ts"
+      ],
+      "mutation": {
+        "Tool": "stryker",
+        "Killed": 496,
+        "Survived": 149,
+        "Timeout": 3,
+        "Errors": 0,
+        "Score": 0.7654320987654321,
+        "Surviving": [
+          {
+            "File": "src/lib/server/scheduler.ts",
+            "Line": 82,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "68ab1882916c3b67",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: tick() returns at once while stopped, so a followUp set or kept after stop() can never start a pass."
+          },
+          {
+            "File": "src/lib/server/scheduler.ts",
+            "Line": 92,
+            "Op": "BooleanLiteral",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "b28f3c24ef003a03",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: tick() returns at once while stopped, so a followUp set or kept after stop() can never start a pass."
+          },
+          {
+            "File": "src/lib/server/scheduler.ts",
+            "Line": 93,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "cb9cce29bafc1dff",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/lib/server/scheduler.ts",
+            "Line": 93,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "cb9cce29bafc1dff",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/lib/server/scheduler.ts",
+            "Line": 93,
+            "Op": "EqualityOperator",
+            "Snippet": "interval === null",
+            "Origin": "in-hunk",
+            "Key": "bd796426e110e05d",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/lib/server/scheduler.ts",
+            "Line": 103,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "02ce7ca0b3cf0d5f",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/lib/server/scheduler.ts",
+            "Line": 99,
+            "Op": "ArrowFunction",
+            "Snippet": "() =\u003e undefined",
+            "Origin": "in-hunk",
+            "Key": "5d16404ef90a4974",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/lib/server/scheduler.ts",
+            "Line": 99,
+            "Op": "BooleanLiteral",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "f0aa0b414456bce2",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 81,
+            "Op": "ArrowFunction",
+            "Snippet": "() =\u003e undefined",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "89f002ae7480dfc6",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 51,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "89011207f83d607b",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 51,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "dca00d0e92a9e6fb",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 38,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "48aa8dd11e051ca5",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 53,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "c71ab6e4ddbaed0b",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 54,
+            "Op": "ArithmeticOperator",
+            "Snippet": "i - 1",
+            "Origin": "in-hunk",
+            "Key": "0582b811bfdb2de4",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 51,
+            "Op": "EqualityOperator",
+            "Snippet": "i \u003e= req.rawHeaders.length",
+            "Origin": "in-hunk",
+            "Key": "6bea00188ea70db8",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 61,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "beff93833ef79b51",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 63,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "6267d7b0b7dd66f7",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 62,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "e333e2948188ee73",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 77,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "03b19bccd05c3053",
+            "Lifecycle": "accepted",
+            "Note": "next() is only reached when the handler declines a request; adapter-node's handler never calls next after ending the response, so the writableEnded guard never changes an outcome."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 81,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "794797731df8a606",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 81,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "794797731df8a606",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 88,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "7565d901d08cc046",
+            "Lifecycle": "accepted",
+            "Note": "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 90,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "a5da1890d023603d",
+            "Lifecycle": "accepted",
+            "Note": "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
+          },
+          {
+            "File": "src/desktop/server.ts",
+            "Line": 119,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "8fe9f2c38e0ff2e8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: deleting every variable and then Object.assign(process.env, env) leaves process.env equal to env, the same as deleting only those absent from env."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 79,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "5a1e89931b47ced1",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 80,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "63a4c190849381ad",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 78,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "dc1b1af7136c0004",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 87,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "20aa20157d747f8e",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 101,
+            "Op": "BooleanLiteral",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "71d9d52a7fa974cb",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 147,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "42a99ea3e2844d9b",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 148,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "8c96b0e42ef203d8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 148,
+            "Op": "EqualityOperator",
+            "Snippet": "state.window !== created",
+            "Origin": "in-hunk",
+            "Key": "e56a1a5bbc9fc131",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 113,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "37def2591c9a9102",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 147,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "31492305523989f5",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 148,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "8c96b0e42ef203d8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 130,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "88ba330aa8026940",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 19,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "ee3b0511ff0cda34",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/window.ts",
+            "Line": 56,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "537a7b6fb80cfb9f",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 23,
+            "Op": "OptionalChaining",
+            "Snippet": "(error as NodeJS.ErrnoException | undefined).code",
+            "Origin": "in-hunk",
+            "Key": "adf376c4546d03b5",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 35,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "ebccb95ca4998c1a",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 31,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "82d084e92b9def6c",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 34,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "5f21d05d73e547dc",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 36,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "327eca6678f6b0e8",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 46,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "cd3b19658cb89eb3",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 52,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "f72eea9f89a5550b",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 53,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "d804617b07ee19ca",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 53,
+            "Op": "EqualityOperator",
+            "Snippet": "process.platform !== 'win32'",
+            "Origin": "in-hunk",
+            "Key": "c916bd26691573c7",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 53,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "d804617b07ee19ca",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 53,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "3bd26808560d55d1",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 55,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "1701741f079e37e4",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 57,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "456ac163283b77bf",
+            "Lifecycle": "accepted",
+            "Note": "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 73,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "601eb8d3d40eb855",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 75,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "7adfcf737e75d375",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 81,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "8478b3cd9e54d8be",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 88,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "95c5b3c7bf6a7879",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 88,
+            "Op": "BooleanLiteral",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "2f6a48107591a868",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/alerts-key.ts",
+            "Line": 100,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "7bf10e2565d2d61e",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 109,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "e78f9be146d52499",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 118,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "42901f1b53b9b5ea",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 119,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "Origin": "in-hunk",
+            "Key": "3680405b3a8bbe62",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 131,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "0362aa9d872bc084",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 131,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "58702bb169945291",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 132,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "Origin": "in-hunk",
+            "Key": "146f3737bc35f974",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 135,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "Origin": "in-hunk",
+            "Key": "c301044ff5eb8ee2",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 138,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "673ecfa924b64bd3",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 139,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "963ca174c8874673",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 157,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "28319e8d25644b20",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 167,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "7dfc1ea9981c1b80",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 168,
+            "Op": "LogicalOperator",
+            "Snippet": "!running.ready \u0026\u0026 running.server === null",
+            "Origin": "in-hunk",
+            "Key": "71c391493b922ba9",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 168,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "bc96a77e858aabdd",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 177,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "e1e204b3fe674130",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 178,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "7ff998abd0f89e94",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 178,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "61950c81be14a669",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 179,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "8a623c770e7cfe17",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 179,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "cca13982bf5e04ba",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 192,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "Origin": "in-hunk",
+            "Key": "a6f27f3fbb6da065",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 208,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "c09e9231916ab4fe",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 217,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "125a9fbe0185dc27",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 160,
+            "Op": "BooleanLiteral",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "5fc33fef75d73b35",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 223,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "0188855cb6fa56ec",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 226,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "5dda0ee0870dde5b",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 177,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "1aca24ef5d5114c8",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 227,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "d7c7f995c082ed25",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 239,
+            "Op": "BooleanLiteral",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "325c9379b7d2fd52",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "src/desktop/lifecycle.ts",
+            "Line": 34,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "fde40685676f11cf",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 86,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "a0ec46b0f49c51ea",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 95,
+            "Op": "MethodExpression",
+            "Snippet": "env.APPIMAGE",
+            "Origin": "in-hunk",
+            "Key": "c71c97ced996c5f9",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 98,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "60b09042f83e516d",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 99,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "2eca39cf0cd5beaf",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 100,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "5556719a0c6dfb40",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 101,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "Origin": "in-hunk",
+            "Key": "ae8e698e90f1bb39",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 102,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "d600542099d40b1e",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 104,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "644a02ade01440b6",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 105,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "8aab167a541d5851",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 112,
+            "Op": "Regex",
+            "Snippet": "/\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s*$/m",
+            "Origin": "in-hunk",
+            "Key": "6ac6b7d5dee4c210",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 112,
+            "Op": "Regex",
+            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s*/m",
+            "Origin": "in-hunk",
+            "Key": "6ac6b7d5dee4c210",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 112,
+            "Op": "Regex",
+            "Snippet": "/^\\S*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s*$/m",
+            "Origin": "in-hunk",
+            "Key": "6ac6b7d5dee4c210",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 112,
+            "Op": "Regex",
+            "Snippet": "/^\\s*(Hidden\\S*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s*$/m",
+            "Origin": "in-hunk",
+            "Key": "6ac6b7d5dee4c210",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 112,
+            "Op": "Regex",
+            "Snippet": "/^\\s*(Hidden\\s*=\\S*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s*$/m",
+            "Origin": "in-hunk",
+            "Key": "6ac6b7d5dee4c210",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 112,
+            "Op": "Regex",
+            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s=\\s*false)\\s*$/m",
+            "Origin": "in-hunk",
+            "Key": "6ac6b7d5dee4c210",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 112,
+            "Op": "Regex",
+            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\S*=\\s*false)\\s*$/m",
+            "Origin": "in-hunk",
+            "Key": "6ac6b7d5dee4c210",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 112,
+            "Op": "Regex",
+            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\sfalse)\\s*$/m",
+            "Origin": "in-hunk",
+            "Key": "6ac6b7d5dee4c210",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 112,
+            "Op": "Regex",
+            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\S*false)\\s*$/m",
+            "Origin": "in-hunk",
+            "Key": "6ac6b7d5dee4c210",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 112,
+            "Op": "Regex",
+            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\s$/m",
+            "Origin": "in-hunk",
+            "Key": "6ac6b7d5dee4c210",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 112,
+            "Op": "Regex",
+            "Snippet": "/^\\s*(Hidden\\s*=\\s*true|X-GNOME-Autostart-enabled\\s*=\\s*false)\\S*$/m",
+            "Origin": "in-hunk",
+            "Key": "6ac6b7d5dee4c210",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 127,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "ae1376eefcc00ae9",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 139,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "234c4002b93688bc",
+            "Lifecycle": "accepted",
+            "Note": "rmSync without force throws only when the autostart entry is already gone; the tray catches a throwing setEnabled and re-reads the OS state (tray.spec 'a throwing setEnabled leaves the checkbox showing the real OS state')."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 139,
+            "Op": "BooleanLiteral",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "79f97e72119c4f05",
+            "Lifecycle": "accepted",
+            "Note": "rmSync without force throws only when the autostart entry is already gone; the tray catches a throwing setEnabled and re-reads the OS state (tray.spec 'a throwing setEnabled leaves the checkbox showing the real OS state')."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 84,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "3441cf6d400b551b",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 149,
+            "Op": "BooleanLiteral",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "295d2a80ae1ccf6a",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 150,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "Origin": "in-hunk",
+            "Key": "efa2fd090be820fc",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 137,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "9578f8b06c9a7f78",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 150,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "efa2fd090be820fc",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 149,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "f5938f375cbf8833",
+            "Lifecycle": "accepted",
+            "Note": "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 169,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "7d4474ce391e5322",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/login-item.ts",
+            "Line": 27,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "56123fa545ff1e81",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "src/desktop/tray.ts",
+            "Line": 92,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "a33b0ef6ee785bdc",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "src/desktop/tray.ts",
+            "Line": 19,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "99503e9f5613e260",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 87,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "d17f9ef681f848d3",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 87,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "d17f9ef681f848d3",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 87,
+            "Op": "LogicalOperator",
+            "Snippet": "process.argv[1] !== undefined || resolve(process.argv[1]) === fileURLToPath(import.meta.url)",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "a530737a02a833f6",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 87,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "d17f9ef681f848d3",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 87,
+            "Op": "EqualityOperator",
+            "Snippet": "process.argv[1] === undefined",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "c6988fe142ca9a8b",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 87,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "d17f9ef681f848d3",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 87,
+            "Op": "EqualityOperator",
+            "Snippet": "resolve(process.argv[1]) !== fileURLToPath(import.meta.url)",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "c6988fe142ca9a8b",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 88,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "70f2570b456e2308",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 89,
+            "Op": "LogicalOperator",
+            "Snippet": "process.argv[2] \u0026\u0026 DEFAULT_ENTRY",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "82abf81bc782e98a",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 90,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "98939a722e7e2e8f",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 92,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "530d17401ce2e50e",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 92,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "1f3dbc2c406a96ec",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 93,
+            "Op": "StringLiteral",
+            "Snippet": "``",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "83dbc10d4272a961",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 94,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "0db9c17aa5cdde7f",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 38,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "f508b1d54dec9e9c",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 37,
+            "Op": "MethodExpression",
+            "Snippet": "path.endsWith('$app')",
+            "Origin": "in-hunk",
+            "Key": "b34695ae66c06cb3",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 37,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "326a82f4fb55a978",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 39,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "c62c15842122cc33",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 36,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "in-hunk",
+            "Key": "8738e239eb26916d",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 71,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "8fe384b1130090e3",
+            "Lifecycle": "accepted",
+            "Note": "esbuild target only controls syntax lowering; Electron 45's Node 24 runs the untransformed output, so an empty target builds an equivalent bundle."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 75,
+            "Op": "BooleanLiteral",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "c4e13500029cafd1",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 75,
+            "Op": "LogicalOperator",
+            "Snippet": "input.write \u0026\u0026 true",
+            "Origin": "in-hunk",
+            "Key": "1a0fc9747b313eac",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 76,
+            "Op": "LogicalOperator",
+            "Snippet": "input.logLevel \u0026\u0026 'silent'",
+            "Origin": "in-hunk",
+            "Key": "bad496f7ddbf1c6c",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 76,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "2cd819635311b9c6",
+            "Lifecycle": "accepted",
+            "Note": "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 28,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "34d06b2bfb21d7e3",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 34,
+            "Op": "Regex",
+            "Snippet": "/(\\$app(\\/|$)|@libsql\\/|libsql(\\/|$)|drizzle-orm\\/libsql(\\/|$))/",
+            "Origin": "in-hunk",
+            "Key": "09e133641f288ba9",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 34,
+            "Op": "Regex",
+            "Snippet": "/^(\\$app(\\/)|@libsql\\/|libsql(\\/|$)|drizzle-orm\\/libsql(\\/|$))/",
+            "Origin": "in-hunk",
+            "Key": "09e133641f288ba9",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 34,
+            "Op": "Regex",
+            "Snippet": "/^(\\$app(\\/|$)|@libsql\\/|libsql(\\/)|drizzle-orm\\/libsql(\\/|$))/",
+            "Origin": "in-hunk",
+            "Key": "09e133641f288ba9",
+            "Lifecycle": "in-diff",
+            "Note": ""
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 86,
+            "Op": "LogicalOperator",
+            "Snippet": "import.meta.main \u0026\u0026 process.argv[1] !== undefined \u0026\u0026 resolve(process.argv[1]) === fileURLToPath(import.meta.url)",
+            "Origin": "in-hunk",
+            "Key": "7ff2b522b2811b69",
+            "Lifecycle": "accepted",
+            "Note": "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 88,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "b8701de8eb8e62ff",
+            "Lifecycle": "accepted",
+            "Note": "isEntry forced true runs one extra real build when a spec imports the module, and forced false skips the CLI build; the first changes no assertion, the second fails pnpm test:e2e:desktop and CI (no dist-desktop/main.js on a fresh checkout)."
+          },
+          {
+            "File": "scripts/build-desktop.ts",
+            "Line": 88,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "b8701de8eb8e62ff",
+            "Lifecycle": "accepted",
+            "Note": "isEntry forced true runs one extra real build when a spec imports the module, and forced false skips the CLI build; the first changes no assertion, the second fails pnpm test:e2e:desktop and CI (no dist-desktop/main.js on a fresh checkout)."
+          }
+        ],
+        "NotCovered": 17
+      },
+      "measured_on": "local",
+      "ranges": {
+        "e2e/desktop/background.e2e.ts": [
+          {
+            "start": 1,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 25,
+            "end": 34,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 35,
+            "end": 36,
+            "construct": "hunk"
+          },
+          {
+            "start": 37,
+            "end": 52,
+            "construct": "VariableDeclaration WATCHES"
+          },
+          {
+            "start": 53,
+            "end": 53,
+            "construct": "hunk"
+          },
+          {
+            "start": 54,
+            "end": 54,
+            "construct": "VariableDeclaration DAY_MS"
+          },
+          {
+            "start": 55,
+            "end": 55,
+            "construct": "VariableDeclaration RESUME_PASS_TIMEOUT_MS"
+          },
+          {
+            "start": 56,
+            "end": 56,
+            "construct": "VariableDeclaration SECOND_INSTANCE_EXIT_MS"
+          },
+          {
+            "start": 57,
+            "end": 57,
+            "construct": "VariableDeclaration WINDOW_TIMEOUT_MS"
+          },
+          {
+            "start": 58,
+            "end": 58,
+            "construct": "VariableDeclaration LISTENING_LINE"
+          },
+          {
+            "start": 59,
+            "end": 59,
+            "construct": "hunk"
+          },
+          {
+            "start": 60,
+            "end": 60,
+            "construct": "TSTypeAliasDeclaration WindowInfo"
+          },
+          {
+            "start": 61,
+            "end": 68,
+            "construct": "hunk"
+          },
+          {
+            "start": 69,
+            "end": 77,
+            "construct": "VariableDeclaration windows"
+          },
+          {
+            "start": 78,
+            "end": 79,
+            "construct": "hunk"
+          },
+          {
+            "start": 80,
+            "end": 84,
+            "construct": "FunctionDeclaration expectOneWindow"
+          },
+          {
+            "start": 85,
+            "end": 86,
+            "construct": "hunk"
+          },
+          {
+            "start": 87,
+            "end": 94,
+            "construct": "FunctionDeclaration closeWindows"
+          },
+          {
+            "start": 95,
+            "end": 95,
+            "construct": "hunk"
+          },
+          {
+            "start": 96,
+            "end": 99,
+            "construct": "VariableDeclaration isRunning"
+          },
+          {
+            "start": 100,
+            "end": 100,
+            "construct": "hunk"
+          },
+          {
+            "start": 101,
+            "end": 102,
+            "construct": "VariableDeclaration health"
+          },
+          {
+            "start": 103,
+            "end": 104,
+            "construct": "hunk"
+          },
+          {
+            "start": 105,
+            "end": 112,
+            "construct": "FunctionDeclaration failureRows"
+          },
+          {
+            "start": 113,
+            "end": 113,
+            "construct": "hunk"
+          },
+          {
+            "start": 114,
+            "end": 115,
+            "construct": "VariableDeclaration failureCounts"
+          },
+          {
+            "start": 116,
+            "end": 120,
+            "construct": "hunk"
+          },
+          {
+            "start": 121,
+            "end": 121,
+            "construct": "VariableDeclaration seedWatches"
+          },
+          {
+            "start": 122,
+            "end": 123,
+            "construct": "hunk"
+          },
+          {
+            "start": 124,
+            "end": 129,
+            "construct": "VariableDeclaration ageLastChecks"
+          },
+          {
+            "start": 130,
+            "end": 131,
+            "construct": "hunk"
+          },
+          {
+            "start": 132,
+            "end": 140,
+            "construct": "FunctionDeclaration exitOf"
+          },
+          {
+            "start": 141,
+            "end": 142,
+            "construct": "hunk"
+          },
+          {
+            "start": 143,
+            "end": 152,
+            "construct": "FunctionDeclaration relaunch"
+          },
+          {
+            "start": 153,
+            "end": 153,
+            "construct": "hunk"
+          },
+          {
+            "start": 154,
+            "end": 192,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 193,
+            "end": 193,
+            "construct": "hunk"
+          },
+          {
+            "start": 194,
+            "end": 215,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 216,
+            "end": 216,
+            "construct": "hunk"
+          },
+          {
+            "start": 217,
+            "end": 254,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "e2e/desktop/first-run.e2e.ts": [
+          {
+            "start": 1,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 14,
+            "end": 20,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 21,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "VariableDeclaration POISONED_KEY"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "VariableDeclaration sha256"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "hunk"
+          },
+          {
+            "start": 27,
+            "end": 88,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "e2e/desktop/guard.e2e.ts": [
+          {
+            "start": 1,
+            "end": 12,
+            "construct": "hunk"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 19,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "VariableDeclaration TOPIC"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "VariableDeclaration FORGED_TOPIC"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "VariableDeclaration UNSUPPORTED_URL"
+          },
+          {
+            "start": 26,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "VariableDeclaration KIT_CSRF"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "hunk"
+          },
+          {
+            "start": 30,
+            "end": 30,
+            "construct": "VariableDeclaration IMMUTABLE_DIR"
+          },
+          {
+            "start": 31,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 33,
+            "end": 49,
+            "construct": "FunctionDeclaration immutableAssetPath"
+          },
+          {
+            "start": 50,
+            "end": 54,
+            "construct": "hunk"
+          },
+          {
+            "start": 55,
+            "end": 55,
+            "construct": "VariableDeclaration snapshot"
+          },
+          {
+            "start": 56,
+            "end": 56,
+            "construct": "hunk"
+          },
+          {
+            "start": 57,
+            "end": 57,
+            "construct": "VariableDeclaration loopbackHost"
+          },
+          {
+            "start": 58,
+            "end": 59,
+            "construct": "hunk"
+          },
+          {
+            "start": 60,
+            "end": 74,
+            "construct": "FunctionDeclaration rawFormPost"
+          },
+          {
+            "start": 75,
+            "end": 75,
+            "construct": "hunk"
+          },
+          {
+            "start": 76,
+            "end": 76,
+            "construct": "TSTypeAliasDeclaration ConnectOutcome"
+          },
+          {
+            "start": 77,
+            "end": 78,
+            "construct": "hunk"
+          },
+          {
+            "start": 79,
+            "end": 92,
+            "construct": "FunctionDeclaration tryConnect"
+          },
+          {
+            "start": 93,
+            "end": 94,
+            "construct": "hunk"
+          },
+          {
+            "start": 95,
+            "end": 101,
+            "construct": "FunctionDeclaration externalIPv4"
+          },
+          {
+            "start": 102,
+            "end": 102,
+            "construct": "hunk"
+          },
+          {
+            "start": 103,
+            "end": 103,
+            "construct": "VariableDeclaration ntfyCard"
+          },
+          {
+            "start": 104,
+            "end": 104,
+            "construct": "hunk"
+          },
+          {
+            "start": 105,
+            "end": 217,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 218,
+            "end": 218,
+            "construct": "hunk"
+          },
+          {
+            "start": 219,
+            "end": 238,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "e2e/desktop/harness.e2e.ts": [
+          {
+            "start": 1,
+            "end": 7,
+            "construct": "hunk"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 24,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "hunk"
+          },
+          {
+            "start": 26,
+            "end": 30,
+            "construct": "VariableDeclaration PARENT_ENV"
+          },
+          {
+            "start": 31,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 33,
+            "end": 44,
+            "construct": "FunctionDeclaration withParentEnv"
+          },
+          {
+            "start": 45,
+            "end": 45,
+            "construct": "hunk"
+          },
+          {
+            "start": 46,
+            "end": 47,
+            "construct": "VariableDeclaration mainEnv"
+          },
+          {
+            "start": 48,
+            "end": 48,
+            "construct": "hunk"
+          },
+          {
+            "start": 49,
+            "end": 52,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 53,
+            "end": 53,
+            "construct": "hunk"
+          },
+          {
+            "start": 54,
+            "end": 58,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 59,
+            "end": 59,
+            "construct": "hunk"
+          },
+          {
+            "start": 60,
+            "end": 68,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 69,
+            "end": 69,
+            "construct": "hunk"
+          },
+          {
+            "start": 70,
+            "end": 116,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 117,
+            "end": 117,
+            "construct": "hunk"
+          },
+          {
+            "start": 118,
+            "end": 136,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 137,
+            "end": 137,
+            "construct": "hunk"
+          },
+          {
+            "start": 138,
+            "end": 150,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 151,
+            "end": 151,
+            "construct": "hunk"
+          },
+          {
+            "start": 152,
+            "end": 162,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "e2e/desktop/launch.ts": [
+          {
+            "start": 1,
+            "end": 17,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 28,
+            "end": 31,
+            "construct": "hunk"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "VariableDeclaration REPO_ROOT"
+          },
+          {
+            "start": 33,
+            "end": 33,
+            "construct": "VariableDeclaration SEED_CHILD"
+          },
+          {
+            "start": 34,
+            "end": 34,
+            "construct": "VariableDeclaration MAIN_JS"
+          },
+          {
+            "start": 35,
+            "end": 35,
+            "construct": "VariableDeclaration HANDLER_JS"
+          },
+          {
+            "start": 36,
+            "end": 36,
+            "construct": "ExportNamedDeclaration"
+          },
+          {
+            "start": 37,
+            "end": 38,
+            "construct": "hunk"
+          },
+          {
+            "start": 39,
+            "end": 51,
+            "construct": "VariableDeclaration INHERITED_ENV"
+          },
+          {
+            "start": 52,
+            "end": 53,
+            "construct": "hunk"
+          },
+          {
+            "start": 54,
+            "end": 56,
+            "construct": "FunctionDeclaration electronArgs"
+          },
+          {
+            "start": 57,
+            "end": 61,
+            "construct": "hunk"
+          },
+          {
+            "start": 62,
+            "end": 68,
+            "construct": "FunctionDeclaration treeKillCommand"
+          },
+          {
+            "start": 69,
+            "end": 73,
+            "construct": "hunk"
+          },
+          {
+            "start": 74,
+            "end": 86,
+            "construct": "FunctionDeclaration runSeedChild"
+          },
+          {
+            "start": 87,
+            "end": 88,
+            "construct": "hunk"
+          },
+          {
+            "start": 89,
+            "end": 95,
+            "construct": "TSTypeAliasDeclaration SeedWatch"
+          },
+          {
+            "start": 96,
+            "end": 100,
+            "construct": "hunk"
+          },
+          {
+            "start": 101,
+            "end": 107,
+            "construct": "FunctionDeclaration insertWatches"
+          },
+          {
+            "start": 108,
+            "end": 109,
+            "construct": "hunk"
+          },
+          {
+            "start": 110,
+            "end": 118,
+            "construct": "FunctionDeclaration seedWatches"
+          },
+          {
+            "start": 119,
+            "end": 120,
+            "construct": "hunk"
+          },
+          {
+            "start": 121,
+            "end": 123,
+            "construct": "FunctionDeclaration ageLastChecks"
+          },
+          {
+            "start": 124,
+            "end": 125,
+            "construct": "hunk"
+          },
+          {
+            "start": 126,
+            "end": 129,
+            "construct": "TSTypeAliasDeclaration DbSnapshot"
+          },
+          {
+            "start": 130,
+            "end": 131,
+            "construct": "hunk"
+          },
+          {
+            "start": 132,
+            "end": 134,
+            "construct": "FunctionDeclaration dbSnapshot"
+          },
+          {
+            "start": 135,
+            "end": 136,
+            "construct": "hunk"
+          },
+          {
+            "start": 137,
+            "end": 144,
+            "construct": "FunctionDeclaration watchUrls"
+          },
+          {
+            "start": 145,
+            "end": 146,
+            "construct": "hunk"
+          },
+          {
+            "start": 147,
+            "end": 147,
+            "construct": "VariableDeclaration LISTENING"
+          },
+          {
+            "start": 148,
+            "end": 148,
+            "construct": "hunk"
+          },
+          {
+            "start": 149,
+            "end": 149,
+            "construct": "VariableDeclaration DEFAULT_TIMEOUT_MS"
+          },
+          {
+            "start": 150,
+            "end": 150,
+            "construct": "VariableDeclaration CLOSE_TIMEOUT_MS"
+          },
+          {
+            "start": 151,
+            "end": 152,
+            "construct": "hunk"
+          },
+          {
+            "start": 153,
+            "end": 155,
+            "construct": "FunctionDeclaration makeTempDir"
+          },
+          {
+            "start": 156,
+            "end": 156,
+            "construct": "hunk"
+          },
+          {
+            "start": 157,
+            "end": 157,
+            "construct": "TSTypeAliasDeclaration SchedulerMode"
+          },
+          {
+            "start": 158,
+            "end": 158,
+            "construct": "hunk"
+          },
+          {
+            "start": 159,
+            "end": 164,
+            "construct": "TSTypeAliasDeclaration DesktopEnvInput"
+          },
+          {
+            "start": 165,
+            "end": 166,
+            "construct": "hunk"
+          },
+          {
+            "start": 167,
+            "end": 182,
+            "construct": "FunctionDeclaration desktopEnv"
+          },
+          {
+            "start": 183,
+            "end": 188,
+            "construct": "hunk"
+          },
+          {
+            "start": 189,
+            "end": 197,
+            "construct": "FunctionDeclaration assertOnlyUnsupportedWatches"
+          },
+          {
+            "start": 198,
+            "end": 198,
+            "construct": "hunk"
+          },
+          {
+            "start": 199,
+            "end": 209,
+            "construct": "TSTypeAliasDeclaration LaunchOptions"
+          },
+          {
+            "start": 210,
+            "end": 210,
+            "construct": "hunk"
+          },
+          {
+            "start": 211,
+            "end": 230,
+            "construct": "TSTypeAliasDeclaration DesktopApp"
+          },
+          {
+            "start": 231,
+            "end": 231,
+            "construct": "hunk"
+          },
+          {
+            "start": 232,
+            "end": 240,
+            "construct": "FunctionDeclaration collectOutput"
+          },
+          {
+            "start": 241,
+            "end": 241,
+            "construct": "hunk"
+          },
+          {
+            "start": 242,
+            "end": 242,
+            "construct": "VariableDeclaration tail"
+          },
+          {
+            "start": 243,
+            "end": 244,
+            "construct": "hunk"
+          },
+          {
+            "start": 245,
+            "end": 280,
+            "construct": "FunctionDeclaration waitForListening"
+          },
+          {
+            "start": 281,
+            "end": 281,
+            "construct": "hunk"
+          },
+          {
+            "start": 282,
+            "end": 285,
+            "construct": "FunctionDeclaration exited"
+          },
+          {
+            "start": 286,
+            "end": 287,
+            "construct": "hunk"
+          },
+          {
+            "start": 288,
+            "end": 299,
+            "construct": "FunctionDeclaration killTree"
+          },
+          {
+            "start": 300,
+            "end": 300,
+            "construct": "hunk"
+          },
+          {
+            "start": 301,
+            "end": 307,
+            "construct": "FunctionDeclaration assertBuilt"
+          },
+          {
+            "start": 308,
+            "end": 309,
+            "construct": "hunk"
+          },
+          {
+            "start": 310,
+            "end": 367,
+            "construct": "FunctionDeclaration launchDesktop"
+          },
+          {
+            "start": 368,
+            "end": 373,
+            "construct": "hunk"
+          },
+          {
+            "start": 374,
+            "end": 393,
+            "construct": "FunctionDeclaration quit"
+          },
+          {
+            "start": 394,
+            "end": 394,
+            "construct": "hunk"
+          },
+          {
+            "start": 395,
+            "end": 402,
+            "construct": "TSTypeAliasDeclaration SecondInstance"
+          },
+          {
+            "start": 403,
+            "end": 407,
+            "construct": "hunk"
+          },
+          {
+            "start": 408,
+            "end": 429,
+            "construct": "FunctionDeclaration spawnSecondInstance"
+          },
+          {
+            "start": 430,
+            "end": 430,
+            "construct": "hunk"
+          },
+          {
+            "start": 431,
+            "end": 435,
+            "construct": "TSTypeAliasDeclaration RawResponse"
+          },
+          {
+            "start": 436,
+            "end": 436,
+            "construct": "hunk"
+          },
+          {
+            "start": 437,
+            "end": 443,
+            "construct": "TSTypeAliasDeclaration RawRequest"
+          },
+          {
+            "start": 444,
+            "end": 448,
+            "construct": "hunk"
+          },
+          {
+            "start": 449,
+            "end": 478,
+            "construct": "FunctionDeclaration rawRequest"
+          }
+        ],
+        "e2e/desktop/quit-relaunch.e2e.ts": [
+          {
+            "start": 1,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 22,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 23,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "VariableDeclaration TOPIC"
+          },
+          {
+            "start": 26,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 34,
+            "construct": "VariableDeclaration WATCH"
+          },
+          {
+            "start": 35,
+            "end": 35,
+            "construct": "hunk"
+          },
+          {
+            "start": 36,
+            "end": 36,
+            "construct": "VariableDeclaration QUIT_TIMEOUT_MS"
+          },
+          {
+            "start": 37,
+            "end": 37,
+            "construct": "VariableDeclaration DB_LOCKED"
+          },
+          {
+            "start": 38,
+            "end": 38,
+            "construct": "hunk"
+          },
+          {
+            "start": 39,
+            "end": 42,
+            "construct": "VariableDeclaration keyHash"
+          },
+          {
+            "start": 43,
+            "end": 43,
+            "construct": "hunk"
+          },
+          {
+            "start": 44,
+            "end": 44,
+            "construct": "TSTypeAliasDeclaration Exit"
+          },
+          {
+            "start": 45,
+            "end": 46,
+            "construct": "hunk"
+          },
+          {
+            "start": 47,
+            "end": 65,
+            "construct": "FunctionDeclaration quitThroughApp"
+          },
+          {
+            "start": 66,
+            "end": 66,
+            "construct": "hunk"
+          },
+          {
+            "start": 67,
+            "end": 71,
+            "construct": "FunctionDeclaration openAlerts"
+          },
+          {
+            "start": 72,
+            "end": 72,
+            "construct": "hunk"
+          },
+          {
+            "start": 73,
+            "end": 73,
+            "construct": "VariableDeclaration ntfyCard"
+          },
+          {
+            "start": 74,
+            "end": 74,
+            "construct": "hunk"
+          },
+          {
+            "start": 75,
+            "end": 120,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "e2e/desktop/seed-child.ts": [
+          {
+            "start": 1,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "VariableDeclaration REPO_ROOT"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "VariableDeclaration OPS"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "TSTypeAliasDeclaration Op"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "hunk"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "VariableDeclaration"
+          },
+          {
+            "start": 28,
+            "end": 30,
+            "construct": "IfStatement"
+          },
+          {
+            "start": 31,
+            "end": 31,
+            "construct": "hunk"
+          },
+          {
+            "start": 32,
+            "end": 36,
+            "construct": "FunctionDeclaration parsed"
+          },
+          {
+            "start": 37,
+            "end": 37,
+            "construct": "hunk"
+          },
+          {
+            "start": 38,
+            "end": 39,
+            "construct": "VariableDeclaration isRecord"
+          },
+          {
+            "start": 40,
+            "end": 40,
+            "construct": "hunk"
+          },
+          {
+            "start": 41,
+            "end": 41,
+            "construct": "VariableDeclaration db"
+          },
+          {
+            "start": 42,
+            "end": 84,
+            "construct": "TryStatement"
+          }
+        ],
+        "playwright.config.ts": [
+          {
+            "start": 4,
+            "end": 32,
+            "construct": "ExportDefaultDeclaration"
+          }
+        ],
+        "playwright.desktop.config.ts": [
+          {
+            "start": 1,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 21,
+            "construct": "ExportDefaultDeclaration"
+          }
+        ],
+        "scripts/build-desktop.spec.ts": [
+          {
+            "start": 1,
+            "end": 4,
+            "construct": "hunk"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 18,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 26,
+            "construct": "TSTypeAliasDeclaration PackageJson"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "VariableDeclaration pkg"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "hunk"
+          },
+          {
+            "start": 30,
+            "end": 34,
+            "construct": "FunctionDeclaration unquote"
+          },
+          {
+            "start": 35,
+            "end": 39,
+            "construct": "hunk"
+          },
+          {
+            "start": 40,
+            "end": 60,
+            "construct": "FunctionDeclaration yamlList"
+          },
+          {
+            "start": 61,
+            "end": 62,
+            "construct": "hunk"
+          },
+          {
+            "start": 63,
+            "end": 71,
+            "construct": "FunctionDeclaration bundle"
+          },
+          {
+            "start": 72,
+            "end": 72,
+            "construct": "hunk"
+          },
+          {
+            "start": 73,
+            "end": 73,
+            "construct": "VariableDeclaration escape"
+          },
+          {
+            "start": 74,
+            "end": 74,
+            "construct": "hunk"
+          },
+          {
+            "start": 75,
+            "end": 110,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 111,
+            "end": 111,
+            "construct": "hunk"
+          },
+          {
+            "start": 112,
+            "end": 198,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 199,
+            "end": 199,
+            "construct": "hunk"
+          },
+          {
+            "start": 200,
+            "end": 200,
+            "construct": "TSTypeAliasDeclaration FileMatcher"
+          },
+          {
+            "start": 201,
+            "end": 202,
+            "construct": "hunk"
+          },
+          {
+            "start": 203,
+            "end": 205,
+            "construct": "VariableDeclaration"
+          },
+          {
+            "start": 206,
+            "end": 206,
+            "construct": "hunk"
+          },
+          {
+            "start": 207,
+            "end": 207,
+            "construct": "VariableDeclaration DEFAULT_TEST_MATCH"
+          },
+          {
+            "start": 208,
+            "end": 209,
+            "construct": "hunk"
+          },
+          {
+            "start": 210,
+            "end": 218,
+            "construct": "FunctionDeclaration collects"
+          },
+          {
+            "start": 219,
+            "end": 219,
+            "construct": "hunk"
+          },
+          {
+            "start": 220,
+            "end": 264,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "scripts/build-desktop.ts": [
+          {
+            "start": 1,
+            "end": 16,
+            "construct": "hunk"
+          },
+          {
+            "start": 17,
+            "end": 23,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 26,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "VariableDeclaration ROOT"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "VariableDeclaration DEFAULT_ENTRY"
+          },
+          {
+            "start": 30,
+            "end": 30,
+            "construct": "hunk"
+          },
+          {
+            "start": 31,
+            "end": 31,
+            "construct": "VariableDeclaration OUTFILE"
+          },
+          {
+            "start": 32,
+            "end": 33,
+            "construct": "hunk"
+          },
+          {
+            "start": 34,
+            "end": 34,
+            "construct": "VariableDeclaration REFUSED"
+          },
+          {
+            "start": 35,
+            "end": 35,
+            "construct": "hunk"
+          },
+          {
+            "start": 36,
+            "end": 40,
+            "construct": "FunctionDeclaration reason"
+          },
+          {
+            "start": 41,
+            "end": 41,
+            "construct": "hunk"
+          },
+          {
+            "start": 42,
+            "end": 51,
+            "construct": "VariableDeclaration refuseServerOnlyImports"
+          },
+          {
+            "start": 52,
+            "end": 52,
+            "construct": "hunk"
+          },
+          {
+            "start": 53,
+            "end": 61,
+            "construct": "TSTypeAliasDeclaration DesktopBuildInput"
+          },
+          {
+            "start": 62,
+            "end": 62,
+            "construct": "hunk"
+          },
+          {
+            "start": 63,
+            "end": 78,
+            "construct": "FunctionDeclaration desktopBuildOptions"
+          },
+          {
+            "start": 79,
+            "end": 79,
+            "construct": "hunk"
+          },
+          {
+            "start": 80,
+            "end": 82,
+            "construct": "FunctionDeclaration buildDesktop"
+          },
+          {
+            "start": 83,
+            "end": 84,
+            "construct": "hunk"
+          },
+          {
+            "start": 85,
+            "end": 87,
+            "construct": "VariableDeclaration isEntry"
+          },
+          {
+            "start": 88,
+            "end": 97,
+            "construct": "IfStatement"
+          }
+        ],
+        "scripts/ci-desktop.spec.ts": [
+          {
+            "start": 1,
+            "end": 9,
+            "construct": "hunk"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "hunk"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "VariableDeclaration ROOT"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "VariableDeclaration CI_PATH"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "VariableDeclaration ci"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "VariableDeclaration lines"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "hunk"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "VariableDeclaration DESKTOP_RUN"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "VariableDeclaration SYSCTL"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 29,
+            "construct": "FunctionDeclaration unquote"
+          },
+          {
+            "start": 30,
+            "end": 30,
+            "construct": "hunk"
+          },
+          {
+            "start": 31,
+            "end": 31,
+            "construct": "VariableDeclaration indentOf"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "VariableDeclaration isComment"
+          },
+          {
+            "start": 33,
+            "end": 34,
+            "construct": "hunk"
+          },
+          {
+            "start": 35,
+            "end": 41,
+            "construct": "FunctionDeclaration job"
+          },
+          {
+            "start": 42,
+            "end": 43,
+            "construct": "hunk"
+          },
+          {
+            "start": 44,
+            "end": 50,
+            "construct": "FunctionDeclaration block"
+          },
+          {
+            "start": 51,
+            "end": 52,
+            "construct": "hunk"
+          },
+          {
+            "start": 53,
+            "end": 60,
+            "construct": "FunctionDeclaration map"
+          },
+          {
+            "start": 61,
+            "end": 61,
+            "construct": "hunk"
+          },
+          {
+            "start": 62,
+            "end": 67,
+            "construct": "TSTypeAliasDeclaration Step"
+          },
+          {
+            "start": 68,
+            "end": 69,
+            "construct": "hunk"
+          },
+          {
+            "start": 70,
+            "end": 93,
+            "construct": "FunctionDeclaration steps"
+          },
+          {
+            "start": 94,
+            "end": 94,
+            "construct": "hunk"
+          },
+          {
+            "start": 95,
+            "end": 95,
+            "construct": "VariableDeclaration testJob"
+          },
+          {
+            "start": 96,
+            "end": 96,
+            "construct": "VariableDeclaration testSteps"
+          },
+          {
+            "start": 97,
+            "end": 97,
+            "construct": "VariableDeclaration testEnv"
+          },
+          {
+            "start": 98,
+            "end": 98,
+            "construct": "VariableDeclaration staticJob"
+          },
+          {
+            "start": 99,
+            "end": 99,
+            "construct": "VariableDeclaration staticSteps"
+          },
+          {
+            "start": 100,
+            "end": 102,
+            "construct": "VariableDeclaration gitignore"
+          },
+          {
+            "start": 103,
+            "end": 103,
+            "construct": "hunk"
+          },
+          {
+            "start": 104,
+            "end": 104,
+            "construct": "VariableDeclaration desktopSteps"
+          },
+          {
+            "start": 105,
+            "end": 105,
+            "construct": "VariableDeclaration desktop"
+          },
+          {
+            "start": 106,
+            "end": 110,
+            "construct": "hunk"
+          },
+          {
+            "start": 111,
+            "end": 119,
+            "construct": "FunctionDeclaration branches"
+          },
+          {
+            "start": 120,
+            "end": 120,
+            "construct": "VariableDeclaration branch"
+          },
+          {
+            "start": 121,
+            "end": 121,
+            "construct": "VariableDeclaration indexOfRun"
+          },
+          {
+            "start": 122,
+            "end": 122,
+            "construct": "hunk"
+          },
+          {
+            "start": 123,
+            "end": 179,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 180,
+            "end": 180,
+            "construct": "hunk"
+          },
+          {
+            "start": 181,
+            "end": 209,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 210,
+            "end": 210,
+            "construct": "hunk"
+          },
+          {
+            "start": 211,
+            "end": 230,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 231,
+            "end": 231,
+            "construct": "hunk"
+          },
+          {
+            "start": 232,
+            "end": 238,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 239,
+            "end": 239,
+            "construct": "hunk"
+          },
+          {
+            "start": 240,
+            "end": 250,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 251,
+            "end": 251,
+            "construct": "hunk"
+          },
+          {
+            "start": 252,
+            "end": 281,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "scripts/gitleaks-config.spec.ts": [
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 19,
+            "end": 90,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/alerts-key.spec.ts": [
+          {
+            "start": 1,
+            "end": 2,
+            "construct": "hunk"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 12,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 22,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 25,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 30,
+            "construct": "VariableDeclaration hooks"
+          },
+          {
+            "start": 31,
+            "end": 31,
+            "construct": "hunk"
+          },
+          {
+            "start": 32,
+            "end": 43,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 44,
+            "end": 44,
+            "construct": "hunk"
+          },
+          {
+            "start": 45,
+            "end": 45,
+            "construct": "VariableDeclaration sha256"
+          },
+          {
+            "start": 46,
+            "end": 46,
+            "construct": "VariableDeclaration fileHash"
+          },
+          {
+            "start": 47,
+            "end": 47,
+            "construct": "VariableDeclaration tempLeftovers"
+          },
+          {
+            "start": 48,
+            "end": 48,
+            "construct": "hunk"
+          },
+          {
+            "start": 49,
+            "end": 49,
+            "construct": "VariableDeclaration root"
+          },
+          {
+            "start": 50,
+            "end": 50,
+            "construct": "VariableDeclaration dir"
+          },
+          {
+            "start": 51,
+            "end": 51,
+            "construct": "VariableDeclaration keyFile"
+          },
+          {
+            "start": 52,
+            "end": 52,
+            "construct": "hunk"
+          },
+          {
+            "start": 53,
+            "end": 58,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 59,
+            "end": 59,
+            "construct": "hunk"
+          },
+          {
+            "start": 60,
+            "end": 63,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 64,
+            "end": 64,
+            "construct": "hunk"
+          },
+          {
+            "start": 65,
+            "end": 72,
+            "construct": "FunctionDeclaration rejection"
+          },
+          {
+            "start": 73,
+            "end": 73,
+            "construct": "hunk"
+          },
+          {
+            "start": 74,
+            "end": 207,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/alerts-key.ts": [
+          {
+            "start": 1,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "VariableDeclaration KEY_BYTES"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "VariableDeclaration KEY_MODE"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "hunk"
+          },
+          {
+            "start": 22,
+            "end": 24,
+            "construct": "FunctionDeclaration errorCode"
+          },
+          {
+            "start": 25,
+            "end": 26,
+            "construct": "hunk"
+          },
+          {
+            "start": 27,
+            "end": 39,
+            "construct": "FunctionDeclaration decodeKeyFile"
+          },
+          {
+            "start": 40,
+            "end": 41,
+            "construct": "hunk"
+          },
+          {
+            "start": 42,
+            "end": 49,
+            "construct": "FunctionDeclaration readIfPresent"
+          },
+          {
+            "start": 50,
+            "end": 51,
+            "construct": "hunk"
+          },
+          {
+            "start": 52,
+            "end": 60,
+            "construct": "FunctionDeclaration syncDir"
+          },
+          {
+            "start": 61,
+            "end": 65,
+            "construct": "hunk"
+          },
+          {
+            "start": 66,
+            "end": 90,
+            "construct": "FunctionDeclaration createKeyFile"
+          },
+          {
+            "start": 91,
+            "end": 96,
+            "construct": "hunk"
+          },
+          {
+            "start": 97,
+            "end": 102,
+            "construct": "FunctionDeclaration loadOrCreateAlertsKey"
+          }
+        ],
+        "src/desktop/app-paths.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "hunk"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "VariableDeclaration APP_DATA"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "VariableDeclaration OVERRIDE"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "hunk"
+          },
+          {
+            "start": 8,
+            "end": 59,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 60,
+            "end": 60,
+            "construct": "hunk"
+          },
+          {
+            "start": 61,
+            "end": 71,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/app-paths.ts": [
+          {
+            "start": 1,
+            "end": 5,
+            "construct": "hunk"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "VariableDeclaration APP_DIR_NAME"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "VariableDeclaration DB_FILE_NAME"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "VariableDeclaration KEY_FILE_NAME"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "hunk"
+          },
+          {
+            "start": 13,
+            "end": 19,
+            "construct": "TSTypeAliasDeclaration UserDataInput"
+          },
+          {
+            "start": 20,
+            "end": 25,
+            "construct": "hunk"
+          },
+          {
+            "start": 26,
+            "end": 30,
+            "construct": "FunctionDeclaration resolveUserDataDir"
+          },
+          {
+            "start": 31,
+            "end": 31,
+            "construct": "hunk"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "TSTypeAliasDeclaration DesktopPaths"
+          },
+          {
+            "start": 33,
+            "end": 33,
+            "construct": "hunk"
+          },
+          {
+            "start": 34,
+            "end": 40,
+            "construct": "FunctionDeclaration desktopPaths"
+          }
+        ],
+        "src/desktop/boundary.spec.ts": [
+          {
+            "start": 1,
+            "end": 5,
+            "construct": "hunk"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "VariableDeclaration ROOT"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "VariableDeclaration DESKTOP"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "VariableDeclaration LIB"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "VariableDeclaration ROUTES"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "VariableDeclaration MAIN"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "VariableDeclaration TESTING"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "VariableDeclaration DB_DIR"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "TSTypeAliasDeclaration ModuleRef"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "hunk"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "VariableDeclaration CODE"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "VariableDeclaration SPEC"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 30,
+            "construct": "FunctionDeclaration walk"
+          },
+          {
+            "start": 31,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 33,
+            "end": 36,
+            "construct": "FunctionDeclaration scriptSource"
+          },
+          {
+            "start": 37,
+            "end": 43,
+            "construct": "hunk"
+          },
+          {
+            "start": 44,
+            "end": 84,
+            "construct": "FunctionDeclaration moduleRefs"
+          },
+          {
+            "start": 85,
+            "end": 86,
+            "construct": "hunk"
+          },
+          {
+            "start": 87,
+            "end": 95,
+            "construct": "FunctionDeclaration localTarget"
+          },
+          {
+            "start": 96,
+            "end": 96,
+            "construct": "hunk"
+          },
+          {
+            "start": 97,
+            "end": 100,
+            "construct": "FunctionDeclaration within"
+          },
+          {
+            "start": 101,
+            "end": 101,
+            "construct": "hunk"
+          },
+          {
+            "start": 102,
+            "end": 103,
+            "construct": "VariableDeclaration isElectron"
+          },
+          {
+            "start": 104,
+            "end": 105,
+            "construct": "hunk"
+          },
+          {
+            "start": 106,
+            "end": 111,
+            "construct": "FunctionDeclaration appSideViolation"
+          },
+          {
+            "start": 112,
+            "end": 113,
+            "construct": "hunk"
+          },
+          {
+            "start": 114,
+            "end": 122,
+            "construct": "FunctionDeclaration desktopSideViolation"
+          },
+          {
+            "start": 123,
+            "end": 123,
+            "construct": "hunk"
+          },
+          {
+            "start": 124,
+            "end": 126,
+            "construct": "FunctionDeclaration refsOf"
+          },
+          {
+            "start": 127,
+            "end": 127,
+            "construct": "hunk"
+          },
+          {
+            "start": 128,
+            "end": 128,
+            "construct": "VariableDeclaration rel"
+          },
+          {
+            "start": 129,
+            "end": 129,
+            "construct": "hunk"
+          },
+          {
+            "start": 130,
+            "end": 130,
+            "construct": "VariableDeclaration desktopSources"
+          },
+          {
+            "start": 131,
+            "end": 131,
+            "construct": "hunk"
+          },
+          {
+            "start": 132,
+            "end": 202,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 203,
+            "end": 203,
+            "construct": "hunk"
+          },
+          {
+            "start": 204,
+            "end": 242,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/lifecycle.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 12,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 15,
+            "construct": "hunk"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "TSTypeAliasDeclaration RealDeps"
+          },
+          {
+            "start": 17,
+            "end": 18,
+            "construct": "VariableDeclaration realDepsFit"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "VariableDeclaration USER_DATA"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "VariableDeclaration KEY_FILE"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "VariableDeclaration DB_FILE"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "VariableDeclaration ORIGIN"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "VariableDeclaration KEY"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "hunk"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "TSTypeAliasDeclaration Listener"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "TSTypeAliasDeclaration QuitEvent"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "hunk"
+          },
+          {
+            "start": 30,
+            "end": 38,
+            "construct": "FunctionDeclaration deferred"
+          },
+          {
+            "start": 39,
+            "end": 40,
+            "construct": "hunk"
+          },
+          {
+            "start": 41,
+            "end": 43,
+            "construct": "FunctionDeclaration settle"
+          },
+          {
+            "start": 44,
+            "end": 44,
+            "construct": "hunk"
+          },
+          {
+            "start": 45,
+            "end": 60,
+            "construct": "ClassDeclaration FakeEmitter"
+          },
+          {
+            "start": 61,
+            "end": 61,
+            "construct": "hunk"
+          },
+          {
+            "start": 62,
+            "end": 75,
+            "construct": "TSTypeAliasDeclaration Harness"
+          },
+          {
+            "start": 76,
+            "end": 76,
+            "construct": "hunk"
+          },
+          {
+            "start": 77,
+            "end": 81,
+            "construct": "TSTypeAliasDeclaration HarnessOptions"
+          },
+          {
+            "start": 82,
+            "end": 82,
+            "construct": "hunk"
+          },
+          {
+            "start": 83,
+            "end": 169,
+            "construct": "FunctionDeclaration harness"
+          },
+          {
+            "start": 170,
+            "end": 170,
+            "construct": "hunk"
+          },
+          {
+            "start": 171,
+            "end": 175,
+            "construct": "FunctionDeclaration beforeQuit"
+          },
+          {
+            "start": 176,
+            "end": 176,
+            "construct": "hunk"
+          },
+          {
+            "start": 177,
+            "end": 180,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 181,
+            "end": 181,
+            "construct": "hunk"
+          },
+          {
+            "start": 182,
+            "end": 236,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 237,
+            "end": 237,
+            "construct": "hunk"
+          },
+          {
+            "start": 238,
+            "end": 261,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 262,
+            "end": 262,
+            "construct": "hunk"
+          },
+          {
+            "start": 263,
+            "end": 304,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 305,
+            "end": 305,
+            "construct": "hunk"
+          },
+          {
+            "start": 306,
+            "end": 340,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 341,
+            "end": 341,
+            "construct": "hunk"
+          },
+          {
+            "start": 342,
+            "end": 428,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 429,
+            "end": 429,
+            "construct": "hunk"
+          },
+          {
+            "start": 430,
+            "end": 489,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/lifecycle.ts": [
+          {
+            "start": 1,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 29,
+            "end": 30,
+            "construct": "hunk"
+          },
+          {
+            "start": 31,
+            "end": 31,
+            "construct": "VariableDeclaration SCHEDULER_DRAIN_MS"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 33,
+            "end": 33,
+            "construct": "VariableDeclaration SHUTDOWN_DEADLINE_MS"
+          },
+          {
+            "start": 34,
+            "end": 34,
+            "construct": "VariableDeclaration STARTUP_ERROR_TITLE"
+          },
+          {
+            "start": 35,
+            "end": 36,
+            "construct": "hunk"
+          },
+          {
+            "start": 37,
+            "end": 47,
+            "construct": "TSTypeAliasDeclaration LifecycleApp"
+          },
+          {
+            "start": 48,
+            "end": 49,
+            "construct": "hunk"
+          },
+          {
+            "start": 50,
+            "end": 54,
+            "construct": "TSTypeAliasDeclaration LifecycleServer"
+          },
+          {
+            "start": 55,
+            "end": 56,
+            "construct": "hunk"
+          },
+          {
+            "start": 57,
+            "end": 61,
+            "construct": "TSTypeAliasDeclaration LifecycleLoginItem"
+          },
+          {
+            "start": 62,
+            "end": 63,
+            "construct": "hunk"
+          },
+          {
+            "start": 64,
+            "end": 64,
+            "construct": "TSTypeAliasDeclaration LifecycleTrayActions"
+          },
+          {
+            "start": 65,
+            "end": 65,
+            "construct": "hunk"
+          },
+          {
+            "start": 66,
+            "end": 84,
+            "construct": "TSTypeAliasDeclaration LifecycleDeps"
+          },
+          {
+            "start": 85,
+            "end": 85,
+            "construct": "hunk"
+          },
+          {
+            "start": 86,
+            "end": 86,
+            "construct": "TSTypeAliasDeclaration DesktopOutcome"
+          },
+          {
+            "start": 87,
+            "end": 87,
+            "construct": "hunk"
+          },
+          {
+            "start": 88,
+            "end": 98,
+            "construct": "TSTypeAliasDeclaration Running"
+          },
+          {
+            "start": 99,
+            "end": 99,
+            "construct": "hunk"
+          },
+          {
+            "start": 100,
+            "end": 102,
+            "construct": "FunctionDeclaration messageOf"
+          },
+          {
+            "start": 103,
+            "end": 104,
+            "construct": "hunk"
+          },
+          {
+            "start": 105,
+            "end": 112,
+            "construct": "FunctionDeclaration redactKey"
+          },
+          {
+            "start": 113,
+            "end": 114,
+            "construct": "hunk"
+          },
+          {
+            "start": 115,
+            "end": 121,
+            "construct": "FunctionDeclaration step"
+          },
+          {
+            "start": 122,
+            "end": 122,
+            "construct": "hunk"
+          },
+          {
+            "start": 123,
+            "end": 142,
+            "construct": "FunctionDeclaration startupFailure"
+          },
+          {
+            "start": 143,
+            "end": 148,
+            "construct": "hunk"
+          },
+          {
+            "start": 149,
+            "end": 243,
+            "construct": "FunctionDeclaration runDesktop"
+          }
+        ],
+        "src/desktop/login-item.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "VariableDeclaration realAppFits"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "hunk"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "TSTypeAliasDeclaration SetCall"
+          },
+          {
+            "start": 25,
+            "end": 30,
+            "construct": "hunk"
+          },
+          {
+            "start": 31,
+            "end": 67,
+            "construct": "ClassDeclaration FakeApp"
+          },
+          {
+            "start": 68,
+            "end": 68,
+            "construct": "hunk"
+          },
+          {
+            "start": 69,
+            "end": 69,
+            "construct": "VariableDeclaration root"
+          },
+          {
+            "start": 70,
+            "end": 70,
+            "construct": "VariableDeclaration home"
+          },
+          {
+            "start": 71,
+            "end": 71,
+            "construct": "VariableDeclaration userData"
+          },
+          {
+            "start": 72,
+            "end": 72,
+            "construct": "hunk"
+          },
+          {
+            "start": 73,
+            "end": 78,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 79,
+            "end": 79,
+            "construct": "hunk"
+          },
+          {
+            "start": 80,
+            "end": 82,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 83,
+            "end": 83,
+            "construct": "hunk"
+          },
+          {
+            "start": 84,
+            "end": 84,
+            "construct": "VariableDeclaration EXEC_PATH"
+          },
+          {
+            "start": 85,
+            "end": 85,
+            "construct": "hunk"
+          },
+          {
+            "start": 86,
+            "end": 101,
+            "construct": "FunctionDeclaration setup"
+          },
+          {
+            "start": 102,
+            "end": 102,
+            "construct": "hunk"
+          },
+          {
+            "start": 103,
+            "end": 103,
+            "construct": "VariableDeclaration markerFile"
+          },
+          {
+            "start": 104,
+            "end": 104,
+            "construct": "VariableDeclaration linuxEntry"
+          },
+          {
+            "start": 105,
+            "end": 106,
+            "construct": "hunk"
+          },
+          {
+            "start": 107,
+            "end": 152,
+            "construct": "FunctionDeclaration parseExec"
+          },
+          {
+            "start": 153,
+            "end": 153,
+            "construct": "hunk"
+          },
+          {
+            "start": 154,
+            "end": 195,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 196,
+            "end": 196,
+            "construct": "hunk"
+          },
+          {
+            "start": 197,
+            "end": 224,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 225,
+            "end": 225,
+            "construct": "hunk"
+          },
+          {
+            "start": 226,
+            "end": 242,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 243,
+            "end": 243,
+            "construct": "hunk"
+          },
+          {
+            "start": 244,
+            "end": 286,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 287,
+            "end": 287,
+            "construct": "hunk"
+          },
+          {
+            "start": 288,
+            "end": 324,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 325,
+            "end": 325,
+            "construct": "hunk"
+          },
+          {
+            "start": 326,
+            "end": 383,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 384,
+            "end": 384,
+            "construct": "hunk"
+          },
+          {
+            "start": 385,
+            "end": 413,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/login-item.ts": [
+          {
+            "start": 1,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "hunk"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "VariableDeclaration LOGIN_LAUNCH_ARG"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "VariableDeclaration MARKER_FILE_NAME"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "VariableDeclaration AUTOSTART_FILE_NAME"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "VariableDeclaration APP_NAME"
+          },
+          {
+            "start": 28,
+            "end": 29,
+            "construct": "hunk"
+          },
+          {
+            "start": 30,
+            "end": 37,
+            "construct": "TSTypeAliasDeclaration LoginItemApp"
+          },
+          {
+            "start": 38,
+            "end": 38,
+            "construct": "hunk"
+          },
+          {
+            "start": 39,
+            "end": 49,
+            "construct": "TSTypeAliasDeclaration LoginItemDeps"
+          },
+          {
+            "start": 50,
+            "end": 50,
+            "construct": "hunk"
+          },
+          {
+            "start": 51,
+            "end": 55,
+            "construct": "TSTypeAliasDeclaration RegisterOutcome"
+          },
+          {
+            "start": 56,
+            "end": 56,
+            "construct": "hunk"
+          },
+          {
+            "start": 57,
+            "end": 66,
+            "construct": "TSTypeAliasDeclaration LoginItem"
+          },
+          {
+            "start": 67,
+            "end": 68,
+            "construct": "hunk"
+          },
+          {
+            "start": 69,
+            "end": 73,
+            "construct": "FunctionDeclaration autostartDir"
+          },
+          {
+            "start": 74,
+            "end": 79,
+            "construct": "hunk"
+          },
+          {
+            "start": 80,
+            "end": 88,
+            "construct": "FunctionDeclaration quoteExecArg"
+          },
+          {
+            "start": 89,
+            "end": 93,
+            "construct": "hunk"
+          },
+          {
+            "start": 94,
+            "end": 108,
+            "construct": "FunctionDeclaration autostartEntry"
+          },
+          {
+            "start": 109,
+            "end": 110,
+            "construct": "hunk"
+          },
+          {
+            "start": 111,
+            "end": 113,
+            "construct": "FunctionDeclaration entryDisabled"
+          },
+          {
+            "start": 114,
+            "end": 114,
+            "construct": "hunk"
+          },
+          {
+            "start": 115,
+            "end": 178,
+            "construct": "FunctionDeclaration createLoginItem"
+          }
+        ],
+        "src/desktop/main.ts": [
+          {
+            "start": 1,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 27,
+            "end": 28,
+            "construct": "hunk"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "VariableDeclaration APP_ROOT"
+          },
+          {
+            "start": 30,
+            "end": 30,
+            "construct": "VariableDeclaration HANDLER_URL"
+          },
+          {
+            "start": 31,
+            "end": 31,
+            "construct": "VariableDeclaration ICON_DIR"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "hunk"
+          },
+          {
+            "start": 33,
+            "end": 39,
+            "construct": "VariableDeclaration paths"
+          },
+          {
+            "start": 40,
+            "end": 40,
+            "construct": "hunk"
+          },
+          {
+            "start": 41,
+            "end": 49,
+            "construct": "VariableDeclaration loginItem"
+          },
+          {
+            "start": 50,
+            "end": 50,
+            "construct": "hunk"
+          },
+          {
+            "start": 51,
+            "end": 51,
+            "construct": "VariableDeclaration windowState"
+          },
+          {
+            "start": 52,
+            "end": 53,
+            "construct": "hunk"
+          },
+          {
+            "start": 54,
+            "end": 74,
+            "construct": "FunctionDeclaration installAppMenu"
+          },
+          {
+            "start": 75,
+            "end": 75,
+            "construct": "hunk"
+          },
+          {
+            "start": 76,
+            "end": 118,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/server-env.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "VariableDeclaration DB_FILE"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "hunk"
+          },
+          {
+            "start": 16,
+            "end": 18,
+            "construct": "FunctionDeclaration input"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 69,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 70,
+            "end": 70,
+            "construct": "hunk"
+          },
+          {
+            "start": 71,
+            "end": 102,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/server-env.ts": [
+          {
+            "start": 1,
+            "end": 10,
+            "construct": "hunk"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "VariableDeclaration DROPPED"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "hunk"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "TSTypeAliasDeclaration ServerEnvInput"
+          },
+          {
+            "start": 17,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 23,
+            "end": 25,
+            "construct": "FunctionDeclaration databaseUrl"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "hunk"
+          },
+          {
+            "start": 27,
+            "end": 45,
+            "construct": "FunctionDeclaration serverEnv"
+          }
+        ],
+        "src/desktop/server.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "hunk"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "TSTypeAliasDeclaration Seen"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "VariableDeclaration started"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 16,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 17,
+            "end": 18,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 33,
+            "construct": "FunctionDeclaration startRecording"
+          },
+          {
+            "start": 34,
+            "end": 34,
+            "construct": "hunk"
+          },
+          {
+            "start": 35,
+            "end": 35,
+            "construct": "TSTypeAliasDeclaration Sent"
+          },
+          {
+            "start": 36,
+            "end": 36,
+            "construct": "hunk"
+          },
+          {
+            "start": 37,
+            "end": 51,
+            "construct": "FunctionDeclaration send"
+          },
+          {
+            "start": 52,
+            "end": 53,
+            "construct": "hunk"
+          },
+          {
+            "start": 54,
+            "end": 67,
+            "construct": "FunctionDeclaration tryConnect"
+          },
+          {
+            "start": 68,
+            "end": 68,
+            "construct": "hunk"
+          },
+          {
+            "start": 69,
+            "end": 71,
+            "construct": "VariableDeclaration lanAddress"
+          },
+          {
+            "start": 72,
+            "end": 72,
+            "construct": "hunk"
+          },
+          {
+            "start": 73,
+            "end": 101,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 102,
+            "end": 102,
+            "construct": "hunk"
+          },
+          {
+            "start": 103,
+            "end": 136,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 137,
+            "end": 137,
+            "construct": "hunk"
+          },
+          {
+            "start": 138,
+            "end": 167,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 168,
+            "end": 168,
+            "construct": "hunk"
+          },
+          {
+            "start": 169,
+            "end": 187,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 188,
+            "end": 188,
+            "construct": "hunk"
+          },
+          {
+            "start": 189,
+            "end": 232,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 233,
+            "end": 233,
+            "construct": "hunk"
+          },
+          {
+            "start": 234,
+            "end": 282,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/server.ts": [
+          {
+            "start": 1,
+            "end": 15,
+            "construct": "hunk"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "VariableDeclaration LOOPBACK_ADDRESS"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "VariableDeclaration PROTOCOL_HEADER"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "VariableDeclaration FORWARDED_HOST"
+          },
+          {
+            "start": 23,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "TSTypeAliasDeclaration NodeHandler"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "hunk"
+          },
+          {
+            "start": 27,
+            "end": 34,
+            "construct": "TSTypeAliasDeclaration DesktopServer"
+          },
+          {
+            "start": 35,
+            "end": 35,
+            "construct": "hunk"
+          },
+          {
+            "start": 36,
+            "end": 40,
+            "construct": "FunctionDeclaration sendText"
+          },
+          {
+            "start": 41,
+            "end": 46,
+            "construct": "hunk"
+          },
+          {
+            "start": 47,
+            "end": 58,
+            "construct": "FunctionDeclaration forcePlainHttp"
+          },
+          {
+            "start": 59,
+            "end": 59,
+            "construct": "hunk"
+          },
+          {
+            "start": 60,
+            "end": 64,
+            "construct": "FunctionDeclaration failRequest"
+          },
+          {
+            "start": 65,
+            "end": 66,
+            "construct": "hunk"
+          },
+          {
+            "start": 67,
+            "end": 104,
+            "construct": "FunctionDeclaration startDesktopServer"
+          },
+          {
+            "start": 105,
+            "end": 112,
+            "construct": "hunk"
+          },
+          {
+            "start": 113,
+            "end": 128,
+            "construct": "FunctionDeclaration loadAdapterHandler"
+          }
+        ],
+        "src/desktop/testing/fake-handler.ts": [
+          {
+            "start": 1,
+            "end": 4,
+            "construct": "hunk"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 10,
+            "construct": "VariableDeclaration recorded"
+          },
+          {
+            "start": 11,
+            "end": 12,
+            "construct": "hunk"
+          },
+          {
+            "start": 13,
+            "end": 16,
+            "construct": "FunctionDeclaration handler"
+          }
+        ],
+        "src/desktop/tray.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 18,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "TSTypeAliasDeclaration RealDeps"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "VariableDeclaration realDepsFit"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "VariableDeclaration ASSETS_DIR"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "VariableDeclaration PNG_SIGNATURE"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "hunk"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "TSTypeAliasDeclaration FakeMenu"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "hunk"
+          },
+          {
+            "start": 28,
+            "end": 62,
+            "construct": "ClassDeclaration FakeTray"
+          },
+          {
+            "start": 63,
+            "end": 64,
+            "construct": "hunk"
+          },
+          {
+            "start": 65,
+            "end": 78,
+            "construct": "FunctionDeclaration fakeLoginItem"
+          },
+          {
+            "start": 79,
+            "end": 79,
+            "construct": "hunk"
+          },
+          {
+            "start": 80,
+            "end": 97,
+            "construct": "FunctionDeclaration setup"
+          },
+          {
+            "start": 98,
+            "end": 98,
+            "construct": "hunk"
+          },
+          {
+            "start": 99,
+            "end": 100,
+            "construct": "VariableDeclaration labels"
+          },
+          {
+            "start": 101,
+            "end": 101,
+            "construct": "VariableDeclaration loginCheckbox"
+          },
+          {
+            "start": 102,
+            "end": 102,
+            "construct": "hunk"
+          },
+          {
+            "start": 103,
+            "end": 106,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 107,
+            "end": 107,
+            "construct": "hunk"
+          },
+          {
+            "start": 108,
+            "end": 141,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 142,
+            "end": 142,
+            "construct": "hunk"
+          },
+          {
+            "start": 143,
+            "end": 161,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 162,
+            "end": 162,
+            "construct": "hunk"
+          },
+          {
+            "start": 163,
+            "end": 202,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 203,
+            "end": 203,
+            "construct": "hunk"
+          },
+          {
+            "start": 204,
+            "end": 236,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/tray.ts": [
+          {
+            "start": 1,
+            "end": 15,
+            "construct": "hunk"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "VariableDeclaration TRAY_TOOLTIP"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "VariableDeclaration DARWIN_ICON_FILE"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "VariableDeclaration DEFAULT_ICON_FILE"
+          },
+          {
+            "start": 23,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 28,
+            "construct": "TSTypeAliasDeclaration AppTray"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "hunk"
+          },
+          {
+            "start": 30,
+            "end": 34,
+            "construct": "TSTypeAliasDeclaration TrayDeps"
+          },
+          {
+            "start": 35,
+            "end": 36,
+            "construct": "hunk"
+          },
+          {
+            "start": 37,
+            "end": 40,
+            "construct": "TSTypeAliasDeclaration TrayLoginItem"
+          },
+          {
+            "start": 41,
+            "end": 41,
+            "construct": "hunk"
+          },
+          {
+            "start": 42,
+            "end": 48,
+            "construct": "TSTypeAliasDeclaration TrayActions"
+          },
+          {
+            "start": 49,
+            "end": 49,
+            "construct": "hunk"
+          },
+          {
+            "start": 50,
+            "end": 54,
+            "construct": "TSTypeAliasDeclaration TrayHandle"
+          },
+          {
+            "start": 55,
+            "end": 56,
+            "construct": "hunk"
+          },
+          {
+            "start": 57,
+            "end": 59,
+            "construct": "FunctionDeclaration trayIconPath"
+          },
+          {
+            "start": 60,
+            "end": 61,
+            "construct": "hunk"
+          },
+          {
+            "start": 62,
+            "end": 77,
+            "construct": "FunctionDeclaration trayMenuTemplate"
+          },
+          {
+            "start": 78,
+            "end": 79,
+            "construct": "hunk"
+          },
+          {
+            "start": 80,
+            "end": 99,
+            "construct": "FunctionDeclaration createTray"
+          }
+        ],
+        "src/desktop/window.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 12,
+            "end": 14,
+            "construct": "hunk"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "TSTypeAliasDeclaration RealDeps"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "VariableDeclaration realDepsFit"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "VariableDeclaration PORT"
+          },
+          {
+            "start": 20,
+            "end": 20,
+            "construct": "VariableDeclaration ORIGIN"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "hunk"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "TSTypeAliasDeclaration OpenHandler"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "TSTypeAliasDeclaration Listener"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "TSTypeAliasDeclaration NavigationListener"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "hunk"
+          },
+          {
+            "start": 26,
+            "end": 106,
+            "construct": "ClassDeclaration FakeWindow"
+          },
+          {
+            "start": 107,
+            "end": 107,
+            "construct": "hunk"
+          },
+          {
+            "start": 108,
+            "end": 115,
+            "construct": "FunctionDeclaration makeDeps"
+          },
+          {
+            "start": 116,
+            "end": 116,
+            "construct": "hunk"
+          },
+          {
+            "start": 117,
+            "end": 121,
+            "construct": "FunctionDeclaration openWindow"
+          },
+          {
+            "start": 122,
+            "end": 122,
+            "construct": "hunk"
+          },
+          {
+            "start": 123,
+            "end": 125,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 126,
+            "end": 126,
+            "construct": "hunk"
+          },
+          {
+            "start": 127,
+            "end": 227,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 228,
+            "end": 228,
+            "construct": "hunk"
+          },
+          {
+            "start": 229,
+            "end": 236,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 237,
+            "end": 237,
+            "construct": "hunk"
+          },
+          {
+            "start": 238,
+            "end": 299,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/desktop/window.ts": [
+          {
+            "start": 1,
+            "end": 16,
+            "construct": "hunk"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "VariableDeclaration WINDOW_TITLE"
+          },
+          {
+            "start": 20,
+            "end": 21,
+            "construct": "hunk"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "TSTypeAliasDeclaration NavigationEvent"
+          },
+          {
+            "start": 23,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 29,
+            "construct": "TSTypeAliasDeclaration MainWebContents"
+          },
+          {
+            "start": 30,
+            "end": 31,
+            "construct": "hunk"
+          },
+          {
+            "start": 32,
+            "end": 41,
+            "construct": "TSTypeAliasDeclaration MainWindow"
+          },
+          {
+            "start": 42,
+            "end": 42,
+            "construct": "hunk"
+          },
+          {
+            "start": 43,
+            "end": 46,
+            "construct": "TSTypeAliasDeclaration WindowDeps"
+          },
+          {
+            "start": 47,
+            "end": 48,
+            "construct": "hunk"
+          },
+          {
+            "start": 49,
+            "end": 54,
+            "construct": "TSTypeAliasDeclaration WindowState"
+          },
+          {
+            "start": 55,
+            "end": 55,
+            "construct": "hunk"
+          },
+          {
+            "start": 56,
+            "end": 56,
+            "construct": "VariableDeclaration EXTERNAL_PROTOCOLS"
+          },
+          {
+            "start": 57,
+            "end": 57,
+            "construct": "hunk"
+          },
+          {
+            "start": 58,
+            "end": 64,
+            "construct": "FunctionDeclaration parseUrl"
+          },
+          {
+            "start": 65,
+            "end": 66,
+            "construct": "hunk"
+          },
+          {
+            "start": 67,
+            "end": 70,
+            "construct": "FunctionDeclaration isAppUrl"
+          },
+          {
+            "start": 71,
+            "end": 72,
+            "construct": "hunk"
+          },
+          {
+            "start": 73,
+            "end": 76,
+            "construct": "FunctionDeclaration isExternalWebUrl"
+          },
+          {
+            "start": 77,
+            "end": 77,
+            "construct": "hunk"
+          },
+          {
+            "start": 78,
+            "end": 82,
+            "construct": "FunctionDeclaration logFailure"
+          },
+          {
+            "start": 83,
+            "end": 84,
+            "construct": "hunk"
+          },
+          {
+            "start": 85,
+            "end": 88,
+            "construct": "FunctionDeclaration openOutside"
+          },
+          {
+            "start": 89,
+            "end": 89,
+            "construct": "hunk"
+          },
+          {
+            "start": 90,
+            "end": 104,
+            "construct": "FunctionDeclaration windowOptions"
+          },
+          {
+            "start": 105,
+            "end": 106,
+            "construct": "hunk"
+          },
+          {
+            "start": 107,
+            "end": 132,
+            "construct": "FunctionDeclaration createMainWindow"
+          },
+          {
+            "start": 133,
+            "end": 133,
+            "construct": "hunk"
+          },
+          {
+            "start": 134,
+            "end": 136,
+            "construct": "FunctionDeclaration createWindowState"
+          },
+          {
+            "start": 137,
+            "end": 142,
+            "construct": "hunk"
+          },
+          {
+            "start": 143,
+            "end": 158,
+            "construct": "FunctionDeclaration showWindow"
+          }
+        ],
+        "src/hooks.server.spec.ts": [
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "VariableDeclaration RUNTIME_KEY"
+          },
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "hunk"
+          },
+          {
+            "start": 13,
+            "end": 22,
+            "construct": "VariableDeclaration mocks"
+          },
+          {
+            "start": 43,
+            "end": 43,
+            "construct": "hunk"
+          },
+          {
+            "start": 44,
+            "end": 51,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 54,
+            "end": 74,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 76,
+            "end": 76,
+            "construct": "hunk"
+          },
+          {
+            "start": 77,
+            "end": 80,
+            "construct": "FunctionDeclaration published"
+          },
+          {
+            "start": 81,
+            "end": 81,
+            "construct": "hunk"
+          },
+          {
+            "start": 82,
+            "end": 222,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/hooks.server.ts": [
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 18,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 22,
+            "end": 38,
+            "construct": "VariableDeclaration init"
+          }
+        ],
+        "src/lib/server/runtime-bridge.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "hunk"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "VariableDeclaration KEY"
+          },
+          {
+            "start": 5,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 10,
+            "construct": "FunctionDeclaration freshBridge"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 14,
+            "construct": "FunctionDeclaration fakeRuntime"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "hunk"
+          },
+          {
+            "start": 16,
+            "end": 18,
+            "construct": "FunctionDeclaration clear"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 61,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 62,
+            "end": 62,
+            "construct": "hunk"
+          },
+          {
+            "start": 63,
+            "end": 87,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/runtime-bridge.ts": [
+          {
+            "start": 1,
+            "end": 5,
+            "construct": "hunk"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "VariableDeclaration RUNTIME_KEY"
+          },
+          {
+            "start": 7,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 16,
+            "construct": "TSTypeAliasDeclaration ServerRuntime"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "TSTypeAliasDeclaration RuntimeHolder"
+          },
+          {
+            "start": 19,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 23,
+            "construct": "FunctionDeclaration publishRuntime"
+          },
+          {
+            "start": 24,
+            "end": 25,
+            "construct": "hunk"
+          },
+          {
+            "start": 26,
+            "end": 30,
+            "construct": "FunctionDeclaration readRuntime"
+          },
+          {
+            "start": 31,
+            "end": 35,
+            "construct": "hunk"
+          },
+          {
+            "start": 36,
+            "end": 43,
+            "construct": "FunctionDeclaration closeOnce"
+          }
+        ],
+        "src/lib/server/scheduler.spec.ts": [
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 22,
+            "end": 350,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 351,
+            "end": 351,
+            "construct": "hunk"
+          },
+          {
+            "start": 352,
+            "end": 394,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 396,
+            "end": 466,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 468,
+            "end": 513,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/scheduler.ts": [
+          {
+            "start": 12,
+            "end": 12,
+            "construct": "hunk"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "VariableDeclaration STOP_DRAIN_MS"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "hunk"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "hunk"
+          },
+          {
+            "start": 25,
+            "end": 36,
+            "construct": "TSTypeAliasDeclaration SchedulerControls"
+          },
+          {
+            "start": 37,
+            "end": 37,
+            "construct": "hunk"
+          },
+          {
+            "start": 38,
+            "end": 43,
+            "construct": "TSTypeAliasDeclaration Scheduler"
+          },
+          {
+            "start": 45,
+            "end": 106,
+            "construct": "FunctionDeclaration createScheduler"
+          },
+          {
+            "start": 121,
+            "end": 141,
+            "construct": "FunctionDeclaration startScheduler"
+          }
+        ]
+      }
+    }
+  ],
+  "skipped": [
+    {
+      "file": ".github/workflows/ci.yml",
+      "reason": "no mutation adapter for .yml"
+    },
+    {
+      "file": ".gitignore",
+      "reason": "no mutation adapter for .gitignore"
+    },
+    {
+      "file": ".gitleaks.toml",
+      "reason": "no mutation adapter for .toml"
+    },
+    {
+      "file": "package.json",
+      "reason": "no mutation adapter for .json"
+    },
+    {
+      "file": "pnpm-lock.yaml",
+      "reason": "no mutation adapter for .yaml"
+    },
+    {
+      "file": "pnpm-workspace.yaml",
+      "reason": "no mutation adapter for .yaml"
+    },
+    {
+      "file": "src/desktop/assets/tray-icon.png",
+      "reason": "no mutation adapter for .png"
+    },
+    {
+      "file": "src/desktop/assets/tray-iconTemplate.png",
+      "reason": "no mutation adapter for .png"
+    },
+    {
+      "file": "tsconfig.json",
+      "reason": "no mutation adapter for .json"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/phases/02-single-user/spec.toml",
+      ".dross/phases/03-desktop-shell/REVIEW.md",
+      ".dross/phases/03-desktop-shell/changes.json",
+      ".dross/phases/03-desktop-shell/panel/mvp.md",
+      ".dross/phases/03-desktop-shell/panel/risk.md",
+      ".dross/phases/03-desktop-shell/panel/synthesis.md",
+      ".dross/phases/03-desktop-shell/panel/verification.md",
+      ".dross/phases/03-desktop-shell/plan.toml",
+      ".dross/phases/03-desktop-shell/spec.toml",
+      ".dross/project.toml",
+      ".github/workflows/ci.yml",
+      ".gitignore",
+      ".gitleaks.toml",
+      "e2e/desktop/background.e2e.ts",
+      "e2e/desktop/first-run.e2e.ts",
+      "e2e/desktop/guard.e2e.ts",
+      "e2e/desktop/harness.e2e.ts",
+      "e2e/desktop/launch.ts",
+      "e2e/desktop/quit-relaunch.e2e.ts",
+      "e2e/desktop/seed-child.ts",
+      "package.json",
+      "playwright.config.ts",
+      "playwright.desktop.config.ts",
+      "pnpm-lock.yaml",
+      "pnpm-workspace.yaml",
+      "scripts/build-desktop.spec.ts",
+      "scripts/build-desktop.ts",
+      "scripts/ci-desktop.spec.ts",
+      "scripts/gitleaks-config.spec.ts",
+      "src/desktop/alerts-key.spec.ts",
+      "src/desktop/alerts-key.ts",
+      "src/desktop/app-paths.spec.ts",
+      "src/desktop/app-paths.ts",
+      "src/desktop/assets/tray-icon.png",
+      "src/desktop/assets/tray-iconTemplate.png",
+      "src/desktop/boundary.spec.ts",
+      "src/desktop/lifecycle.spec.ts",
+      "src/desktop/lifecycle.ts",
+      "src/desktop/login-item.spec.ts",
+      "src/desktop/login-item.ts",
+      "src/desktop/main.ts",
+      "src/desktop/server-env.spec.ts",
+      "src/desktop/server-env.ts",
+      "src/desktop/server.spec.ts",
+      "src/desktop/server.ts",
+      "src/desktop/testing/fake-handler.ts",
+      "src/desktop/tray.spec.ts",
+      "src/desktop/tray.ts",
+      "src/desktop/window.spec.ts",
+      "src/desktop/window.ts",
+      "src/hooks.server.spec.ts",
+      "src/hooks.server.ts",
+      "src/lib/server/runtime-bridge.spec.ts",
+      "src/lib/server/runtime-bridge.ts",
+      "src/lib/server/scheduler.spec.ts",
+      "src/lib/server/scheduler.ts",
+      "tsconfig.json"
+    ],
+    "hunks": {
+      ".dross/phases/02-single-user/spec.toml": [
+        {
+          "start": 53,
+          "end": 53
+        }
+      ],
+      ".dross/phases/03-desktop-shell/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 44
+        }
+      ],
+      ".dross/phases/03-desktop-shell/changes.json": [
+        {
+          "start": 1,
+          "end": 734
+        }
+      ],
+      ".dross/phases/03-desktop-shell/panel/mvp.md": [
+        {
+          "start": 1,
+          "end": 196
+        }
+      ],
+      ".dross/phases/03-desktop-shell/panel/risk.md": [
+        {
+          "start": 1,
+          "end": 370
+        }
+      ],
+      ".dross/phases/03-desktop-shell/panel/synthesis.md": [
+        {
+          "start": 1,
+          "end": 507
+        }
+      ],
+      ".dross/phases/03-desktop-shell/panel/verification.md": [
+        {
+          "start": 1,
+          "end": 370
+        }
+      ],
+      ".dross/phases/03-desktop-shell/plan.toml": [
+        {
+          "start": 1,
+          "end": 284
+        }
+      ],
+      ".dross/phases/03-desktop-shell/spec.toml": [
+        {
+          "start": 1,
+          "end": 95
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      ".github/workflows/ci.yml": [
+        {
+          "start": 48,
+          "end": 50
+        },
+        {
+          "start": 99,
+          "end": 102
+        },
+        {
+          "start": 112,
+          "end": 117
+        },
+        {
+          "start": 137,
+          "end": 155
+        }
+      ],
+      ".gitignore": [
+        {
+          "start": 46,
+          "end": 47
+        },
+        {
+          "start": 69,
+          "end": 72
+        }
+      ],
+      ".gitleaks.toml": [
+        {
+          "start": 68,
+          "end": 68
+        }
+      ],
+      "e2e/desktop/background.e2e.ts": [
+        {
+          "start": 1,
+          "end": 254
+        }
+      ],
+      "e2e/desktop/first-run.e2e.ts": [
+        {
+          "start": 1,
+          "end": 88
+        }
+      ],
+      "e2e/desktop/guard.e2e.ts": [
+        {
+          "start": 1,
+          "end": 238
+        }
+      ],
+      "e2e/desktop/harness.e2e.ts": [
+        {
+          "start": 1,
+          "end": 162
+        }
+      ],
+      "e2e/desktop/launch.ts": [
+        {
+          "start": 1,
+          "end": 478
+        }
+      ],
+      "e2e/desktop/quit-relaunch.e2e.ts": [
+        {
+          "start": 1,
+          "end": 120
+        }
+      ],
+      "e2e/desktop/seed-child.ts": [
+        {
+          "start": 1,
+          "end": 84
+        }
+      ],
+      "package.json": [
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 7,
+          "end": 7
+        },
+        {
+          "start": 12,
+          "end": 13
+        },
+        {
+          "start": 15,
+          "end": 15
+        },
+        {
+          "start": 25,
+          "end": 25
+        },
+        {
+          "start": 44,
+          "end": 45
+        }
+      ],
+      "playwright.config.ts": [
+        {
+          "start": 29,
+          "end": 30
+        }
+      ],
+      "playwright.desktop.config.ts": [
+        {
+          "start": 1,
+          "end": 21
+        }
+      ],
+      "pnpm-lock.yaml": [
+        {
+          "start": 57,
+          "end": 62
+        },
+        {
+          "start": 285,
+          "end": 292
+        },
+        {
+          "start": 1618,
+          "end": 1622
+        },
+        {
+          "start": 1642,
+          "end": 1645
+        },
+        {
+          "start": 1866,
+          "end": 1868
+        },
+        {
+          "start": 2436,
+          "end": 2439
+        },
+        {
+          "start": 2539,
+          "end": 2542
+        },
+        {
+          "start": 2946,
+          "end": 2960
+        },
+        {
+          "start": 3980,
+          "end": 3987
+        },
+        {
+          "start": 3998,
+          "end": 3999
+        },
+        {
+          "start": 4314,
+          "end": 4315
+        },
+        {
+          "start": 4799,
+          "end": 4804
+        },
+        {
+          "start": 4914,
+          "end": 4916
+        }
+      ],
+      "pnpm-workspace.yaml": [
+        {
+          "start": 2,
+          "end": 2
+        }
+      ],
+      "scripts/build-desktop.spec.ts": [
+        {
+          "start": 1,
+          "end": 264
+        }
+      ],
+      "scripts/build-desktop.ts": [
+        {
+          "start": 1,
+          "end": 97
+        }
+      ],
+      "scripts/ci-desktop.spec.ts": [
+        {
+          "start": 1,
+          "end": 281
+        }
+      ],
+      "scripts/gitleaks-config.spec.ts": [
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 55,
+          "end": 76
+        }
+      ],
+      "src/desktop/alerts-key.spec.ts": [
+        {
+          "start": 1,
+          "end": 207
+        }
+      ],
+      "src/desktop/alerts-key.ts": [
+        {
+          "start": 1,
+          "end": 102
+        }
+      ],
+      "src/desktop/app-paths.spec.ts": [
+        {
+          "start": 1,
+          "end": 71
+        }
+      ],
+      "src/desktop/app-paths.ts": [
+        {
+          "start": 1,
+          "end": 40
+        }
+      ],
+      "src/desktop/boundary.spec.ts": [
+        {
+          "start": 1,
+          "end": 242
+        }
+      ],
+      "src/desktop/lifecycle.spec.ts": [
+        {
+          "start": 1,
+          "end": 489
+        }
+      ],
+      "src/desktop/lifecycle.ts": [
+        {
+          "start": 1,
+          "end": 243
+        }
+      ],
+      "src/desktop/login-item.spec.ts": [
+        {
+          "start": 1,
+          "end": 413
+        }
+      ],
+      "src/desktop/login-item.ts": [
+        {
+          "start": 1,
+          "end": 178
+        }
+      ],
+      "src/desktop/main.ts": [
+        {
+          "start": 1,
+          "end": 118
+        }
+      ],
+      "src/desktop/server-env.spec.ts": [
+        {
+          "start": 1,
+          "end": 102
+        }
+      ],
+      "src/desktop/server-env.ts": [
+        {
+          "start": 1,
+          "end": 45
+        }
+      ],
+      "src/desktop/server.spec.ts": [
+        {
+          "start": 1,
+          "end": 282
+        }
+      ],
+      "src/desktop/server.ts": [
+        {
+          "start": 1,
+          "end": 128
+        }
+      ],
+      "src/desktop/testing/fake-handler.ts": [
+        {
+          "start": 1,
+          "end": 16
+        }
+      ],
+      "src/desktop/tray.spec.ts": [
+        {
+          "start": 1,
+          "end": 236
+        }
+      ],
+      "src/desktop/tray.ts": [
+        {
+          "start": 1,
+          "end": 99
+        }
+      ],
+      "src/desktop/window.spec.ts": [
+        {
+          "start": 1,
+          "end": 299
+        }
+      ],
+      "src/desktop/window.ts": [
+        {
+          "start": 1,
+          "end": 158
+        }
+      ],
+      "src/hooks.server.spec.ts": [
+        {
+          "start": 11,
+          "end": 12
+        },
+        {
+          "start": 14,
+          "end": 14
+        },
+        {
+          "start": 20,
+          "end": 20
+        },
+        {
+          "start": 43,
+          "end": 51
+        },
+        {
+          "start": 71,
+          "end": 73
+        },
+        {
+          "start": 76,
+          "end": 81
+        },
+        {
+          "start": 88,
+          "end": 88
+        },
+        {
+          "start": 95,
+          "end": 96
+        },
+        {
+          "start": 124,
+          "end": 124
+        },
+        {
+          "start": 155,
+          "end": 194
+        }
+      ],
+      "src/hooks.server.ts": [
+        {
+          "start": 9,
+          "end": 10
+        },
+        {
+          "start": 18,
+          "end": 20
+        },
+        {
+          "start": 27,
+          "end": 27
+        },
+        {
+          "start": 32,
+          "end": 36
+        }
+      ],
+      "src/lib/server/runtime-bridge.spec.ts": [
+        {
+          "start": 1,
+          "end": 87
+        }
+      ],
+      "src/lib/server/runtime-bridge.ts": [
+        {
+          "start": 1,
+          "end": 43
+        }
+      ],
+      "src/lib/server/scheduler.spec.ts": [
+        {
+          "start": 5,
+          "end": 5
+        },
+        {
+          "start": 9,
+          "end": 9
+        },
+        {
+          "start": 148,
+          "end": 149
+        },
+        {
+          "start": 158,
+          "end": 158
+        },
+        {
+          "start": 161,
+          "end": 392
+        },
+        {
+          "start": 402,
+          "end": 405
+        },
+        {
+          "start": 412,
+          "end": 412
+        },
+        {
+          "start": 423,
+          "end": 425
+        },
+        {
+          "start": 449,
+          "end": 449
+        },
+        {
+          "start": 457,
+          "end": 457
+        },
+        {
+          "start": 503,
+          "end": 503
+        },
+        {
+          "start": 507,
+          "end": 507
+        }
+      ],
+      "src/lib/server/scheduler.ts": [
+        {
+          "start": 12,
+          "end": 14
+        },
+        {
+          "start": 24,
+          "end": 39
+        },
+        {
+          "start": 41,
+          "end": 42
+        },
+        {
+          "start": 49,
+          "end": 51
+        },
+        {
+          "start": 65,
+          "end": 65
+        },
+        {
+          "start": 70,
+          "end": 73
+        },
+        {
+          "start": 81,
+          "end": 85
+        },
+        {
+          "start": 88,
+          "end": 103
+        },
+        {
+          "start": 121,
+          "end": 126
+        },
+        {
+          "start": 129,
+          "end": 129
+        },
+        {
+          "start": 138,
+          "end": 140
+        }
+      ],
+      "tsconfig.json": [
+        {
+          "start": 7,
+          "end": 14
+        }
+      ]
+    },
+    "base": "6cd3a06b93a9df48600440bd34d3e5db90138959",
+    "source": "git+changes"
+  },
+  "measured_on": "local",
+  "measured_commit": "1245ea2f579458bc329dc7edd7aecc2ce54a6107",
+  "measured_tree": "4024dffd0f8f1ef770b365006b8182db899b709a"
+}

@@ -22,6 +22,30 @@
   name = "open-config-ok-false"
   reason = "Equivalent: openConfig callers only read .ok (opened.ok, previous?.ok, !opened.ok), and {}.ok is undefined, which is falsy exactly like false"
 
+[[category]]
+  name = "desk-build-cli"
+  reason = "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+
+[[category]]
+  name = "desk-equivalent"
+  reason = "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+
+[[category]]
+  name = "desk-message-text"
+  reason = "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+
+[[category]]
+  name = "desk-fsync"
+  reason = "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+
+[[category]]
+  name = "desk-unobservable-io"
+  reason = "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+
+[[category]]
+  name = "desk-listen-error"
+  reason = "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
+
 [[accepted]]
   key = "6d1a8890f4b5d82a"
   file = "scripts/workflow-policy.ts"
@@ -534,3 +558,840 @@
   line = 16
   accepted_in = "02-single-user"
   reason = "Equivalent today: every runtime export of db/schema.ts (watch, pricePoint, checkFailure, notifyChannel, priceDropDelivery) is a sqliteTable, so dropping the is(SQLiteTable) filter leaves TABLES unchanged; the filter only matters if a non-table export is added later. Touched by a comment-only t-15 edit, not phase logic."
+
+[[accepted]]
+  key = "68ab1882916c3b67"
+  file = "src/lib/server/scheduler.ts"
+  op = "ConditionalExpression"
+  text = "if (stopped) return;"
+  line = 82
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: tick() returns at once while stopped, so a followUp set or kept after stop() can never start a pass."
+
+[[accepted]]
+  key = "b28f3c24ef003a03"
+  file = "src/lib/server/scheduler.ts"
+  op = "BooleanLiteral"
+  text = "followUp = false;"
+  line = 92
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: tick() returns at once while stopped, so a followUp set or kept after stop() can never start a pass."
+
+[[accepted]]
+  key = "d17f9ef681f848d3"
+  file = "scripts/build-desktop.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 87
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "a530737a02a833f6"
+  file = "scripts/build-desktop.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 87
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "c6988fe142ca9a8b"
+  file = "scripts/build-desktop.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 87
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "70f2570b456e2308"
+  file = "scripts/build-desktop.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 88
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "82abf81bc782e98a"
+  file = "scripts/build-desktop.ts"
+  op = "LogicalOperator"
+  text = "const entry = process.argv[2] ?? DEFAULT_ENTRY;"
+  line = 89
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "98939a722e7e2e8f"
+  file = "scripts/build-desktop.ts"
+  op = "BlockStatement"
+  text = "try {"
+  line = 90
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "530d17401ce2e50e"
+  file = "scripts/build-desktop.ts"
+  op = "ObjectLiteral"
+  text = "await buildDesktop({ entry, logLevel: 'warning' });"
+  line = 92
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "1f3dbc2c406a96ec"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "await buildDesktop({ entry, logLevel: 'warning' });"
+  line = 92
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "83dbc10d4272a961"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "console.log(`build:desktop: ${entry} -> ${OUTFILE}`);"
+  line = 93
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "0db9c17aa5cdde7f"
+  file = "scripts/build-desktop.ts"
+  op = "BlockStatement"
+  text = "} catch {"
+  line = 94
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "f508b1d54dec9e9c"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "? 'SvelteKit virtual modules exist only inside the Kit build'"
+  line = 38
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "b34695ae66c06cb3"
+  file = "scripts/build-desktop.ts"
+  op = "MethodExpression"
+  text = "return path.startsWith('$app')"
+  line = 37
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "326a82f4fb55a978"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "return path.startsWith('$app')"
+  line = 37
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "c62c15842122cc33"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = ": 'the server bundle owns the only libsql client';"
+  line = 39
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "8738e239eb26916d"
+  file = "scripts/build-desktop.ts"
+  op = "BlockStatement"
+  text = "function reason(path: string): string {"
+  line = 36
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "8fe384b1130090e3"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "target: 'node24',"
+  line = 71
+  accepted_in = "03-desktop-shell"
+  reason = "esbuild target only controls syntax lowering; Electron 45's Node 24 runs the untransformed output, so an empty target builds an equivalent bundle."
+
+[[accepted]]
+  key = "c4e13500029cafd1"
+  file = "scripts/build-desktop.ts"
+  op = "BooleanLiteral"
+  text = "write: input.write ?? true,"
+  line = 75
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "1a0fc9747b313eac"
+  file = "scripts/build-desktop.ts"
+  op = "LogicalOperator"
+  text = "write: input.write ?? true,"
+  line = 75
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "bad496f7ddbf1c6c"
+  file = "scripts/build-desktop.ts"
+  op = "LogicalOperator"
+  text = "logLevel: input.logLevel ?? 'silent'"
+  line = 76
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "2cd819635311b9c6"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "logLevel: input.logLevel ?? 'silent'"
+  line = 76
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "34d06b2bfb21d7e3"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');"
+  line = 28
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "7ff2b522b2811b69"
+  file = "scripts/build-desktop.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 86
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "b8701de8eb8e62ff"
+  file = "scripts/build-desktop.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 88
+  accepted_in = "03-desktop-shell"
+  reason = "isEntry forced true runs one extra real build when a spec imports the module, and forced false skips the CLI build; the first changes no assertion, the second fails pnpm test:e2e:desktop and CI (no dist-desktop/main.js on a fresh checkout)."
+
+[[accepted]]
+  key = "adf376c4546d03b5"
+  file = "src/desktop/alerts-key.ts"
+  op = "OptionalChaining"
+  text = "return (error as NodeJS.ErrnoException | undefined)?.code;"
+  line = 23
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "ebccb95ca4998c1a"
+  file = "src/desktop/alerts-key.ts"
+  op = "StringLiteral"
+  text = "'decrypted with the original key. Restore it from a backup, or delete it to ' +"
+  line = 35
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "82d084e92b9def6c"
+  file = "src/desktop/alerts-key.ts"
+  op = "ConditionalExpression"
+  text = "if (!(error instanceof AlertsKeyError)) throw error;"
+  line = 31
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "5f21d05d73e547dc"
+  file = "src/desktop/alerts-key.ts"
+  op = "StringLiteral"
+  text = "'It was left untouched, because saved alert channel credentials can only be ' +"
+  line = 34
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "327eca6678f6b0e8"
+  file = "src/desktop/alerts-key.ts"
+  op = "StringLiteral"
+  text = "'start with a new key (alert channels then need their credentials entered again).'"
+  line = 36
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "cd3b19658cb89eb3"
+  file = "src/desktop/alerts-key.ts"
+  op = "ConditionalExpression"
+  text = "if (errorCode(error) === 'ENOENT') return null;"
+  line = 46
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "f72eea9f89a5550b"
+  file = "src/desktop/alerts-key.ts"
+  op = "BlockStatement"
+  text = "async function syncDir(dir: string): Promise<void> {"
+  line = 52
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "d804617b07ee19ca"
+  file = "src/desktop/alerts-key.ts"
+  op = "ConditionalExpression"
+  text = "if (process.platform === 'win32') return;"
+  line = 53
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "c916bd26691573c7"
+  file = "src/desktop/alerts-key.ts"
+  op = "EqualityOperator"
+  text = "if (process.platform === 'win32') return;"
+  line = 53
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "3bd26808560d55d1"
+  file = "src/desktop/alerts-key.ts"
+  op = "StringLiteral"
+  text = "if (process.platform === 'win32') return;"
+  line = 53
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "1701741f079e37e4"
+  file = "src/desktop/alerts-key.ts"
+  op = "BlockStatement"
+  text = "try {"
+  line = 55
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "456ac163283b77bf"
+  file = "src/desktop/alerts-key.ts"
+  op = "BlockStatement"
+  text = "} finally {"
+  line = 57
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "601eb8d3d40eb855"
+  file = "src/desktop/alerts-key.ts"
+  op = "StringLiteral"
+  text = "await handle.writeFile(key.toString('base64'), 'utf8');"
+  line = 73
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "7adfcf737e75d375"
+  file = "src/desktop/alerts-key.ts"
+  op = "BlockStatement"
+  text = "} finally {"
+  line = 75
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "8478b3cd9e54d8be"
+  file = "src/desktop/alerts-key.ts"
+  op = "ConditionalExpression"
+  text = "if (errorCode(error) !== 'EEXIST') throw error;"
+  line = 81
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "95c5b3c7bf6a7879"
+  file = "src/desktop/alerts-key.ts"
+  op = "ObjectLiteral"
+  text = "await rm(temp, { force: true });"
+  line = 88
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "2f6a48107591a868"
+  file = "src/desktop/alerts-key.ts"
+  op = "BooleanLiteral"
+  text = "await rm(temp, { force: true });"
+  line = 88
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "7bf10e2565d2d61e"
+  file = "src/desktop/alerts-key.ts"
+  op = "ConditionalExpression"
+  text = "if (existing !== null) return decodeKeyFile(keyFile, existing);"
+  line = 100
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "e78f9be146d52499"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "redacted = redacted.split(encoded).join('[redacted]');"
+  line = 109
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "42901f1b53b9b5ea"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 118
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "3680405b3a8bbe62"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error(`desktop quit: ${name} failed`, error);"
+  line = 119
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "c301044ff5eb8ee2"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error(`desktop startup: ${stage} failed`, redactKey(messageOf(error), key));"
+  line = 135
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "673ecfa924b64bd3"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (boxError) {"
+  line = 138
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "963ca174c8874673"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop startup: showing the error failed', boxError);"
+  line = 139
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "28319e8d25644b20"
+  file = "src/desktop/lifecycle.ts"
+  op = "ObjectLiteral"
+  text = "const running: Running = {"
+  line = 157
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "71c391493b922ba9"
+  file = "src/desktop/lifecycle.ts"
+  op = "LogicalOperator"
+  text = "if (!running.ready || running.server === null) {"
+  line = 168
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "bc96a77e858aabdd"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (!running.ready || running.server === null) {"
+  line = 168
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "e1e204b3fe674130"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "if (runtime) await step('stopping the scheduler', () => runtime.stop(SCHEDULER_DRAIN_MS));"
+  line = 177
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "7ff998abd0f89e94"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (server) await step('closing the server', () => server.close());"
+  line = 178
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "61950c81be14a669"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "if (server) await step('closing the server', () => server.close());"
+  line = 178
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "8a623c770e7cfe17"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (runtime) await step('closing the database', () => runtime.closeDb());"
+  line = 179
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "cca13982bf5e04ba"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "if (runtime) await step('closing the database', () => runtime.closeDb());"
+  line = 179
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "a6f27f3fbb6da065"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error(`desktop quit: shutdown passed ${SHUTDOWN_DEADLINE_MS}ms, exiting anyway`);"
+  line = 192
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "125a9fbe0185dc27"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "startupFailure(deps, 'server', error, key);"
+  line = 217
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "5fc33fef75d73b35"
+  file = "src/desktop/lifecycle.ts"
+  op = "BooleanLiteral"
+  text = "ready: false,"
+  line = 160
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "0188855cb6fa56ec"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (running.quitting) return;"
+  line = 223
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "5dda0ee0870dde5b"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 226
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "1aca24ef5d5114c8"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (runtime) await step('stopping the scheduler', () => runtime.stop(SCHEDULER_DRAIN_MS));"
+  line = 177
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "d7c7f995c082ed25"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop resume: scheduler pass failed', error);"
+  line = 227
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "325c9379b7d2fd52"
+  file = "src/desktop/lifecycle.ts"
+  op = "BooleanLiteral"
+  text = "running.showRequested = false;"
+  line = 239
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "fde40685676f11cf"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "export const STARTUP_ERROR_TITLE = 'Price Check could not start';"
+  line = 34
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "ae1376eefcc00ae9"
+  file = "src/desktop/login-item.ts"
+  op = "StringLiteral"
+  text = "return !entryDisabled(readFileSync(autostartFile, 'utf8'));"
+  line = 127
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "234c4002b93688bc"
+  file = "src/desktop/login-item.ts"
+  op = "ObjectLiteral"
+  text = "rmSync(autostartFile, { force: true });"
+  line = 139
+  accepted_in = "03-desktop-shell"
+  reason = "rmSync without force throws only when the autostart entry is already gone; the tray catches a throwing setEnabled and re-reads the OS state (tray.spec 'a throwing setEnabled leaves the checkbox showing the real OS state')."
+
+[[accepted]]
+  key = "79f97e72119c4f05"
+  file = "src/desktop/login-item.ts"
+  op = "BooleanLiteral"
+  text = "rmSync(autostartFile, { force: true });"
+  line = 139
+  accepted_in = "03-desktop-shell"
+  reason = "rmSync without force throws only when the autostart entry is already gone; the tray catches a throwing setEnabled and re-reads the OS state (tray.spec 'a throwing setEnabled leaves the checkbox showing the real OS state')."
+
+[[accepted]]
+  key = "295d2a80ae1ccf6a"
+  file = "src/desktop/login-item.ts"
+  op = "BooleanLiteral"
+  text = "mkdirSync(userData, { recursive: true });"
+  line = 149
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "efa2fd090be820fc"
+  file = "src/desktop/login-item.ts"
+  op = "StringLiteral"
+  text = "writeFileSync(markerFile, `${new Date().toISOString()}\\n`, 'utf8');"
+  line = 150
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "9578f8b06c9a7f78"
+  file = "src/desktop/login-item.ts"
+  op = "StringLiteral"
+  text = "writeFileSync(autostartFile, autostartEntry(env, execPath), 'utf8');"
+  line = 137
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "f5938f375cbf8833"
+  file = "src/desktop/login-item.ts"
+  op = "ObjectLiteral"
+  text = "mkdirSync(userData, { recursive: true });"
+  line = 149
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "a33b0ef6ee785bdc"
+  file = "src/desktop/tray.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop tray: changing start at login failed', error);"
+  line = 92
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "99503e9f5613e260"
+  file = "src/desktop/tray.ts"
+  op = "StringLiteral"
+  text = "export const TRAY_TOOLTIP = 'Price Check';"
+  line = 19
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "48aa8dd11e051ca5"
+  file = "src/desktop/server.ts"
+  op = "StringLiteral"
+  text = "res.setHeader('content-type', 'text/plain; charset=utf-8');"
+  line = 38
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "beff93833ef79b51"
+  file = "src/desktop/server.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop server: request handler failed', error);"
+  line = 61
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "6267d7b0b7dd66f7"
+  file = "src/desktop/server.ts"
+  op = "StringLiteral"
+  text = "else sendText(res, 500, 'Internal Server Error');"
+  line = 63
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "03b19bccd05c3053"
+  file = "src/desktop/server.ts"
+  op = "ConditionalExpression"
+  text = "if (!res.writableEnded) sendText(res, 404, 'Not Found');"
+  line = 77
+  accepted_in = "03-desktop-shell"
+  reason = "next() is only reached when the handler declines a request; adapter-node's handler never calls next after ending the response, so the writableEnded guard never changes an outcome."
+
+[[accepted]]
+  key = "7565d901d08cc046"
+  file = "src/desktop/server.ts"
+  op = "StringLiteral"
+  text = "server.once('error', reject);"
+  line = 88
+  category = "desk-listen-error"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "a5da1890d023603d"
+  file = "src/desktop/server.ts"
+  op = "StringLiteral"
+  text = "server.off('error', reject);"
+  line = 90
+  category = "desk-listen-error"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "8fe9f2c38e0ff2e8"
+  file = "src/desktop/server.ts"
+  op = "ConditionalExpression"
+  text = "if (!(name in env)) delete process.env[name];"
+  line = 119
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: deleting every variable and then Object.assign(process.env, env) leaves process.env equal to env, the same as deleting only those absent from env."
+
+[[accepted]]
+  key = "5a1e89931b47ced1"
+  file = "src/desktop/window.ts"
+  op = "BlockStatement"
+  text = "return (error: unknown): void => {"
+  line = 79
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "63a4c190849381ad"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "console.error(`desktop window: ${what} failed`, error);"
+  line = 80
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "dc1b1af7136c0004"
+  file = "src/desktop/window.ts"
+  op = "BlockStatement"
+  text = "function logFailure(what: string) {"
+  line = 78
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "20aa20157d747f8e"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "deps.shell.openExternal(url).catch(logFailure('opening an external link'));"
+  line = 87
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "42a99ea3e2844d9b"
+  file = "src/desktop/window.ts"
+  op = "BlockStatement"
+  text = "created.on('closed', () => {"
+  line = 147
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+
+[[accepted]]
+  key = "8c96b0e42ef203d8"
+  file = "src/desktop/window.ts"
+  op = "ConditionalExpression"
+  text = "if (state.window === created) state.window = null;"
+  line = 148
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+
+[[accepted]]
+  key = "e56a1a5bbc9fc131"
+  file = "src/desktop/window.ts"
+  op = "EqualityOperator"
+  text = "if (state.window === created) state.window = null;"
+  line = 148
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+
+[[accepted]]
+  key = "37def2591c9a9102"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "window.loadURL(url).catch(logFailure('loading a page'));"
+  line = 113
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "31492305523989f5"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "created.on('closed', () => {"
+  line = 147
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+
+[[accepted]]
+  key = "88ba330aa8026940"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "window.loadURL(origin).catch(logFailure('loading the app'));"
+  line = 130
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "ee3b0511ff0cda34"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "export const WINDOW_TITLE = 'Price Check';"
+  line = 19
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
