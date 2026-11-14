@@ -125,6 +125,24 @@
           "what": "shared no-YAML-library line reader for jobs, job and top-level keys, on triggers, steps and OS branches"
         }
       ]
+    },
+    "t-8": {
+      "files": [
+        "scripts/update-feed.ts",
+        "scripts/update-feed.spec.ts",
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts"
+      ],
+      "commit": "2b00422",
+      "completed_at": "2026-11-14T19:26:29.735976Z",
+      "landmarks": [
+        {
+          "feature": "update test harness",
+          "symbol": "startUpdateFeed",
+          "loc": "scripts/update-feed.ts:163",
+          "what": "127.0.0.1-only feed serving top-level test artefacts with Range plus PowerShell/ss process and listener parsers"
+        }
+      ]
     }
   },
   "reviews": {
@@ -341,6 +359,78 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "ci-desktop.spec now reads the workflow in beforeEach. No describe-level code reads the reassigned variables at collection time, so moving the cacheDir/cacheSteps setup is safe.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-8": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "spec",
+          "severity": "BLOCKING",
+          "criterion": "c-5",
+          "text": "test_contract says update-feed.spec fails if the server's address is not 127.0.0.1, but the only test asserts feed.url, which update-feed.ts:788 builds from the LOOPBACK constant rather than server.address().address; listening on 0.0.0.0 or with no host leaves every test green. Assert (server.address() as AddressInfo).address === '127.0.0.1' (or return it in UpdateFeed and assert that)",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-5",
+          "text": "Swallowed error at scripts/update-feed.ts:713: `lstat(file).catch(() =\u003e null)` turns every lstat failure (EACCES, EIO, ENOTDIR, not just ENOENT) into a 404 with nothing logged; the adjacent comment explains lstat-vs-stat, not the discard. Return 404 only for ENOENT/ENOTDIR and rethrow (or log) the rest",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/update-feed.ts:772-775 and :743 drop the error object: serve() failures become a bare 500 and read-stream errors a bare res.destroy(), with no log, so a broken CI update run would show only an aborted download with no cause",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "fileNameFor's catch (update-feed.ts:658) maps a malformed percent-encoding to null/404 by design, and the '/%E0%A4%A' case tests it",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "process-probe parsers throw on malformed rows instead of skipping them, and tests cover single-object, empty and array ConvertTo-Json output plus PS 5.1/7 date forms",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "scripts/process-probe.ts parseProcesses runs positiveInt on every row's Id/ProcessId, so an unfiltered `Get-Process | Select-Object Id,Path,StartTime` (the command the header comment documents) or Win32_Process listing includes the Idle process (pid 0) and the whole parse throws. The caller must filter by name or path first, or pid 0 should be allowed or skipped.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "scripts/update-feed.ts fileNameFor: the bare `catch { return null; }` around decodeURIComponent turns malformed percent-encoding into an explicit 404 (the doc comment says null means 404, and the path is recorded in requests()), so the error is not swallowed; a one-line comment at the catch would make this explicit.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "parseSsListeners skips a 127.0.0.1 LISTEN line with a non-numeric port without saying so; ss never prints one for a listener, so this has no practical effect.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "update-feed.spec covers traversal variants, a symlink, a dotfile, a subdirectory, a bad percent escape, suffix and mid-file ranges, 416, HEAD and 405, port release on close, and the ENAMETOOLONG 500 path with its log, well beyond the contract.",
           "resolution": "non-blocking, left"
         }
       ]
