@@ -71,6 +71,24 @@
           "what": "unpackaged runs with PRICE_CHECK_E2E_NOTIFY=record|unsupported swap Electron's Notification for a recorder on globalThis; packaged runs never read it"
         }
       ]
+    },
+    "t-5": {
+      "files": [
+        "src/desktop/notifier.ts",
+        "src/desktop/notifier.spec.ts",
+        "src/desktop/app-id.ts",
+        "src/desktop/app-id.spec.ts"
+      ],
+      "commit": "54e6f9c",
+      "completed_at": "2026-11-14T15:41:13.012366Z",
+      "landmarks": [
+        {
+          "feature": "desktop notifications",
+          "symbol": "createNotifier",
+          "loc": "src/desktop/notifier.ts:70",
+          "what": "wraps Electron Notification: settle-or-fail results, GC retention, click path routing; APP_ID shared with packaging"
+        }
+      ]
     }
   },
   "reviews": {
@@ -166,6 +184,33 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The compile-time check realClassFits makes sure Electron's real Notification fits the structural NotificationCtor slice, and the spec also covers show order versus construction order, multiple listeners and recorder replacement.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-5": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "src/desktop/notifier.ts show(): Notification.isSupported() is called outside any try, and show is not async, so if it throws, the caller gets a synchronous throw instead of a {ok:false, reason:'failed'} result. The same goes for a throwing notification.on() inside the Promise executor: the promise rejects and the settle timer stays armed. This is rare, but it is the only path that breaks the resolve-only contract.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "pendingClick holds one slot. If several clicks arrive before setClickHandler, only the last one's path is delivered. That fits a single window navigation, and the test_contract only asks that a click is not lost.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The click spec goes beyond the contract: it also covers backslash protocol-relative paths, relative paths, empty paths and a throwing handler, plus a construction or show() throw mapped to 'failed'.",
           "resolution": "non-blocking, left"
         }
       ]
