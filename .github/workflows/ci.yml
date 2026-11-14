@@ -151,6 +151,10 @@ jobs:
           fi
         env:
           CI: 'true'
+          # The suite's vite build validates src/env.ts, which requires DATABASE_URL.
+          # Electron's main sets the real one in userData at launch (server-env.ts),
+          # so this value only satisfies the build: the web e2e's seeded DB.
+          DATABASE_URL: file:e2e/.data/e2e.db
       # Covers the desktop suite too: its outputDir is test-results/desktop.
       - name: upload test reports
         if: failure()
