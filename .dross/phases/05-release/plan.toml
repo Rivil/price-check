@@ -1,4 +1,4 @@
-task_seq = 14
+task_seq = 15
 [phase]
 id = "05-release"
 
@@ -237,3 +237,14 @@ test_contract = [
   '''observed: the phase PR's test (windows) and test (linux) run t-12's update e2e green, and test (macos) runs verify mac + smoke (incl. x64 slice) green''',
 ]
 status        = "pending"
+
+[[task]]
+id = "t-15"
+wave = 3
+title = "macOS: let Squirrel install before exit"
+files = ["src/desktop/lifecycle.ts", "src/desktop/lifecycle.spec.ts"]
+description = "t-5 runner found: with autoInstallOnAppQuit false, the restart-to-update quit path ends in app.exit(0) before Squirrel.Mac has finished fetching/staging the update from electron-updater's local proxy, so on macOS the update may never install. Verify the actual behaviour in the installed electron-updater (MacUpdater.quitAndInstall / squirrelDownloadedUpdate / nativeUpdater 'update-downloaded') before changing anything. Fix in the lifecycle quit path: on darwin, when quitting to install, wait for Squirrel's ready signal (bounded timeout, then fall back to a normal quit with the update left for next launch) instead of exiting immediately; Windows/Linux keep the t-5 path (exit after shutdown, relaunch after predecessor exit). macOS update itself stays a device-UAT check per spec."
+covers = ["c-5"]
+test_contract = ["if on darwin the restart-to-update path calls app.exit before the injected native updater signals the update is staged, the lifecycle spec 'macOS waits for Squirrel before exiting' fails", "if the darwin wait has no bound (Squirrel never signals), the lifecycle spec 'macOS install wait times out to a normal quit' fails", "if the win32/linux restart-to-update path changes (no longer exits after shutdown or relaunches before the predecessor exits), the existing t-5 lifecycle specs fail"]
+status = "pending"
+depends_on = ["t-5"]
