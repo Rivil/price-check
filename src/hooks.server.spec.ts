@@ -1,5 +1,11 @@
 import type { RequestEvent } from '@sveltejs/kit';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { sql } from 'drizzle-orm';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { channelKinds } from '#lib/server/alerts/channels.ts';
+import type { DesktopDeps } from '#lib/server/alerts/desktop.ts';
+import { notifyChannel, watch } from '#lib/server/db/schema.ts';
+import { publishNotifier, type DesktopNotifier } from '#lib/server/notify-bridge.ts';
+import { createTestDb, type TestDb } from '#lib/server/testing/test-db.ts';
 import hooksSource from './hooks.server.ts?raw';
 
 // The real hooks module, with everything it would start or reach replaced: init
@@ -9,11 +15,18 @@ import hooksSource from './hooks.server.ts?raw';
 const VALID_KEY = Buffer.alloc(32, 7).toString('base64');
 
 const RUNTIME_KEY = Symbol.for('price-check.runtime');
+const NOTIFIER_KEY = Symbol.for('price-check.notifier');
 
 const mocks = vi.hoisted(() => ({
 	db: { name: 'the app db', $client: { close: vi.fn() } },
-	env: { building: false, key: undefined as string | undefined },
+	env: { building: false, key: undefined as string | undefined, db: undefined as unknown },
 	setAlertsKey: vi.fn(),
+	realSetAlertsKey: undefined as unknown as (key: Buffer) => void,
+	installDesktop: vi.fn(),
+	/** What each successful installDesktop returned; undone after every test. */
+	installed: [] as (() => void)[],
+	/** What each installDesktop threw, so a test can check it never reached the log. */
+	installErrors: [] as unknown[],
 	order: [] as string[],
 	migrateDb: vi.fn(),
 	startScheduler: vi.fn(),
@@ -33,12 +46,37 @@ vi.mock('$app/env/private', () => ({
 		return mocks.env.key;
 	}
 }));
-// The real parser; setAlertsKey records the step so its order can be checked.
-vi.mock('#lib/server/alerts/crypto.ts', async (importOriginal) => ({
-	...(await importOriginal<typeof import('#lib/server/alerts/crypto.ts')>()),
-	setAlertsKey: mocks.setAlertsKey
+// The real parser and key store; setAlertsKey records the step so its order can be
+// checked, then installs the key, so the desktop setup's alertsKey() reads it.
+vi.mock('#lib/server/alerts/crypto.ts', async (importOriginal) => {
+	const real = await importOriginal<typeof import('#lib/server/alerts/crypto.ts')>();
+	mocks.realSetAlertsKey = real.setAlertsKey;
+	return { ...real, setAlertsKey: mocks.setAlertsKey };
+});
+// The real installDesktop; the wrapper records the step and keeps its unregister.
+vi.mock('#lib/server/alerts/desktop.ts', async (importOriginal) => {
+	const real = await importOriginal<typeof import('#lib/server/alerts/desktop.ts')>();
+	mocks.installDesktop.mockImplementation(
+		async (...args: Parameters<typeof real.installDesktop>) => {
+			try {
+				const undo = await real.installDesktop(...args);
+				mocks.installed.push(undo);
+				mocks.order.push('desktop');
+				return undo;
+			} catch (error) {
+				mocks.installErrors.push(error);
+				throw error;
+			}
+		}
+	);
+	return { ...real, installDesktop: mocks.installDesktop };
+});
+// The fake db by default; the desktop tests swap in a real temp-file one.
+vi.mock('#lib/server/db/index.ts', () => ({
+	get db() {
+		return mocks.env.db;
+	}
 }));
-vi.mock('#lib/server/db/index.ts', () => ({ db: mocks.db }));
 vi.mock('#lib/server/scheduler.ts', () => ({ startScheduler: mocks.startScheduler }));
 // The real bridge; publishRuntime records the step so its order can be checked.
 vi.mock('#lib/server/runtime-bridge.ts', async (importOriginal) => {
@@ -54,10 +92,14 @@ vi.mock('#lib/server/shops/index.ts', () => ({ checkUrl: mocks.checkUrl }));
 beforeEach(() => {
 	mocks.env.building = false;
 	mocks.env.key = VALID_KEY;
+	mocks.env.db = mocks.db;
 	mocks.order.length = 0;
-	mocks.setAlertsKey.mockReset().mockImplementation(() => {
+	mocks.setAlertsKey.mockReset().mockImplementation((key: Buffer) => {
 		mocks.order.push('key');
+		mocks.realSetAlertsKey(key);
 	});
+	mocks.installDesktop.mockClear();
+	mocks.installErrors.length = 0;
 	mocks.migrateDb.mockReset().mockImplementation(async () => {
 		// Resolves on a later tick: init must wait for it before starting the scheduler.
 		await new Promise((done) => setTimeout(done, 5));
@@ -71,6 +113,10 @@ beforeEach(() => {
 	mocks.publishRuntime.mockClear();
 	mocks.db.$client.close.mockReset();
 	delete (globalThis as { [RUNTIME_KEY]?: unknown })[RUNTIME_KEY];
+	delete (globalThis as { [NOTIFIER_KEY]?: unknown })[NOTIFIER_KEY];
+});
+afterEach(() => {
+	for (const undo of mocks.installed.splice(0).reverse()) undo();
 });
 
 /** What init published, read back through the real bridge. */
@@ -218,6 +264,118 @@ describe('hooks.server', () => {
 		expect(mocks.checkUrl).toHaveBeenCalledExactlyOnceWith(
 			'https://www.amazon.co.uk/dp/B0ABC12345'
 		);
+	});
+});
+
+describe('hooks.server desktop alerts', () => {
+	// A real temp-file db and the real driver registry; the notifier is a fake, so
+	// nothing reaches Electron or the OS.
+	let h: TestDb;
+	let notifier: DesktopNotifier;
+
+	beforeEach(async () => {
+		// No registration left over from an earlier test (each install is undone).
+		expect(channelKinds()).not.toContain('desktop');
+		// createTestDb migrates through the mocked module: let that one call run the real
+		// migrations, then forget it, so init's migrateDb is the only step recorded.
+		const real = await vi.importActual<typeof import('#lib/server/db/migrate.ts')>(
+			'#lib/server/db/migrate.ts'
+		);
+		mocks.migrateDb.mockImplementationOnce(real.migrateDb);
+		h = await createTestDb();
+		mocks.migrateDb.mockClear();
+		mocks.env.db = h.db;
+		notifier = { show: vi.fn(async () => ({ ok: true as const })) };
+	});
+	afterEach(() => {
+		h.dispose();
+	});
+
+	const storedKinds = async () => (await h.db.select().from(notifyChannel)).map(({ kind }) => kind);
+
+	it('installs desktop before the first scheduler pass', async () => {
+		publishNotifier(notifier);
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+
+		expect(mocks.order).toEqual(['key', 'migrated', 'desktop', 'scheduler', 'published']);
+		expect(mocks.installDesktop).toHaveBeenCalledOnce();
+		const [db, key, given] = mocks.installDesktop.mock.calls[0] as unknown[];
+		expect(db).toBe(h.db);
+		expect((key as Buffer).equals(Buffer.alloc(32, 7))).toBe(true);
+		expect(given).toBe(notifier);
+		expect(channelKinds()).toContain('desktop');
+		expect(await storedKinds()).toEqual(['desktop']);
+	});
+
+	it('no Electron, no desktop', async () => {
+		// No notifier published, as under pnpm dev or browser e2e (desktop_only_driver).
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+
+		expect(mocks.installDesktop).not.toHaveBeenCalled();
+		expect(channelKinds()).not.toContain('desktop');
+		expect(await storedKinds()).toEqual([]);
+		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler', 'published']);
+	});
+
+	it('watchExists answers from the watch table', async () => {
+		await h.db.insert(watch).values({
+			id: 'w1',
+			shop: 'amazon-uk',
+			productId: 'B0W1000000',
+			canonicalUrl: 'https://www.amazon.co.uk/dp/B0W1000000',
+			title: 'Acme Kettle',
+			pricePence: 900,
+			targetPence: 1000
+		});
+		publishNotifier(notifier);
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+
+		const [, , , deps] = mocks.installDesktop.mock.calls[0] as [
+			unknown,
+			unknown,
+			unknown,
+			DesktopDeps
+		];
+		expect(await deps.watchExists('w1')).toBe(true);
+		expect(await deps.watchExists('no-such-watch')).toBe(false);
+	});
+
+	it('a failed desktop seed is logged and startup goes on', async () => {
+		// ensureChannel's insert fails for real: the table is gone.
+		await h.db.run(sql`drop table notify_channel`);
+		publishNotifier(notifier);
+		const controls = { requestPass: vi.fn(), stop: vi.fn(async () => {}) };
+		mocks.startScheduler.mockImplementation(() => {
+			mocks.order.push('scheduler');
+			return controls;
+		});
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const hooks = await import('./hooks.server.ts');
+		let logged: unknown[][];
+		try {
+			await expect(hooks.init()).resolves.toBeUndefined();
+		} finally {
+			logged = [...consoleError.mock.calls];
+			consoleError.mockRestore();
+		}
+
+		// The scheduler still starts and main still gets its controls.
+		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler', 'published']);
+		expect((await published()).requestPass).toBe(controls.requestPass);
+		// installDesktop undid its registration, so no driver without a row.
+		expect(channelKinds()).not.toContain('desktop');
+		// One line: the error's type and frames, never its message (a query's params).
+		expect(mocks.installErrors).toHaveLength(1);
+		const [error] = mocks.installErrors as Error[];
+		expect(logged).toHaveLength(1);
+		const [line] = logged[0] as [string];
+		expect(line).toMatch(/^\[server\] desktop alerts not set up: \w+/);
+		expect(error.message).not.toBe('');
+		expect(line).not.toContain(error.message);
+		expect(line).not.toContain('notify_channel');
 	});
 });
 

@@ -132,7 +132,8 @@ test.describe('guard in the app window', () => {
 		await expect(ntfyCard(page).getByRole('status')).toHaveText('Saved.');
 		await expect(ntfyCard(page).getByTestId('current-topic').locator('code')).toHaveText(TOPIC);
 		const stored = await snapshot(desktop);
-		expect(stored.channels.map(({ kind }) => kind)).toEqual(['ntfy']);
+		// The desktop row seeded at startup, plus the ntfy one just saved.
+		expect(stored.channels.map(({ kind }) => kind)).toEqual(['desktop', 'ntfy']);
 
 		// The add form, submitted natively (form.submit() skips enhance and the required
 		// check): the browser's own POST, which the action refuses with 400, not Kit's 403.
