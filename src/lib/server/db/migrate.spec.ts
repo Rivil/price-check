@@ -2,7 +2,8 @@ import { randomBytes } from 'node:crypto';
 import { cpSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { isAbsolute, join } from 'node:path';
-import { eq } from 'drizzle-orm';
+import { eq, is } from 'drizzle-orm';
+import { getTableConfig, SQLiteTable } from 'drizzle-orm/sqlite-core';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { listChannels, saveChannel } from '../alerts/channels.ts';
 import { encryptSecret } from '../alerts/crypto.ts';
@@ -12,6 +13,7 @@ import { removeTempDir } from '../testing/temp-dir.ts';
 import { listWatches } from '../watches.ts';
 import { createDb, type Db } from './client.ts';
 import { migrateDb, migrationsFolder } from './migrate.ts';
+import * as schema from './schema.ts';
 import { notifyChannel, pricePoint, priceDropDelivery, watch } from './schema.ts';
 
 let dir: string;
@@ -69,6 +71,12 @@ async function dump() {
 	}
 	return { schema: schema.rows.map((row) => ({ ...row })), data };
 }
+
+/** Every table schema.ts declares, as drizzle-kit reads it. */
+const declaredTables = () =>
+	Object.values<unknown>(schema)
+		.filter((value): value is SQLiteTable => is(value, SQLiteTable))
+		.map((table) => getTableConfig(table));
 
 // A channel config sealed the way 0007-0008 servers did: per-user AAD, a key of its own.
 const sealedLegacy = (userId: string, kind: string) =>
@@ -370,7 +378,10 @@ describe('migrateDb', () => {
 
 		expect(entry(10).tag).toBe('0010_single_user_watches');
 		expect(entry(10).when).toBeGreaterThan(entry(9).when);
-		expect(await lastApplied()).toEqual({ count: 11, when: entry(10).when });
+		expect(await lastApplied()).toEqual({
+			count: journal.entries.length,
+			when: journal.entries.at(-1)!.when
+		});
 
 		expect(await ids('watch')).toEqual(['w1', 'w2', 'w3']);
 		expect(await ids('price_point')).toEqual(['p1', 'p2', 'p3', 'p4', 'p5']);
@@ -431,6 +442,121 @@ describe('migrateDb', () => {
 		expect(await lastApplied()).toEqual(appliedBefore);
 		expect(await dump()).toEqual(before);
 		expect((await columns('watch')).map((c) => c.name)).toContain('user_id');
+	});
+
+	// One user's install at 0010, signed in once: 0011 drops the auth tables and nothing else.
+	it('upgrade 0010->0011', async () => {
+		await migrateDb(db, folderUpTo(10));
+		expect(await lastApplied()).toMatchObject({ when: entry(10).when });
+
+		await addUser('alice');
+		await run(
+			`insert into session (id, expires_at, token, updated_at, user_id)
+				values ('s1', 1800000000000, 'session-token', 1700000000000, 'alice')`
+		);
+		await run(
+			`insert into account (id, account_id, provider_id, user_id, password, updated_at)
+				values ('a1', 'alice', 'credential', 'alice', 'not-a-real-hash', 1700000000000)`
+		);
+		await run(
+			"insert into verification (id, identifier, value, expires_at) values ('v1', 'x', 'y', 1800000000000)"
+		);
+		for (const id of ['w1', 'w2']) {
+			await run(
+				`insert into watch (id, shop, product_id, canonical_url, target_pence)
+					values (?, 'amazon-uk', ?, ?, 2000)`,
+				[id, id, `https://www.amazon.co.uk/dp/${id}`]
+			);
+		}
+		for (const [id, watchId, at] of [
+			['p1', 'w1', 1],
+			['p2', 'w1', 2],
+			['p3', 'w2', 1]
+		] as const) {
+			await run(
+				'insert into price_point (id, watch_id, price_pence, checked_at) values (?, ?, 1999, ?)',
+				[id, watchId, 1_700_000_000_000 + at]
+			);
+		}
+		await run("insert into notify_channel (kind, config_enc) values ('ntfy', 'v1:sealed')");
+		await run(
+			"insert into price_drop_delivery (watch_id, kind, target_pence) values ('w1', 'ntfy', 2000)"
+		);
+
+		await migrateDb(db, MIGRATIONS_FOLDER);
+
+		expect(entry(11).tag).toBe('0011_drop_auth');
+		expect(entry(11).when).toBeGreaterThan(entry(10).when);
+		expect((await lastApplied()).when).toBe(journal.entries.at(-1)!.when);
+
+		expect(await ids('watch')).toEqual(['w1', 'w2']);
+		expect(await ids('price_point')).toEqual(['p1', 'p2', 'p3']);
+		expect(await db.select().from(notifyChannel)).toEqual([
+			expect.objectContaining({ kind: 'ntfy', configEnc: 'v1:sealed' })
+		]);
+		expect(await ids('price_drop_delivery', 'watch_id')).toEqual(['w1']);
+		const left = await tables();
+		for (const gone of ['user', 'session', 'account', 'verification']) {
+			expect(left).not.toContain(gone);
+		}
+		expect((await run('pragma foreign_key_check')).rows).toEqual([]);
+	});
+
+	// c-3, decision data_scope: the install owns the data; no trace of a user is left.
+	it('install-owned schema', async () => {
+		await migrateDb(db);
+
+		const created = await tables();
+		expect(created.filter((name) => name !== '__drizzle_migrations')).toEqual([
+			'check_failure',
+			'notify_channel',
+			'price_drop_delivery',
+			'price_point',
+			'watch'
+		]);
+		for (const table of created) {
+			expect(
+				(await columns(table)).map((c) => c.name),
+				table
+			).not.toContain('user_id');
+		}
+		const indexed = await run(
+			`select i.name as idx, c.name as col from sqlite_master m
+				join pragma_index_list(m.name) i join pragma_index_info(i.name) c
+				where m.type = 'table'`
+		);
+		const indexedColumns = indexed.rows.map((row) => `${row.idx}.${row.col}`);
+		// Not vacuous: the join sees the watch product index.
+		expect(indexedColumns).toContain('watch_product_uq.product_id');
+		expect(indexedColumns.filter((name) => name.endsWith('.user_id'))).toEqual([]);
+
+		expect(Object.keys(schema).sort()).toEqual([
+			'checkFailure',
+			'notifyChannel',
+			'priceDropDelivery',
+			'pricePoint',
+			'watch'
+		]);
+	});
+
+	// drizzle-kit diffs schema.ts against the latest snapshot; the migrated database must
+	// agree with both, or the next db:generate emits a migration nobody wrote.
+	it('schema matches snapshot', async () => {
+		await migrateDb(db);
+		const last = journal.entries.at(-1)!;
+		const snapshot = JSON.parse(
+			readFileSync(join(MIGRATIONS_FOLDER, 'meta', `${last.tag.slice(0, 4)}_snapshot.json`), 'utf8')
+		) as { tables: Record<string, { columns: Record<string, unknown> }> };
+
+		const declared = declaredTables();
+		expect(declared.map((config) => config.name).sort()).toEqual(
+			Object.keys(snapshot.tables).sort()
+		);
+		for (const config of declared) {
+			const names = config.columns.map((column) => column.name).sort();
+			expect((await columns(config.name)).map((c) => c.name).sort(), config.name).toEqual(names);
+			expect(Object.keys(snapshot.tables[config.name].columns).sort(), config.name).toEqual(names);
+		}
 	});
 
 	// c-5: what one server run stores, the next run on the same file reads back.
