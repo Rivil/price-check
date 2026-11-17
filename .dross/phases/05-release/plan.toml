@@ -268,7 +268,7 @@ files = ["scripts/package-desktop.spec.ts"]
 description = "PR #12 Windows unit tests: the fake exists() in package-desktop.spec.ts:530 checks endsWith('build/handler.js'), but production resolves to backslash paths on Windows, so the 'refuses when build/handler.js / dist-desktop/main.js is missing' case returns 0. Production is correct; fix only the spec, comparing against resolve(root, missing) or normalising separators."
 covers = ["c-1"]
 test_contract = ["If the missing-input check stops refusing when build/handler.js or dist-desktop/main.js is missing, the package-desktop.spec missing-input case fails on every OS, Windows included"]
-status = "pending"
+status = "done"
 depends_on = ["t-14"]
 
 [[task]]

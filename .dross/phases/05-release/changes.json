@@ -144,6 +144,21 @@
         }
       ]
     },
+    "t-17": {
+      "files": [
+        "scripts/package-desktop.spec.ts"
+      ],
+      "commit": "2552cc3",
+      "completed_at": "2026-11-17T17:11:36.756056Z",
+      "landmarks": [
+        {
+          "feature": "desktop packaging",
+          "symbol": "refuses when %s is missing",
+          "loc": "scripts/package-desktop.spec.ts:530",
+          "what": "missing-input spec fake compares resolve(root, input) so it holds on Windows separators"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "scripts/package-desktop.ts",
@@ -566,6 +581,20 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "src/desktop/lifecycle.spec.ts is listed in the task's files but left unchanged; the existing lifecycle specs still pin the quit/restart hand-over, so nothing is missing",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-17": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "The fake exists() now builds the path exactly as production does (resolve(root, path), package-desktop.ts:251), so it matches on POSIX and Windows. If production changed how it builds the path, the test would fail loudly, not pass vacuously.",
           "resolution": "non-blocking, left"
         }
       ]
