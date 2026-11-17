@@ -28,10 +28,10 @@ const BUILDS: Record<string, PackagedPlatform> = {
 const JOBS = ['tag', ...Object.keys(BUILDS), 'publish'];
 const SECRETS = [
 	'CSC_LINK',
-	'CSC_KEY_PASSWORD',
 	'APPLE_API_KEY_P8_BASE64',
 	'APPLE_API_KEY_ID',
-	'APPLE_API_ISSUER'
+	'APPLE_API_ISSUER',
+	'CSC_KEY_PASSWORD'
 ];
 const VERSION_REF = '${{ needs.tag.outputs.version }}';
 const PRERELEASE_REF = '${{ needs.tag.outputs.prerelease }}';
