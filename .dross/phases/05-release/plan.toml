@@ -290,5 +290,5 @@ files = ["scripts/release-workflow.spec.ts"]
 description = "GitGuardian flags 'Generic Password' in release-workflow.spec.ts: CSC_KEY_PASSWORD (line 31) is followed by another secret NAME, read as its value. False positive, nothing real. Move 'CSC_KEY_PASSWORD' to the end of the SECRETS name array; tests are order-independent. The historical finding in 61c138b still needs Michal to mark it false positive in the GitGuardian dashboard."
 covers = ["c-4"]
 test_contract = ["If a release secret name is dropped from the SECRETS list, the release-workflow.spec secret-wiring test fails"]
-status = "pending"
+status = "done"
 depends_on = ["t-14"]

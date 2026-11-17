@@ -178,6 +178,21 @@
         }
       ]
     },
+    "t-19": {
+      "files": [
+        "scripts/release-workflow.spec.ts"
+      ],
+      "commit": "c31fac9",
+      "completed_at": "2026-11-17T17:20:58.182133Z",
+      "landmarks": [
+        {
+          "feature": "release pipeline",
+          "symbol": "SECRETS",
+          "loc": "scripts/release-workflow.spec.ts:29",
+          "what": "secret-name list ordered so no name follows CSC_KEY_PASSWORD (GitGuardian false positive)"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "scripts/package-desktop.ts",
@@ -649,6 +664,27 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "Moving servingInstance into scripts/process-probe.ts and adding pidsByPort there fits the description's condition 'only if the grouping moves into the parser'.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-19": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-4",
+          "text": "Reorder is behaviour-neutral: the secret-wiring test compares objects with toEqual (key-order-independent) and checks length with toHaveLength(SECRETS.length); dropping any name still fails both",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The historical GitGuardian finding on commit 61c138b still has to be marked a false positive in the dashboard by hand; this diff cannot clear it",
           "resolution": "non-blocking, left"
         }
       ]
