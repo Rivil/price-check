@@ -21,7 +21,9 @@
 // and does not relaunch; then a fresh copy of A takes 'Restart to update', and B,
 // started by the updater while A is still exiting, must wait out its predecessor
 // and run. Both end with a Playwright relaunch that reports version B and lists the
-// watch, an intact DB (PRAGMA integrity_check) and no 'database is locked'.
+// watch, an intact DB (PRAGMA integrity_check) and no 'database is locked' in what
+// the Playwright launches printed once attached (their startup lines are not
+// captured; see PackagedApp.output) up to their quit.
 //
 // The Linux run launches a copy of A at an unversioned file name: electron-updater
 // replaces an AppImage in place only when its name carries no version, and writes
@@ -38,6 +40,7 @@ import {
 	UPDATE_FILE,
 	type PackagedPlatform
 } from '../../scripts/packaged-app.ts';
+import { servingInstance } from '../../scripts/process-probe.ts';
 import { startUpdateFeed, type UpdateFeed } from '../../scripts/update-feed.ts';
 import { insertWatches, makeTempDir, rawRequest, REPO_ROOT } from '../desktop/launch.ts';
 import {
@@ -52,7 +55,6 @@ import {
 	updaterCheckNow,
 	updaterRestart,
 	updaterStatus,
-	type AppInstance,
 	type PackagedApp,
 	type PackagedRun
 } from './launch-packaged.ts';
@@ -111,15 +113,6 @@ function sha256(file: string): string {
 	return createHash('sha256').update(readFileSync(file)).digest('hex');
 }
 
-/** The single instance serving on a port, or null while there is none yet. */
-function servingInstance(instances: AppInstance[]): AppInstance | null {
-	const serving = instances.filter((instance) => instance.port !== null);
-	if (serving.length > 1) {
-		throw new Error(`more than one instance is serving: ${JSON.stringify(serving)}`);
-	}
-	return serving[0] ?? null;
-}
-
 test.describe.serial('packaged update', () => {
 	test.skip(platform === 'darwin', 'macOS updates are device UAT (two notarised builds)');
 	test.skip(!feedDir, `${UPDATE_FEED_DIR_ENV} is not set: no build B to update to`);
@@ -132,7 +125,10 @@ test.describe.serial('packaged update', () => {
 	/** Linux: where A's AppImage is copied to and run from (see the header). */
 	let appImageDir: string | undefined;
 	let current: PackagedApp | undefined;
-	/** Everything each Playwright launch printed, for the 'database is locked' check. */
+	/**
+	 * What each Playwright launch printed once attached (startup lines excluded, see
+	 * PackagedApp.output), for the 'database is locked' check.
+	 */
 	const outputs: (() => string)[] = [];
 
 	const launch = async (fresh = false) => {

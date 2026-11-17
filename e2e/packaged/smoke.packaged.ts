@@ -121,11 +121,11 @@ test.describe.serial('packaged app', () => {
 			(_electron, key) => (globalThis as Record<symbol, unknown>)[Symbol.for(key)] !== undefined,
 			UPDATER_HANDLE_KEY
 		);
+		// main.ts publishes the handle right after updater.start(), so updates are on.
+		// Its '[updater] updates on for' line is printed during startup, before
+		// launchPackaged attaches to stdout (see PackagedApp.output), so it is not read.
 		expect(published, 'the packaged app published no updater').toBe(true);
-		// The launch check started; joining it waits until it has settled.
-		await expect
-			.poll(app.output, { timeout: OFFLINE_WINDOW_MS })
-			.toMatch(/\[updater\] updates on for /);
+		// checkNow joins the launch check, or runs one, and waits until it has settled.
 		const state = await app.app.evaluate(async (_electron, key) => {
 			const updater = (globalThis as Record<symbol, UpdaterHandle | undefined>)[Symbol.for(key)];
 			await updater?.checkNow();

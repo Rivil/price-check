@@ -42,9 +42,15 @@ import {
 	type PackagedPlatform
 } from '../../scripts/packaged-app.ts';
 import {
+	mainProcess,
 	parseNetTcpListeners,
+	parseProcCmdline,
 	parseProcesses,
-	parseSsListeners
+	parseProcStatusPpid,
+	parseSsListeners,
+	pidsByPort,
+	type ListenMap,
+	type ProcessDetail
 } from '../../scripts/process-probe.ts';
 import { LOGIN_LAUNCH_ARG, MARKER_FILE_NAME } from '../../src/desktop/login-item.ts';
 import type { UpdaterHandle, UpdaterStatus } from '../../src/desktop/updater.ts';
@@ -183,7 +189,12 @@ export type PackagedApp = {
 	launchedAt: number;
 	/** The Electron main process's pid (on win32 not app.process(), the cmd wrapper's). */
 	pid: number;
-	/** Everything the app wrote to stdout and stderr so far. */
+	/**
+	 * What the app wrote to stdout and stderr since launchPackaged attached, once
+	 * Playwright's launch returned. An executablePath launch has no Playwright loader
+	 * holding back Electron's 'ready', so the app's startup lines are usually gone by
+	 * then: never assert on a line printed during startup.
+	 */
 	output(): string;
 	/** Whether the app's process is still running. */
 	running(): boolean;
@@ -452,7 +463,9 @@ export async function spawnX64(run: PackagedRun): Promise<SpawnedApp> {
 //     Get-NetTCPConnection for the 127.0.0.1 port its main process serves on;
 //   - linux: `ss -Hltnp` for 127.0.0.1 listeners, each tied to the AppImage by the
 //     APPIMAGE variable the AppImage runtime gave the process.
-// scripts/process-probe.ts parses the output.
+// One listening port is one instance, however many of the app's processes hold its
+// socket; its pid is the main process among them (scripts/process-probe.ts parses the
+// output and picks it).
 
 /** The updater handle main.ts publishes for a packaged app (src/desktop/updater.ts). */
 const UPDATER_HANDLE_KEY = 'price-check.updater';
@@ -498,11 +511,31 @@ export async function updaterRestart(app: ElectronApplication): Promise<unknown>
 
 /** One running instance of the packaged app found through the OS. */
 export type AppInstance = {
+	/** Its main process: of a port's holders, the one mainProcess picks. */
 	pid: number;
-	/** The 127.0.0.1 port it serves on: only the main process has one. */
+	/** The 127.0.0.1 port it serves on; null for a process that serves none (win32). */
 	port: number | null;
 	startTime: Date | null;
+	/** Every process of the app holding the port's socket (or the one process), for diagnosis. */
+	processes: ProcessDetail[];
 };
+
+/**
+ * One instance per 127.0.0.1 port held by a process `detail` accepts (null: not the
+ * app's), its pid the main process among the port's holders.
+ */
+function instancesByPort(
+	listeners: ListenMap,
+	detail: (pid: number) => ProcessDetail | null
+): { pid: number; port: number; processes: ProcessDetail[] }[] {
+	const instances: { pid: number; port: number; processes: ProcessDetail[] }[] = [];
+	for (const [port, pids] of pidsByPort(listeners)) {
+		const processes = pids.map(detail).filter((holder) => holder !== null);
+		if (processes.length === 0) continue;
+		instances.push({ pid: mainProcess(processes).pid, port, processes });
+	}
+	return instances;
+}
 
 const PROBE_TIMEOUT_MS = 60_000;
 
@@ -572,39 +605,74 @@ export async function windowsAppInstances(exe: string): Promise<AppInstance[]> {
 	);
 	if (processes.length === 0) return [];
 	const listeners = parseNetTcpListeners(await powershell(NET_TCP_LISTENERS_SCRIPT));
-	return processes.map(({ pid, startTime }) => ({
-		pid,
-		port: listeners.get(pid)?.[0] ?? null,
-		startTime
-	}));
+	// One OwningProcess per connection, so a port has one holder here; grouped by port
+	// all the same, as on linux. Get-Process gives no parent or command line.
+	const byPid = new Map(processes.map((info) => [info.pid, info]));
+	const serving = instancesByPort(listeners, (pid) =>
+		byPid.has(pid) ? { pid, ppid: null, cmdline: null } : null
+	);
+	const holders = new Set(serving.flatMap(({ processes: held }) => held.map(({ pid }) => pid)));
+	return [
+		...serving.map(({ pid, port, processes: held }) => ({
+			pid,
+			port,
+			startTime: byPid.get(pid)?.startTime ?? null,
+			processes: held
+		})),
+		...processes
+			.filter(({ pid }) => !holders.has(pid))
+			.map(({ pid, startTime }) => ({
+				pid,
+				port: null,
+				startTime,
+				processes: [{ pid, ppid: null, cmdline: null }]
+			}))
+	];
 }
 
 /**
- * The APPIMAGE variable a linux process started with, or null when it has none or
- * has exited since `ss` listed it (ENOENT, or ESRCH mid-read). Any other failure
- * (EACCES) throws: read as 'not ours' it would hide the very instance the test wants.
+ * /proc/<pid>/<file>, or null when the process has exited since `ss` listed it
+ * (ENOENT, or ESRCH mid-read). Any other failure (EACCES) throws: read as 'not ours'
+ * it would hide the very instance the test wants.
  */
-function appImageOf(pid: number): string | null {
-	let environ: string;
+function readProc(pid: number, file: string): string | null {
 	try {
-		environ = readFileSync(`/proc/${pid}/environ`, 'utf8');
+		return readFileSync(`/proc/${pid}/${file}`, 'utf8');
 	} catch (error) {
 		const code = (error as NodeJS.ErrnoException).code;
 		if (code === 'ENOENT' || code === 'ESRCH') return null;
 		throw error;
 	}
+}
+
+/** The APPIMAGE variable a linux process started with, or null when it has none or is gone. */
+function appImageOf(pid: number): string | null {
+	const environ = readProc(pid, 'environ');
+	if (environ === null) return null;
 	const entry = environ.split('\0').find((line) => line.startsWith('APPIMAGE='));
 	return entry === undefined ? null : entry.slice('APPIMAGE='.length);
 }
 
-/** Every process serving on 127.0.0.1 that the AppImage at `appImage` started (linux). */
+/** A linux process's parent and arguments, null where it has exited since. */
+function procDetail(pid: number): ProcessDetail {
+	const status = readProc(pid, 'status');
+	const cmdline = readProc(pid, 'cmdline');
+	return {
+		pid,
+		ppid: status === null ? null : parseProcStatusPpid(status),
+		cmdline: cmdline === null ? null : parseProcCmdline(cmdline)
+	};
+}
+
+/**
+ * Every instance serving on 127.0.0.1 that the AppImage at `appImage` started (linux):
+ * one per port, since processes sharing a socket all show up in its `ss` entry.
+ */
 export async function linuxAppInstances(appImage: string): Promise<AppInstance[]> {
 	const listeners = parseSsListeners(await runProbe('ss', ['-Hltnp']));
-	const instances: AppInstance[] = [];
-	for (const [pid, ports] of listeners) {
-		if (appImageOf(pid) === appImage) instances.push({ pid, port: ports[0], startTime: null });
-	}
-	return instances;
+	return instancesByPort(listeners, (pid) =>
+		appImageOf(pid) === appImage ? procDetail(pid) : null
+	).map((instance) => ({ ...instance, startTime: null }));
 }
 
 /** Instances of the packaged app at `exe`, found through the OS. */

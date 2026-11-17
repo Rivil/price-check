@@ -1,7 +1,8 @@
 // Parsers for the packaged update test's process probe (spec c-5, c-6). After an
 // update's relaunch the test finds the new app process by install path, checks it
 // started after the old one exited, and reads which 127.0.0.1 port it serves on.
-// The test runs the OS commands; these pure functions read their output:
+// The test runs the OS commands; these pure functions read their output and decide
+// which process is the instance serving a port:
 //
 //   win32: Get-Process | Select-Object Id,Path,StartTime | ConvertTo-Json
 //          (or Get-CimInstance Win32_Process ... ProcessId,ExecutablePath,CreationDate)
@@ -13,6 +14,12 @@
 // at all for none. Windows PowerShell 5.1 writes dates as \/Date(<ms>)\/, PowerShell 7
 // as ISO 8601 strings. Only 127.0.0.1 listeners count: the app's server binds there,
 // and a 0.0.0.0 or [::] listener belongs to something else.
+//
+// One listening socket is one instance, however many processes hold it: `ss` lists
+// every process sharing a socket in one users:(...) entry, so pids are grouped by port
+// (pidsByPort) and the instance's main process picked from them (mainProcess, by
+// /proc/<pid>/status and cmdline on linux). servingInstance throws only when more than
+// one distinct port is served, naming each holder's pid, ppid and cmdline.
 //
 // Node built-ins only.
 
@@ -130,4 +137,92 @@ export function parseNetTcpListeners(json: string): ListenMap {
 		add(map, positiveInt(row.OwningProcess, 'OwningProcess'), port(row.LocalPort, 'LocalPort'));
 	}
 	return map;
+}
+
+/** pid -> its 127.0.0.1 ports, inverted: port -> the pids holding it, both ascending. */
+export function pidsByPort(map: ListenMap): Map<number, number[]> {
+	const byPort = new Map<number, number[]>();
+	for (const [pid, ports] of map) {
+		for (const listenPort of ports) {
+			const pids = byPort.get(listenPort) ?? [];
+			if (!pids.includes(pid)) pids.push(pid);
+			byPort.set(listenPort, pids);
+		}
+	}
+	for (const pids of byPort.values()) pids.sort((a, b) => a - b);
+	return new Map([...byPort].sort(([a], [b]) => a - b));
+}
+
+/** What the OS told about a process; null fields where it withheld them or it had exited. */
+export type ProcessDetail = {
+	pid: number;
+	ppid: number | null;
+	/** Its arguments, the executable first. */
+	cmdline: string[] | null;
+};
+
+/** The PPid line of /proc/<pid>/status, or null when there is none. */
+export function parseProcStatusPpid(status: string): number | null {
+	const match = /^PPid:\s*(\d+)\s*$/m.exec(status);
+	return match === null ? null : Number(match[1]);
+}
+
+/** /proc/<pid>/cmdline: NUL-separated arguments; empty for a zombie or kernel thread. */
+export function parseProcCmdline(raw: string): string[] {
+	const args = raw.split('\0');
+	if (args.at(-1) === '') args.pop();
+	return args;
+}
+
+/** A Chromium helper (renderer, GPU, zygote, utility): its cmdline carries --type=. */
+function isHelper(detail: ProcessDetail): boolean {
+	return detail.cmdline?.some((arg) => arg.startsWith('--type=')) ?? false;
+}
+
+/**
+ * The main process among those holding one socket: not a Chromium helper, then not a
+ * child of another holder (a child that inherited the socket), then the lowest pid.
+ */
+export function mainProcess(holders: readonly ProcessDetail[]): ProcessDetail {
+	if (holders.length === 0) throw new Error('mainProcess: no process holds the socket');
+	const pids = new Set(holders.map(({ pid }) => pid));
+	const rank = (detail: ProcessDetail): number[] => [
+		isHelper(detail) ? 1 : 0,
+		detail.ppid !== null && pids.has(detail.ppid) ? 1 : 0,
+		detail.pid
+	];
+	const before = (a: number[], b: number[]) => {
+		for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i];
+		return false;
+	};
+	return holders.reduce((best, detail) => (before(rank(detail), rank(best)) ? detail : best));
+}
+
+/** One line per holder: pid, ppid and cmdline, for the error that names them. */
+export function describeHolders(holders: readonly ProcessDetail[]): string {
+	return holders
+		.map(({ pid, ppid, cmdline }) => {
+			const args = cmdline === null ? '<cmdline unknown>' : JSON.stringify(cmdline);
+			return `pid ${pid} (ppid ${ppid ?? 'unknown'}) ${args}`;
+		})
+		.join('; ');
+}
+
+/**
+ * The instance serving on 127.0.0.1, or null while none is. Instances on one port are
+ * one instance (the first is returned); more than one distinct port throws, naming
+ * every holder of each.
+ */
+export function servingInstance<
+	T extends { port: number | null; processes: readonly ProcessDetail[] }
+>(instances: readonly T[]): T | null {
+	const serving = instances.filter((instance) => instance.port !== null);
+	const ports = new Set(serving.map(({ port }) => port));
+	if (ports.size > 1) {
+		const detail = serving
+			.map(({ port, processes }) => `port ${port}: ${describeHolders(processes)}`)
+			.join(' | ');
+		throw new Error(`more than one instance is serving: ${detail}`);
+	}
+	return serving[0] ?? null;
 }
