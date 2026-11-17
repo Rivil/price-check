@@ -279,7 +279,7 @@ files = ["e2e/packaged/smoke.packaged.ts", "e2e/packaged/launch-packaged.ts", "e
 description = "PR #12 Linux: (a) smoke 'offline update check' polls stdout for '[updater] updates on for', but launching with executablePath skips Playwright's loader, so startup output is printed before collectOutput attaches. Assert via the published updater handle plus checkNow() reaching idle instead. (b) 'restart through the predecessor wait' throws 'more than one instance is serving' when one ss socket lists two pids (same port 35029). Treat one listening socket/port as one instance (pick the main process, e.g. no --type= in /proc/<pid>/cmdline), throw only on >1 distinct port, and log ppid+cmdline when it does. Process-probe changes only if the grouping moves into the parser."
 covers = ["c-1", "c-5", "c-6"]
 test_contract = ["If the packaged updater does not start, the smoke 'offline update check' fails (handle missing or checkNow not reaching idle)", "If two app instances serve on distinct ports during the update restart, servingInstance throws 'more than one instance is serving'"]
-status = "pending"
+status = "done"
 depends_on = ["t-14"]
 
 [[task]]

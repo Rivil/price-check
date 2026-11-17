@@ -159,6 +159,25 @@
         }
       ]
     },
+    "t-18": {
+      "files": [
+        "e2e/packaged/smoke.packaged.ts",
+        "e2e/packaged/launch-packaged.ts",
+        "e2e/packaged/update.packaged.ts",
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts"
+      ],
+      "commit": "014848c",
+      "completed_at": "2026-11-17T17:19:26.624585Z",
+      "landmarks": [
+        {
+          "feature": "packaged update probe",
+          "symbol": "servingInstance",
+          "loc": "scripts/process-probe.ts:216",
+          "what": "one 127.0.0.1 socket is one instance (main process picked by /proc), throws only on \u003e1 distinct port with pid/ppid/cmdline"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "scripts/package-desktop.ts",
@@ -595,6 +614,41 @@
           "severity": "NOTE",
           "criterion": "c-1",
           "text": "The fake exists() now builds the path exactly as production does (resolve(root, path), package-desktop.ts:251), so it matches on POSIX and Windows. If production changed how it builds the path, the test would fail loudly, not pass vacuously.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-18": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "The 'database is locked' check in update.packaged.ts ('relaunch is B with its data') now only sees output printed after Playwright attaches. A lock error printed during startup, the likeliest moment for c-6's failure, can no longer fail the test. The header comment documents this, but the c-6 proof is weaker and nothing replaces the lost coverage.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The cleanup loop in update.packaged.ts (around line 206) used to stop every pid that listened on a port. It now stops only the main process mainProcess picks for each port. Other processes holding the same socket are assumed to die with their parent; that holds for Chromium helpers but nothing checks it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The live linux/win32 wiring in e2e/packaged/launch-packaged.ts (instancesByPort, procDetail, and the holders split in windowsAppInstances) has no unit test. Only the pure helpers in scripts/process-probe.ts are pinned.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Moving servingInstance into scripts/process-probe.ts and adding pidsByPort there fits the description's condition 'only if the grouping moves into the parser'.",
           "resolution": "non-blocking, left"
         }
       ]
