@@ -1,4 +1,4 @@
-task_seq = 16
+task_seq = 19
 [phase]
 id = "05-release"
 
@@ -259,3 +259,36 @@ covers = ["c-5"]
 test_contract = ["if a plain Quit with a pending update on darwin leaves autoRunAppAfterInstall true at quitAndInstall time, the updater spec 'macOS plain quit installs without relaunch' fails", "if Restart to update on darwin sets autoRunAppAfterInstall false, the updater spec 'macOS restart relaunches after install' fails", "if the win32/linux quitAndInstall arguments for quit vs restart change, the existing t-5/t-15 lifecycle and updater specs fail"]
 status = "done"
 depends_on = ["t-15"]
+
+[[task]]
+id = "t-17"
+wave = 7
+title = "Make the missing-input spec path-separator proof"
+files = ["scripts/package-desktop.spec.ts"]
+description = "PR #12 Windows unit tests: the fake exists() in package-desktop.spec.ts:530 checks endsWith('build/handler.js'), but production resolves to backslash paths on Windows, so the 'refuses when build/handler.js / dist-desktop/main.js is missing' case returns 0. Production is correct; fix only the spec, comparing against resolve(root, missing) or normalising separators."
+covers = ["c-1"]
+test_contract = ["If the missing-input check stops refusing when build/handler.js or dist-desktop/main.js is missing, the package-desktop.spec missing-input case fails on every OS, Windows included"]
+status = "pending"
+depends_on = ["t-14"]
+
+[[task]]
+id = "t-18"
+wave = 7
+title = "Packaged e2e: drop stdout race, count one instance per socket"
+files = ["e2e/packaged/smoke.packaged.ts", "e2e/packaged/launch-packaged.ts", "e2e/packaged/update.packaged.ts", "scripts/process-probe.ts", "scripts/process-probe.spec.ts"]
+description = "PR #12 Linux: (a) smoke 'offline update check' polls stdout for '[updater] updates on for', but launching with executablePath skips Playwright's loader, so startup output is printed before collectOutput attaches. Assert via the published updater handle plus checkNow() reaching idle instead. (b) 'restart through the predecessor wait' throws 'more than one instance is serving' when one ss socket lists two pids (same port 35029). Treat one listening socket/port as one instance (pick the main process, e.g. no --type= in /proc/<pid>/cmdline), throw only on >1 distinct port, and log ppid+cmdline when it does. Process-probe changes only if the grouping moves into the parser."
+covers = ["c-1", "c-5", "c-6"]
+test_contract = ["If the packaged updater does not start, the smoke 'offline update check' fails (handle missing or checkNow not reaching idle)", "If two app instances serve on distinct ports during the update restart, servingInstance throws 'more than one instance is serving'"]
+status = "pending"
+depends_on = ["t-14"]
+
+[[task]]
+id = "t-19"
+wave = 7
+title = "Keep the secret-name list off GitGuardian's password heuristic"
+files = ["scripts/release-workflow.spec.ts"]
+description = "GitGuardian flags 'Generic Password' in release-workflow.spec.ts: CSC_KEY_PASSWORD (line 31) is followed by another secret NAME, read as its value. False positive, nothing real. Move 'CSC_KEY_PASSWORD' to the end of the SECRETS name array; tests are order-independent. The historical finding in 61c138b still needs Michal to mark it false positive in the GitGuardian dashboard."
+covers = ["c-4"]
+test_contract = ["If a release secret name is dropped from the SECRETS list, the release-workflow.spec secret-wiring test fails"]
+status = "pending"
+depends_on = ["t-14"]
