@@ -10,7 +10,7 @@
 // negations apply to node_modules.
 import { readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import type { CliOptions, Configuration } from 'electron-builder';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { APP_ID } from '../src/desktop/app-id.ts';
@@ -527,7 +527,7 @@ describe('package:desktop CLI', () => {
 	it.each(['build/handler.js', 'dist-desktop/main.js'])(
 		'refuses when %s is missing',
 		async (missing) => {
-			const h = harness({ exists: (path) => !path.endsWith(missing) });
+			const h = harness({ exists: (path) => path !== resolve('/repo', missing) });
 			expect(await runCli(['--version', '0.1.5'], h)).toBe(1);
 			expect(h.calls).toEqual([]);
 			expect(h.err.join('\n')).toContain(missing);
