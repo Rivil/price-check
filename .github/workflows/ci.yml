@@ -82,7 +82,8 @@ jobs:
     name: test (${{ matrix.name }})
     needs: [static, gitleaks]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    # The packaged steps package twice on Windows and Linux and run the update test.
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
@@ -152,7 +153,118 @@ jobs:
           # Electron's main sets the real one in userData at launch (server-env.ts),
           # so this value only satisfies the build: the web e2e's seeded DB.
           DATABASE_URL: file:e2e/.data/e2e.db
-      # Covers the desktop suite too: its outputDir is test-results/desktop.
+      # The packaged app on every PR (spec 05-release c-1, c-2, c-3, c-5, c-6), pinned by
+      # scripts/ci-packaged.spec.ts. Steps of this job, not a job of their own, so the
+      # required check names stay the same. Each script branches on the OS with a case
+      # whose catch-all fails, so every OS runs every step (no step `if:`).
+      #
+      # Build A is package.json's version, packaged from the bundles the desktop e2e just
+      # built (build/ and dist-desktop/). PR builds are never signed: no --sign, and
+      # CSC_IDENTITY_AUTO_DISCOVERY off so no identity on the runner is picked up. Windows
+      # and Linux bake the update test's loopback feed into A (decision update_flow);
+      # macOS keeps the GitHub Releases feed a release build has.
+      - name: package
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          echo "PACKAGED_VERSION=$version" >> "$GITHUB_ENV"
+          case "$RUNNER_OS" in
+            Linux)
+              pnpm package:desktop --version "$version" --feed-url http://127.0.0.1:47811/
+              ;;
+            macOS)
+              pnpm package:desktop --version "$version"
+              ;;
+            Windows)
+              pnpm package:desktop --version "$version" --feed-url http://127.0.0.1:47811/
+              ;;
+            *)
+              echo "::error::no packaged build for $RUNNER_OS"
+              exit 1
+              ;;
+          esac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      # c-1 layout on every OS; c-2 universal lipo and both libsql binaries (unsigned: PRs
+      # never sign); c-3 per-user install, no UAC and the shortcut's AUMID, after a silent
+      # install. Then the executable the packaged suites launch.
+      - name: verify packaged
+        run: |
+          case "$RUNNER_OS" in
+            Linux)
+              node scripts/verify-packaged.ts layout dist-packaged --version "$PACKAGED_VERSION" --mode ci
+              # The AppImage needs FUSE 2 (README).
+              sudo apt-get update
+              sudo apt-get install -y libfuse2t64
+              exe="$(node scripts/packaged-app.ts exe dist-packaged)"
+              ;;
+            macOS)
+              node scripts/verify-packaged.ts layout dist-packaged --version "$PACKAGED_VERSION" --mode release
+              node scripts/verify-packaged.ts mac "dist-packaged/mac-universal/Price Check.app"
+              exe="$(node scripts/packaged-app.ts exe dist-packaged)"
+              ;;
+            Windows)
+              node scripts/verify-packaged.ts layout dist-packaged --version "$PACKAGED_VERSION" --mode ci
+              exe="$(node scripts/packaged-app.ts install dist-packaged)"
+              node scripts/verify-packaged.ts win dist-packaged
+              ;;
+            *)
+              echo "::error::no packaged build for $RUNNER_OS"
+              exit 1
+              ;;
+          esac
+          echo "PRICE_CHECK_PACKAGED_EXE=$exe" >> "$GITHUB_ENV"
+      # Build B, the next patch, for the update test (c-5, c-6): Windows and Linux only,
+      # into the dir the loopback feed serves. macOS updates are device UAT (two notarised
+      # builds), so update.packaged.ts skips there.
+      - name: package update build
+        run: |
+          update="$(node -p 'const [major, minor, patch] = require("./package.json").version.split("."); [major, minor, Number(patch) + 1].join(".")')"
+          case "$RUNNER_OS" in
+            Linux)
+              pnpm package:desktop --version "$update" --feed-url http://127.0.0.1:47811/ --out dist-packaged/update-feed
+              node scripts/verify-packaged.ts layout dist-packaged/update-feed --version "$update" --mode ci
+              echo "PRICE_CHECK_UPDATE_FEED_DIR=$GITHUB_WORKSPACE/dist-packaged/update-feed" >> "$GITHUB_ENV"
+              ;;
+            macOS)
+              echo "macOS: no update build, its updates are device UAT"
+              ;;
+            Windows)
+              pnpm package:desktop --version "$update" --feed-url http://127.0.0.1:47811/ --out dist-packaged/update-feed
+              node scripts/verify-packaged.ts layout dist-packaged/update-feed --version "$update" --mode ci
+              echo "PRICE_CHECK_UPDATE_FEED_DIR=$GITHUB_WORKSPACE/dist-packaged/update-feed" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "::error::no packaged build for $RUNNER_OS"
+              exit 1
+              ;;
+          esac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      # The packaged smoke on every OS, and the update test on Windows and Linux. Linux:
+      # the same AppArmor userns lift and virtual display as the desktop e2e, never
+      # without the sandbox.
+      - name: packaged e2e
+        run: |
+          case "$RUNNER_OS" in
+            Linux)
+              sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+              xvfb-run -a pnpm test:e2e:packaged
+              ;;
+            macOS)
+              pnpm test:e2e:packaged
+              ;;
+            Windows)
+              pnpm test:e2e:packaged
+              ;;
+            *)
+              echo "::error::no packaged build for $RUNNER_OS"
+              exit 1
+              ;;
+          esac
+        env:
+          CI: 'true'
+      # Covers the desktop and packaged suites too (outputDir test-results/desktop and
+      # test-results/packaged), plus electron-builder's logs and the update files.
       - name: upload test reports
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -161,5 +273,7 @@ jobs:
           path: |
             playwright-report/
             test-results/
+            dist-packaged/**/*.yml
+            dist-packaged/**/*.yaml
           retention-days: 7
           if-no-files-found: ignore
