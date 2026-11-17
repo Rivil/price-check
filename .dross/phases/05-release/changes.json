@@ -93,6 +93,22 @@
         }
       ]
     },
+    "t-14": {
+      "files": [
+        ".github/workflows/ci.yml",
+        "scripts/ci-packaged.spec.ts"
+      ],
+      "commit": "4152909",
+      "completed_at": "2026-11-17T16:43:44.425565Z",
+      "landmarks": [
+        {
+          "feature": "PR packaged-app CI",
+          "symbol": "test job packaged steps",
+          "loc": ".github/workflows/ci.yml:166",
+          "what": "every PR packages unsigned build A per OS, verifies layout/mac/win, runs packaged smoke and Win/Linux update e2e"
+        }
+      ]
+    },
     "t-15": {
       "files": [
         "src/desktop/lifecycle.ts",
@@ -467,6 +483,34 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "`diff \u003c(...) \u003c(...) || true` in the publish script has no comment, but it only prints the mismatch before the unconditional `exit 1`, so no error is swallowed",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-14": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "The 'observed' test_contract line (phase PR test (windows|linux) runs t-12's update e2e green, test (macos) runs verify mac + smoke green) cannot be confirmed from the diff; it rests on the executor's PR run.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ci.yml 'package update build' computes B with version.split('.') and Number(patch)+1; a prerelease package.json version (e.g. 0.1.5-rc.1) would yield NaN. This is fine while package.json stays MAJOR.MINOR.PATCH per release_pipeline, and the spec's next-patch test would catch a change.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "osScript in ci-packaged.spec has its own tests for rejecting a missing, duplicate or extra arm, a non-failing catch-all, an unterminated arm and a second case, so a malformed step script cannot slip past the per-OS checks.",
           "resolution": "non-blocking, left"
         }
       ]

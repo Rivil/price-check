@@ -236,7 +236,7 @@ test_contract = [
   '''if a new job is added instead of steps, rulesets.spec 'ci.yml produces the five gate checks' fails (required checks unchanged)''',
   '''observed: the phase PR's test (windows) and test (linux) run t-12's update e2e green, and test (macos) runs verify mac + smoke (incl. x64 slice) green''',
 ]
-status        = "pending"
+status        = "done"
 
 [[task]]
 id = "t-15"
