@@ -56,7 +56,7 @@
 // one block per pid, oldest first, once B has been stopped. A passing run never reads it.
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import {
@@ -445,6 +445,27 @@ test.describe.serial('packaged update', () => {
 	};
 
 	/**
+	 * Keeps one diagnosis text in full. The list reporter cuts an attachment to a few
+	 * lines in the CI log, and body attachments are not under test-results/ (what CI
+	 * uploads as test-reports-<os>), so the same text also goes to a file in this
+	 * test's output folder and, once, to stderr.
+	 */
+	const keepDiagnosis = async (name: string, body: string): Promise<void> => {
+		const info = test.info();
+		await info.attach(name, { body, contentType: 'text/plain' });
+		const file = `${name.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '')}.txt`;
+		// Best effort: called while handling a failure, so a write error must not
+		// replace that failure (nor skip the diagnosis after it).
+		let saved = `also ${file}`;
+		try {
+			writeFileSync(info.outputPath(file), body);
+		} catch (error) {
+			saved = `${file} not written: ${String(error)}`;
+		}
+		console.error(`----- ${name} (full, ${saved}) -----\n${body}\n----- end ${name} -----`);
+	};
+
+	/**
 	 * Runs a relaunch step of A. On its failure, before anything stops the relaunch,
 	 * attaches A's output and the OS's state (see the header), then rethrows; with
 	 * `note`, as an error whose message starts with the note's line.
@@ -458,14 +479,10 @@ test.describe.serial('packaged update', () => {
 		try {
 			await step();
 		} catch (error) {
-			const info = test.info();
-			await info.attach('A output', {
-				body: app.output() || '<A printed nothing once attached>',
-				contentType: 'text/plain'
-			});
+			await keepDiagnosis('A output', app.output() || '<A printed nothing once attached>');
 			// Settles within DIAGNOSIS_MS and never rejects (see osState).
 			const state = await osState(os, run.exe, installersSeen);
-			await info.attach('OS state', { body: state, contentType: 'text/plain' });
+			await keepDiagnosis('OS state', state);
 			if (note === undefined) throw error;
 			const message = error instanceof Error ? error.message : String(error);
 			throw new Error(`${note()}\n${message}`, { cause: error });
@@ -698,10 +715,10 @@ test.describe.serial('packaged update', () => {
 			const capture = existsSync(captureFile)
 				? formatCaptureRecords(parseCaptureRecords(readFileSync(captureFile, 'utf8')))
 				: `<no capture file: no process of the app read ${OUTPUT_CAPTURE_ENV}>`;
-			await test.info().attach('output capture (oldest pid first)', {
-				body: `A is pid ${pidA ?? 'unknown (not launched)'}\n${capture}`,
-				contentType: 'text/plain'
-			});
+			await keepDiagnosis(
+				'output capture (oldest pid first)',
+				`A is pid ${pidA ?? 'unknown (not launched)'}\n${capture}`
+			);
 			throw error;
 		} finally {
 			rmSync(captureDir, { recursive: true, force: true });
