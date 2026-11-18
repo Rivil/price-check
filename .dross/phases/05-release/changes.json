@@ -257,6 +257,22 @@
         }
       ]
     },
+    "t-23": {
+      "files": [
+        "scripts/update-feed.ts",
+        "scripts/update-feed.spec.ts"
+      ],
+      "commit": "a7130eb",
+      "completed_at": "2026-11-18T07:34:26.74257Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "parseRange",
+          "loc": "scripts/update-feed.ts:69",
+          "what": "loopback update feed statuses, headers and ranges pinned by per-test feeds; dead range checks removed"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "scripts/release-tag.ts",
@@ -839,6 +855,36 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The diff cannot show which of the 64 survivors were judged equivalent; that list belongs to the writer report and should be checked at re-verify",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-23": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "'takes 65535 as a valid port' only checks the outcome isn't an 'invalid port' error, so any other start-up failure also passes. It kills the boundary mutant but tells you nothing else",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "The locked.bin read-failure and HEAD-without-read tests are skipped on Windows and when run as root. That's the right call, but those survivors are only killed on non-root POSIX runs",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "Both production edits (parseRange start\u003e=size check, empty-file length special case) are equivalent dead-code removals, and each comment explains why",
           "resolution": "non-blocking, left"
         }
       ]

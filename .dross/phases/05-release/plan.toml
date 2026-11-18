@@ -331,7 +331,7 @@ files = ["scripts/update-feed.ts", "scripts/update-feed.spec.ts"]
 description = "Verify 05-release (fd35268) left these stryker survivors as real test gaps: see the \"stryker mutant survived: <file>:<line>\" BLOCKING findings in .dross/phases/05-release/verify.toml and the Surviving entries in tests.json. Write tests in the spec file that kill each one. Change production code only when a survivor shows a real bug or dead code; keep behaviour otherwise. A survivor that is truly equivalent (no observable behaviour change) is not killed artificially: list it with a one-line reason in the writer report, so it can be accepted at re-verify. Verify by hand-mutation spot checks (sed a copy, run the spec, restore and compare shasum) on a sample. Count at verify: 61 (scripts/update-feed.ts)."
 covers = ["c-5"]
 test_contract = ["If the loopback update feed serves a wrong manifest, path or status, update-feed.spec fails"]
-status = "pending"
+status = "done"
 
 [[task]]
 id = "t-24"
