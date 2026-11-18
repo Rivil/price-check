@@ -13,10 +13,14 @@
 // The Linux restart test's output capture (t-30): CI 44289826311's B started, never
 // served and exited unseen, so each pid's start, argv, every write, uncaught error and
 // exit code is read back and listed oldest pid first, a pid with no exit kept; and
-// each of A's ports names every pid seen holding it.
+// each of A's ports names every pid seen holding it. CI 44320066854's B (pid 10328) was
+// alive and serving, yet no instance once its environ no longer named the AppImage: it
+// counts by the socket it shares with the FUSE daemon. B's port is the one A never held,
+// never a guess between two, and a failure names the port B announced.
 import { describe, expect, it } from 'vitest';
 import {
 	addPortHolders,
+	announcedPorts,
 	appImageProcesses,
 	describeHolders,
 	describeInstallerTree,
@@ -26,6 +30,7 @@ import {
 	instancesByPort,
 	isAppImageApp,
 	linuxAppHolder,
+	linuxAppHolders,
 	linuxProcDetail,
 	mainProcess,
 	parseCaptureRecords,
@@ -43,6 +48,7 @@ import {
 	pidsByPort,
 	processTree,
 	servingInstance,
+	servingPort,
 	withProcState,
 	type LinuxProc,
 	type ProcessDetail,
@@ -692,6 +698,73 @@ describe('instancesByPort (linux holders)', () => {
 	});
 });
 
+describe('linuxAppHolders', () => {
+	/** CI 44320066854: A's port 37443, inherited by B's main and its FUSE daemon; B's own 38463. */
+	const B_SS = [
+		'LISTEN 0 10 127.0.0.1:37443 0.0.0.0:* users:(("price-check",pid=10328,fd=41),("price-check.App",pid=10331,fd=41))',
+		'LISTEN 0 511 127.0.0.1:38463 0.0.0.0:* users:(("price-check",pid=10328,fd=52))'
+	].join('\n');
+	/** B's FUSE daemon: the AppImage file, A's variables inherited from before its runtime set B's. */
+	const B_DAEMON = proc(10331, 1, APPIMAGE, { APPIMAGE, APPDIR: MOUNT_A }, [APPIMAGE]);
+	/** B's Electron main once its environ was overwritten (Chromium's process title). */
+	const B_MAIN: LinuxProc = {
+		...proc(10328, 1, `${MOUNT}/price-check`, {}, [`${MOUNT}/price-check`]),
+		environ: `${MOUNT}/price-check\0\0\0\0`
+	};
+	const instances = (procs: LinuxProc[], ss: string) => {
+		const listeners = parseSsListeners(ss);
+		const holders = linuxAppHolders(procs, listeners, APPIMAGE);
+		return instancesByPort(listeners, (pid) => holders.get(pid) ?? null);
+	};
+
+	it("counts B's main by the socket it shares with the FUSE daemon, its environ overwritten", () => {
+		const main = linuxProcDetail(B_MAIN);
+		expect(instances([B_MAIN, B_DAEMON], B_SS)).toEqual([
+			{ pid: 10328, port: 37443, processes: [main] },
+			{ pid: 10328, port: 38463, processes: [main] }
+		]);
+	});
+
+	it("counts it too when its environ still names the AppImage beside A's inherited APPDIR", () => {
+		const inherited = proc(10328, 1, `${MOUNT}/price-check`, { APPIMAGE, APPDIR: MOUNT_A }, []);
+		expect(isAppImageApp(inherited, APPIMAGE)).toBe(false);
+		expect([
+			...linuxAppHolders([inherited, B_DAEMON], parseSsListeners(B_SS), APPIMAGE).keys()
+		]).toEqual([10328]);
+	});
+
+	it('never counts the runtime or FUSE daemon, alone on a port or sharing one', () => {
+		const alone =
+			'LISTEN 0 10 127.0.0.1:41677 0.0.0.0:* users:(("price-check.App",pid=10331,fd=7))';
+		expect(instances([B_DAEMON], alone)).toEqual([]);
+		const listeners = parseSsListeners(B_SS);
+		expect(linuxAppHolders([B_MAIN, B_DAEMON], listeners, APPIMAGE).has(10331)).toBe(false);
+		const replaced = proc(10331, 1, `${APPIMAGE} (deleted)`, {}, [APPIMAGE]);
+		expect([...linuxAppHolders([B_MAIN, replaced], listeners, APPIMAGE).keys()]).toEqual([10328]);
+	});
+
+	it('rejects a sharer naming another AppImage or withheld, and a cleared environ that shares nothing', () => {
+		const other = proc(10328, 1, `${MOUNT}/price-check`, { APPIMAGE: '/opt/o.AppImage' }, []);
+		const withheld: LinuxProc = { ...B_MAIN, exe: null };
+		const listeners = parseSsListeners(B_SS);
+		expect(linuxAppHolders([other, B_DAEMON], listeners, APPIMAGE).size).toBe(0);
+		expect(linuxAppHolders([withheld, B_DAEMON], listeners, APPIMAGE).size).toBe(0);
+		// Its own port only, and no daemon holds a socket: nothing ties it to the AppImage.
+		const own = 'LISTEN 0 511 127.0.0.1:38463 0.0.0.0:* users:(("price-check",pid=10328,fd=52))';
+		expect(instances([B_MAIN, B_DAEMON], own)).toEqual([]);
+	});
+
+	it('still counts an app process its environ names, with no daemon sharing a socket', () => {
+		expect(instances([MAIN_PROC, HELPER_PROC], SHARED_SOCKET)).toEqual([
+			{
+				pid: 9917,
+				port: 35029,
+				processes: [linuxProcDetail(MAIN_PROC), linuxProcDetail(HELPER_PROC)]
+			}
+		]);
+	});
+});
+
 describe('appImageProcesses', () => {
 	it('lists the runtime, FUSE daemon and app processes, listening or not, by pid', () => {
 		const stray = proc(40, 1, '/usr/bin/sleep', { HOME: '/root' }, ['sleep', '60']);
@@ -1012,5 +1085,70 @@ describe('port holders of A', () => {
 			'37257 held by pid 10140; 45413 held by pid 10140, 10250, 10251'
 		);
 		expect(describePortHolders([44125], seen)).toBe('44125 held by no pid seen');
+	});
+});
+
+describe('servingPort', () => {
+	/** CI 44320066854: A's ports before 'Restart to update', one of which B inherited. */
+	const PORTS_A = [37257, 37443, 44125];
+
+	it("picks the port A never held, never one of A's", () => {
+		expect(servingPort([37443, 38463], PORTS_A)).toBe(38463);
+		expect(servingPort([38463, 37443, 38463], PORTS_A)).toBe(38463);
+		expect(servingPort([38463], [])).toBe(38463);
+	});
+
+	it("returns null while only A's ports, or none, are held", () => {
+		expect(servingPort([37443], PORTS_A)).toBeNull();
+		expect(servingPort([37443, 44125], PORTS_A)).toBeNull();
+		expect(servingPort([], PORTS_A)).toBeNull();
+	});
+
+	it('refuses to guess between two ports A never held, naming both', () => {
+		expect(() => servingPort([40000, 37443, 38463], PORTS_A)).toThrow(
+			'more than one port could be the one served (excluded: 37257, 37443, 44125): 38463, 40000'
+		);
+		expect(() => servingPort([2, 1], [])).toThrow('(excluded: none): 1, 2');
+	});
+});
+
+describe('announcedPorts', () => {
+	const LISTENING_LINE = /^\[desktop\] listening on (http:\/\/127\.0\.0\.1:(\d+))\s*$/m;
+	const portOf = (text: string) => {
+		const match = LISTENING_LINE.exec(text);
+		return match === null ? null : Number(match[2]);
+	};
+
+	it('names each port a stdout write announced, by pid, in file order', () => {
+		const records = parseCaptureRecords(
+			[
+				line({
+					pid: A_PID,
+					kind: 'stdout',
+					text: '[desktop] listening on http://127.0.0.1:37443\n'
+				}),
+				line({
+					pid: B_PID,
+					kind: 'stdout',
+					text: '[updater] Update for version 0.1.6 is not available\n'
+				}),
+				// Not stdout: never an announcement, whatever it says.
+				line({
+					pid: B_PID,
+					kind: 'stderr',
+					text: '[desktop] listening on http://127.0.0.1:1111\n'
+				}),
+				line({
+					pid: B_PID,
+					kind: 'stdout',
+					text: '[desktop] listening on http://127.0.0.1:38463\n'
+				})
+			].join('\n')
+		);
+		expect(announcedPorts(records, portOf)).toEqual([
+			{ pid: A_PID, port: 37443 },
+			{ pid: B_PID, port: 38463 }
+		]);
+		expect(announcedPorts([], portOf)).toEqual([]);
 	});
 });

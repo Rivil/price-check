@@ -53,7 +53,13 @@
 // output, uncaught errors and exit to it. electron-updater starts B with stdio
 // 'ignore', so this is the only record of what B printed and how it ended (CI
 // 44289826311: B never served its own port). Any failure of that test attaches it,
-// one block per pid, oldest first, once B has been stopped. A passing run never reads it.
+// one block per pid, oldest first, once B has been stopped, and its message names the
+// port B announced there ('[desktop] listening on') beside the port it probed. A
+// passing run never reads it.
+//
+// B inherits A's listening sockets through that spawn as well, nothing accepting on
+// them (CI 44320066854: B was probed on A's port while it served its own), so B's port
+// is the one its processes hold that A never did (servingPort over A's recorded ports).
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -68,6 +74,7 @@ import {
 } from '../../scripts/packaged-app.ts';
 import {
 	addPortHolders,
+	announcedPorts,
 	describeHolders,
 	describeInstallerTree,
 	describeInstances,
@@ -77,6 +84,7 @@ import {
 	parseProcesses,
 	parseWin32Processes,
 	servingInstance,
+	servingPort,
 	withProcState,
 	type ProcessInfo
 } from '../../scripts/process-probe.ts';
@@ -91,6 +99,7 @@ import {
 	linuxAppImageProcesses,
 	linuxListenPorts,
 	linuxListeners,
+	LISTENING,
 	OUTPUT_CAPTURE_ENV,
 	packagedExe,
 	pollFor,
@@ -188,6 +197,12 @@ function procFile(pid: number, file: string): string | null {
 	} catch {
 		return null;
 	}
+}
+
+/** The port a '[desktop] listening on' write announces (LISTENING), or null for any other write. */
+function listeningPort(text: string): number | null {
+	const match = LISTENING.exec(text);
+	return match === null ? null : Number(match[2]);
 }
 
 /**
@@ -657,6 +672,8 @@ test.describe.serial('packaged update', () => {
 		const captureDir = makeTempDir('update-capture');
 		const captureFile = join(captureDir, 'output-capture.jsonl');
 		let pidA: number | undefined;
+		/** The port the relaunch's requests went to, once one was picked. */
+		let probedPort: number | undefined;
 		try {
 			await expectNoInstance();
 			placeBuildA(packagedExe());
@@ -686,19 +703,29 @@ test.describe.serial('packaged update', () => {
 						// B is started while A is still on its way out, so it first loses the lock.
 						const exitedAt = await restartToUpdate(app);
 
+						// B also holds A's inherited socket, which nothing accepts on: only a port
+						// A never held is B's own (servingPort).
 						const relaunched = await pollFor(
 							async () => {
 								addPortHolders(portHolders, ports, await linuxListeners());
-								return servingInstance(await appInstances('linux', run.exe));
+								const instances = await appInstances('linux', run.exe);
+								const served = servingPort(
+									instances.flatMap(({ port }) => (port === null ? [] : [port])),
+									ports
+								);
+								return served === null
+									? null
+									: (instances.find((instance) => instance.port === served) ?? null);
 							},
 							Math.max(exitedAt + LINUX_RELAUNCH_MS - Date.now(), 1)
 						);
 						if (relaunched === null || relaunched.port === null) {
 							throw new Error(
-								`no B process served from ${run.exe} within ${LINUX_RELAUNCH_MS}ms of A's exit (the relaunch lost the single-instance lock?)`
+								`no B process served from ${run.exe} on a port A never held within ${LINUX_RELAUNCH_MS}ms of A's exit (the relaunch lost the single-instance lock?)`
 							);
 						}
 						relaunchedPid = relaunched.pid;
+						probedPort = relaunched.port;
 						expect(relaunched.pid).not.toBe(app.pid);
 						expect(sha256(run.exe), `the AppImage at ${run.exe} is not B`).toBe(sha256(buildB));
 						const response = await rawRequest(relaunched.port, { timeoutMs: RESPONSE_MS });
@@ -712,14 +739,28 @@ test.describe.serial('packaged update', () => {
 			}
 		} catch (error) {
 			// Read once B has been stopped, so its exit is in the file when it had one.
-			const capture = existsSync(captureFile)
-				? formatCaptureRecords(parseCaptureRecords(readFileSync(captureFile, 'utf8')))
-				: `<no capture file: no process of the app read ${OUTPUT_CAPTURE_ENV}>`;
+			const records = existsSync(captureFile)
+				? parseCaptureRecords(readFileSync(captureFile, 'utf8'))
+				: null;
+			const capture =
+				records === null
+					? `<no capture file: no process of the app read ${OUTPUT_CAPTURE_ENV}>`
+					: formatCaptureRecords(records);
 			await keepDiagnosis(
 				'output capture (oldest pid first)',
 				`A is pid ${pidA ?? 'unknown (not launched)'}\n${capture}`
 			);
-			throw error;
+			// The port B said it serves on, beside the one probed: a mismatch is a wrong pick.
+			const announced = (records === null ? [] : announcedPorts(records, listeningPort)).filter(
+				({ pid }) => pid !== pidA
+			);
+			const note = `port probed for B: ${probedPort ?? 'none picked'}; announced by B in the capture: ${
+				announced.length === 0
+					? 'none'
+					: announced.map(({ pid, port }) => `pid ${pid} port ${port}`).join(', ')
+			}`;
+			const message = error instanceof Error ? error.message : String(error);
+			throw new Error(`${note}\n${message}`, { cause: error });
 		} finally {
 			rmSync(captureDir, { recursive: true, force: true });
 		}

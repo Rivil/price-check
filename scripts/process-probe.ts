@@ -26,7 +26,17 @@
 // (its APPDIR variable). The AppImage runtime and its FUSE daemon run the AppImage file
 // itself and inherit APPIMAGE too, and can hold a listening socket the updater's spawn
 // passed down from the old instance that nothing accept()s on: a port held only by them
-// is no instance (CI 44283563089).
+// is no instance (CI 44283563089). That environment is not lasting: CI 44320066854's B
+// (pid 10328) was alive and serving its own port, yet no instance, its /proc/<pid>/environ
+// most likely overwritten by Chromium's process title. So a process whose environ no
+// longer names the AppImage counts too when it shares a socket with the AppImage's
+// runtime or FUSE daemon (linuxAppHolders): only the runtime's own launch chain inherits
+// one. The runtime or daemon itself still never counts.
+//
+// After the Linux update's relaunch, B holds A's inherited socket as well as its own:
+// servingPort picks the port B serves on with A's ports set aside, and refuses to guess
+// between two. A failure names the port B announced in its output capture
+// (announcedPorts) beside the one probed.
 //
 // When a step fails, the test records what the OS shows: on linux each holder's
 // State and wchan (withProcState) and every process of the AppImage, listening or not
@@ -309,6 +319,38 @@ export function linuxAppHolder(proc: LinuxProc, appImage: string): ProcessDetail
 }
 
 /**
+ * The app's processes among `procs` (each listening pid's /proc entry), by pid, with
+ * their detail. A process counts when isAppImageApp says so, or when it shares a
+ * 127.0.0.1 listening socket (`listeners`) with a process running the AppImage file
+ * itself (its runtime or FUSE daemon) and its environ names no other AppImage: the
+ * socket came down the runtime's launch chain, whether or not /proc still shows the
+ * variables the runtime set. A process whose executable /proc withheld, and the runtime
+ * or daemon itself, never count.
+ */
+export function linuxAppHolders(
+	procs: readonly LinuxProc[],
+	listeners: ListenMap,
+	appImage: string
+): Map<number, ProcessDetail> {
+	const runtimePorts = new Set(
+		procs
+			.filter((proc) => appImageFacts(proc).exe === appImage)
+			.flatMap(({ pid }) => listeners.get(pid) ?? [])
+	);
+	const holders = new Map<number, ProcessDetail>();
+	for (const proc of procs) {
+		const facts = appImageFacts(proc);
+		const inherited =
+			facts.exe !== null &&
+			facts.exe !== appImage &&
+			(facts.appImage === null || facts.appImage === appImage) &&
+			(listeners.get(proc.pid) ?? []).some((listenPort) => runtimePorts.has(listenPort));
+		if (inherited || isAppImageApp(proc, appImage)) holders.set(proc.pid, linuxProcDetail(proc));
+	}
+	return holders;
+}
+
+/**
  * For a failed step's diagnosis: every process the AppImage at `appImage` started (its
  * APPIMAGE variable), runtime and FUSE daemon included, and every process whose
  * executable lies under one of those processes' mounts (APPDIR), whether it listens or
@@ -427,6 +469,29 @@ export function servingInstance<
 		throw new Error(`more than one instance is serving: ${detail}`);
 	}
 	return serving[0] ?? null;
+}
+
+/**
+ * The port an instance serves on, from `candidates` (the 127.0.0.1 ports its processes
+ * hold) less `excluded` (ports another process held first, e.g. the ones A listened on,
+ * which B may have inherited): null while none is left. More than one left throws,
+ * naming each, rather than guess.
+ */
+export function servingPort(
+	candidates: readonly number[],
+	excluded: readonly number[]
+): number | null {
+	const skip = new Set(excluded);
+	const left = [...new Set(candidates)]
+		.filter((listenPort) => !skip.has(listenPort))
+		.sort((a, b) => a - b);
+	if (left.length > 1) {
+		const set = excluded.length === 0 ? 'none' : [...skip].join(', ');
+		throw new Error(
+			`more than one port could be the one served (excluded: ${set}): ${left.join(', ')}`
+		);
+	}
+	return left[0] ?? null;
 }
 
 /** One row of Get-CimInstance Win32_Process; a field is null where the OS withheld it. */
@@ -692,6 +757,22 @@ export function formatCaptureRecords(records: readonly CaptureRecord[]): string 
 		blocks.push(['unreadable capture lines:', ...unreadable.map((line) => `  ${line}`)].join('\n'));
 	}
 	return blocks.length === 0 ? 'no capture record' : blocks.join('\n');
+}
+
+/**
+ * Every port a process announced in a stdout write of the capture, as `portOf` reads
+ * one (null: no announcement), in file order: what B said it serves on, set beside
+ * the port the test probed when a step fails.
+ */
+export function announcedPorts(
+	records: readonly CaptureRecord[],
+	portOf: (text: string) => number | null
+): { pid: number; port: number }[] {
+	return records.flatMap((record) => {
+		if (record.kind !== 'stdout') return [];
+		const announced = portOf(record.text);
+		return announced === null ? [] : [{ pid: record.pid, port: announced }];
+	});
 }
 
 /**

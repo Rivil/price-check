@@ -52,7 +52,7 @@ import {
 import {
 	appImageProcesses,
 	instancesByPort,
-	linuxAppHolder,
+	linuxAppHolders,
 	parseNetTcpListeners,
 	parseProcesses,
 	parseSsListeners,
@@ -479,7 +479,9 @@ export async function spawnX64(run: PackagedRun): Promise<SpawnedApp> {
 //     Get-NetTCPConnection for the 127.0.0.1 port its main process serves on;
 //   - linux: `ss -Hltnp` for 127.0.0.1 listeners, each tied to the AppImage by the
 //     APPIMAGE variable the AppImage runtime gave the process, and counted only when
-//     its executable lies under the AppImage's mount (not the runtime or FUSE daemon).
+//     its executable lies under the AppImage's mount (not the runtime or FUSE daemon),
+//     or, once /proc no longer shows that variable, by a socket it shares with the
+//     runtime or FUSE daemon.
 // One listening port is one instance, however many of the app's processes hold its
 // socket; its pid is the main process among them (scripts/process-probe.ts parses the
 // output and picks it).
@@ -667,14 +669,18 @@ export async function linuxListeners() {
 /**
  * Every instance serving on 127.0.0.1 that the AppImage at `appImage` started (linux):
  * one per port, since processes sharing a socket all show up in its `ss` entry. Only
- * the app's own processes count (linuxAppHolder): a port held only by the AppImage
- * runtime or its FUSE daemon is no instance.
+ * the app's own processes count (linuxAppHolders), one whose environ no longer names
+ * the AppImage included when it shares a socket with the runtime: a port held only by
+ * the AppImage runtime or its FUSE daemon is no instance.
  */
 export async function linuxAppInstances(appImage: string): Promise<AppInstance[]> {
 	const listeners = await linuxListeners();
-	return instancesByPort(listeners, (pid) => linuxAppHolder(linuxProc(pid), appImage)).map(
-		(instance) => ({ ...instance, startTime: null })
-	);
+	const procs = [...listeners.keys()].map((pid) => linuxProc(pid));
+	const holders = linuxAppHolders(procs, listeners, appImage);
+	return instancesByPort(listeners, (pid) => holders.get(pid) ?? null).map((instance) => ({
+		...instance,
+		startTime: null
+	}));
 }
 
 /** The 127.0.0.1 ports linux process `pid` listens on, ascending; [] for none. */
