@@ -2257,3 +2257,300 @@
   line = 212
   accepted_in = "05-release"
   reason = "Equivalent: with the guard forced true, stop() calls clearInterval(undefined), a no-op in Node and in @sinonjs fake timers."
+
+[[accepted]]
+  key = "0a654fee1d6a4b81"
+  file = "scripts/package-desktop.ts"
+  op = "StringLiteral"
+  text = "export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');"
+  line = 32
+  accepted_in = "05-release"
+  reason = "Stryker static-mutant artefact: ROOT is a module-level const its vitest runner never re-evaluates. Hand-mutated '..' to '' in a scratch copy of ca0da85: package-desktop.spec fails at load (ENOENT scripts/node_modules/.pnpm, spec:125); unmutated copy 61/61 green."
+
+[[accepted]]
+  key = "edb8e9f5f4edfb3d"
+  file = "scripts/packaged-app.ts"
+  op = "StringLiteral"
+  text = "const detail = query.stderr.trim().split(/\\r?\\n/).slice(-1)[0] ?? '';"
+  line = 277
+  accepted_in = "05-release"
+  reason = "Unreachable fallback: split() always yields at least one element, so slice(-1)[0] is never undefined and the ?? '' default never applies."
+
+[[accepted]]
+  key = "2b9ebb7a4a62866f"
+  file = "scripts/packaged-app.ts"
+  op = "StringLiteral"
+  text = "`${outDir} holds a single-arch mac build (${singleArch.join(', ')}): only mac-universal ships`"
+  line = 129
+  accepted_in = "05-release"
+  reason = "Error-message wording only: the separator between single-arch dir names in the refusal text; the refusal itself (throw) is pinned by packaged-app.spec."
+
+[[accepted]]
+  key = "726fa545e58ce05c"
+  file = "scripts/packaged-app.ts"
+  op = "ObjectLiteral"
+  text = "{ encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, windowsHide: true, timeout: 15 * 60_000 },"
+  line = 205
+  accepted_in = "05-release"
+  reason = "Test-harness execFile options (maxBuffer 64MB, 15-min timeout, windowsHide): dropping them can only make a CI step fail (1MB maxBuffer error) or hang until the job timeout, never pass a check; execFile already defaults to utf8. A kill needs a >1MB child process and adds nothing."
+
+[[accepted]]
+  key = "81025ea3f42a01d4"
+  file = "scripts/packaged-app.ts"
+  op = "BooleanLiteral"
+  text = "{ encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, windowsHide: true, timeout: 15 * 60_000 },"
+  line = 205
+  accepted_in = "05-release"
+  reason = "windowsHide only controls whether Windows shows a console window for the child; no output, exit code or check result changes."
+
+[[accepted]]
+  key = "6ad4b8e75f90b7eb"
+  file = "scripts/packaged-app.ts"
+  op = "ConditionalExpression"
+  text = "return rest !== null && VERSION.test(rest);"
+  line = 235
+  accepted_in = "05-release"
+  reason = "Equivalent: forcing rest !== null to true leaves VERSION.test(rest); with rest null that tests the string 'null', which VERSION (^MAJOR.MINOR.PATCH(-rc.N)?$) never matches, so the result is false either way."
+
+[[accepted]]
+  key = "4b7674490ec8bdff"
+  file = "scripts/packaged-app.ts"
+  op = "StringLiteral"
+  text = "const uninstaller = /^\"([^\"]+)\"/.exec(key.values.UninstallString?.trim() ?? '')?.[1];"
+  line = 264
+  accepted_in = "05-release"
+  reason = "Equivalent: with UninstallString absent, /^\"([^\"]+)\"/ fails on both '' and the mutant string (no leading quote), so uninstaller is undefined either way."
+
+[[accepted]]
+  key = "2a81b6310e225a7a"
+  file = "scripts/update-feed.ts"
+  op = "StringLiteral"
+  text = "const raw = target ?? '';"
+  line = 156
+  accepted_in = "05-release"
+  reason = "Unreachable: pathOf only receives req.url from an http.Server request, which is always a string; the ?? '' default never applies."
+
+[[accepted]]
+  key = "3a21cc22802fca55"
+  file = "scripts/update-feed.ts"
+  op = "ConditionalExpression"
+  text = "if (!res.headersSent) res.writeHead(500, { 'Content-Length': '0' });"
+  line = 183
+  accepted_in = "05-release"
+  reason = "Unreachable false branch: serve() never rejects after writeHead (after it only createReadStream/pipe, whose errors go to the stream error handler), so headersSent is always false when the catch runs."
+
+[[accepted]]
+  key = "0627d895dffdb53e"
+  file = "scripts/update-feed.ts"
+  op = "BooleanLiteral"
+  text = "server.listen({ host: LOOPBACK, port, exclusive: true }, () => {"
+  line = 190
+  accepted_in = "05-release"
+  reason = "Equivalent: listen's exclusive flag only changes handle sharing between cluster workers; the feed never runs under cluster."
+
+[[accepted]]
+  key = "f6be8e7e2540e8fc"
+  file = "scripts/update-feed.ts"
+  op = "StringLiteral"
+  text = "server.off('error', rejectListen);"
+  line = 191
+  accepted_in = "05-release"
+  reason = "Test-harness listener hygiene: the mutant leaves the once('error') rejecter on a promise that already resolved, so a later error calls a no-op; nothing the feed's API returns changes."
+
+[[accepted]]
+  key = "155e666cd6fcc085"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "const host = URL.canParse(url ?? '') ? new URL(url ?? '') : null;"
+  line = 450
+  accepted_in = "05-release"
+  reason = "Equivalent (both mutants): URL.canParse fails on '' and on the mutant string alike; the second url ?? '' is reached only after canParse succeeded, so url is defined there."
+
+[[accepted]]
+  key = "4197e3a2ff34e34f"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrayDeclaration"
+  text = ": []"
+  line = 509
+  accepted_in = "05-release"
+  reason = "Equivalent: an absent outDir yields a dummy name set instead of an empty one; no expectedArtefacts name equals the dummy, so every artefact is still reported missing."
+
+[[accepted]]
+  key = "86210913bb7a0380"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "if (!isPackagedPlatform(platform)) throw new Error(`no packaged app for ${platform}`);"
+  line = 570
+  accepted_in = "05-release"
+  reason = "Unreachable guard message: hostPlatform runs only on hosts that execute verify-packaged (macos-15, windows-2025, ubuntu-24.04 runners, the dev Mac), all packaged platforms."
+
+[[accepted]]
+  key = "191186399cdab2a5"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (!isPackagedPlatform(platform)) throw new Error(`no packaged app for ${platform}`);"
+  line = 570
+  accepted_in = "05-release"
+  reason = "Unreachable defensive guard: every host that runs verify-packaged (macos-15, windows-2025, ubuntu-24.04 runners, the dev Mac) is a packaged platform, so the refusal never fires."
+
+[[accepted]]
+  key = "016aa7fc513d5888"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "if (located.platform !== 'win32') throw new Error('win needs a Windows output dir');"
+  line = 611
+  accepted_in = "05-release"
+  reason = "Unreachable: locate(dir, 'win32') returns platform 'win32' by construction, so this type-narrowing throw never fires."
+
+[[accepted]]
+  key = "02f06ab84195c372"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (located.platform !== 'win32') throw new Error('win needs a Windows output dir');"
+  line = 611
+  accepted_in = "05-release"
+  reason = "Equivalent: locate(dir, 'win32') always returns platform 'win32', so the type-narrowing condition is always false."
+
+[[accepted]]
+  key = "724fb3d684d8c080"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const fat = /Architectures in the fat file: .* are: (.+)$/m.exec(text);"
+  line = 54
+  accepted_in = "05-release"
+  reason = "Equivalent: (.+) is greedy and . excludes newline, so the capture already ends at end of line; dropping the multiline $ anchor changes nothing."
+
+[[accepted]]
+  key = "1689f533d43263d5"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (kind === 'dir') walk(child, path);"
+  line = 283
+  accepted_in = "05-release"
+  reason = "Equivalent: walking a non-dir node iterates node.files ?? {}, which is empty, so no extra entries are pushed."
+
+[[accepted]]
+  key = "e1d8a8d62628908d"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (name !== undefined && NATIVE_LIBSQL.test(name)) shipped.add(name);"
+  line = 370
+  accepted_in = "05-release"
+  reason = "Equivalent: forcing name !== undefined to true leaves NATIVE_LIBSQL.test(undefined), i.e. 'undefined' against /^(darwin|linux|win32)-/, which is false."
+
+[[accepted]]
+  key = "646a57e6799850d2"
+  file = "scripts/verify-packaged.ts"
+  op = "BooleanLiteral"
+  text = "let inFiles = false;"
+  line = 411
+  accepted_in = "05-release"
+  reason = "Unreachable input: differs only when the first non-blank YAML line is an indented key; electron-builder's latest*.yml and app-update.yml always open with a top-level key (version/provider)."
+
+[[accepted]]
+  key = "7a0b4f59f0a37f23"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const top = /^([A-Za-z0-9_]+):(?:\\s+(.*))?$/.exec(raw);"
+  line = 414
+  accepted_in = "05-release"
+  reason = "Equivalent: \\s versus \\s+ before the value only moves extra leading whitespace into the capture, and unquote() trims it."
+
+[[accepted]]
+  key = "943d8aa25b620afe"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const item = /^\\s+(-\\s+)?([A-Za-z0-9_]+):(?:\\s+(.*))?$/.exec(raw);"
+  line = 421
+  accepted_in = "05-release"
+  reason = "Equivalent: \\s versus \\s+ before the value only moves extra leading whitespace into the capture, and unquote() trims it."
+
+[[accepted]]
+  key = "4170e00437899abf"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "pattern.replace(/\\/\\*\\*(\\/\\*)?$/, '')"
+  line = 308
+  accepted_in = "05-release"
+  reason = "Equivalent for the shipped patterns (both mutants): every APP_FILES entry ends in exactly one trailing /**/*, so dropping $ or making (/*) mandatory strips the same suffix."
+
+[[accepted]]
+  key = "5ec40f13308b2f85"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const UNPACK_ROOTS = ASAR_UNPACK.map((pattern) => pattern.replace(/\\/\\*\\*(\\/\\*)?$/, ''));"
+  line = 314
+  accepted_in = "05-release"
+  reason = "Equivalent for the shipped patterns (both mutants): every ASAR_UNPACK entry ends in exactly one trailing /**/*, so dropping $ or making (/*) mandatory strips the same suffix."
+
+[[accepted]]
+  key = "6b702c7105468e26"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {"
+  line = 66
+  accepted_in = "05-release"
+  reason = "Equivalent: Number.isInteger is false for every non-number, so !Number.isInteger(value) still throws for them without the typeof check."
+
+[[accepted]]
+  key = "344ad4f90ef7b8b8"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (colon === -1 || local.slice(0, colon) !== LOOPBACK) continue;"
+  line = 123
+  accepted_in = "05-release"
+  reason = "Equivalent: with no colon, local minus its last char equals 127.0.0.1 only for e.g. 127.0.0.1X, whose whole text then fails the ^\\d+$ port test and is skipped anyway."
+
+[[accepted]]
+  key = "46e8a7c6766c01d3"
+  file = "scripts/process-probe.ts"
+  op = "UnaryOperator"
+  text = "if (colon === -1 || local.slice(0, colon) !== LOOPBACK) continue;"
+  line = 123
+  accepted_in = "05-release"
+  reason = "Equivalent: colon === 1 means a one-char host, which never equals 127.0.0.1, so the line is skipped on both paths; the -1 case is caught by the port test."
+
+[[accepted]]
+  key = "1f464e26bbccbd99"
+  file = "scripts/process-probe.ts"
+  op = "MethodExpression"
+  text = "const users = fields.slice(5).join(' ');"
+  line = 127
+  accepted_in = "05-release"
+  reason = "Equivalent: fields 0-4 of an ss line (LISTEN, queues, local, peer address) never contain pid=, so matching over all fields finds the same pids."
+
+[[accepted]]
+  key = "0fe7e6049e310918"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "const users = fields.slice(5).join(' ');"
+  line = 127
+  accepted_in = "05-release"
+  reason = "Equivalent: ss writes ,pid=N so the word boundary before pid holds whether the users tokens are joined with a space or nothing."
+
+[[accepted]]
+  key = "f6d6bb6bf6c58c2f"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "state: status === null ? null : parseProcStatusState(status),"
+  line = 206
+  accepted_in = "05-release"
+  reason = "Equivalent: parseProcStatusState(null) runs its regex on the string 'null', finds no State: line and returns null, the same as the null branch."
+
+[[accepted]]
+  key = "bfc3c671651f7c3b"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "detail.ppid !== null && pids.has(detail.ppid) ? 1 : 0,"
+  line = 232
+  accepted_in = "05-release"
+  reason = "Equivalent: forcing ppid !== null to true leaves pids.has(null), which is false since pids holds only numbers."
+
+[[accepted]]
+  key = "56d96cf751bdcf6e"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i];"
+  line = 236
+  accepted_in = "05-release"
+  reason = "Equivalent (both mutants): rank arrays have equal length, so at i === a.length both entries are undefined and equal; and a[i] < b[i] versus <= differ only when equal, which the !== check excludes."
