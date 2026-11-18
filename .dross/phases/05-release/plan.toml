@@ -1,4 +1,4 @@
-task_seq = 30
+task_seq = 31
 [phase]
 id = "05-release"
 
@@ -407,3 +407,14 @@ covers = ["c-5"]
 test_contract = ["If the capture-record formatter drops a record's exit code, its argv, or any stderr line, process-probe.spec fails", "If the formatter orders pids other than oldest-first or loses a pid with no exit record (still running or killed), process-probe.spec fails"]
 status = "done"
 depends_on = ["t-29"]
+
+[[task]]
+id = "t-31"
+wave = 14
+title = "Linux packaged update: save the full output capture to the test's output folder"
+files = ["e2e/packaged/update.packaged.ts"]
+description = "CI 44312973185 (847293b): the t-30 capture worked but cannot be read. Playwright's list reporter cuts each text attachment to about three lines in the CI log ('stdout| [updater] updates on f...'), and body attachments are not under test-results/, which is what ci.yml's upload-artifact step uploads as test-reports-<os>. So B's records (pid 10554 held A's inherited port 43421 with the FUSE daemon 10557; A's server port 34579 was free and B never served its own) are lost. Test-side only, one file: wherever update.packaged.ts attaches 'output capture (oldest pid first)' (around line 701), and the 'OS state' and 'A output' attachments in diagnosed(), also write the same full text to test.info().outputPath('<name>.txt'). The CI artifact then carries it in full. Also print the full capture to stderr once (console.error), so the job log has it even if the artifact upload fails. Keep the existing attachments and all other behaviour unchanged. A pure helper is not needed. If a unit-testable piece emerges, it is fine to leave it untested, since the proof is the next CI artifact."
+covers = ["c-5"]
+test_contract = ["If the Linux restart test's failure no longer writes the capture file under its outputPath, the next CI test-reports-linux artifact lacks it (checked by hand from the CI artifact)"]
+status = "pending"
+depends_on = ["t-30"]
