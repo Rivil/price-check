@@ -344,6 +344,41 @@
         }
       ]
     },
+    "t-28": {
+      "files": [
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts",
+        "e2e/packaged/launch-packaged.ts",
+        "e2e/packaged/update.packaged.ts"
+      ],
+      "commit": "490dda9",
+      "completed_at": "2026-11-18T10:49:04.143601Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "isAppImageApp",
+          "loc": "scripts/process-probe.ts:290",
+          "what": "Linux instance probe counts only processes whose exe is under the AppImage mount, never the runtime/FUSE daemon"
+        }
+      ]
+    },
+    "t-29": {
+      "files": [
+        "e2e/packaged/update.packaged.ts",
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts"
+      ],
+      "commit": "61cd85e",
+      "completed_at": "2026-11-18T10:54:41.462502Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "processTree",
+          "loc": "scripts/process-probe.ts:474",
+          "what": "Windows relaunch waits 420s with a cheap installer poll and reports the NSIS installer's exit and process tree on failure"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "scripts/release-tag.ts",
@@ -1076,6 +1111,69 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "replaceExecutable tests cover the inode change, an open handle still reading the old content, the new content, mode 0o755, creating a missing destination, leaving no temp file, and cleanup after a failed copy and after a failed rename.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-28": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "e2e/packaged/update.packaged.ts: linuxListenPorts(pidA) runs inside the diagnosed step, so a failing `ss` before 'Restart to update' now fails the Linux update test outright, where before only the relaunch could fail it. Consider recording the ports best-effort, so a failure leaves 'not recorded' instead of failing the test.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "e2e/packaged/update.packaged.ts diagnosed(): when `note` is given, the original error is wrapped in a new Error (kept as `cause`). Playwright's matcher error type and its structured expected/received fields are lost from the top-level report; only the message text survives.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "linuxAppImageProcesses reads every /proc entry synchronously. Because the scan is synchronous, the probeSection deadline timer cannot interrupt it. That is acceptable on a CI runner's process count.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "procEntry's `tolerant` mode treats every read failure as null. The doc comment states the reason (a diagnosis reads what it can). The non-tolerant path used for instance counting still throws on EACCES.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-29": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "e2e/packaged/update.packaged.ts waitForInstallers returns as soon as its first check finds no installer running. If the NSIS installer has not shown up in Get-Process yet when A exits, the wait goes straight to the full instance probe every second, so the change of item (2) is lost for that run. The run still fails within the budget and the failure output still lists any installer it finds, so this is not a correctness bug.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "processTree leaves out a child that started before its parent (an older process's child whose pid was reused), along with everything below it, and does not loop forever on a parent-pid cycle; scripts/process-probe.spec.ts tests both.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The test timeout works out to 765 s: EXIT_MS, the 420 s budget, three PowerShell calls of up to 60 s each after the deadline, RESPONSE_MS, the diagnosis time and 60 s of slack. The code comment explains the extra PowerShell allowance.",
           "resolution": "non-blocking, left"
         }
       ]
