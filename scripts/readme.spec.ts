@@ -59,6 +59,32 @@ const sections = readme
 		return [heading.trim(), body.join('\n')] as const;
 	});
 
+/** `### ` subsections of a section body, by heading. Text before the first is dropped. */
+const subsections = (body: string) =>
+	new Map(
+		body
+			.split(/^### /m)
+			.slice(1)
+			.map((chunk) => {
+				const [heading, ...rest] = chunk.split('\n');
+				return [heading.trim(), rest.join('\n')] as const;
+			})
+	);
+
+const installParts = subsections(sections[0]?.[1] ?? '');
+
+/** The install section's part for one OS ('' when missing, so a check fails on content). */
+const osPart = (os: string) => installParts.get(os) ?? '';
+
+/**
+ * Ways to run the AppImage without its Chromium sandbox (05-release decision artefacts:
+ * the sandbox stays). The README must never hand them to users.
+ */
+const SANDBOX_BYPASSES = ['--no-sandbox', 'APPIMAGE_EXTRACT_AND_RUN'];
+
+/** Ubuntu 24.04+'s AppArmor step: the sysctl that lifts the userns restriction, or a profile. */
+const APPARMOR_STEP = /apparmor_restrict_unprivileged_userns|AppArmor profile/;
+
 describe('README', () => {
 	it('end user first: the first section is install and use, development comes after', () => {
 		expect(sections.length).toBeGreaterThan(1);
@@ -74,6 +100,51 @@ describe('README', () => {
 		expect(body).toContain('SmartScreen');
 		expect(body).toMatch(/first watch/i);
 		expect(body).toMatch(/target price/i);
+	});
+
+	it('is released: no "not released yet" note survives', () => {
+		expect(readme).not.toMatch(/not released yet/i);
+	});
+
+	it('per OS: each of macOS, Windows and Linux has its own install part', () => {
+		for (const os of ['macOS', 'Windows', 'Linux']) expect(osPart(os), os).not.toBe('');
+	});
+
+	it('macOS: one download serves both Apple silicon and Intel', () => {
+		const mac = osPart('macOS');
+		expect(mac).toContain('.dmg');
+		expect(mac).toMatch(/one download/i);
+		expect(mac).toContain('Apple silicon');
+		expect(mac).toContain('Intel');
+	});
+
+	it('Windows: per-user install, no administrator rights, SmartScreen only', () => {
+		const windows = osPart('Windows');
+		expect(windows).toMatch(/no administrator rights/i);
+		expect(windows).toContain('SmartScreen');
+	});
+
+	it('Linux run notes: libfuse2 (libfuse2t64 on 24.04+) and the AppArmor step', () => {
+		const linux = osPart('Linux');
+		expect(linux).toContain('AppImage');
+		expect(linux).toMatch(/\blibfuse2\b/);
+		expect(linux).toContain('libfuse2t64');
+		expect(linux).toMatch(/24\.04/);
+		expect(linux).toMatch(APPARMOR_STEP);
+	});
+
+	it('keeps the sandbox: never tells users to run without it', () => {
+		for (const bypass of SANDBOX_BYPASSES) expect(readme, bypass).not.toContain(bypass);
+	});
+
+	it('install scan fixtures', () => {
+		const parts = subsections('intro\n### macOS\nmac text\n### Linux\nlinux text\n');
+		expect([...parts.keys()]).toEqual(['macOS', 'Linux']);
+		expect(parts.get('Linux')).toContain('linux text');
+		expect(parts.get('macOS')).not.toContain('linux text');
+		expect('sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0').toMatch(APPARMOR_STEP);
+		expect('install the AppArmor profile below').toMatch(APPARMOR_STEP);
+		expect('AppArmor blocks it, so restart').not.toMatch(APPARMOR_STEP);
 	});
 
 	it('no self-host: nothing about containers, compose, proxies or server deploys', () => {

@@ -29,6 +29,18 @@ export function resolveUserDataDir({ appData, isPackaged, env }: UserDataInput):
 	return join(appData, APP_DIR_NAME);
 }
 
+/**
+ * The cwd the SvelteKit server runs in (05-release c-1). A packaged app's root is
+ * <resources>/app.asar, an archive: process.chdir into it throws ENOTDIR, and the
+ * server's migrations (drizzle/, resolved against the cwd) ship asarUnpack'd in the
+ * app.asar.unpacked sibling. So a root whose last segment is app.asar maps there,
+ * with either separator and the rest of the path kept as is; any other root
+ * (unpackaged dev, the e2e suite: the repo root) stays as it is.
+ */
+export function serverCwdFor(appRoot: string): string {
+	return /(^|[\\/])app\.asar$/.test(appRoot) ? `${appRoot}.unpacked` : appRoot;
+}
+
 export type DesktopPaths = { userData: string; dbFile: string; keyFile: string };
 
 export function desktopPaths(userData: string): DesktopPaths {

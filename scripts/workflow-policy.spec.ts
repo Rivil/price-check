@@ -150,9 +150,34 @@ describe('write-scope allowlist', () => {
 		workflow({ jobExtra: `    permissions:\n      ${scope}: write\n` });
 	const allow = { 'release.yml': ['contents'] } as const;
 
-	it('ships empty, so any write scope is rejected', () => {
-		expect(WRITE_SCOPE_ALLOWLIST).toEqual({});
-		expect(messages('release.yml', job('contents'))).not.toEqual([]);
+	it("allowlist: only release.yml, and only contents (its publish job's write)", () => {
+		expect(WRITE_SCOPE_ALLOWLIST).toEqual({ 'release.yml': ['contents'] });
+	});
+
+	it('the shipped allowlist lets release.yml write contents and nothing else', () => {
+		expect(messages('.github/workflows/release.yml', job('contents'))).toEqual([]);
+		expect(messages('.github/workflows/release.yml', job('packages'))).toEqual([
+			'job-level permissions may not grant packages: write'
+		]);
+		expect(messages('.github/workflows/ci.yml', job('contents'))).toEqual([
+			'job-level permissions may not grant contents: write'
+		]);
+		expect(messages('.github/workflows/audit.yml', job('contents'))).toEqual([
+			'job-level permissions may not grant contents: write'
+		]);
+	});
+
+	it('the shipped allowlist never lets release.yml write at workflow level', () => {
+		const top = 'permissions:\n  contents: write\n';
+		expect(messages('.github/workflows/release.yml', workflow({ top }))).toEqual([
+			'workflow-level permissions must be exactly contents: read, found contents: write'
+		]);
+	});
+
+	it('an empty allowlist still rejects every write scope', () => {
+		expect(messages('release.yml', job('contents'), {})).toEqual([
+			'job-level permissions may not grant contents: write'
+		]);
 	});
 
 	it("lets a listed workflow's jobs write only its listed scopes", () => {
@@ -209,8 +234,23 @@ describe('cli exit', () => {
 			join(fresh(), 'release.yml'),
 			workflow({ jobExtra: '    permissions:\n      contents: write\n' })
 		);
-		expect(runPolicyCli(dir, log)).toBe(1);
+		expect(runPolicyCli(dir, log, {})).toBe(1);
 		expect(runPolicyCli(dir, log, { 'release.yml': ['contents'] })).toBe(0);
+	});
+
+	it('defaults to the shipped allowlist', () => {
+		writeFileSync(
+			join(fresh(), 'release.yml'),
+			workflow({ jobExtra: '    permissions:\n      contents: write\n' })
+		);
+		writeFileSync(
+			join(dir, 'ci.yml'),
+			workflow({ jobExtra: '    permissions:\n      contents: write\n' })
+		);
+		expect(runPolicyCli(dir, log)).toBe(1);
+		expect(lines.filter((l) => /write/.test(l))).toEqual([
+			`${join(dir, 'ci.yml')}:10: job-level permissions may not grant contents: write`
+		]);
 	});
 });
 

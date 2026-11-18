@@ -86,11 +86,13 @@
   criteria = ["c-1"]
 
 [[deferred]]
+  id = "bc845313ff972907"
   text = "electron-builder appId and the NSIS Start Menu shortcut both carry APP_ID, so packaged Windows toasts are not dropped"
   why = "Only the installer creates the shortcut; packaging is 05's"
   target = "05-release"
 
 [[deferred]]
+  id = "805f0b6203efa54e"
   text = "Packaged smoke test per OS: Send test shows a notification and a click opens the watch (signed macOS with its permission prompt, installed Windows, Linux AppImage)"
   why = "Needs signed and installed artefacts, which 05 produces"
   target = "05-release"

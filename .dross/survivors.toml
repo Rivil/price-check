@@ -54,6 +54,14 @@
   name = "notify-settle-guard"
   reason = "Equivalent: settle()'s re-entry guard. Resolving an already-settled Promise is ignored and clearTimeout on a cleared timer is a no-op, so dropping the guard or never setting settled changes no show() result (notifier.spec pins show/failed/settleMs outcomes and the zero-timer check)."
 
+[[category]]
+  name = "release-cli-entry"
+  reason = "CLI entry (isEntry guard and its block): vitest imports the module and calls its exports, so only `node scripts/<file>.ts` runs this, in a child process where Stryker's active mutant is never set. Exercised by release-tag.spec 'as a process' and by ci.yml's package/verify/locate steps, which passed on macOS, Windows and Linux in PR run 44136073549."
+
+[[category]]
+  name = "update-notice-log-only"
+  reason = "Only decides whether a failed or rejected update notification gets logged; the notice is still shown and onReady still runs (updater.spec 'notifies once per version and calls onReady once per version')."
+
 [[accepted]]
   key = "6d1a8890f4b5d82a"
   file = "scripts/workflow-policy.ts"
@@ -1592,3 +1600,1614 @@
   line = 33
   accepted_in = "04-desktop-notify"
   reason = "Unreachable in practice and fails safe: every routed alert carries watchId (alerts.spec 'watch id' for success and failure) and test alerts return earlier; without the guard, watchExists(undefined) sits inside clickPathFor's try, so a throw or a miss still opens '/'."
+
+[[accepted]]
+  key = "3020c07401cd3427"
+  file = "scripts/package-desktop.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 319
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "78fd89a38a88d8ff"
+  file = "scripts/package-desktop.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 320
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "038f2b006bc779de"
+  file = "scripts/package-desktop.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 320
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6602b65c3e2dbba7"
+  file = "scripts/package-desktop.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 320
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "207f94e9a8160ab4"
+  file = "scripts/package-desktop.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 321
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5752b7008091992e"
+  file = "scripts/package-desktop.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 321
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9eeebe88a158c336"
+  file = "scripts/package-desktop.ts"
+  op = "MethodExpression"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 323
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "99bab898fb73bd13"
+  file = "scripts/package-desktop.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 323
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e97741eac699eaaf"
+  file = "scripts/package-desktop.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 330
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "a83deb7abf2f80a0"
+  file = "scripts/package-desktop.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 331
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f008585dfae6d6aa"
+  file = "scripts/packaged-app.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 356
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "b6a21d9d4da9b653"
+  file = "scripts/packaged-app.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 357
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "b409213c82b03117"
+  file = "scripts/packaged-app.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 357
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "c838f77cf6d322bb"
+  file = "scripts/packaged-app.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 357
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "4ae33fd068c31636"
+  file = "scripts/packaged-app.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 358
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f0977b70a9909fcb"
+  file = "scripts/packaged-app.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 358
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6aac1d8f63ab0ce2"
+  file = "scripts/packaged-app.ts"
+  op = "MethodExpression"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 359
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "a503f2c07552e6b0"
+  file = "scripts/packaged-app.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 359
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "8693eca682bfe8f6"
+  file = "scripts/packaged-app.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 362
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "d4e16c69980a78cf"
+  file = "scripts/packaged-app.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 363
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9e924f49f9798fe4"
+  file = "scripts/release-tag.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 122
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "dd78fd01f2ff2e49"
+  file = "scripts/release-tag.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 123
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9503e6435a1c6929"
+  file = "scripts/release-tag.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 123
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e024fb80159a6fa2"
+  file = "scripts/release-tag.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 123
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "c552066c7c626c02"
+  file = "scripts/release-tag.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 124
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "4517de04a0c218dc"
+  file = "scripts/release-tag.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 124
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "44d7983f40c7d13c"
+  file = "scripts/release-tag.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = runCli({"
+  line = 125
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f04e5f59c8c8c999"
+  file = "scripts/release-tag.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 128
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "de2be21f3c7f5d16"
+  file = "scripts/release-tag.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 129
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "2fe2f2489bc4152f"
+  file = "scripts/verify-packaged.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 643
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "ac3aeb1522d34456"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 644
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "7764ea0a431b7396"
+  file = "scripts/verify-packaged.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 644
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "c0d2c280c5f09c9d"
+  file = "scripts/verify-packaged.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 644
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "1953d1fe3b93fbd1"
+  file = "scripts/verify-packaged.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 645
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f522e9fd4949c286"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 645
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "90abbaa7a3839093"
+  file = "scripts/verify-packaged.ts"
+  op = "MethodExpression"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 646
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "0cbe4a00d4ca086d"
+  file = "scripts/verify-packaged.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 646
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "ea130c17c9e29e11"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrowFunction"
+  text = "readInstaller: (path) => readFileSync(path).toString('latin1'),"
+  line = 651
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "65079f17d7ea487e"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "readInstaller: (path) => readFileSync(path).toString('latin1'),"
+  line = 651
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9067b64fa26cc6d2"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 652
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "07bd0cb177b94a4f"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 653
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6c31c48cd96ff6b6"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop startup: checking the previous version failed', error);"
+  line = 238
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "ce404978c3fa8340"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error(`desktop startup: the previous version outlived ${PREDECESSOR_WAIT_MS}ms`);"
+  line = 243
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "dad370ab2b596bc2"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: the update was not handed to the installer');"
+  line = 271
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "08436fbd2d1d8e30"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 272
+  category = "notify-log-only-catch"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "dc78da0b5cf8fc16"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: installing the update failed', error);"
+  line = 273
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "58f8bc0dca09dbbf"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: Squirrel could not stage the update', error);"
+  line = 289
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e345b96f459bf187"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: listening for Squirrel failed', error);"
+  line = 293
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5606cc79854e9c0a"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 446
+  category = "notify-log-only-catch"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6f671f00eda4836a"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "export const UPDATE_NOTICE_TITLE = 'Price Check update ready';"
+  line = 105
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5821440387f3d5b0"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('info', `update ${version} downloaded`);"
+  line = 152
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "a4e2dd26d1e3f8d3"
+  file = "src/desktop/updater.ts"
+  op = "BlockStatement"
+  text = "(result) => {"
+  line = 154
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "b6c7fc1958d39568"
+  file = "src/desktop/updater.ts"
+  op = "BooleanLiteral"
+  text = "if (!result.ok) safeLog('error', `update notification for ${version}: ${result.reason}`);"
+  line = 155
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "198b8abb5d6dbeca"
+  file = "src/desktop/updater.ts"
+  op = "ConditionalExpression"
+  text = "if (!result.ok) safeLog('error', `update notification for ${version}: ${result.reason}`);"
+  line = 155
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "4cc90b808d021297"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "if (!result.ok) safeLog('error', `update notification for ${version}: ${result.reason}`);"
+  line = 155
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e99cb85ece73b239"
+  file = "src/desktop/updater.ts"
+  op = "ArrowFunction"
+  text = "(error: unknown) => safeLog('error', `update notification for ${version} failed`, error)"
+  line = 157
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "23e231c3eadba7f0"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "(error: unknown) => safeLog('error', `update notification for ${version} failed`, error)"
+  line = 157
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f2bb219805b94d27"
+  file = "src/desktop/updater.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 161
+  category = "notify-log-only-catch"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f2037d76fd4f0856"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'update onReady failed', error);"
+  line = 162
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5e87f541536175dc"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'update check failed', error);"
+  line = 174
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "fa0c52bd66d18e60"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'updater error', error);"
+  line = 199
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "8389334cc00bd311"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('info', `updates on for ${appVersion}`);"
+  line = 206
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "3af1746f7a0da081"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'handing the update to the installer failed', error);"
+  line = 235
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "7cf32c1d99cabee0"
+  file = "src/desktop/app-paths.ts"
+  op = "Regex"
+  text = "return /(^|[\\\\/])app\\.asar$/.test(appRoot) ? `${appRoot}.unpacked` : appRoot;"
+  line = 41
+  accepted_in = "05-release"
+  reason = "Unreachable: appRoot is always absolute (main.ts APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')), so a bare 'app.asar' with no separator before it never occurs."
+
+[[accepted]]
+  key = "55994db13084d5ae"
+  file = "src/desktop/lifecycle.ts"
+  op = "BooleanLiteral"
+  text = "if (!updates) return false;"
+  line = 264
+  accepted_in = "05-release"
+  reason = "Equivalent: with updates undefined, watchSquirrel also returns null (it needs updates), so `installPending(...) && squirrel` is falsy either way and app.exit(0) runs next."
+
+[[accepted]]
+  key = "9d47e44fbab68433"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (!updates) return false;"
+  line = 264
+  accepted_in = "05-release"
+  reason = "Equivalent result: without the guard, updates.pending() on undefined throws inside installPending's try and the catch returns false, the same value; only a console line is added."
+
+[[accepted]]
+  key = "696fda7e1d4d7cdf"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "resolve('failed');"
+  line = 290
+  accepted_in = "05-release"
+  reason = "Equivalent: waitForSquirrel only branches on 'timeout' and 'staged'; an empty outcome takes the same no-wait path as 'failed'."
+
+[[accepted]]
+  key = "457f6b49f2a80665"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "}).catch((error: unknown) => {"
+  line = 292
+  accepted_in = "05-release"
+  reason = "Equivalent: the catch is reached only if nativeUpdater.on throws; emptied, it resolves undefined instead of 'failed', which waitForSquirrel treats like 'failed' (no wait)."
+
+[[accepted]]
+  key = "7ec379a189de2900"
+  file = "src/desktop/tray.ts"
+  op = "BooleanLiteral"
+  text = "updateReady = false"
+  line = 74
+  accepted_in = "05-release"
+  reason = "Unreachable default: the only production caller, createTray (tray.ts:101), always passes updateReady."
+
+[[accepted]]
+  key = "e59b80de5a784ea6"
+  file = "src/desktop/tray.ts"
+  op = "ConditionalExpression"
+  text = "if (ready === updateReady) return;"
+  line = 115
+  accepted_in = "05-release"
+  reason = "Equivalent: without the early return a same-value setUpdateReady rebuilds an identical menu from unchanged state (tray.spec 'a second setUpdateReady(true) adds no second item')."
+
+[[accepted]]
+  key = "a24ba4a7268369cd"
+  file = "src/desktop/updater.ts"
+  op = "BooleanLiteral"
+  text = "let installed = false;"
+  line = 130
+  accepted_in = "05-release"
+  reason = "Equivalent: onDownloaded sets installed=false before downloaded becomes non-null, and while downloaded is null pending() and installOnExit() return false whatever installed holds."
+
+[[accepted]]
+  key = "5697a3cb8ec5c514"
+  file = "src/desktop/updater.ts"
+  op = "ConditionalExpression"
+  text = "if (inFlight === check) inFlight = null;"
+  line = 183
+  accepted_in = "05-release"
+  reason = "Equivalent: runCheck sets inFlight only when it is null and only this check's finally clears it; that finally runs in a later microtask, after inFlight = check, so inFlight === check whenever it runs."
+
+[[accepted]]
+  key = "17d2fb733bacdd78"
+  file = "src/desktop/updater.ts"
+  op = "ConditionalExpression"
+  text = "if (interval !== undefined) timers.clearInterval(interval);"
+  line = 212
+  accepted_in = "05-release"
+  reason = "Equivalent: with the guard forced true, stop() calls clearInterval(undefined), a no-op in Node and in @sinonjs fake timers."
+
+[[accepted]]
+  key = "0a654fee1d6a4b81"
+  file = "scripts/package-desktop.ts"
+  op = "StringLiteral"
+  text = "export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');"
+  line = 32
+  accepted_in = "05-release"
+  reason = "Stryker static-mutant artefact: ROOT is a module-level const its vitest runner never re-evaluates. Hand-mutated '..' to '' in a scratch copy of ca0da85: package-desktop.spec fails at load (ENOENT scripts/node_modules/.pnpm, spec:125); unmutated copy 61/61 green."
+
+[[accepted]]
+  key = "edb8e9f5f4edfb3d"
+  file = "scripts/packaged-app.ts"
+  op = "StringLiteral"
+  text = "const detail = query.stderr.trim().split(/\\r?\\n/).slice(-1)[0] ?? '';"
+  line = 277
+  accepted_in = "05-release"
+  reason = "Unreachable fallback: split() always yields at least one element, so slice(-1)[0] is never undefined and the ?? '' default never applies."
+
+[[accepted]]
+  key = "2b9ebb7a4a62866f"
+  file = "scripts/packaged-app.ts"
+  op = "StringLiteral"
+  text = "`${outDir} holds a single-arch mac build (${singleArch.join(', ')}): only mac-universal ships`"
+  line = 129
+  accepted_in = "05-release"
+  reason = "Error-message wording only: the separator between single-arch dir names in the refusal text; the refusal itself (throw) is pinned by packaged-app.spec."
+
+[[accepted]]
+  key = "726fa545e58ce05c"
+  file = "scripts/packaged-app.ts"
+  op = "ObjectLiteral"
+  text = "{ encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, windowsHide: true, timeout: 15 * 60_000 },"
+  line = 205
+  accepted_in = "05-release"
+  reason = "Test-harness execFile options (maxBuffer 64MB, 15-min timeout, windowsHide): dropping them can only make a CI step fail (1MB maxBuffer error) or hang until the job timeout, never pass a check; execFile already defaults to utf8. A kill needs a >1MB child process and adds nothing."
+
+[[accepted]]
+  key = "81025ea3f42a01d4"
+  file = "scripts/packaged-app.ts"
+  op = "BooleanLiteral"
+  text = "{ encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, windowsHide: true, timeout: 15 * 60_000 },"
+  line = 205
+  accepted_in = "05-release"
+  reason = "windowsHide only controls whether Windows shows a console window for the child; no output, exit code or check result changes."
+
+[[accepted]]
+  key = "6ad4b8e75f90b7eb"
+  file = "scripts/packaged-app.ts"
+  op = "ConditionalExpression"
+  text = "return rest !== null && VERSION.test(rest);"
+  line = 235
+  accepted_in = "05-release"
+  reason = "Equivalent: forcing rest !== null to true leaves VERSION.test(rest); with rest null that tests the string 'null', which VERSION (^MAJOR.MINOR.PATCH(-rc.N)?$) never matches, so the result is false either way."
+
+[[accepted]]
+  key = "4b7674490ec8bdff"
+  file = "scripts/packaged-app.ts"
+  op = "StringLiteral"
+  text = "const uninstaller = /^\"([^\"]+)\"/.exec(key.values.UninstallString?.trim() ?? '')?.[1];"
+  line = 264
+  accepted_in = "05-release"
+  reason = "Equivalent: with UninstallString absent, /^\"([^\"]+)\"/ fails on both '' and the mutant string (no leading quote), so uninstaller is undefined either way."
+
+[[accepted]]
+  key = "2a81b6310e225a7a"
+  file = "scripts/update-feed.ts"
+  op = "StringLiteral"
+  text = "const raw = target ?? '';"
+  line = 156
+  accepted_in = "05-release"
+  reason = "Unreachable: pathOf only receives req.url from an http.Server request, which is always a string; the ?? '' default never applies."
+
+[[accepted]]
+  key = "3a21cc22802fca55"
+  file = "scripts/update-feed.ts"
+  op = "ConditionalExpression"
+  text = "if (!res.headersSent) res.writeHead(500, { 'Content-Length': '0' });"
+  line = 183
+  accepted_in = "05-release"
+  reason = "Unreachable false branch: serve() never rejects after writeHead (after it only createReadStream/pipe, whose errors go to the stream error handler), so headersSent is always false when the catch runs."
+
+[[accepted]]
+  key = "0627d895dffdb53e"
+  file = "scripts/update-feed.ts"
+  op = "BooleanLiteral"
+  text = "server.listen({ host: LOOPBACK, port, exclusive: true }, () => {"
+  line = 190
+  accepted_in = "05-release"
+  reason = "Equivalent: listen's exclusive flag only changes handle sharing between cluster workers; the feed never runs under cluster."
+
+[[accepted]]
+  key = "f6be8e7e2540e8fc"
+  file = "scripts/update-feed.ts"
+  op = "StringLiteral"
+  text = "server.off('error', rejectListen);"
+  line = 191
+  accepted_in = "05-release"
+  reason = "Test-harness listener hygiene: the mutant leaves the once('error') rejecter on a promise that already resolved, so a later error calls a no-op; nothing the feed's API returns changes."
+
+[[accepted]]
+  key = "155e666cd6fcc085"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "const host = URL.canParse(url ?? '') ? new URL(url ?? '') : null;"
+  line = 450
+  accepted_in = "05-release"
+  reason = "Equivalent (both mutants): URL.canParse fails on '' and on the mutant string alike; the second url ?? '' is reached only after canParse succeeded, so url is defined there."
+
+[[accepted]]
+  key = "4197e3a2ff34e34f"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrayDeclaration"
+  text = ": []"
+  line = 509
+  accepted_in = "05-release"
+  reason = "Equivalent: an absent outDir yields a dummy name set instead of an empty one; no expectedArtefacts name equals the dummy, so every artefact is still reported missing."
+
+[[accepted]]
+  key = "86210913bb7a0380"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "if (!isPackagedPlatform(platform)) throw new Error(`no packaged app for ${platform}`);"
+  line = 570
+  accepted_in = "05-release"
+  reason = "Unreachable guard message: hostPlatform runs only on hosts that execute verify-packaged (macos-15, windows-2025, ubuntu-24.04 runners, the dev Mac), all packaged platforms."
+
+[[accepted]]
+  key = "191186399cdab2a5"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (!isPackagedPlatform(platform)) throw new Error(`no packaged app for ${platform}`);"
+  line = 570
+  accepted_in = "05-release"
+  reason = "Unreachable defensive guard: every host that runs verify-packaged (macos-15, windows-2025, ubuntu-24.04 runners, the dev Mac) is a packaged platform, so the refusal never fires."
+
+[[accepted]]
+  key = "016aa7fc513d5888"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "if (located.platform !== 'win32') throw new Error('win needs a Windows output dir');"
+  line = 611
+  accepted_in = "05-release"
+  reason = "Unreachable: locate(dir, 'win32') returns platform 'win32' by construction, so this type-narrowing throw never fires."
+
+[[accepted]]
+  key = "02f06ab84195c372"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (located.platform !== 'win32') throw new Error('win needs a Windows output dir');"
+  line = 611
+  accepted_in = "05-release"
+  reason = "Equivalent: locate(dir, 'win32') always returns platform 'win32', so the type-narrowing condition is always false."
+
+[[accepted]]
+  key = "724fb3d684d8c080"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const fat = /Architectures in the fat file: .* are: (.+)$/m.exec(text);"
+  line = 54
+  accepted_in = "05-release"
+  reason = "Equivalent: (.+) is greedy and . excludes newline, so the capture already ends at end of line; dropping the multiline $ anchor changes nothing."
+
+[[accepted]]
+  key = "1689f533d43263d5"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (kind === 'dir') walk(child, path);"
+  line = 283
+  accepted_in = "05-release"
+  reason = "Equivalent: walking a non-dir node iterates node.files ?? {}, which is empty, so no extra entries are pushed."
+
+[[accepted]]
+  key = "e1d8a8d62628908d"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (name !== undefined && NATIVE_LIBSQL.test(name)) shipped.add(name);"
+  line = 370
+  accepted_in = "05-release"
+  reason = "Equivalent: forcing name !== undefined to true leaves NATIVE_LIBSQL.test(undefined), i.e. 'undefined' against /^(darwin|linux|win32)-/, which is false."
+
+[[accepted]]
+  key = "646a57e6799850d2"
+  file = "scripts/verify-packaged.ts"
+  op = "BooleanLiteral"
+  text = "let inFiles = false;"
+  line = 411
+  accepted_in = "05-release"
+  reason = "Unreachable input: differs only when the first non-blank YAML line is an indented key; electron-builder's latest*.yml and app-update.yml always open with a top-level key (version/provider)."
+
+[[accepted]]
+  key = "7a0b4f59f0a37f23"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const top = /^([A-Za-z0-9_]+):(?:\\s+(.*))?$/.exec(raw);"
+  line = 414
+  accepted_in = "05-release"
+  reason = "Equivalent: \\s versus \\s+ before the value only moves extra leading whitespace into the capture, and unquote() trims it."
+
+[[accepted]]
+  key = "943d8aa25b620afe"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const item = /^\\s+(-\\s+)?([A-Za-z0-9_]+):(?:\\s+(.*))?$/.exec(raw);"
+  line = 421
+  accepted_in = "05-release"
+  reason = "Equivalent: \\s versus \\s+ before the value only moves extra leading whitespace into the capture, and unquote() trims it."
+
+[[accepted]]
+  key = "4170e00437899abf"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "pattern.replace(/\\/\\*\\*(\\/\\*)?$/, '')"
+  line = 308
+  accepted_in = "05-release"
+  reason = "Equivalent for the shipped patterns (both mutants): every APP_FILES entry ends in exactly one trailing /**/*, so dropping $ or making (/*) mandatory strips the same suffix."
+
+[[accepted]]
+  key = "5ec40f13308b2f85"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const UNPACK_ROOTS = ASAR_UNPACK.map((pattern) => pattern.replace(/\\/\\*\\*(\\/\\*)?$/, ''));"
+  line = 314
+  accepted_in = "05-release"
+  reason = "Equivalent for the shipped patterns (both mutants): every ASAR_UNPACK entry ends in exactly one trailing /**/*, so dropping $ or making (/*) mandatory strips the same suffix."
+
+[[accepted]]
+  key = "6b702c7105468e26"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {"
+  line = 66
+  accepted_in = "05-release"
+  reason = "Equivalent: Number.isInteger is false for every non-number, so !Number.isInteger(value) still throws for them without the typeof check."
+
+[[accepted]]
+  key = "344ad4f90ef7b8b8"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (colon === -1 || local.slice(0, colon) !== LOOPBACK) continue;"
+  line = 123
+  accepted_in = "05-release"
+  reason = "Equivalent: with no colon, local minus its last char equals 127.0.0.1 only for e.g. 127.0.0.1X, whose whole text then fails the ^\\d+$ port test and is skipped anyway."
+
+[[accepted]]
+  key = "46e8a7c6766c01d3"
+  file = "scripts/process-probe.ts"
+  op = "UnaryOperator"
+  text = "if (colon === -1 || local.slice(0, colon) !== LOOPBACK) continue;"
+  line = 123
+  accepted_in = "05-release"
+  reason = "Equivalent: colon === 1 means a one-char host, which never equals 127.0.0.1, so the line is skipped on both paths; the -1 case is caught by the port test."
+
+[[accepted]]
+  key = "1f464e26bbccbd99"
+  file = "scripts/process-probe.ts"
+  op = "MethodExpression"
+  text = "const users = fields.slice(5).join(' ');"
+  line = 127
+  accepted_in = "05-release"
+  reason = "Equivalent: fields 0-4 of an ss line (LISTEN, queues, local, peer address) never contain pid=, so matching over all fields finds the same pids."
+
+[[accepted]]
+  key = "0fe7e6049e310918"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "const users = fields.slice(5).join(' ');"
+  line = 127
+  accepted_in = "05-release"
+  reason = "Equivalent: ss writes ,pid=N so the word boundary before pid holds whether the users tokens are joined with a space or nothing."
+
+[[accepted]]
+  key = "f6d6bb6bf6c58c2f"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "state: status === null ? null : parseProcStatusState(status),"
+  line = 206
+  accepted_in = "05-release"
+  reason = "Equivalent: parseProcStatusState(null) runs its regex on the string 'null', finds no State: line and returns null, the same as the null branch."
+
+[[accepted]]
+  key = "bfc3c671651f7c3b"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "detail.ppid !== null && pids.has(detail.ppid) ? 1 : 0,"
+  line = 232
+  accepted_in = "05-release"
+  reason = "Equivalent: forcing ppid !== null to true leaves pids.has(null), which is false since pids holds only numbers."
+
+[[accepted]]
+  key = "56d96cf751bdcf6e"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i];"
+  line = 236
+  accepted_in = "05-release"
+  reason = "Equivalent (both mutants): rank arrays have equal length, so at i === a.length both entries are undefined and equal; and a[i] < b[i] versus <= differ only when equal, which the !== check excludes."
+
+[[accepted]]
+  key = "7eeb599e8f904930"
+  file = "scripts/packaged-app.ts"
+  op = "ObjectLiteral"
+  text = "rmSync(temp, { force: true });"
+  line = 191
+  accepted_in = "05-release"
+  reason = "Test-harness cleanup: without force, rmSync of a temp file the failed copy never created throws its own ENOENT in place of the copy's. replaceExecutable still throws and dest is untouched; only which ENOENT is reported changes."
+
+[[accepted]]
+  key = "1fd9a993f091057e"
+  file = "scripts/packaged-app.ts"
+  op = "BooleanLiteral"
+  text = "rmSync(temp, { force: true });"
+  line = 191
+  accepted_in = "05-release"
+  reason = "Test-harness cleanup: without force, rmSync of a temp file the failed copy never created throws its own ENOENT in place of the copy's. replaceExecutable still throws and dest is untouched; only which ENOENT is reported changes."
+
+[[accepted]]
+  key = "2ae464ee0f6827f9"
+  file = "scripts/process-probe.ts"
+  op = "ArrayDeclaration"
+  text = "(listeners.get(proc.pid) ?? []).some((listenPort) => runtimePorts.has(listenPort));"
+  line = 347
+  accepted_in = "05-release"
+  reason = "Equivalent: the placeholder string never equals a numeric listening port, so some(runtimePorts.has) answers as with an empty array."
+
+[[accepted]]
+  key = "9dad007d1ddc8793"
+  file = "scripts/process-probe.ts"
+  op = "ArrayDeclaration"
+  text = ".flatMap(({ appDir }) => (appDir === null ? [] : [appDir]));"
+  line = 363
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis: appImageProcesses lists the processes in the OS state attached after a Linux step already failed. A placeholder mount matches nothing; a null APPDIR beside a matching APPIMAGE (never set so by the runtime) would only make that probe section report a failed probe."
+
+[[accepted]]
+  key = "e2686bfda025a371"
+  file = "scripts/process-probe.ts"
+  op = "OptionalChaining"
+  text = "const startTime = installer.startTime ?? row?.startTime ?? null;"
+  line = 583
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis text: describeInstallerTree's fallback when the installer row is missing; only the wording of the attached Windows OS state changes."
+
+[[accepted]]
+  key = "f922b7f6e27628d1"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "const head = `installer pid ${installer.pid} started ${startTime?.toISOString() ?? 'unknown'} ${installer.path ?? row?.path ?? '<path unknown>'}: ${status}`;"
+  line = 588
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis text: placeholders for a start time or path the OS withheld in describeInstallerTree; only the wording of the attached Windows OS state changes."
+
+[[accepted]]
+  key = "1245b4207bc21e2e"
+  file = "scripts/process-probe.ts"
+  op = "OptionalChaining"
+  text = "const head = `installer pid ${installer.pid} started ${startTime?.toISOString() ?? 'unknown'} ${installer.path ?? row?.path ?? '<path unknown>'}: ${status}`;"
+  line = 588
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis text: placeholders for a start time or path the OS withheld in describeInstallerTree; only the wording of the attached Windows OS state changes."
+
+[[accepted]]
+  key = "559e58dd0c9033fd"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "`${'  '.repeat(depth)}pid ${process.pid} ${process.name ?? '<name unknown>'} started ${process.startTime?.toISOString() ?? 'unknown'} (ppid ${process.ppid ?? 'unknown'})`"
+  line = 593
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis text: placeholders for a name or start time the OS withheld in describeInstallerTree; only the wording of the attached Windows OS state changes."
+
+[[accepted]]
+  key = "8482f64964f08b89"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "origin: typeof row.origin === 'string' ? row.origin : 'unknown origin',"
+  line = 660
+  accepted_in = "05-release"
+  reason = "Field-type check and placeholder for a capture line startOutputCapture never writes otherwise (origin is always a string); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "294ff4d4354cfa79"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "default:"
+  line = 666
+  accepted_in = "05-release"
+  reason = "Unknown record kind, which startOutputCapture never writes; affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "e1398f8e92142cb2"
+  file = "scripts/process-probe.ts"
+  op = "ArrayDeclaration"
+  text = "const [ta, tb] = [startOf(byPid.get(a) ?? []), startOf(byPid.get(b) ?? [])];"
+  line = 718
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment; every record is still printed."
+
+[[accepted]]
+  key = "f373f7dcc72eb696"
+  file = "scripts/process-probe.ts"
+  op = "ArithmeticOperator"
+  text = "return a - b;"
+  line = 724
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment; every record is still printed."
+
+[[accepted]]
+  key = "ad96876e45a5d49b"
+  file = "scripts/process-probe.ts"
+  op = "ArrayDeclaration"
+  text = "const list = byPid.get(pid) ?? [];"
+  line = 728
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment; every record is still printed."
+
+[[accepted]]
+  key = "29b1adf2b06814e3"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "`pid ${pid} (ppid ${record.ppid ?? 'unknown'}) started ${at} argv ${record.argv === null ? '<unknown>' : JSON.stringify(record.argv)}`"
+  line = 736
+  accepted_in = "05-release"
+  reason = "argv placeholder wording in the failure-only capture attachment."
+
+[[accepted]]
+  key = "7cb66a75e8ed7951"
+  file = "scripts/process-probe.ts"
+  op = "LogicalOperator"
+  text = "if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {"
+  line = 94
+  accepted_in = "05-release"
+  reason = "nonNegativeInt parses Win32_Process ids only for the failure-only Windows installer-tree diagnosis. Dropping the typeof check is equivalent (Number.isInteger rejects non-numbers); '&&' would admit a fractional id, which CIM never emits."
+
+[[accepted]]
+  key = "57ffae73f660dd2c"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {"
+  line = 94
+  accepted_in = "05-release"
+  reason = "nonNegativeInt parses Win32_Process ids only for the failure-only Windows installer-tree diagnosis. Dropping the typeof check is equivalent (Number.isInteger rejects non-numbers); '&&' would admit a fractional id, which CIM never emits."
+
+[[accepted]]
+  key = "3e86622d9ac4f057"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return prefix !== '/' && path.startsWith(prefix) && path.length > prefix.length;"
+  line = 281
+  accepted_in = "05-release"
+  reason = "isUnder guards inputs that never occur: an APPDIR of '/' or '' (the AppImage runtime always sets its /tmp/.mount_* dir) and an exe equal to the dir plus '/' (/proc/<pid>/exe never ends in '/')."
+
+[[accepted]]
+  key = "a977844e1c99a65d"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "return prefix !== '/' && path.startsWith(prefix) && path.length > prefix.length;"
+  line = 281
+  accepted_in = "05-release"
+  reason = "isUnder guards inputs that never occur: an APPDIR of '/' or '' (the AppImage runtime always sets its /tmp/.mount_* dir) and an exe equal to the dir plus '/' (/proc/<pid>/exe never ends in '/')."
+
+[[accepted]]
+  key = "e6fc4e974123be18"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "return prefix !== '/' && path.startsWith(prefix) && path.length > prefix.length;"
+  line = 281
+  accepted_in = "05-release"
+  reason = "isUnder guards inputs that never occur: an APPDIR of '/' or '' (the AppImage runtime always sets its /tmp/.mount_* dir) and an exe equal to the dir plus '/' (/proc/<pid>/exe never ends in '/')."
+
+[[accepted]]
+  key = "df8cfb102f917d06"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "ppid: proc.status === null ? null : parseProcStatusPpid(proc.status),"
+  line = 297
+  accepted_in = "05-release"
+  reason = "Equivalent: parseProcStatusPpid(null) runs the PPid regex over the text 'null', finds no match and returns null, the same as the guard."
+
+[[accepted]]
+  key = "336019ca84679a90"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (facts.appImage !== appImage || facts.exe === null || facts.exe === appImage) return false;"
+  line = 312
+  accepted_in = "05-release"
+  reason = "Unreachable: the AppImage file never lies under its own FUSE mount (APPDIR), so isUnder(appImage, appDir) is false and the runtime and daemon stay excluded without this check."
+
+[[accepted]]
+  key = "7a8389beda94cab0"
+  file = "scripts/process-probe.ts"
+  op = "ArrayDeclaration"
+  text = ".flatMap(({ pid }) => listeners.get(pid) ?? [])"
+  line = 338
+  accepted_in = "05-release"
+  reason = "Equivalent: the placeholder string never equals a numeric listening port, so runtimePorts.has() answers as with an empty array."
+
+[[accepted]]
+  key = "bc2fd283daa67937"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = ".flatMap(({ appDir }) => (appDir === null ? [] : [appDir]));"
+  line = 363
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis: appImageProcesses lists the processes in the OS state attached after a Linux step already failed. A placeholder mount matches nothing; a null APPDIR beside a matching APPIMAGE (never set so by the runtime) would only make that probe section report a failed probe."
+
+[[accepted]]
+  key = "e84d5cda0b2f9459"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "return jsonRows(json, 'Win32_Process').map((row) => ({"
+  line = 509
+  accepted_in = "05-release"
+  reason = "Error-message label only, in the failure-only Windows installer-tree diagnosis."
+
+[[accepted]]
+  key = "157dd26f9bfd14fb"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "row.ParentProcessId === null || row.ParentProcessId === undefined"
+  line = 512
+  accepted_in = "05-release"
+  reason = "The Get-CimInstance query always selects ParentProcessId, so the undefined branch only serves a hand-built row; it affects only the failure-only Windows installer-tree text."
+
+[[accepted]]
+  key = "c0a64f2cc2850275"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "path: optionalString(row.ExecutablePath, 'ExecutablePath'),"
+  line = 516
+  accepted_in = "05-release"
+  reason = "Error-message label only, in the failure-only Windows installer-tree diagnosis."
+
+[[accepted]]
+  key = "93897480bf847b9f"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "name: optionalString(row.Name, 'Name'),"
+  line = 515
+  accepted_in = "05-release"
+  reason = "Error-message label only, in the failure-only Windows installer-tree diagnosis."
+
+[[accepted]]
+  key = "f6679e1f4fe3acd2"
+  file = "scripts/process-probe.ts"
+  op = "LogicalOperator"
+  text = "return later === null || earlier === null || later.getTime() >= earlier.getTime() - START_SKEW_MS;"
+  line = 529
+  accepted_in = "05-release"
+  reason = "startedNoEarlier only prunes reused-pid children from the failure-only Windows installer-tree text; the null branches cover a withheld CreationDate, and >= vs > differs only at exactly the 1 s skew."
+
+[[accepted]]
+  key = "e9b567da5636c80c"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return later === null || earlier === null || later.getTime() >= earlier.getTime() - START_SKEW_MS;"
+  line = 529
+  accepted_in = "05-release"
+  reason = "startedNoEarlier only prunes reused-pid children from the failure-only Windows installer-tree text; the null branches cover a withheld CreationDate, and >= vs > differs only at exactly the 1 s skew."
+
+[[accepted]]
+  key = "7bc531c36c4b4d47"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "return later === null || earlier === null || later.getTime() >= earlier.getTime() - START_SKEW_MS;"
+  line = 529
+  accepted_in = "05-release"
+  reason = "startedNoEarlier only prunes reused-pid children from the failure-only Windows installer-tree text; the null branches cover a withheld CreationDate, and >= vs > differs only at exactly the 1 s skew."
+
+[[accepted]]
+  key = "41dd192b6f49050e"
+  file = "scripts/process-probe.ts"
+  op = "OptionalChaining"
+  text = "`${'  '.repeat(depth)}pid ${process.pid} ${process.name ?? '<name unknown>'} started ${process.startTime?.toISOString() ?? 'unknown'} (ppid ${process.ppid ?? 'unknown'})`"
+  line = 593
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis text: placeholders for a name or start time the OS withheld in describeInstallerTree; only the wording of the attached Windows OS state changes."
+
+[[accepted]]
+  key = "fc4743a3fc351541"
+  file = "scripts/process-probe.ts"
+  op = "BlockStatement"
+  text = "} catch {"
+  line = 632
+  accepted_in = "05-release"
+  reason = "Equivalent: with an empty catch the value stays undefined, and the next check (typeof !== 'object') returns 'unreadable' as the catch did."
+
+[[accepted]]
+  key = "ab35b5766cb3449a"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (typeof value !== 'string') return null;"
+  line = 621
+  accepted_in = "05-release"
+  reason = "captureDate of a non-string 'at': startOutputCapture always writes an ISO string, and the date only labels lines in the failure-only capture attachment."
+
+[[accepted]]
+  key = "687d3da10b8393ab"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (value === null || typeof value !== 'object' || Array.isArray(value)) return unreadable;"
+  line = 635
+  accepted_in = "05-release"
+  reason = "Foreign-line robustness of the capture reader: startOutputCapture writes one JSON object per line, never null, an array or a primitive. Such a line only reaches the failure-only capture attachment."
+
+[[accepted]]
+  key = "fcf3c4692b6eb388"
+  file = "scripts/process-probe.ts"
+  op = "LogicalOperator"
+  text = "if (value === null || typeof value !== 'object' || Array.isArray(value)) return unreadable;"
+  line = 635
+  accepted_in = "05-release"
+  reason = "Foreign-line robustness of the capture reader: startOutputCapture writes one JSON object per line, never null, an array or a primitive. Such a line only reaches the failure-only capture attachment."
+
+[[accepted]]
+  key = "8ac2bf1cf59daa3d"
+  file = "scripts/process-probe.ts"
+  op = "LogicalOperator"
+  text = "if (typeof row.pid !== 'number' || !Number.isInteger(row.pid) || row.pid <= 0) return unreadable;"
+  line = 637
+  accepted_in = "05-release"
+  reason = "startOutputCapture writes process.pid, always a positive integer; the type, integer and <= 0 checks only matter for a foreign line in the failure-only capture attachment."
+
+[[accepted]]
+  key = "16ffdfbeaa1c70c4"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (typeof row.pid !== 'number' || !Number.isInteger(row.pid) || row.pid <= 0) return unreadable;"
+  line = 637
+  accepted_in = "05-release"
+  reason = "startOutputCapture writes process.pid, always a positive integer; the type, integer and <= 0 checks only matter for a foreign line in the failure-only capture attachment."
+
+[[accepted]]
+  key = "15fd02558945a007"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "if (typeof row.pid !== 'number' || !Number.isInteger(row.pid) || row.pid <= 0) return unreadable;"
+  line = 637
+  accepted_in = "05-release"
+  reason = "startOutputCapture writes process.pid, always a positive integer; the type, integer and <= 0 checks only matter for a foreign line in the failure-only capture attachment."
+
+[[accepted]]
+  key = "1412cecaf2aa526c"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "ppid: typeof row.ppid === 'number' ? row.ppid : null,"
+  line = 644
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (ppid is always a number); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "639f1cb8a30d2312"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "Array.isArray(row.argv) && row.argv.every((arg) => typeof arg === 'string')"
+  line = 646
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (argv is always a string array); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "f1f62e2052713bcc"
+  file = "scripts/process-probe.ts"
+  op = "MethodExpression"
+  text = "Array.isArray(row.argv) && row.argv.every((arg) => typeof arg === 'string')"
+  line = 646
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (argv is always a string array); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "3856a44c33f860d6"
+  file = "scripts/process-probe.ts"
+  op = "LogicalOperator"
+  text = "Array.isArray(row.argv) && row.argv.every((arg) => typeof arg === 'string')"
+  line = 646
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (argv is always a string array); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "5cd792763ca42c40"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return typeof row.text === 'string'"
+  line = 652
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (text is always a string); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "8cff638699edf999"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return typeof row.text === 'string'"
+  line = 656
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (text is always a string); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "1fc4aaae67d00dc0"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "origin: typeof row.origin === 'string' ? row.origin : 'unknown origin',"
+  line = 660
+  accepted_in = "05-release"
+  reason = "Field-type check and placeholder for a capture line startOutputCapture never writes otherwise (origin is always a string); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "9abe6ba098a3cbb4"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return { ...base, kind: 'exit', code: typeof row.code === 'number' ? row.code : null };"
+  line = 665
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (exit code is always a number); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "2cde3642a3e38b8d"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "const isoOrUnknown = (at: Date | null) => at?.toISOString() ?? '<time unknown>';"
+  line = 682
+  accepted_in = "05-release"
+  reason = "Placeholder wording for an unknown time in the failure-only capture attachment."
+
+[[accepted]]
+  key = "3d286cc8a447a60d"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (lines.length > 1 && lines.at(-1) === '') lines.pop();"
+  line = 687
+  accepted_in = "05-release"
+  reason = "Line splitting of an empty write in the failure-only capture attachment: only whether one empty prefixed line is printed."
+
+[[accepted]]
+  key = "93218e3abb90f1da"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "if (lines.length > 1 && lines.at(-1) === '') lines.pop();"
+  line = 687
+  accepted_in = "05-release"
+  reason = "Line splitting of an empty write in the failure-only capture attachment: only whether one empty prefixed line is printed."
+
+[[accepted]]
+  key = "74a0a14c3b9e529f"
+  file = "scripts/process-probe.ts"
+  op = "MethodExpression"
+  text = ".filter((line) => line.trim() !== '')"
+  line = 678
+  accepted_in = "05-release"
+  reason = "Whitespace-only capture lines (never written) would read as 'unreadable' instead of being skipped; changes only the failure-only capture attachment's text."
+
+[[accepted]]
+  key = "dc9900cf365f2c63"
+  file = "scripts/process-probe.ts"
+  op = "ArrowFunction"
+  text = "const start = list.find((record) => record.kind === 'start');"
+  line = 711
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "7729f97987859ef2"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "const start = list.find((record) => record.kind === 'start');"
+  line = 711
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "c90b7ea7f8c4db72"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "const start = list.find((record) => record.kind === 'start');"
+  line = 711
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "ac51b8a2952ad17e"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "const start = list.find((record) => record.kind === 'start');"
+  line = 711
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "459038aaeb8a104c"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "const times = (start !== undefined && start.at !== null ? [start] : list).flatMap((record) =>"
+  line = 712
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "ad501a19a2b56896"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "const times = (start !== undefined && start.at !== null ? [start] : list).flatMap((record) =>"
+  line = 712
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "c854bca3c4014273"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return times.length === 0 ? null : Math.min(...times);"
+  line = 715
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment; every record is still printed."
+
+[[accepted]]
+  key = "e385f9c61725e6c9"
+  file = "scripts/process-probe.ts"
+  op = "MethodExpression"
+  text = "return times.length === 0 ? null : Math.min(...times);"
+  line = 715
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment; every record is still printed."
+
+[[accepted]]
+  key = "363c6a9658733fd1"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (ta !== tb) {"
+  line = 719
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (unknown times last); every record is still printed."
+
+[[accepted]]
+  key = "146ff062fe1673d1"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (ta === null) return 1;"
+  line = 720
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (unknown times last); every record is still printed."
+
+[[accepted]]
+  key = "2c81a7775c9b1984"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "`pid ${pid} (ppid ${record.ppid ?? 'unknown'}) started ${at} argv ${record.argv === null ? '<unknown>' : JSON.stringify(record.argv)}`"
+  line = 736
+  accepted_in = "05-release"
+  reason = "argv placeholder wording in the failure-only capture attachment."
+
+[[accepted]]
+  key = "9b677acfebfd66ef"
+  file = "scripts/process-probe.ts"
+  op = "MethodExpression"
+  text = "const pids = [...(seen.get(listenPort) ?? [])].sort((a, b) => a - b);"
+  line = 803
+  accepted_in = "05-release"
+  reason = "Pid order within one port in the failure-only ports note of the Linux restart test."
+
+[[accepted]]
+  key = "e85592cf66c5feeb"
+  file = "scripts/process-probe.ts"
+  op = "ArithmeticOperator"
+  text = "const pids = [...(seen.get(listenPort) ?? [])].sort((a, b) => a - b);"
+  line = 803
+  accepted_in = "05-release"
+  reason = "Pid order within one port in the failure-only ports note of the Linux restart test."
+
+[[accepted]]
+  key = "95cc56c94797bb1e"
+  file = "scripts/process-probe.ts"
+  op = "ArrowFunction"
+  text = "const pids = [...(seen.get(listenPort) ?? [])].sort((a, b) => a - b);"
+  line = 803
+  accepted_in = "05-release"
+  reason = "Pid order within one port in the failure-only ports note of the Linux restart test."
+
+[[accepted]]
+  key = "cf6b9708a65ff2a9"
+  file = "src/desktop/main.ts"
+  op = "ObjectLiteral"
+  text = "...(updater ? { updates: withCaptureHandOver(updater, outputCapture, process.env) } : {}),"
+  line = 305
+  accepted_in = "05-release"
+  reason = "e2e-only: vitest mocks runDesktop, and isPackaged is false there, so updater is null. Dropping updates stops Restart and Quit from installing, which the packaged e2e 'quit installs in place', 'restart through the predecessor wait' and 'relaunch after exit' would fail on (green in run 44329632272)."
+
+[[accepted]]
+  key = "f491291e6277170f"
+  file = "src/desktop/main.ts"
+  op = "ArrowFunction"
+  text = "now: () => Date = () => new Date()"
+  line = 123
+  accepted_in = "05-release"
+  reason = "Test-only capture seam (packaged e2e only): with the default clock gone each record throws inside record()'s try/catch, so the capture file stays empty. It is read only to diagnose an already-failed Linux restart step, never to decide it."
+
+[[accepted]]
+  key = "855ecf64e1785670"
+  file = "src/desktop/main.ts"
+  op = "ConditionalExpression"
+  text = "text: typeof chunk === 'string' ? chunk : Buffer.from(chunk).toString('utf8')"
+  line = 139
+  accepted_in = "05-release"
+  reason = "Equivalent: Buffer.from(string).toString('utf8') returns the same text for the strings stdout and stderr carry, so taking the Buffer branch for strings records the same line."
+
+[[accepted]]
+  key = "d551df92c2546283"
+  file = "src/desktop/main.ts"
+  op = "StringLiteral"
+  text = "text: typeof chunk === 'string' ? chunk : Buffer.from(chunk).toString('utf8')"
+  line = 139
+  accepted_in = "05-release"
+  reason = "Equivalent: Buffer.from(string).toString('utf8') returns the same text for the strings stdout and stderr carry, so taking the Buffer branch for strings records the same line."
+
+[[accepted]]
+  key = "28014cbc932d2041"
+  file = "src/desktop/main.ts"
+  op = "LogicalOperator"
+  text = "return file !== undefined && isAbsolute(file) ? file : null;"
+  line = 96
+  accepted_in = "05-release"
+  reason = "Stryker static-mutant artefact: reported Survived with testsCompleted=0. Each of the 3 mutants calls isAbsolute(undefined) at import; hand-mutated in a git-archive copy of 95bc4f0, main.spec.ts fails at load (TypeError, no tests), and unmutated passes 12/12."
+
+[[accepted]]
+  key = "1f9c1b001b17235d"
+  file = "src/desktop/main.ts"
+  op = "ConditionalExpression"
+  text = "return file !== undefined && isAbsolute(file) ? file : null;"
+  line = 96
+  accepted_in = "05-release"
+  reason = "Stryker static-mutant artefact: reported Survived with testsCompleted=0. Each of the 3 mutants calls isAbsolute(undefined) at import; hand-mutated in a git-archive copy of 95bc4f0, main.spec.ts fails at load (TypeError, no tests), and unmutated passes 12/12."
+
+[[accepted]]
+  key = "d25968dfeaef8e87"
+  file = "src/desktop/main.ts"
+  op = "EqualityOperator"
+  text = "return file !== undefined && isAbsolute(file) ? file : null;"
+  line = 96
+  accepted_in = "05-release"
+  reason = "Stryker static-mutant artefact: reported Survived with testsCompleted=0. Each of the 3 mutants calls isAbsolute(undefined) at import; hand-mutated in a git-archive copy of 95bc4f0, main.spec.ts fails at load (TypeError, no tests), and unmutated passes 12/12."
+
+[[accepted]]
+  key = "183f14a4dabc1954"
+  file = "src/desktop/main.ts"
+  op = "ConditionalExpression"
+  text = "if (outputCapture !== null) startOutputCapture(outputCapture, process);"
+  line = 176
+  accepted_in = "05-release"
+  reason = "Module-level start of the test-only capture. Forced true (or === null) with no capture file: every append throws inside record()'s try/catch and each write still goes through, so a real launch behaves the same. Forced false: only the e2e diagnosis capture is lost."
+
+[[accepted]]
+  key = "5d4c2c9933e2d589"
+  file = "src/desktop/main.ts"
+  op = "EqualityOperator"
+  text = "if (outputCapture !== null) startOutputCapture(outputCapture, process);"
+  line = 176
+  accepted_in = "05-release"
+  reason = "Module-level start of the test-only capture. Forced true (or === null) with no capture file: every append throws inside record()'s try/catch and each write still goes through, so a real launch behaves the same. Forced false: only the e2e diagnosis capture is lost."

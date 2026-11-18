@@ -45,6 +45,8 @@ node_modules
 /build
 # Electron main bundle (pnpm build:desktop); also keeps prettier and eslint off it
 /dist-desktop
+# Packaged app and installers (pnpm package:desktop)
+/dist-packaged
 
 # OS
 .DS_Store

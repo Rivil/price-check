@@ -1,7 +1,9 @@
 // Pins spec c-1's toolchain: the Electron binary is installed by `pnpm install`, the
 // build-script allowlist and the pins stay exact, the main bundle keeps `electron`
 // external, inlines #lib/* and refuses server-only imports, and the desktop e2e
-// suite has its own Playwright config that the web suite never collects.
+// suite has its own Playwright config that the web suite never collects. Spec 05's
+// packaging toolchain is pinned too: electron-updater ships, the builder does not,
+// and both darwin libsql binaries are installed for the universal app.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
@@ -106,6 +108,61 @@ describe('electron toolchain', () => {
 			.trim()
 			.replace(/^v/, '');
 		expect(version).toBe(pkg.devDependencies?.electron);
+	});
+});
+
+/**
+ * A two-level YAML map's lists (`key:` then indented `sub: [..]` or `- x` items),
+ * read by dedenting the block under `key` and handing it to yamlList. Null when the
+ * key is missing.
+ */
+function yamlSubList(text: string, key: string, sub: string): string[] | null {
+	const lines = text.split(/\r?\n/);
+	const at = lines.findIndex((l) => new RegExp(`^${key}\\s*:\\s*(#.*)?$`).test(l));
+	if (at < 0) return null;
+	const end = lines.findIndex((l, i) => i > at && /^\S/.test(l) && !l.startsWith('#'));
+	const block = lines.slice(at + 1, end < 0 ? undefined : end);
+	const indent = Math.min(
+		...block.filter((l) => l.trim() !== '').map((l) => /^\s*/.exec(l)?.[0].length ?? 0)
+	);
+	return yamlList(block.map((l) => l.slice(indent)).join('\n'), sub);
+}
+
+describe('packaging toolchain', () => {
+	it('pins electron-updater to an exact x.y.z as a dependency', () => {
+		// electron-builder packs only `dependencies` into the app: as a devDependency,
+		// the packaged main.js would die on its bare import.
+		expect(pkg.dependencies?.['electron-updater']).toMatch(/^\d+\.\d+\.\d+$/);
+		expect(pkg.devDependencies?.['electron-updater']).toBeUndefined();
+	});
+
+	it('pins electron-builder and @electron/asar to an exact x.y.z as devDependencies', () => {
+		for (const name of ['electron-builder', '@electron/asar']) {
+			expect(pkg.devDependencies?.[name], name).toMatch(/^\d+\.\d+\.\d+$/);
+			expect(pkg.dependencies?.[name], name).toBeUndefined();
+		}
+	});
+
+	it('installs both cpus the universal mac app ships, for the host os and libc only', () => {
+		const workspace = readFileSync(join(ROOT, 'pnpm-workspace.yaml'), 'utf8');
+		const supported = (sub: string) => yamlSubList(workspace, 'supportedArchitectures', sub);
+		expect([...(supported('cpu') ?? [])].sort()).toEqual(['arm64', 'current', 'x64']);
+		expect(supported('os')).toEqual(['current']);
+		// musl builds would only bloat a glibc AppImage.
+		expect(supported('libc')).toEqual(['current']);
+		expect(pkg.pnpm?.supportedArchitectures).toBeUndefined();
+	});
+
+	it.skipIf(process.platform !== 'darwin')('both darwin libsql binaries installed', () => {
+		// Resolved from libsql's own directory, as its loader does: a universal app
+		// built with only the host's binary would fail to open its DB on the other arch.
+		const root = createRequire(join(ROOT, 'package.json'));
+		const libsql = createRequire(root.resolve('@libsql/client')).resolve('libsql');
+		const fromLibsql = createRequire(join(dirname(libsql), 'package.json'));
+		for (const arch of ['arm64', 'x64']) {
+			const manifest = fromLibsql.resolve(`@libsql/darwin-${arch}/package.json`);
+			expect(existsSync(join(dirname(manifest), 'index.node')), arch).toBe(true);
+		}
 	});
 });
 

@@ -8,21 +8,45 @@ This tool fetches public Amazon product pages. Amazon's Conditions of Use restri
 
 ## Install and use
 
-> **Not released yet.** The first desktop release is still being built. These steps describe how it will work once it's published.
+Download the file for your computer from the [GitHub Releases page](https://github.com/Rivil/price-check/releases): the `.dmg` for macOS, the `.exe` for Windows or the `.AppImage` for Linux. The release's `.zip` and `.yml` files are for automatic updates, so you can ignore them.
 
-Download the file for your computer from the [GitHub Releases page](https://github.com/Rivil/price-check/releases), then:
+### macOS
 
-- **macOS:** open the `.dmg` and drag price-check into Applications. It is signed and notarised, so it opens normally.
-- **Windows:** run the installer (`.exe`). The app isn't signed for Windows, so Microsoft Defender SmartScreen shows a warning the first time. Click **More info**, then **Run anyway**.
-- **Linux:** download the `.AppImage`, make it executable (`chmod +x price-check-*.AppImage`), and run it.
+Open the `.dmg` and drag Price Check into Applications. There's one download for every Mac: it runs natively on both Apple silicon and Intel. The app is signed and notarised by Apple, so it opens normally.
 
-The app updates itself when a new release comes out. Closing the window keeps it running in the tray or menu bar, so your prices keep getting checked.
+### Windows
+
+Run the installer (`.exe`). It installs price-check for your user account only, so it needs no administrator rights. The app isn't signed for Windows, so Microsoft Defender SmartScreen shows a warning the first time. Click **More info**, then **Run anyway**.
+
+### Linux
+
+The AppImage runs on 64-bit Intel and AMD PCs (x86_64).
+
+1. Install FUSE 2, which AppImages need to start. On Ubuntu 22.04 that's `sudo apt install libfuse2`. On Ubuntu 24.04 and later the package is called `libfuse2t64`: `sudo apt install libfuse2t64`.
+2. Make the file executable with `chmod +x price-check-*.AppImage`, then run it.
+3. On Ubuntu 24.04 and later, AppArmor blocks the user namespaces that the app's security sandbox needs, so the app closes straight away. Allow them, then run the app again:
+
+   ```sh
+   sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+   ```
+
+   That lasts until you restart. To keep the setting:
+
+   ```sh
+   echo 'kernel.apparmor_restrict_unprivileged_userns=0' | sudo tee /etc/sysctl.d/60-apparmor-userns.conf
+   ```
+
+   This relaxes an Ubuntu-wide restriction, and the app keeps its own sandbox switched on.
 
 ### Add your first watch
 
 1. Copy the link of a product page on amazon.co.uk.
 2. In price-check, paste the link and set your **target price**.
 3. That's it. The app checks the price every few hours and notifies you when it reaches your target.
+
+### Updates
+
+The app downloads new releases in the background and tells you when one is ready. Choose **Restart to update** from its tray or menu bar icon, or let it install the next time you quit. Closing the window keeps it running in the tray or menu bar, so your prices keep getting checked.
 
 ## Development
 

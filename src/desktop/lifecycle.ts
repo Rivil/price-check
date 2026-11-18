@@ -16,7 +16,10 @@
 // click after Quit started opens nothing.
 //
 // A launch that loses the lock touches nothing (no key, DB or server) and quits: the
-// running instance gets 'second-instance' and shows its window instead. Closing the
+// running instance gets 'second-instance' and shows its window instead. A launch that
+// an update started (predecessorPid set) first waits, up to PREDECESSOR_WAIT_MS, for
+// that old process to exit, then takes the lock once more: the updater may start it
+// while the old process still holds the lock (spec c-6). Closing the
 // window never quits: a 'window-all-closed' listener that does nothing replaces
 // Electron's default, which would quit on Windows and Linux. Only Quit ends the app.
 //
@@ -28,6 +31,29 @@
 // cannot start its own server before then, because this process holds the
 // single-instance lock until it exits.
 //
+// A downloaded update installs on the way out (spec c-5, c-6; decision update_flow):
+// after the shutdown (or its deadline), right before app.exit(0), quit hands it to
+// the installer, which relaunches the new version only for 'Restart to update'. The
+// installer and the new version inherit this process's env, so the key and DB URL
+// are removed from it first and PRICE_CHECK_PREDECESSOR_PID names this process for
+// the new one to wait on. This module never calls app.relaunch(): the only relaunch
+// is the updater's. The installer's own app.quit() fires before-quit again; that one
+// is let through, never held, so it cannot keep the process alive.
+//
+// macOS is the exception to exiting at once (spec c-5). electron-updater's MacUpdater
+// leaves the update with its local proxy until quitAndInstall asks Squirrel.Mac to
+// fetch it (autoInstallOnAppQuit is off): an app.exit(0) right after the hand-over
+// ends the process before Squirrel has it, and nothing installs. So on darwin, after
+// the hand-over, quit waits for Electron's native autoUpdater to report the update
+// staged ('update-downloaded'). electron-updater then ends the app itself: for
+// 'Restart to update' it asks Squirrel to install and relaunch; for a plain Quit
+// (the updater turns autoRunAppAfterInstall off, since MacUpdater ignores
+// quitAndInstall's arguments) it only quits, and Squirrel installs the staged update
+// as the app ends, without relaunching it. app.exit(0) follows SQUIRREL_HANDOFF_MS
+// later only as a backstop, and still installs, for the same reason. A Squirrel error exits at once, and so does a wait that passes
+// SQUIRREL_STAGE_WAIT_MS: the update stays downloaded and is offered again on the
+// next launch. Windows and Linux exit right after the hand-over, as above.
+//
 // A startup that fails (bad key file, server that does not start) shows an error box
 // and exits with code 1. It never lingers without a window or tray: a zombie would
 // keep the lock and swallow every relaunch.
@@ -36,12 +62,25 @@
 // types below; main.ts wires the real Electron objects and the window, tray,
 // login-item, server and key modules.
 import type { ServerRuntime } from '#lib/server/runtime-bridge.ts';
+import type { ExitMode } from './updater.ts';
 
 /** How long quit lets the scheduler finish the pass in flight. */
 export const SCHEDULER_DRAIN_MS = 3_000;
 /** The longest quit waits for the whole shutdown before exiting anyway. */
 export const SHUTDOWN_DEADLINE_MS = 6_000;
 export const STARTUP_ERROR_TITLE = 'Price Check could not start';
+/** The env var naming the process an update replaced; the new version waits for it to exit. */
+export const PREDECESSOR_PID_ENV = 'PRICE_CHECK_PREDECESSOR_PID';
+/** The longest a launch that lost the lock waits for its predecessor to exit. */
+export const PREDECESSOR_WAIT_MS = 30_000;
+/** How often that wait asks whether the predecessor is still alive. */
+export const PREDECESSOR_POLL_MS = 250;
+/** macOS: the longest quit waits for Squirrel to stage a handed-over update. */
+export const SQUIRREL_STAGE_WAIT_MS = 60_000;
+/** macOS: once staged, how long the installer gets to end the app before app.exit(0). */
+export const SQUIRREL_HANDOFF_MS = 10_000;
+/** Removed from the env the installer and the new version inherit. */
+const INHERITED_SECRETS = ['ALERTS_ENCRYPTION_KEY', 'DATABASE_URL'] as const;
 
 /** The slice of Electron's app this module uses. */
 export type LifecycleApp = {
@@ -72,7 +111,29 @@ export type LifecycleLoginItem = {
 };
 
 /** What the tray needs from the lifecycle; main.ts adds the login item and icon dir. */
-export type LifecycleTrayActions = { showWindow(): void; quitApp(): void };
+export type LifecycleTrayActions = {
+	showWindow(): void;
+	quitApp(): void;
+	/** Quits, installing the downloaded update and relaunching the new version. */
+	restartToUpdate(): void;
+};
+
+/** The update steps quit drives (updater.ts's controller provides them). */
+export type LifecycleUpdates = {
+	/** True while a downloaded update waits to install. */
+	pending(): boolean;
+	/** Hands the update to the installer; 'restart' relaunches the new version. */
+	installOnExit(mode: ExitMode): boolean;
+};
+
+/**
+ * The slice of Electron's native autoUpdater (Squirrel.Mac on macOS) quit listens to.
+ * electron-updater drives it; this module only waits for its signals.
+ */
+export type LifecycleNativeUpdater = {
+	on(event: 'update-downloaded', listener: () => void): unknown;
+	on(event: 'error', listener: (error: Error) => void): unknown;
+};
 
 /** Where notification clicks are routed (notifier.ts's handle provides it). */
 export type LifecycleNotifications = {
@@ -102,9 +163,22 @@ export type LifecycleDeps = {
 	appUserModelId: string | null;
 	notifications: LifecycleNotifications;
 	loginItem: LifecycleLoginItem;
+	/** process.platform: on darwin, quit waits for Squirrel to stage a handed-over update. */
+	platform: NodeJS.Platform;
+	/** The updater, packaged builds only; absent, nothing installs on quit. */
+	updates?: LifecycleUpdates;
+	/** Electron's native autoUpdater; on darwin, quit waits for it after the hand-over. */
+	nativeUpdater?: LifecycleNativeUpdater;
+	/** The process an update replaced (PRICE_CHECK_PREDECESSOR_PID), or null. */
+	predecessorPid?: number | null;
+	/** Whether a process is still running (wired with predecessorPid). */
+	isProcessAlive?(pid: number): boolean;
 };
 
 export type DesktopOutcome = 'second-instance' | 'started' | 'failed';
+
+/** How Squirrel answered a handed-over update. */
+type SquirrelOutcome = 'staged' | 'failed';
 
 type Running = {
 	server: LifecycleServer | null;
@@ -118,6 +192,10 @@ type Running = {
 	/** The latest notification click's path held for that show, if any. */
 	requestedPath: string | undefined;
 	quitting: boolean;
+	/** How quit hands over a pending update: 'restart' only from Restart to update. */
+	exitMode: ExitMode;
+	/** The update went to the installer: its own before-quit is let through. */
+	installing: boolean;
 };
 
 function messageOf(error: unknown): string {
@@ -140,6 +218,100 @@ async function step(name: string, run: () => Promise<void> | void): Promise<void
 		await run();
 	} catch (error) {
 		console.error(`desktop quit: ${name} failed`, error);
+	}
+}
+
+/** Resolves after `ms` on the real (or faked) timers. */
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Waits until `pid` has exited or PREDECESSOR_WAIT_MS has passed. A throwing probe
+ * counts as exited: the lock retry that follows decides.
+ */
+async function waitForExit(pid: number, isAlive: (pid: number) => boolean): Promise<void> {
+	for (let waited = 0; waited < PREDECESSOR_WAIT_MS; waited += PREDECESSOR_POLL_MS) {
+		try {
+			if (!isAlive(pid)) return;
+		} catch (error) {
+			console.error('desktop startup: checking the previous version failed', error);
+			return;
+		}
+		await sleep(PREDECESSOR_POLL_MS);
+	}
+	console.error(`desktop startup: the previous version outlived ${PREDECESSOR_WAIT_MS}ms`);
+}
+
+/**
+ * After a lost lock: when an update started this launch, waits for the process it
+ * replaced to exit and takes the lock once more. False at once for any other launch.
+ */
+async function lockAfterPredecessor(deps: LifecycleDeps): Promise<boolean> {
+	const { app, predecessorPid, isProcessAlive } = deps;
+	if (predecessorPid === undefined || predecessorPid === null || !isProcessAlive) return false;
+	await waitForExit(predecessorPid, isProcessAlive);
+	return app.requestSingleInstanceLock();
+}
+
+/**
+ * Hands a pending update to the installer, with the key and DB URL gone from the env
+ * it inherits and this process named as the predecessor. Marks the hand-over before
+ * it starts, so the installer's own app.quit() is let through. True when the update
+ * was handed over. Never throws.
+ */
+function installPending(updates: LifecycleUpdates | undefined, running: Running): boolean {
+	if (!updates) return false;
+	try {
+		if (!updates.pending()) return false;
+		for (const name of INHERITED_SECRETS) delete process.env[name];
+		process.env[PREDECESSOR_PID_ENV] = String(process.pid);
+		running.installing = true;
+		if (updates.installOnExit(running.exitMode)) return true;
+		console.error('desktop quit: the update was not handed to the installer');
+	} catch (error) {
+		console.error('desktop quit: installing the update failed', error);
+	}
+	return false;
+}
+
+/**
+ * macOS with an updater: settles when Squirrel stages the update or reports an error.
+ * Attached before the hand-over, so a signal raised during it is not missed. Null
+ * elsewhere: Windows and Linux never wait. Never rejects.
+ */
+function watchSquirrel(deps: LifecycleDeps): Promise<SquirrelOutcome> | null {
+	const { platform, updates, nativeUpdater } = deps;
+	if (platform !== 'darwin' || !updates || !nativeUpdater) return null;
+	return new Promise<SquirrelOutcome>((resolve) => {
+		nativeUpdater.on('update-downloaded', () => resolve('staged'));
+		nativeUpdater.on('error', (error) => {
+			console.error('desktop quit: Squirrel could not stage the update', error);
+			resolve('failed');
+		});
+	}).catch((error: unknown) => {
+		console.error('desktop quit: listening for Squirrel failed', error);
+		return 'failed' as const;
+	});
+}
+
+/**
+ * Waits up to SQUIRREL_STAGE_WAIT_MS for Squirrel's answer. Once staged, waits
+ * SQUIRREL_HANDOFF_MS more for the installer to end the app itself.
+ */
+async function waitForSquirrel(squirrel: Promise<SquirrelOutcome>): Promise<void> {
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const timedOut = new Promise<'timeout'>((resolve) => {
+		timer = setTimeout(() => resolve('timeout'), SQUIRREL_STAGE_WAIT_MS);
+	});
+	const outcome = await Promise.race([squirrel, timedOut]);
+	clearTimeout(timer);
+	if (outcome === 'timeout') {
+		console.error(
+			`desktop quit: Squirrel did not stage the update in ${SQUIRREL_STAGE_WAIT_MS}ms; it is offered again next launch`
+		);
+	} else if (outcome === 'staged') {
+		await sleep(SQUIRREL_HANDOFF_MS);
 	}
 }
 
@@ -172,7 +344,9 @@ function startupFailure(
 export async function runDesktop(deps: LifecycleDeps): Promise<DesktopOutcome> {
 	const { app } = deps;
 	app.setPath('userData', deps.paths.userData);
-	if (!app.requestSingleInstanceLock()) {
+	// The usual launch takes the lock without awaiting anything, so its listeners are
+	// attached in this same tick.
+	if (!app.requestSingleInstanceLock() && !(await lockAfterPredecessor(deps))) {
 		app.quit();
 		return 'second-instance';
 	}
@@ -192,7 +366,9 @@ export async function runDesktop(deps: LifecycleDeps): Promise<DesktopOutcome> {
 		tray: null,
 		showRequested: false,
 		requestedPath: undefined,
-		quitting: false
+		quitting: false,
+		exitMode: 'quit',
+		installing: false
 	};
 
 	/** Shows the window, on `path` if given; before startup ends, holds the request. */
@@ -223,6 +399,8 @@ export async function runDesktop(deps: LifecycleDeps): Promise<DesktopOutcome> {
 	// Present but empty: closing the last window must not quit (decision window_close).
 	app.on('window-all-closed', () => {});
 	app.on('before-quit', (event) => {
+		// The installer quitting the app it replaces: exit is already under way.
+		if (running.installing) return;
 		event.preventDefault();
 		if (running.quitting) return;
 		running.quitting = true;
@@ -233,8 +411,10 @@ export async function runDesktop(deps: LifecycleDeps): Promise<DesktopOutcome> {
 				resolve();
 			}, SHUTDOWN_DEADLINE_MS);
 		});
-		void Promise.race([shutdown(), timedOut]).then(() => {
+		void Promise.race([shutdown(), timedOut]).then(async () => {
 			clearTimeout(deadline);
+			const squirrel = watchSquirrel(deps);
+			if (installPending(deps.updates, running) && squirrel) await waitForSquirrel(squirrel);
 			app.exit(0);
 		});
 	});
@@ -268,7 +448,16 @@ export async function runDesktop(deps: LifecycleDeps): Promise<DesktopOutcome> {
 		}
 	});
 
-	running.tray = deps.createTray({ showWindow, quitApp: () => app.quit() });
+	running.tray = deps.createTray({
+		showWindow,
+		quitApp: () => app.quit(),
+		restartToUpdate() {
+			// Once quit started (or a restart was asked for), the mode is settled.
+			if (running.quitting || running.exitMode === 'restart') return;
+			running.exitMode = 'restart';
+			app.quit();
+		}
+	});
 	deps.loginItem.ensureRegisteredOnce();
 
 	running.ready = true;

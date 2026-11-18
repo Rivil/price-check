@@ -502,6 +502,12 @@ export type RawRequest = {
 	/** Sent as given, Host included: nothing is derived from the URL. */
 	headers?: Record<string, string>;
 	body?: string;
+	/**
+	 * Fail once this long has passed without the whole response, and destroy the
+	 * request: a server that accepts but never answers would otherwise hold the caller
+	 * until its test times out. Unset waits as long as the server takes.
+	 */
+	timeoutMs?: number;
 };
 
 /**
@@ -509,7 +515,16 @@ export type RawRequest = {
  * Host and Origin headers, as a foreign client or a rebinding page would send them.
  */
 export function rawRequest(port: number, req: RawRequest = {}): Promise<RawResponse> {
-	return new Promise((done, fail) => {
+	return new Promise((resolveResponse, rejectResponse) => {
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		const done = (response: RawResponse) => {
+			clearTimeout(timer);
+			resolveResponse(response);
+		};
+		const fail = (error: unknown) => {
+			clearTimeout(timer);
+			rejectResponse(error);
+		};
 		const outgoing = request(
 			{
 				host: '127.0.0.1',
@@ -534,6 +549,18 @@ export function rawRequest(port: number, req: RawRequest = {}): Promise<RawRespo
 			}
 		);
 		outgoing.on('error', fail);
+		if (req.timeoutMs !== undefined) {
+			const ms = req.timeoutMs;
+			timer = setTimeout(() => {
+				const error = new Error(
+					`rawRequest: no complete response from 127.0.0.1:${port}${req.path ?? '/'} within ${ms}ms`
+				);
+				// Rejected here, not left to the 'error' events destroy() emits: which stream
+				// gets one depends on whether the response had begun.
+				fail(error);
+				outgoing.destroy(error);
+			}, ms);
+		}
 		if (req.body !== undefined) outgoing.write(req.body);
 		outgoing.end();
 	});
