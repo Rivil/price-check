@@ -30,6 +30,14 @@
 // B beside a versioned one (price-check-0.1.5-… becomes price-check-0.1.6-…).
 //
 // The tests share one run and run in order: each picks up where the previous left.
+//
+// A relaunch step that fails says why: every request to the relaunch gives up after
+// RESPONSE_MS (a server that accepts and never answers fails the step, not the test's
+// timeout), and the failure attaches A's output, which carries electron-updater's
+// Install/Executing lines, and what the OS shows while the relaunch still runs: on
+// Linux each holder's State, wchan and cmdline, on Windows every process of the
+// install path, port or none, and any update installer still running.
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { chmodSync, copyFileSync, existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -40,7 +48,12 @@ import {
 	UPDATE_FILE,
 	type PackagedPlatform
 } from '../../scripts/packaged-app.ts';
-import { servingInstance } from '../../scripts/process-probe.ts';
+import {
+	describeInstances,
+	parseProcesses,
+	servingInstance,
+	withProcState
+} from '../../scripts/process-probe.ts';
 import { startUpdateFeed, type UpdateFeed } from '../../scripts/update-feed.ts';
 import { insertWatches, makeTempDir, rawRequest, REPO_ROOT } from '../desktop/launch.ts';
 import {
@@ -88,6 +101,16 @@ const EXIT_MS = 30_000;
 const WINDOWS_RELAUNCH_MS = 180_000;
 /** Linux: from A's exit until B, past its predecessor wait, serves on its port. */
 const LINUX_RELAUNCH_MS = 30_000;
+/** How long the relaunch has to answer one request in full. */
+const RESPONSE_MS = 15_000;
+/**
+ * What a failed relaunch step may spend recording the OS's state, all of it: its
+ * probes run side by side, and one still running at the deadline is reported as such.
+ * Each relaunch test's timeout adds this whole budget.
+ */
+const DIAGNOSIS_MS = 60_000;
+/** electron-updater's NSIS installer, by process name: price-check-<version>-win-x64.exe. */
+const INSTALLER_PROCESS = 'price-check-*-win-x64';
 
 const feedDir = process.env[UPDATE_FEED_DIR_ENV]?.trim();
 const platform: PackagedPlatform | null = isPackagedPlatform(process.platform)
@@ -111,6 +134,112 @@ function packageVersion(): string {
 
 function sha256(file: string): string {
 	return createHash('sha256').update(readFileSync(file)).digest('hex');
+}
+
+/** /proc/<pid>/<file>, or null when unreadable (gone, or withheld): a diagnosis reads what it can. */
+function procFile(pid: number, file: string): string | null {
+	try {
+		return readFileSync(`/proc/${pid}/${file}`, 'utf8');
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Every running update installer as Get-Process JSON (empty output when there is
+ * none). A wildcard name matching nothing is no error; were ObjectNotFound raised all
+ * the same, it is that plain empty answer. Any other failure goes to stderr with exit
+ * 1, so the probe rejects with the cmdlet's own message rather than read as 'none'.
+ */
+const INSTALLERS_SCRIPT = [
+	'[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
+	'try {',
+	`  $rows = @(Get-Process -Name '${INSTALLER_PROCESS}' -ErrorAction Stop)`,
+	'} catch {',
+	"  if ($_.CategoryInfo.Category -ne 'ObjectNotFound') { [Console]::Error.WriteLine($_.ToString()); exit 1 }",
+	'  $rows = @()',
+	'}',
+	'if ($rows.Count -gt 0) { $rows | Select-Object Id, Path, StartTime | ConvertTo-Json -Compress }'
+].join('\n');
+
+/** Every running update installer (win32), as Get-Process JSON; rejects on a failed probe. */
+function windowsInstallersJson(): Promise<string> {
+	return new Promise((done, fail) => {
+		execFile(
+			'powershell.exe',
+			['-NoProfile', '-NonInteractive', '-Command', INSTALLERS_SCRIPT],
+			{ encoding: 'utf8', windowsHide: true, timeout: DIAGNOSIS_MS },
+			(error, stdout, stderr) => {
+				if (error) fail(new Error(`Get-Process ${INSTALLER_PROCESS}: ${error.message}\n${stderr}`));
+				else done(stdout);
+			}
+		);
+	});
+}
+
+/**
+ * One titled section of the OS state: `work`'s text, or a line saying its probe failed
+ * or gave no answer by `deadline` (a Date.now() time). Never rejects, and a failed
+ * probe never reads as an empty answer.
+ */
+async function probeSection(
+	title: string,
+	deadline: number,
+	work: () => Promise<string>
+): Promise<string> {
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const late = new Promise<string>((done) => {
+		timer = setTimeout(
+			() => done(`${title}: PROBE GAVE NO ANSWER within ${DIAGNOSIS_MS}ms`),
+			Math.max(deadline - Date.now(), 0)
+		);
+	});
+	try {
+		return await Promise.race([
+			work().then(
+				(text) => `${title}:\n${text}`,
+				(error: unknown) => `${title}: PROBE FAILED: ${String(error)}`
+			),
+			late
+		]);
+	} finally {
+		clearTimeout(timer);
+	}
+}
+
+/**
+ * What the OS shows of the app at `exe`, and on win32 of any running update installer.
+ * The probes run side by side under one DIAGNOSIS_MS budget, so this settles within it
+ * whatever they do.
+ */
+async function osState(platform: 'win32' | 'linux', exe: string): Promise<string> {
+	const deadline = Date.now() + DIAGNOSIS_MS;
+	const instances = probeSection(`instances of ${exe}`, deadline, async () => {
+		const found = await appInstances(platform, exe);
+		if (platform === 'win32') return describeInstances(found);
+		return describeInstances(
+			found.map((instance) => ({
+				...instance,
+				processes: instance.processes.map((holder) => withProcState(holder, procFile))
+			}))
+		);
+	});
+	if (platform === 'linux') return instances;
+	const installers = probeSection(
+		`update installers (${INSTALLER_PROCESS})`,
+		deadline,
+		async () => {
+			const rows = parseProcesses(await windowsInstallersJson());
+			if (rows.length === 0) return 'none running';
+			return rows
+				.map(
+					({ pid, path, startTime }) =>
+						`installer pid ${pid} started ${startTime?.toISOString() ?? 'unknown'} ${path ?? '<path unknown>'}`
+				)
+				.join('\n');
+		}
+	);
+	return (await Promise.all([instances, installers])).join('\n');
 }
 
 test.describe.serial('packaged update', () => {
@@ -177,6 +306,30 @@ test.describe.serial('packaged update', () => {
 		}
 		current = undefined;
 		return exitedAt;
+	};
+
+	/**
+	 * Runs a relaunch step of A. On its failure, before anything stops the relaunch,
+	 * attaches A's output and the OS's state (see the header), then rethrows.
+	 */
+	const diagnosed = async (
+		app: PackagedApp,
+		os: 'win32' | 'linux',
+		step: () => Promise<void>
+	): Promise<void> => {
+		try {
+			await step();
+		} catch (error) {
+			const info = test.info();
+			await info.attach('A output', {
+				body: app.output() || '<A printed nothing once attached>',
+				contentType: 'text/plain'
+			});
+			// Settles within DIAGNOSIS_MS and never rejects (see osState).
+			const state = await osState(os, run.exe);
+			await info.attach('OS state', { body: state, contentType: 'text/plain' });
+			throw error;
+		}
 	};
 
 	test.beforeAll(async () => {
@@ -271,32 +424,36 @@ test.describe.serial('packaged update', () => {
 
 	test('relaunch after exit', async () => {
 		test.skip(platform !== 'win32', 'the NSIS installer relaunch is Windows only');
-		test.setTimeout(EXIT_MS + WINDOWS_RELAUNCH_MS + 60_000);
+		test.setTimeout(EXIT_MS + WINDOWS_RELAUNCH_MS + RESPONSE_MS + DIAGNOSIS_MS + 60_000);
 		const app = current;
 		if (!app) throw new Error('A is not running');
 		const pidA = app.pid;
-		const exitedAt = await restartToUpdate(app);
-
-		const relaunched = await pollFor(
-			async () => servingInstance(await appInstances('win32', run.exe)),
-			WINDOWS_RELAUNCH_MS
-		);
-		if (relaunched === null || relaunched.port === null) {
-			throw new Error(`no relaunch served from ${run.exe} within ${WINDOWS_RELAUNCH_MS}ms`);
-		}
+		let relaunchedPid: number | undefined;
 		try {
-			expect(relaunched.pid).not.toBe(pidA);
-			expect(relaunched.startTime, 'the relaunch has no StartTime').not.toBeNull();
-			// c-6: the new version starts only once the old process has gone.
-			expect(
-				relaunched.startTime?.getTime(),
-				`relaunch started ${relaunched.startTime?.toISOString()}, A exited ${new Date(exitedAt).toISOString()}`
-			).toBeGreaterThan(exitedAt);
-			const response = await rawRequest(relaunched.port);
-			expect(response.status).toBe(200);
-			expect(response.body).toContain(WATCH.title);
+			await diagnosed(app, 'win32', async () => {
+				const exitedAt = await restartToUpdate(app);
+
+				const relaunched = await pollFor(
+					async () => servingInstance(await appInstances('win32', run.exe)),
+					WINDOWS_RELAUNCH_MS
+				);
+				if (relaunched === null || relaunched.port === null) {
+					throw new Error(`no relaunch served from ${run.exe} within ${WINDOWS_RELAUNCH_MS}ms`);
+				}
+				relaunchedPid = relaunched.pid;
+				expect(relaunched.pid).not.toBe(pidA);
+				expect(relaunched.startTime, 'the relaunch has no StartTime').not.toBeNull();
+				// c-6: the new version starts only once the old process has gone.
+				expect(
+					relaunched.startTime?.getTime(),
+					`relaunch started ${relaunched.startTime?.toISOString()}, A exited ${new Date(exitedAt).toISOString()}`
+				).toBeGreaterThan(exitedAt);
+				const response = await rawRequest(relaunched.port, { timeoutMs: RESPONSE_MS });
+				expect(response.status).toBe(200);
+				expect(response.body).toContain(WATCH.title);
+			});
 		} finally {
-			await stopInstance('win32', relaunched.pid);
+			if (relaunchedPid !== undefined) await stopInstance('win32', relaunchedPid);
 		}
 	});
 
@@ -321,7 +478,9 @@ test.describe.serial('packaged update', () => {
 
 	test('restart through the predecessor wait', async () => {
 		test.skip(platform !== 'linux', 'the AppImage update is Linux only');
-		test.setTimeout(DOWNLOAD_MS + EXIT_MS + LINUX_RELAUNCH_MS + 120_000);
+		test.setTimeout(
+			DOWNLOAD_MS + EXIT_MS + LINUX_RELAUNCH_MS + RESPONSE_MS + DIAGNOSIS_MS + 120_000
+		);
 		if (!feedDir) throw new Error(`${UPDATE_FEED_DIR_ENV} is not set`);
 		const buildB = join(feedDir, expectedArtefacts('linux', versionB)[0]);
 		placeBuildA(packagedExe());
@@ -332,26 +491,30 @@ test.describe.serial('packaged update', () => {
 		);
 		await expectDownloaded(app);
 		const pidA = app.pid;
-		// B is started while A is still on its way out, so it first loses the lock.
-		const exitedAt = await restartToUpdate(app);
-
-		const relaunched = await pollFor(
-			async () => servingInstance(await appInstances('linux', run.exe)),
-			Math.max(exitedAt + LINUX_RELAUNCH_MS - Date.now(), 1)
-		);
-		if (relaunched === null || relaunched.port === null) {
-			throw new Error(
-				`no B process served from ${run.exe} within ${LINUX_RELAUNCH_MS}ms of A's exit (the relaunch lost the single-instance lock?)`
-			);
-		}
+		let relaunchedPid: number | undefined;
 		try {
-			expect(relaunched.pid).not.toBe(pidA);
-			expect(sha256(run.exe), `the AppImage at ${run.exe} is not B`).toBe(sha256(buildB));
-			const response = await rawRequest(relaunched.port);
-			expect(response.status).toBe(200);
-			expect(response.body).toContain(WATCH.title);
+			await diagnosed(app, 'linux', async () => {
+				// B is started while A is still on its way out, so it first loses the lock.
+				const exitedAt = await restartToUpdate(app);
+
+				const relaunched = await pollFor(
+					async () => servingInstance(await appInstances('linux', run.exe)),
+					Math.max(exitedAt + LINUX_RELAUNCH_MS - Date.now(), 1)
+				);
+				if (relaunched === null || relaunched.port === null) {
+					throw new Error(
+						`no B process served from ${run.exe} within ${LINUX_RELAUNCH_MS}ms of A's exit (the relaunch lost the single-instance lock?)`
+					);
+				}
+				relaunchedPid = relaunched.pid;
+				expect(relaunched.pid).not.toBe(pidA);
+				expect(sha256(run.exe), `the AppImage at ${run.exe} is not B`).toBe(sha256(buildB));
+				const response = await rawRequest(relaunched.port, { timeoutMs: RESPONSE_MS });
+				expect(response.status).toBe(200);
+				expect(response.body).toContain(WATCH.title);
+			});
 		} finally {
-			await stopInstance('linux', relaunched.pid);
+			if (relaunchedPid !== undefined) await stopInstance('linux', relaunchedPid);
 		}
 	});
 

@@ -6,7 +6,9 @@
 // libsql, Windows silent install then per-user/AUMID) and runs the packaged suites;
 // Windows and Linux also package build B for the update test, served on the loopback
 // feed's port. Linux runs under xvfb with the AppArmor userns sysctl, never
-// --no-sandbox. Failures upload the packaged results and electron-builder's logs.
+// --no-sandbox. The packaged suites run with the list reporter, so a failure's text
+// attachments (the update test's diagnosis) reach the job log. Failures upload the
+// packaged results and electron-builder's logs.
 // SHA pins and permissions are `pnpm ci:policy`'s.
 //
 // The workflow is read by scripts/workflow-reader.ts (no YAML library). Which spec
@@ -29,6 +31,7 @@ type Os = (typeof OSES)[number];
 
 const DESKTOP_RUN = 'pnpm test:e2e:desktop';
 const PACKAGED_RUN = 'pnpm test:e2e:packaged';
+const PACKAGED_LIST = `${PACKAGED_RUN} --reporter=list`;
 const PACKAGE = 'pnpm package:desktop';
 const SYSCTL = 'sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0';
 const LIBFUSE = 'sudo apt-get install -y libfuse2t64';
@@ -241,8 +244,15 @@ describe('ci.yml runs the packaged steps in the test job on every OS (c-1)', () 
 	});
 
 	it.each(OSES)('%s runs pnpm test:e2e:packaged', (os) => {
-		expect(everyOs('packaged e2e', os).some((l) => l.endsWith(PACKAGED_RUN))).toBe(true);
+		expect(everyOs('packaged e2e', os).some((l) => l.endsWith(PACKAGED_LIST))).toBe(true);
 		expect(stepEnv(step('packaged e2e')).CI).toBe('true');
+	});
+
+	it.each(OSES)('%s runs the packaged suites with the list reporter only', (os) => {
+		const runs = everyOs('packaged e2e', os).filter((l) => l.includes(PACKAGED_RUN));
+		expect(runs).toHaveLength(1);
+		const reporters = [...runs[0].matchAll(/--reporter[= ](\S+)/g)].map((m) => m[1]);
+		expect(reporters, runs[0]).toEqual(['list']);
 	});
 });
 
@@ -364,19 +374,19 @@ describe('Linux runs the packaged suites under xvfb with the sandbox on', () => 
 	it('runs xvfb-run -a pnpm test:e2e:packaged after the userns sysctl and libfuse2t64', () => {
 		const run = arm('packaged e2e', 'Linux');
 		const sysctl = run.indexOf(SYSCTL);
-		const xvfb = run.indexOf(`xvfb-run -a ${PACKAGED_RUN}`);
+		const xvfb = run.indexOf(`xvfb-run -a ${PACKAGED_LIST}`);
 		expect(sysctl).toBeGreaterThanOrEqual(0);
 		expect(xvfb).toBeGreaterThan(sysctl);
 		for (const line of everyOs('packaged e2e', 'Linux').filter((l) => l.includes(PACKAGED_RUN)))
-			expect(line).toBe(`xvfb-run -a ${PACKAGED_RUN}`);
+			expect(line).toBe(`xvfb-run -a ${PACKAGED_LIST}`);
 		// FUSE 2 is installed by the verify step, which runs before this one.
 		expect(arm('verify packaged', 'Linux')).toContain(LIBFUSE);
 		expect(step('verify packaged').index).toBeLessThan(step('packaged e2e').index);
 	});
 
 	it('runs macOS and Windows without xvfb-run', () => {
-		expect(everyOs('packaged e2e', 'macOS')).toEqual([PACKAGED_RUN]);
-		expect(everyOs('packaged e2e', 'Windows')).toEqual([PACKAGED_RUN]);
+		expect(everyOs('packaged e2e', 'macOS')).toEqual([PACKAGED_LIST]);
+		expect(everyOs('packaged e2e', 'Windows')).toEqual([PACKAGED_LIST]);
 	});
 
 	const packagedFiles = readdirSync(join(ROOT, 'e2e/packaged'), {

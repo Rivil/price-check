@@ -9,7 +9,11 @@
 // launch always runs Electron's real Notification class.
 // An unpackaged launch builds no updater (05-release c-5): main publishes no
 // Symbol.for('price-check.updater') handle.
+// rawRequest's timeoutMs gives up on a server that accepts and never answers, so the
+// packaged update test reports a hung relaunch instead of running out its own timeout.
 import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { createServer } from 'node:http';
+import type { AddressInfo, Socket } from 'node:net';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import { databaseUrl } from '../../src/desktop/server-env.ts';
@@ -172,6 +176,45 @@ test("electron's node major matches .node-version", async () => {
 		expect(node.split('.')[0]).toBe(pinned.split('.')[0]);
 	} finally {
 		await desktop?.close();
+	}
+});
+
+test('rawRequest with timeoutMs gives up on a server that accepts but never answers', async () => {
+	const sockets = new Set<Socket>();
+	// Takes the request and never writes a byte back, as a hung app server would.
+	const server = createServer(() => {});
+	server.on('connection', (socket) => {
+		sockets.add(socket);
+		socket.once('close', () => sockets.delete(socket));
+	});
+	await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
+	const { port } = server.address() as AddressInfo;
+	try {
+		const started = Date.now();
+		let guardTimer: ReturnType<typeof setTimeout> | undefined;
+		const guard = new Promise<'still waiting'>((done) => {
+			guardTimer = setTimeout(() => done('still waiting'), 5_000);
+		});
+		const outcome = await Promise.race([
+			rawRequest(port, { path: '/health', timeoutMs: 500 }).then(
+				() => 'answered',
+				(error: unknown) => error
+			),
+			guard
+		]);
+		clearTimeout(guardTimer);
+		expect(outcome).toBeInstanceOf(Error);
+		expect(String(outcome)).toContain(
+			`rawRequest: no complete response from 127.0.0.1:${port}/health within 500ms`
+		);
+		const elapsed = Date.now() - started;
+		expect(elapsed).toBeGreaterThanOrEqual(450);
+		expect(elapsed).toBeLessThan(4_000);
+		// The request was destroyed, not left open on the server.
+		await expect.poll(() => sockets.size, { timeout: 2_000 }).toBe(0);
+	} finally {
+		for (const socket of sockets) socket.destroy();
+		await new Promise<void>((done) => server.close(() => done()));
 	}
 });
 

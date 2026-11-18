@@ -242,19 +242,20 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
       # The packaged smoke on every OS, and the update test on Windows and Linux. Linux:
       # the same AppArmor userns lift and virtual display as the desktop e2e, never
-      # without the sandbox.
+      # without the sandbox. The list reporter, not CI's default dot: a line per test,
+      # and a failure's text attachments (the update test's diagnosis) in the log.
       - name: packaged e2e
         run: |
           case "$RUNNER_OS" in
             Linux)
               sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-              xvfb-run -a pnpm test:e2e:packaged
+              xvfb-run -a pnpm test:e2e:packaged --reporter=list
               ;;
             macOS)
-              pnpm test:e2e:packaged
+              pnpm test:e2e:packaged --reporter=list
               ;;
             Windows)
-              pnpm test:e2e:packaged
+              pnpm test:e2e:packaged --reporter=list
               ;;
             *)
               echo "::error::no packaged build for $RUNNER_OS"

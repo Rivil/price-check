@@ -21,6 +21,10 @@
 // /proc/<pid>/status and cmdline on linux). servingInstance throws only when more than
 // one distinct port is served, naming each holder's pid, ppid and cmdline.
 //
+// When a step fails, the test records what the OS shows: on linux each holder's
+// State and wchan (withProcState), on win32 every instance row, one with no port
+// included (describeInstances).
+//
 // Node built-ins only.
 
 export type ProcessInfo = {
@@ -159,12 +163,49 @@ export type ProcessDetail = {
 	ppid: number | null;
 	/** Its arguments, the executable first. */
 	cmdline: string[] | null;
+	/**
+	 * Linux, for a failure's diagnosis only (withProcState): /proc/<pid>/status's State,
+	 * e.g. 'S (sleeping)'. Absent where nobody read it, null where the OS withheld it.
+	 */
+	state?: string | null;
+	/** Linux, as state: /proc/<pid>/wchan, the kernel function it waits in ('0': none). */
+	wchan?: string | null;
 };
 
 /** The PPid line of /proc/<pid>/status, or null when there is none. */
 export function parseProcStatusPpid(status: string): number | null {
 	const match = /^PPid:\s*(\d+)\s*$/m.exec(status);
 	return match === null ? null : Number(match[1]);
+}
+
+/** The State line of /proc/<pid>/status (e.g. 'D (disk sleep)'), or null when there is none. */
+export function parseProcStatusState(status: string): string | null {
+	const match = /^State:[ \t]*(\S.*?)[ \t]*$/m.exec(status);
+	return match === null ? null : match[1];
+}
+
+/** /proc/<pid>/wchan, trimmed; null when empty. */
+export function parseProcWchan(raw: string): string | null {
+	const wchan = raw.trim();
+	return wchan === '' ? null : wchan;
+}
+
+/**
+ * `detail` with its state and wait channel, read through `read` (the contents of
+ * /proc/<pid>/<file>, or null when the process is gone). Linux only: for the
+ * diagnosis of a failed step, never for picking a process.
+ */
+export function withProcState(
+	detail: ProcessDetail,
+	read: (pid: number, file: 'status' | 'wchan') => string | null
+): ProcessDetail {
+	const status = read(detail.pid, 'status');
+	const wchan = read(detail.pid, 'wchan');
+	return {
+		...detail,
+		state: status === null ? null : parseProcStatusState(status),
+		wchan: wchan === null ? null : parseProcWchan(wchan)
+	};
 }
 
 /** /proc/<pid>/cmdline: NUL-separated arguments; empty for a zombie or kernel thread. */
@@ -198,14 +239,42 @@ export function mainProcess(holders: readonly ProcessDetail[]): ProcessDetail {
 	return holders.reduce((best, detail) => (before(rank(detail), rank(best)) ? detail : best));
 }
 
-/** One line per holder: pid, ppid and cmdline, for the error that names them. */
+/**
+ * One entry per holder: pid, ppid, state and wait channel where they were read
+ * (withProcState), and cmdline, for the error or diagnosis that names them.
+ */
 export function describeHolders(holders: readonly ProcessDetail[]): string {
 	return holders
-		.map(({ pid, ppid, cmdline }) => {
+		.map(({ pid, ppid, cmdline, state, wchan }) => {
 			const args = cmdline === null ? '<cmdline unknown>' : JSON.stringify(cmdline);
-			return `pid ${pid} (ppid ${ppid ?? 'unknown'}) ${args}`;
+			const proc = [
+				state === undefined ? '' : ` state ${state ?? 'unknown'}`,
+				wchan === undefined ? '' : ` wchan ${wchan ?? 'unknown'}`
+			].join('');
+			return `pid ${pid} (ppid ${ppid ?? 'unknown'})${proc} ${args}`;
 		})
 		.join('; ');
+}
+
+/**
+ * One line per instance, a serving one or not (win32 lists a process with no port
+ * too): its pid, port, start time and holders, for a failed step's diagnosis.
+ */
+export function describeInstances(
+	instances: readonly {
+		pid: number;
+		port: number | null;
+		startTime: Date | null;
+		processes: readonly ProcessDetail[];
+	}[]
+): string {
+	if (instances.length === 0) return 'no instance';
+	return instances
+		.map(
+			({ pid, port, startTime, processes }) =>
+				`pid ${pid} port ${port ?? 'none'} started ${startTime?.toISOString() ?? 'unknown'}: ${describeHolders(processes)}`
+		)
+		.join('\n');
 }
 
 /**

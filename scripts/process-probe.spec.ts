@@ -3,19 +3,25 @@
 // from `ss -Hltnp` and Get-NetTCPConnection, where another pid's or a wildcard
 // listener must never be taken for the app's server. Then the instance count: one
 // socket held by several processes is one instance (PR #12's `ss` line, two pids on
-// port 35029), and only distinct ports make more than one.
+// port 35029), and only distinct ports make more than one. A failed step's diagnosis
+// names each linux holder's state, wait channel and cmdline, and every win32 row, one
+// with no port included.
 import { describe, expect, it } from 'vitest';
 import {
 	describeHolders,
+	describeInstances,
 	mainProcess,
 	parseNetTcpListeners,
 	parseProcCmdline,
 	parseProcesses,
 	parseProcStatusPpid,
+	parseProcStatusState,
+	parseProcWchan,
 	parsePsDate,
 	parseSsListeners,
 	pidsByPort,
 	servingInstance,
+	withProcState,
 	type ProcessDetail
 } from './process-probe.ts';
 
@@ -435,5 +441,82 @@ describe('describeHolders', () => {
 		expect(describeHolders([{ pid: 7, ppid: null, cmdline: null }])).toBe(
 			'pid 7 (ppid unknown) <cmdline unknown>'
 		);
+	});
+
+	it("names a linux holder's state, wait channel and cmdline", () => {
+		const hung = { ...MAIN, state: 'D (disk sleep)', wchan: 'fuse_wait_answer' };
+		expect(describeHolders([hung, HELPER])).toBe(
+			`pid 9917 (ppid 9900) state D (disk sleep) wchan fuse_wait_answer ["${APPIMAGE}"]; pid 9920 (ppid 9917) ["${APPIMAGE}","--type=zygote","--no-zygote-sandbox"]`
+		);
+	});
+
+	it('marks a state or wait channel read but withheld as unknown', () => {
+		expect(describeHolders([{ ...MAIN, state: null, wchan: null }])).toBe(
+			`pid 9917 (ppid 9900) state unknown wchan unknown ["${APPIMAGE}"]`
+		);
+	});
+});
+
+describe('/proc state readers', () => {
+	const STATUS =
+		'Name:\tprice-check\nUmask:\t0022\nState:\tS (sleeping)\nPid:\t9917\nPPid:\t9900\n';
+
+	it('reads State from /proc/<pid>/status', () => {
+		expect(parseProcStatusState(STATUS)).toBe('S (sleeping)');
+		expect(parseProcStatusState('State:  D (disk sleep) \n')).toBe('D (disk sleep)');
+		expect(parseProcStatusState('Name:\tx\nPPid:\t1\n')).toBeNull();
+		expect(parseProcStatusState('XState:\tR (running)\n')).toBeNull();
+	});
+
+	it('reads wchan trimmed, empty as null', () => {
+		expect(parseProcWchan('do_epoll_wait')).toBe('do_epoll_wait');
+		expect(parseProcWchan('0\n')).toBe('0');
+		expect(parseProcWchan('')).toBeNull();
+		expect(parseProcWchan(' \n')).toBeNull();
+	});
+
+	it("adds a holder's state and wchan, keeping its pid, ppid and cmdline", () => {
+		const reads: string[] = [];
+		const detail = withProcState(MAIN, (pid, file) => {
+			reads.push(`${pid}/${file}`);
+			return file === 'status' ? STATUS : 'futex_wait_queue\n';
+		});
+		expect(reads.sort()).toEqual(['9917/status', '9917/wchan']);
+		expect(detail).toEqual({ ...MAIN, state: 'S (sleeping)', wchan: 'futex_wait_queue' });
+		expect(describeHolders([detail])).toBe(
+			`pid 9917 (ppid 9900) state S (sleeping) wchan futex_wait_queue ["${APPIMAGE}"]`
+		);
+	});
+
+	it('reads a gone process as state and wchan null', () => {
+		expect(withProcState(MAIN, () => null)).toEqual({ ...MAIN, state: null, wchan: null });
+	});
+});
+
+describe('describeInstances', () => {
+	const WIN = (pid: number): ProcessDetail => ({ pid, ppid: null, cmdline: null });
+
+	it('lists every win32 row, one with no port included', () => {
+		const text = describeInstances([
+			{ pid: 4242, port: 40123, startTime: new Date(1731600000000), processes: [WIN(4242)] },
+			{ pid: 4300, port: null, startTime: new Date(1731600005000), processes: [WIN(4300)] },
+			{ pid: 4400, port: null, startTime: null, processes: [WIN(4400)] }
+		]);
+		expect(text.split('\n')).toEqual([
+			'pid 4242 port 40123 started 2024-11-14T16:00:00.000Z: pid 4242 (ppid unknown) <cmdline unknown>',
+			'pid 4300 port none started 2024-11-14T16:00:05.000Z: pid 4300 (ppid unknown) <cmdline unknown>',
+			'pid 4400 port none started unknown: pid 4400 (ppid unknown) <cmdline unknown>'
+		]);
+	});
+
+	it('names every holder of a linux instance with its state', () => {
+		const hung = { ...MAIN, state: 'S (sleeping)', wchan: 'ep_poll' };
+		expect(
+			describeInstances([{ pid: 9917, port: 35029, startTime: null, processes: [hung, HELPER] }])
+		).toBe(`pid 9917 port 35029 started unknown: ${describeHolders([hung, HELPER])}`);
+	});
+
+	it('says so when there is no instance at all', () => {
+		expect(describeInstances([])).toBe('no instance');
 	});
 });
