@@ -145,7 +145,8 @@ export function aumidCommand(lnk: string): Command {
 
 /** The AUMID as printed, with a BOM and surrounding whitespace (CRLF) removed; null when empty. */
 export function parseAumid(text: string): string | null {
-	const value = text.replace(/^\uFEFF/, '').trim();
+	// trim() strips U+FEFF too: it is ECMAScript whitespace.
+	const value = text.trim();
 	return value === '' ? null : value;
 }
 
@@ -168,9 +169,12 @@ export function startMenuShortcut(appData: string): string {
 	);
 }
 
-/** Whether `path` is `root` or inside it, compared as Windows paths (case-insensitive). */
+/**
+ * Whether `path` is strictly inside `root` (not `root` itself), compared as Windows
+ * paths: win32.relative ignores case.
+ */
 function isInside(root: string, path: string): boolean {
-	const relative = win32.relative(root.toLowerCase(), path.toLowerCase());
+	const relative = win32.relative(root, path);
 	return relative !== '' && !relative.startsWith('..') && !win32.isAbsolute(relative);
 }
 
@@ -239,7 +243,7 @@ export async function verifyWin(installer: string, deps: WinDeps): Promise<strin
 		} else {
 			const command = aumidCommand(lnk);
 			const result = await deps.run(command);
-			const aumid = result.code === 0 ? parseAumid(result.stdout) : null;
+			const aumid = parseAumid(result.stdout);
 			if (result.code !== 0) violations.push(failure(command, result.code, result.stderr));
 			else if (aumid === null) violations.push(`${lnk} has no System.AppUserModel.ID`);
 			else if (exe !== null && aumid.toLowerCase() === exe.toLowerCase()) {
@@ -405,8 +409,8 @@ function unquote(value: string): string {
 export function parseUpdateYaml(text: string): YamlDoc {
 	const doc: YamlDoc = { scalars: {}, files: [] };
 	let inFiles = false;
+	// Blank and comment lines match neither pattern below, so they fall through.
 	for (const raw of text.replace(/^\uFEFF/, '').split(/\r?\n/)) {
-		if (raw.trim() === '' || raw.trimStart().startsWith('#')) continue;
 		const top = /^([A-Za-z0-9_]+):(?:\s+(.*))?$/.exec(raw);
 		if (top !== null) {
 			inFiles = top[1] === 'files';
@@ -628,7 +632,7 @@ export async function runCli(argv: string[], deps: CliDeps): Promise<number> {
 }
 
 /** A regular file at `path`; false only when nothing is there, any other stat error throws. */
-const isFile = (path: string) => {
+export const isFile = (path: string) => {
 	try {
 		return statSync(path).isFile();
 	} catch (error) {

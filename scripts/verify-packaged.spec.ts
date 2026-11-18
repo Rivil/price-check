@@ -3,14 +3,15 @@
 // app.asar's file set, the per-OS libsql binaries, the stamped version and the
 // update files (c-1, c-4). Layout fixtures are real asars built with @electron/asar.
 import { createPackageWithOptions } from '@electron/asar';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { APP_ID } from '../src/desktop/app-id.ts';
-import { PRODUCT_NAME } from './package-desktop.ts';
+import { GITHUB_RELEASES, PRODUCT_NAME } from './package-desktop.ts';
 import {
 	expectedArtefacts,
+	formatCommand,
 	UPDATE_FILE,
 	type Command,
 	type PackagedPlatform,
@@ -21,6 +22,9 @@ import {
 	aumidCommand,
 	devFileReason,
 	EXPECTED_LIBSQL,
+	isFile,
+	listAsar,
+	listTree,
 	macCommands,
 	parseAumid,
 	parseExecutionLevels,
@@ -29,8 +33,10 @@ import {
 	runCli,
 	startMenuShortcut,
 	verifyAppFiles,
+	verifyFeed,
 	verifyLayout,
 	verifyMac,
+	verifyUpdateFile,
 	verifyWin,
 	type AppEntry,
 	type CliDeps,
@@ -88,6 +94,15 @@ describe('parseLipoArchs', () => {
 		]);
 		expect(parseLipoArchs('fatal error: lipo: cannot open')).toEqual([]);
 	});
+
+	it('splits on any run of whitespace and takes a thin arch only at the line end', () => {
+		expect(parseLipoArchs('Architectures in the fat file: x are: x86_64  arm64')).toEqual([
+			'x86_64',
+			'arm64'
+		]);
+		expect(parseLipoArchs('Non-fat file: x is architecture: arm64  \n')).toEqual(['arm64']);
+		expect(parseLipoArchs('Non-fat file: x is architecture: arm64 (stub)')).toEqual([]);
+	});
 });
 
 describe('macCommands', () => {
@@ -134,6 +149,26 @@ describe('verifyMac', () => {
 		const run = fakeRunner(() => ({ code: 1, stdout: '', stderr: "can't open input file" }));
 		const violations = await verifyMac(APP, { signed: false }, { run, exists: allExist });
 		expect(violations).toEqual([expect.stringMatching(/^lipo -info .* exited 1: can't open/)]);
+	});
+
+	it("reports a failing command's last three output lines, or none", async () => {
+		const lipoCommand = formatCommand({ file: 'lipo', args: ['-info', EXE] });
+		const failing = (stderr: string) => fakeRunner(() => ({ code: 1, stdout: '', stderr }));
+		const noisy = failing('\nline1\nline2\r\nline3\nline4\n');
+		expect(await verifyMac(APP, { signed: false }, { run: noisy, exists: allExist })).toEqual([
+			`${lipoCommand} exited 1: line2 | line3 | line4`
+		]);
+		const silent = failing('');
+		expect(await verifyMac(APP, { signed: false }, { run: silent, exists: allExist })).toEqual([
+			`${lipoCommand} exited 1`
+		]);
+	});
+
+	it('names the architectures lipo shows and the ones missing', async () => {
+		const run = lipo(`Architectures in the fat file: ${EXE} are: i386 ppc\n`);
+		expect(await verifyMac(APP, { signed: false }, { run, exists: allExist })).toEqual([
+			`${EXE} is not universal: lipo shows [i386, ppc], missing arm64, x86_64`
+		]);
 	});
 
 	it.each(['darwin-x64', 'darwin-arm64'])(
@@ -203,6 +238,26 @@ describe('runCli mac', () => {
 		expect(await runCli(['--signed', 'mac', APP], deps(run))).toBe(0);
 		expect(lines).toEqual(['out verify-packaged: mac ok']);
 	});
+
+	it('runs only lipo without --signed', async () => {
+		const run = fakeRunner((command) =>
+			command.file === 'lipo' ? { code: 0, stdout: FAT, stderr: '' } : OK
+		);
+		expect(await runCli(['mac', APP], deps(run))).toBe(0);
+		expect(run.calls.map((c) => c.file)).toEqual(['lipo']);
+	});
+
+	it.each([[['mac']], [['mac', APP, 'extra']], [['ship', APP]]])(
+		'prints the usage for %j and runs nothing',
+		async (argv) => {
+			const run = fakeRunner(() => OK);
+			expect(await runCli(argv, deps(run))).toBe(1);
+			expect(lines).toEqual([
+				expect.stringMatching(/^err verify-packaged: usage: verify-packaged\.ts layout <outDir>/)
+			]);
+			expect(run.calls).toEqual([]);
+		}
+	);
 });
 
 // ---------------------------------------------------------------- win
@@ -236,6 +291,8 @@ type WinFake = {
 	hklmCode?: number;
 	hkcuCode?: number;
 	aumid?: string;
+	/** The AUMID read's exit code (default 0). */
+	aumidCode?: number;
 	manifest?: string;
 	exists?: (path: string) => boolean;
 	env?: NodeJS.ProcessEnv;
@@ -258,8 +315,10 @@ function winDeps(fake: WinFake = {}): WinDeps & { run: Runner & { calls: Command
 				? { code: 1, stdout: '', stderr: 'ERROR: unable to find the specified registry key' }
 				: { code: 0, stdout: '', stderr: '' };
 		}
-		if (command.file === 'powershell')
-			return { code: 0, stdout: fake.aumid ?? `${APP_ID}\r\n`, stderr: '' };
+		if (command.file === 'powershell') {
+			const code = fake.aumidCode ?? 0;
+			return { code, stdout: fake.aumid ?? `${APP_ID}\r\n`, stderr: code === 0 ? '' : 'COM error' };
+		}
 		return { code: 127, stdout: '', stderr: 'unexpected command' };
 	});
 	return {
@@ -301,6 +360,12 @@ describe('parseExecutionLevels', () => {
 		).toEqual(['requireAdministrator']);
 		expect(parseExecutionLevels('MZ no manifest')).toEqual([]);
 	});
+
+	it('allows any whitespace around the level attribute', () => {
+		expect(
+			parseExecutionLevels("<requestedExecutionLevel\r\n\t\tlevel = 'highestAvailable' />")
+		).toEqual(['highestAvailable']);
+	});
 });
 
 describe('aumidCommand', () => {
@@ -314,6 +379,15 @@ describe('aumidCommand', () => {
 		expect(args.slice(0, 3)).toEqual(['-NoProfile', '-NonInteractive', '-Command']);
 		expect(args[3]).toContain("$lnk = 'C:\\Users\\o''neil\\AppData\\Roaming\\Microsoft");
 		expect(args[3]).toContain("ExtendedProperty('System.AppUserModel.ID')");
+	});
+
+	it('runs the whole four-statement script', () => {
+		expect(aumidCommand('C:\\x\\a.lnk').args[3]).toBe(
+			"$lnk = 'C:\\x\\a.lnk'; " +
+				'$shell = New-Object -ComObject Shell.Application; ' +
+				'$item = $shell.Namespace((Split-Path -Parent $lnk)).ParseName((Split-Path -Leaf $lnk)); ' +
+				"[Console]::Out.Write([string]$item.ExtendedProperty('System.AppUserModel.ID'))"
+		);
 	});
 });
 
@@ -424,6 +498,33 @@ describe('verifyWin', () => {
 		);
 		const violations = await verifyWin(installer, winDeps({ ...HAPPY, env: {} }));
 		expect(violations).toEqual(['LOCALAPPDATA is not set', 'APPDATA is not set']);
+		const blank = winDeps({ ...HAPPY, env: { LOCALAPPDATA: '  ', APPDATA: ' \t ' } });
+		expect(await verifyWin(installer, blank)).toEqual([
+			'LOCALAPPDATA is not set',
+			'APPDATA is not set'
+		]);
+	});
+
+	it('fails an install dir that is %LOCALAPPDATA% itself, passes one in other case', async () => {
+		expect(
+			await verifyWin(installer, winDeps({ ...HAPPY, hkcu: productKey(HKCU_UNINSTALL, LOCAL) }))
+		).toEqual([`installed outside %LOCALAPPDATA% (${LOCAL}): ${LOCAL}`]);
+		const upper = productKey(HKCU_UNINSTALL, INSTALL_DIR.toUpperCase());
+		expect(await verifyWin(installer, winDeps({ ...HAPPY, hkcu: upper }))).toEqual([]);
+	});
+
+	it('fails an HKCU query whose product key is not under HKEY_CURRENT_USER', async () => {
+		const hkcu = productKey(HKLM_UNINSTALL);
+		expect(await verifyWin(installer, winDeps({ ...HAPPY, hkcu }))).toEqual([
+			`uninstall entry is not per user: ${HKLM_UNINSTALL}\\0b8f0a4e-guid`
+		]);
+	});
+
+	it('reports a failed AUMID read as that command failing', async () => {
+		const lnk = startMenuShortcut(ROAMING);
+		expect(await verifyWin(installer, winDeps({ ...HAPPY, aumidCode: 1 }))).toEqual([
+			`${formatCommand(aumidCommand(lnk))} exited 1: COM error`
+		]);
 	});
 
 	it('runCli win locates the installer in the output dir', async () => {
@@ -726,6 +827,71 @@ describe('verifyLayout', () => {
 			expect.stringMatching(/single-arch mac build \(mac-arm64\)/)
 		]);
 	});
+
+	it('fails a files[].url naming a directory in the output dir', async () => {
+		const out = await buildOutDir({
+			platform: 'linux',
+			latest: (yml) => yml.replace(/ {2}- url: \S+/, '  - url: linux-unpacked')
+		});
+		expect(layout(out, 'linux')).toEqual([
+			'latest-linux.yml names linux-unpacked, which is not in the output dir'
+		]);
+	});
+
+	it('names each of app.asar, latest*.yml and app-update.yml that is missing', async () => {
+		const out = await buildOutDir({ platform: 'linux' });
+		const resources = resourcesFor(out, 'linux');
+		for (const path of [
+			join(resources, 'app.asar'),
+			join(out, 'latest-linux.yml'),
+			join(resources, 'app-update.yml')
+		]) {
+			rmSync(path);
+		}
+		const violations = layout(out, 'linux');
+		expect(violations).toContain(`no app.asar at ${join(resources, 'app.asar')}`);
+		expect(violations).toContain(`no latest-linux.yml in ${out}`);
+		expect(violations).toContain(`no app-update.yml at ${join(resources, 'app-update.yml')}`);
+	});
+});
+
+describe('listAsar and listTree', () => {
+	it.skipIf(process.platform === 'win32')('lists dirs, files and links in app.asar', async () => {
+		const root = tempDir('verify-asar-');
+		writeTree(join(root, 'app'), { 'lib/addon.js': 'x' });
+		symlinkSync('addon.js', join(root, 'app', 'lib', 'addon.node'));
+		await createPackageWithOptions(join(root, 'app'), join(root, 'app.asar'), {});
+		const entries = listAsar(join(root, 'app.asar'));
+		expect(entries.sort((a, b) => a.path.localeCompare(b.path))).toEqual([
+			{ path: 'lib', unpacked: false, kind: 'dir' },
+			{ path: 'lib/addon.js', unpacked: false, kind: 'file' },
+			{ path: 'lib/addon.node', unpacked: false, kind: 'link' }
+		]);
+	});
+
+	it('lists every file under a dir, and nothing for a missing dir', () => {
+		const root = tempDir('verify-tree-');
+		writeTree(root, { 'a.txt': 'a', 'b/c.node': 'c' });
+		expect(listTree(root).sort()).toEqual(['a.txt', 'b/c.node']);
+		expect(listTree(join(root, 'absent'))).toEqual([]);
+	});
+});
+
+describe('isFile', () => {
+	it('is true only for a regular file, false when nothing is there', () => {
+		const root = tempDir('verify-isfile-');
+		writeTree(root, { 'a.txt': 'a' });
+		expect(isFile(join(root, 'a.txt'))).toBe(true);
+		expect(isFile(root)).toBe(false);
+		expect(isFile(join(root, 'absent'))).toBe(false);
+		expect(isFile(join(root, 'a.txt', 'child'))).toBe(false);
+	});
+
+	it('throws any other stat error', () => {
+		expect(() => isFile('bad\u0000path')).toThrow(
+			expect.objectContaining({ code: 'ERR_INVALID_ARG_VALUE' })
+		);
+	});
 });
 
 describe('verifyAppFiles', () => {
@@ -751,6 +917,46 @@ describe('verifyAppFiles', () => {
 			'libsql (node_modules/libsql/index.js) is not in app.asar.unpacked'
 		]);
 	});
+
+	it('flags only packed files ending .node, not dirs or links', () => {
+		const odd: AppEntry[] = [
+			{ path: 'node_modules/pkg/addon.node', unpacked: false, kind: 'dir' },
+			{ path: 'node_modules/pkg/link.node', unpacked: false, kind: 'link' }
+		];
+		expect(verifyAppFiles(odd, unpacked, 'linux')).toEqual([]);
+	});
+
+	it("fails a libsql package's .node binary missing from the unpacked dir", () => {
+		const jsOnly = ['node_modules/libsql/index.js', 'node_modules/@libsql/linux-x64-gnu/index.js'];
+		expect(verifyAppFiles(entries([]), jsOnly, 'linux')).toEqual([
+			"@libsql/linux-x64-gnu's .node binary is not in app.asar.unpacked"
+		]);
+	});
+
+	it('counts foreign @libsql natives packed in app.asar too, sorted by name', () => {
+		const packed = entries([
+			'node_modules/@libsql/win32-x64-msvc/package.json',
+			'node_modules/@libsql/darwin-x64/package.json'
+		]);
+		expect(verifyAppFiles(packed, unpacked, 'linux')).toEqual([
+			'ships @libsql/darwin-x64, not a linux binary',
+			'ships @libsql/win32-x64-msvc, not a linux binary'
+		]);
+	});
+
+	it('counts only top-level @libsql packages whose name starts with an OS', () => {
+		const others = entries([
+			'node_modules/@libsql/isomorphic-linux-ws/index.js',
+			'build/node_modules/@libsql/darwin-x64/index.js'
+		]);
+		expect(verifyAppFiles(others, unpacked, 'linux')).toEqual([]);
+	});
+
+	it("takes no root from APP_FILES' negated patterns", () => {
+		expect(verifyAppFiles(entries(['!**']), unpacked, 'linux')).toEqual([
+			"app.asar ships a path outside the app's files: !**"
+		]);
+	});
 });
 
 describe('devFileReason', () => {
@@ -763,6 +969,24 @@ describe('devFileReason', () => {
 		expect(devFileReason('node_modules/pkg/data.sqlite')).toMatch(/database/);
 		expect(devFileReason('build/client/app.js')).toBeNull();
 		expect(devFileReason('src/desktop/assets/tray-icon.png')).toBeNull();
+	});
+
+	it('names src/lib itself and everything under it', () => {
+		expect(devFileReason('src/lib')).toBe('server source (src/lib/)');
+		expect(devFileReason('src/lib/server/db.ts')).toBe('server source (src/lib/)');
+	});
+
+	it.each(['__fixtures__', '__tests__', '__snapshots__'])(
+		'names a %s dir a test fixture',
+		(dir) => {
+			expect(devFileReason(`build/${dir}/x.js`)).toBe('a test fixture');
+		}
+	);
+
+	it('matches spec and database names only at the end', () => {
+		expect(devFileReason('dist-desktop/x.spec.mjs')).toBe('a spec file');
+		expect(devFileReason('build/client/data.test.json')).toBeNull();
+		expect(devFileReason('build/client/schema.dbml')).toBeNull();
 	});
 });
 
@@ -790,6 +1014,121 @@ describe('parseUpdateYaml', () => {
 		expect(doc.files).toEqual([
 			{ url: 'a.zip', sha512: 'abc==', size: '1' },
 			{ url: 'b.dmg', sha512: 'def==' }
+		]);
+	});
+
+	it('unquotes only a value both opened and closed by the same quote', () => {
+		const doc = parseUpdateYaml(
+			[
+				"a: abc'",
+				"b: 'abc",
+				"c: '",
+				"d: ''",
+				"e: 'it''s'",
+				'f: abc"',
+				'g: "abc',
+				'h: "',
+				'i: ""',
+				'j: padded   '
+			].join('\n')
+		);
+		expect(doc.scalars).toEqual({
+			a: "abc'",
+			b: "'abc",
+			c: "'",
+			d: '',
+			e: "it's",
+			f: 'abc"',
+			g: '"abc',
+			h: '"',
+			i: '',
+			j: 'padded'
+		});
+	});
+
+	it('strips only a leading BOM and skips blank and comment lines', () => {
+		expect(parseUpdateYaml('﻿version: 1\n\n# note: x\n   \nb: 2').scalars).toEqual({
+			version: '1',
+			b: '2'
+		});
+		expect(parseUpdateYaml('b: 1﻿2').scalars).toEqual({ b: '1﻿2' });
+	});
+
+	it('reads files[] only under files:, one map per dash', () => {
+		const doc = parseUpdateYaml(
+			[
+				'  - url: stray',
+				'files:',
+				'  url: first',
+				'  -   url: second',
+				'    sha512:abc',
+				'    note: just text',
+				'  - url:',
+				'    sha512: s3',
+				'bad key: x',
+				'next:x',
+				'  - url: fourth',
+				'other:',
+				'  nested: x'
+			].join('\n')
+		);
+		expect(doc.files).toEqual([
+			{ url: 'first' },
+			{ url: 'second', note: 'just text' },
+			{ url: '', sha512: 's3' },
+			{ url: 'fourth' }
+		]);
+		expect(doc.scalars).toEqual({});
+	});
+});
+
+describe('verifyFeed', () => {
+	const feed = (scalars: Record<string, string>) => ({ scalars, files: [] });
+
+	it('passes either loopback host over http for ci', () => {
+		expect(verifyFeed(feed({ provider: 'generic', url: 'http://127.0.0.1:47811/' }), 'ci')).toEqual(
+			[]
+		);
+		expect(verifyFeed(feed({ provider: 'generic', url: 'http://[::1]:47811/' }), 'ci')).toEqual([]);
+	});
+
+	it.each(['https://127.0.0.1:47811/', 'http://192.168.1.5:47811/', 'not a url'])(
+		'fails a ci feed at %s',
+		(url) => {
+			expect(verifyFeed(feed({ provider: 'generic', url }), 'ci')).toEqual([
+				`app-update.yml feed '${url}' is not an http loopback URL`
+			]);
+		}
+	);
+
+	it('fails a ci feed with no url', () => {
+		expect(verifyFeed(feed({ provider: 'generic' }), 'ci')).toEqual([
+			"app-update.yml feed 'undefined' is not an http loopback URL"
+		]);
+	});
+
+	it("fails a release feed for the right owner's other repo", () => {
+		const scalars = { provider: 'github', owner: GITHUB_RELEASES.owner, repo: 'other' };
+		expect(verifyFeed(feed(scalars), 'release')).toEqual([
+			`app-update.yml points at ${GITHUB_RELEASES.owner}/other, not ${GITHUB_RELEASES.owner}/${GITHUB_RELEASES.repo}`
+		]);
+	});
+});
+
+describe('verifyUpdateFile', () => {
+	const files = new Set(['a.exe']);
+
+	it('fails a file listing nothing', () => {
+		expect(
+			verifyUpdateFile('latest.yml', { scalars: { version: VERSION }, files: [] }, VERSION, files)
+		).toEqual(['latest.yml lists no files']);
+	});
+
+	it('fails an entry with neither url nor sha512', () => {
+		const doc = { scalars: { version: VERSION }, files: [{ size: '1' }] };
+		expect(verifyUpdateFile('latest.yml', doc, VERSION, files)).toEqual([
+			'latest.yml has a files[] entry without a url',
+			'latest.yml entry ? has no sha512'
 		]);
 	});
 });
@@ -829,5 +1168,20 @@ describe('runCli layout', () => {
 		expect(await runCli(['ship', '/x'], d)).toBe(1);
 		expect(await runCli(['mac', APP, '--force'], d)).toBe(1);
 		expect(lines).toHaveLength(5);
+		expect(lines.slice(0, 4)).toEqual([
+			'verify-packaged: layout needs --version <v>',
+			'verify-packaged: layout needs --mode ci or --mode release',
+			'verify-packaged: layout needs --mode ci or --mode release',
+			expect.stringMatching(/^verify-packaged: usage: verify-packaged\.ts layout <outDir>/)
+		]);
+	});
+
+	it('passes a ci build with the loopback feed under --mode ci', async () => {
+		const out = await buildOutDir({ platform: 'linux', appUpdate: LOOPBACK_FEED });
+		const lines: string[] = [];
+		expect(
+			await runCli(['layout', out, '--version', VERSION, '--mode', 'ci'], deps(lines, 'linux'))
+		).toBe(0);
+		expect(lines).toEqual(['verify-packaged: layout ok']);
 	});
 });
