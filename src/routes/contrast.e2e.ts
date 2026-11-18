@@ -1,57 +1,30 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Browser, type Page } from '@playwright/test';
-import { eq } from 'drizzle-orm';
 import { createDb } from '../lib/server/db/client.ts';
-import { user } from '../lib/server/db/schema.ts';
+import { notifyChannel } from '../lib/server/db/schema.ts';
 import { contrastRatio, parseColour, parseTokens, schemeTokens } from '../lib/styles/tokens.ts';
 import { controlBorderContrast, expectTextContrast, type Scheme } from '../../e2e/a11y.ts';
-import {
-	E2E_DATABASE_URL,
-	SEEDED_ADMIN,
-	SEEDED_DESIGN,
-	SEEDED_DESIGN_TOPIC_URL,
-	SEEDED_LONG_ACCOUNT,
-	SEEDED_MEMBER,
-	SEEDED_WATCHES,
-	signIn,
-	submitLogin,
-	uniqueEmail,
-	type Credentials
-} from '../../e2e/accounts.ts';
+import { E2E_DATABASE_URL, SEEDED_DESIGN_TOPIC_URL, SEEDED_WATCHES } from '../../e2e/accounts.ts';
 
 // c-5 / c-6: every page, in every message state reachable without a live fetch,
-// renders the scheme's tokens and passes AA text and control-border contrast.
-// r-01: Check now is clicked only on layoutCooldown (refused by the cooldown),
-// Send test is clicked only for a topic on https://127.0.0.1:1/ (a closed loopback
-// port, refused with no DNS lookup), *.invalid requests are aborted and
-// every request the browser makes must stay on localhost or *.invalid.
+// renders the scheme's tokens and passes AA text and control-border contrast;
+// c-4: the footer Source link included. r-01: Check now is clicked only on
+// layoutCooldown (refused by the cooldown), Send test is clicked only for a topic
+// on https://127.0.0.1:1/ (a closed loopback port, refused with no DNS lookup),
+// *.invalid requests are aborted and every request the browser makes must stay on
+// localhost or *.invalid.
 
 const tokens = parseTokens(
 	readFileSync(new URL('../lib/styles/tokens.css', import.meta.url), 'utf8')
 );
 const { layoutCooldown, layoutAtTarget, layoutLong, chartFull, cardFresh } = SEEDED_WATCHES;
 const schemes: Scheme[] = ['light', 'dark'];
+const SOURCE_URL = 'https://github.com/Rivil/price-check';
+/** WCAG AA for body-size text. */
+const TEXT_MIN = 4.5;
 
-async function longAccountId() {
-	const db = createDb(E2E_DATABASE_URL);
-	try {
-		const [row] = await db
-			.select({ id: user.id })
-			.from(user)
-			.where(eq(user.email, SEEDED_LONG_ACCOUNT.email));
-		return row.id;
-	} finally {
-		db.$client.close();
-	}
-}
-
-/** A fresh context in `scheme`, signed in as `as` (or not), recording every request host. */
-async function withPage(
-	browser: Browser,
-	scheme: Scheme,
-	as: Credentials | null,
-	run: (page: Page) => Promise<void>
-) {
+/** A fresh context in `scheme`, recording every request host. */
+async function withPage(browser: Browser, scheme: Scheme, run: (page: Page) => Promise<void>) {
 	const context = await browser.newContext({ colorScheme: scheme });
 	const hosts = new Set<string>();
 	context.on('request', (request) => hosts.add(new URL(request.url()).hostname));
@@ -60,9 +33,7 @@ async function withPage(
 		(route) => route.abort()
 	);
 	try {
-		const page = await context.newPage();
-		if (as) await signIn(page, as);
-		await run(page);
+		await run(await context.newPage());
 	} finally {
 		await context.close();
 	}
@@ -70,10 +41,54 @@ async function withPage(
 	expect(foreign, 'no live fetch: requests left localhost / *.invalid').toEqual([]);
 }
 
+/**
+ * Runs `run`, then puts the install's alert channels back exactly as they were:
+ * later specs read the seeded ntfy topic.
+ */
+async function keepingChannels(run: () => Promise<void>) {
+	const withDb = async <T>(use: (db: ReturnType<typeof createDb>) => Promise<T>) => {
+		const db = createDb(E2E_DATABASE_URL);
+		try {
+			return await use(db);
+		} finally {
+			db.$client.close();
+		}
+	};
+	const saved = await withDb((db) => db.select().from(notifyChannel));
+	try {
+		await run();
+	} finally {
+		await withDb(async (db) => {
+			await db.delete(notifyChannel);
+			if (saved.length > 0) await db.insert(notifyChannel).values(saved);
+		});
+	}
+}
+
+/** The footer Source link's text colour against the first opaque background behind it. */
+async function expectSourceContrast(page: Page, where: string, scheme: Scheme) {
+	const link = page.getByRole('contentinfo').getByRole('link', { name: 'Source', exact: true });
+	await expect(link, `${where}: footer Source link`).toHaveAttribute('href', SOURCE_URL);
+	await expect(link).toBeVisible();
+	const { colour, backgrounds } = await link.evaluate((el) => {
+		const chain: string[] = [];
+		for (let at: Element | null = el; at; at = at.parentElement) {
+			chain.push(getComputedStyle(at).backgroundColor);
+		}
+		return { colour: getComputedStyle(el).color, backgrounds: chain };
+	});
+	const ground = backgrounds.find((bg) => parseColour(bg).kind === 'opaque');
+	expect(ground, `${where}: an opaque background behind Source`).toBeDefined();
+	expect(
+		contrastRatio(colour, ground!),
+		`Source link ${colour} on ${ground} ${where} (${scheme})`
+	).toBeGreaterThanOrEqual(TEXT_MIN);
+}
+
 type ColourCheck = { what: string; got: string; token: string };
 
-/** Body and the page's own controls render exactly the scheme's tokens. */
-async function expectTokens(page: Page, scheme: Scheme, where: string) {
+/** Body, and the page's own controls unless it has none, render exactly the scheme's tokens. */
+async function expectTokens(page: Page, scheme: Scheme, where: string, controls: boolean) {
 	const t = schemeTokens(tokens, scheme);
 	const computed = await page.evaluate(() => {
 		const style = (el: Element | null) => (el ? getComputedStyle(el) : null);
@@ -109,6 +124,7 @@ async function expectTokens(page: Page, scheme: Scheme, where: string) {
 		],
 		'scheme'
 	);
+	if (!controls) return;
 
 	expect(computed.button, `${where}: no button in main`).not.toBeNull();
 	expect(computed.input, `${where}: no text input in main`).not.toBeNull();
@@ -125,30 +141,27 @@ async function expectTokens(page: Page, scheme: Scheme, where: string) {
 }
 
 /** The full check for one page state: tokens, then AA text and control borders. */
-async function expectState(page: Page, scheme: Scheme, where: string) {
-	await expectTokens(page, scheme, where);
+async function expectState(page: Page, scheme: Scheme, where: string, { controls = true } = {}) {
+	await expectTokens(page, scheme, where, controls);
+	await test.step(`source link ${where} ${scheme}`, () =>
+		expectSourceContrast(page, where, scheme));
 	await test.step(`contrast ${where} ${scheme}`, () => expectTextContrast(page));
 	await test.step(`control borders ${where} ${scheme}`, () => controlBorderContrast(page));
 }
 
 for (const scheme of schemes) {
 	test.describe(scheme, () => {
-		test(`login ${scheme}`, async ({ browser }) => {
-			await withPage(browser, scheme, null, async (page) => {
-				await page.goto('/login');
-				await expectState(page, scheme, '/login');
-
-				// Exactly one failed sign-in per scheme, with an email no account has,
-				// so the shared per-IP limiter (20 / 15 min) is never reached.
-				await submitLogin(page, { email: uniqueEmail('contrast'), password: 'wrong-password-1' });
-				const alert = page.getByRole('alert');
-				await expect(alert, 'login alert').toHaveText('Incorrect email or password.');
-				await expectState(page, scheme, '/login (failed sign-in)');
+		test(`404 page ${scheme}`, async ({ browser }) => {
+			await withPage(browser, scheme, async (page) => {
+				const response = await page.goto('/no-such-page');
+				expect(response?.status()).toBe(404);
+				// The error page has no form controls of its own.
+				await expectState(page, scheme, '404 page', { controls: false });
 			});
 		});
 
 		test(`watchlist ${scheme}`, async ({ browser }) => {
-			await withPage(browser, scheme, SEEDED_DESIGN, async (page) => {
+			await withPage(browser, scheme, async (page) => {
 				await page.goto('/');
 				const item = (id: string) => page.locator(`li[data-watch-id="${id}"]`);
 				await expect(item(layoutLong.id).locator('.failure')).toBeVisible();
@@ -164,7 +177,7 @@ for (const scheme of schemes) {
 		});
 
 		test(`watch page ${scheme}`, async ({ browser }) => {
-			await withPage(browser, scheme, SEEDED_DESIGN, async (page) => {
+			await withPage(browser, scheme, async (page) => {
 				await page.goto(`/watches/${layoutLong.id}`);
 				await expect(page.locator('dd.failure')).toBeVisible();
 				await expectState(page, scheme, '/watches/layoutLong');
@@ -186,7 +199,7 @@ for (const scheme of schemes) {
 
 		// axe doesn't measure SVG strokes, so the graphics get their own 3:1 check.
 		test(`chart marks contrast ${scheme}`, async ({ browser }) => {
-			await withPage(browser, scheme, SEEDED_MEMBER, async (page) => {
+			await withPage(browser, scheme, async (page) => {
 				await page.goto(`/watches/${chartFull.id}`);
 				const ground = await page
 					.locator('.chart')
@@ -208,7 +221,7 @@ for (const scheme of schemes) {
 		});
 
 		test(`tooltip contrast ${scheme}`, async ({ browser }) => {
-			await withPage(browser, scheme, SEEDED_MEMBER, async (page) => {
+			await withPage(browser, scheme, async (page) => {
 				await page.goto(`/watches/${chartFull.id}`);
 				// Focus does nothing until hydration, and there's no signal to wait on. The blur
 				// matters: focusing the element that already has focus fires no event.
@@ -223,7 +236,7 @@ for (const scheme of schemes) {
 		});
 
 		test(`sparkline contrast ${scheme}`, async ({ browser }) => {
-			await withPage(browser, scheme, SEEDED_MEMBER, async (page) => {
+			await withPage(browser, scheme, async (page) => {
 				await page.goto('/');
 				const card = page.locator(`li[data-watch-id="${cardFresh.id}"]`);
 				const ground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
@@ -237,7 +250,7 @@ for (const scheme of schemes) {
 		});
 
 		test(`alerts ${scheme}`, async ({ browser }) => {
-			await withPage(browser, scheme, SEEDED_DESIGN, async (page) => {
+			await withPage(browser, scheme, async (page) => {
 				await page.goto('/account/alerts');
 				const topic = page.getByTestId('channel-ntfy').getByLabel('ntfy topic link');
 				await expect(topic).toHaveValue(SEEDED_DESIGN_TOPIC_URL);
@@ -260,7 +273,7 @@ for (const scheme of schemes) {
 					'Enabled'
 				);
 
-				// Disabled state; the shared design user's channel is re-enabled whatever happens.
+				// Disabled state; the install's channel is re-enabled whatever happens.
 				try {
 					await page.getByTestId('channel-ntfy').getByRole('button', { name: 'Disable' }).click();
 					await expect(page.getByTestId('channel-ntfy').getByTestId('channel-state')).toContainText(
@@ -279,85 +292,20 @@ for (const scheme of schemes) {
 				}
 			});
 
-			// The send-test failure message, on the member's refused loopback topic.
-			await withPage(browser, scheme, SEEDED_MEMBER, async (page) => {
-				await page.goto('/account/alerts');
-				try {
-					await page
-						.getByTestId('channel-ntfy')
-						.getByLabel('ntfy topic link')
-						.fill('https://127.0.0.1:1/e2e-contrast');
-					await page
-						.getByTestId('channel-ntfy')
-						.getByRole('button', { name: 'Save topic' })
-						.click();
-					await expect(page.getByTestId('channel-ntfy').getByRole('status')).toHaveText('Saved.');
-					await page.getByTestId('channel-ntfy').getByRole('button', { name: 'Send test' }).click();
-					await expect(page.getByTestId('channel-ntfy').getByRole('alert')).toHaveText(
-						'Not delivered: unreachable.'
-					);
-					await expectState(page, scheme, '/account/alerts (send test failed)');
-				} finally {
+			// The send-test failure message, on a refused loopback topic; the install's
+			// channels are restored from the database afterwards.
+			await keepingChannels(() =>
+				withPage(browser, scheme, async (page) => {
+					const card = page.getByTestId('channel-ntfy');
 					await page.goto('/account/alerts');
-					const remove = page.getByTestId('channel-ntfy').getByRole('button', { name: 'Remove' });
-					if ((await remove.count()) > 0) {
-						await remove.click();
-						await expect(page.getByTestId('channel-ntfy').getByRole('status')).toHaveText(
-							'Channel removed.'
-						);
-					}
-				}
-			});
-		});
-
-		test(`account ${scheme}`, async ({ browser }) => {
-			await withPage(browser, scheme, SEEDED_DESIGN, async (page) => {
-				await page.goto('/account/password');
-				await expectState(page, scheme, '/account/password');
-
-				await page.getByLabel('Current password').fill('not-the-current-password');
-				await page.getByLabel('New password').fill('a-new-password-that-is-long');
-				await page.getByRole('button', { name: 'Change password' }).click();
-				await expect(page.getByRole('alert')).toBeVisible();
-				await expectState(page, scheme, '/account/password (wrong current password)');
-			});
-		});
-
-		test(`admin ${scheme}`, async ({ browser }) => {
-			await withPage(browser, scheme, SEEDED_ADMIN, async (page) => {
-				const create = async (email: string) => {
-					await page.getByLabel('Name').fill('Contrast Check');
-					await page.getByLabel('Email').fill(email);
-					await page.getByLabel('Initial password').fill('contrast-initial-password');
-					await page.getByRole('button', { name: 'Create account' }).click();
-				};
-
-				await page.goto('/admin/users');
-				await expectState(page, scheme, '/admin/users');
-
-				await create(SEEDED_MEMBER.email);
-				await expect(page.getByRole('alert')).toBeVisible();
-				await expectState(page, scheme, '/admin/users (duplicate email)');
-
-				await page.goto('/admin/users');
-				await create(uniqueEmail(`contrast-${scheme}`));
-				await expect(page.getByRole('status')).toContainText('Created');
-				await expectState(page, scheme, '/admin/users (created)');
-			});
-		});
-
-		test(`reset ${scheme}`, async ({ browser }) => {
-			const path = `/admin/users/${await longAccountId()}/password`;
-			await withPage(browser, scheme, SEEDED_ADMIN, async (page) => {
-				await page.goto(path);
-				await expectState(page, scheme, 'reset page');
-
-				// Too short: refused by validation, so the long account keeps its password.
-				await page.getByLabel('New password').fill('short');
-				await page.getByRole('button', { name: 'Reset password' }).click();
-				await expect(page.getByRole('alert')).toBeVisible();
-				await expectState(page, scheme, 'reset page (validation error)');
-			});
+					await card.getByLabel('ntfy topic link').fill('https://127.0.0.1:1/e2e-contrast');
+					await card.getByRole('button', { name: 'Save topic' }).click();
+					await expect(card.getByRole('status')).toHaveText('Saved.');
+					await card.getByRole('button', { name: 'Send test' }).click();
+					await expect(card.getByRole('alert')).toHaveText('Not delivered: unreachable.');
+					await expectState(page, scheme, '/account/alerts (send test failed)');
+				})
+			);
 		});
 	});
 }

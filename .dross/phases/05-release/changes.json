@@ -1,0 +1,1626 @@
+{
+  "phase": "05-release",
+  "pr": 12,
+  "base": "milestone/v0.1",
+  "base_commit": "c53dab2ce2cd9fe4fcc224acd43a7a291d25bc92",
+  "status": "complete",
+  "tasks": {
+    "t-1": {
+      "files": [
+        ".gitleaks.toml",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/build-desktop.spec.ts"
+      ],
+      "commit": "ee0cc59",
+      "completed_at": "2026-11-14T18:25:29.391561Z",
+      "landmarks": [
+        {
+          "feature": "release packaging",
+          "symbol": "supportedArchitectures",
+          "loc": "pnpm-workspace.yaml:7",
+          "what": "pins electron-updater/electron-builder/@electron/asar exactly and installs both darwin libsql arches for a universal build"
+        }
+      ]
+    },
+    "t-10": {
+      "files": [
+        "src/desktop/app-paths.ts",
+        "src/desktop/app-paths.spec.ts",
+        "src/desktop/main.ts",
+        "src/desktop/boundary.spec.ts",
+        "e2e/desktop/harness.e2e.ts"
+      ],
+      "commit": "e44722b",
+      "completed_at": "2026-11-14T19:47:38.124983Z",
+      "landmarks": [
+        {
+          "feature": "packaged desktop startup",
+          "symbol": "serverCwdFor",
+          "loc": "src/desktop/app-paths.ts:40",
+          "what": "server runs in app.asar.unpacked when packaged; main builds and publishes the updater only when app.isPackaged"
+        }
+      ]
+    },
+    "t-11": {
+      "files": [
+        "e2e/packaged/launch-packaged.ts",
+        "e2e/packaged/smoke.packaged.ts",
+        "playwright.packaged.config.ts",
+        "package.json"
+      ],
+      "commit": "b0f3189",
+      "completed_at": "2026-11-14T20:41:01.151093Z",
+      "landmarks": [
+        {
+          "feature": "packaged smoke",
+          "symbol": "launchPackaged",
+          "loc": "e2e/packaged/launch-packaged.ts:243",
+          "what": "launches the packaged app on a guarded temp-home userData and smokes empty/libsql-unpacked/offline-update/persist/x64 slice"
+        }
+      ]
+    },
+    "t-12": {
+      "files": [
+        "e2e/packaged/update.packaged.ts",
+        "e2e/packaged/launch-packaged.ts"
+      ],
+      "commit": "be5d71a",
+      "completed_at": "2026-11-14T21:10:32.140499Z",
+      "landmarks": [
+        {
+          "feature": "auto-update",
+          "symbol": "packaged update",
+          "loc": "e2e/packaged/update.packaged.ts:123",
+          "what": "packaged e2e proving B downloads, notifies once, installs and relaunches after A exits on Windows and Linux"
+        }
+      ]
+    },
+    "t-13": {
+      "files": [
+        ".github/workflows/release.yml",
+        "scripts/workflow-policy.ts",
+        "scripts/workflow-policy.spec.ts",
+        "scripts/release-workflow.spec.ts"
+      ],
+      "commit": "61c138b",
+      "completed_at": "2026-11-14T21:06:08.429604Z",
+      "landmarks": [
+        {
+          "feature": "release pipeline",
+          "symbol": "WRITE_SCOPE_ALLOWLIST",
+          "loc": "scripts/workflow-policy.ts:25",
+          "what": "v* tag runs tag check, three OS builds with packaged smoke, and a gh-only publish job holding the sole contents: write"
+        }
+      ]
+    },
+    "t-14": {
+      "files": [
+        ".github/workflows/ci.yml",
+        "scripts/ci-packaged.spec.ts"
+      ],
+      "commit": "4152909",
+      "completed_at": "2026-11-17T16:43:44.425565Z",
+      "landmarks": [
+        {
+          "feature": "PR packaged-app CI",
+          "symbol": "test job packaged steps",
+          "loc": ".github/workflows/ci.yml:166",
+          "what": "every PR packages unsigned build A per OS, verifies layout/mac/win, runs packaged smoke and Win/Linux update e2e"
+        }
+      ]
+    },
+    "t-15": {
+      "files": [
+        "src/desktop/lifecycle.ts",
+        "src/desktop/lifecycle.spec.ts",
+        "src/desktop/main.ts"
+      ],
+      "commit": "373092d",
+      "completed_at": "2026-11-14T20:19:56.152152Z",
+      "landmarks": [
+        {
+          "feature": "desktop update install",
+          "symbol": "watchSquirrel",
+          "loc": "src/desktop/lifecycle.ts:282",
+          "what": "on macOS quit waits (bounded) for Squirrel to stage the handed-over update before app.exit"
+        }
+      ]
+    },
+    "t-16": {
+      "files": [
+        "src/desktop/updater.ts",
+        "src/desktop/updater.spec.ts",
+        "src/desktop/lifecycle.ts",
+        "src/desktop/lifecycle.spec.ts"
+      ],
+      "commit": "89db383",
+      "completed_at": "2026-11-14T20:24:02.906194Z",
+      "landmarks": [
+        {
+          "feature": "auto-update install on exit",
+          "symbol": "installOnExit",
+          "loc": "src/desktop/updater.ts:230",
+          "what": "sets autoRunAppAfterInstall per exit mode so a macOS plain Quit installs without relaunching"
+        }
+      ]
+    },
+    "t-17": {
+      "files": [
+        "scripts/package-desktop.spec.ts"
+      ],
+      "commit": "2552cc3",
+      "completed_at": "2026-11-17T17:11:36.756056Z",
+      "landmarks": [
+        {
+          "feature": "desktop packaging",
+          "symbol": "refuses when %s is missing",
+          "loc": "scripts/package-desktop.spec.ts:530",
+          "what": "missing-input spec fake compares resolve(root, input) so it holds on Windows separators"
+        }
+      ]
+    },
+    "t-18": {
+      "files": [
+        "e2e/packaged/smoke.packaged.ts",
+        "e2e/packaged/launch-packaged.ts",
+        "e2e/packaged/update.packaged.ts",
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts"
+      ],
+      "commit": "014848c",
+      "completed_at": "2026-11-17T17:19:26.624585Z",
+      "landmarks": [
+        {
+          "feature": "packaged update probe",
+          "symbol": "servingInstance",
+          "loc": "scripts/process-probe.ts:216",
+          "what": "one 127.0.0.1 socket is one instance (main process picked by /proc), throws only on \u003e1 distinct port with pid/ppid/cmdline"
+        }
+      ]
+    },
+    "t-19": {
+      "files": [
+        "scripts/release-workflow.spec.ts"
+      ],
+      "commit": "c31fac9",
+      "completed_at": "2026-11-17T17:20:58.182133Z",
+      "landmarks": [
+        {
+          "feature": "release pipeline",
+          "symbol": "SECRETS",
+          "loc": "scripts/release-workflow.spec.ts:29",
+          "what": "secret-name list ordered so no name follows CSC_KEY_PASSWORD (GitGuardian false positive)"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "scripts/package-desktop.ts",
+        "scripts/package-desktop.spec.ts",
+        "package.json",
+        ".gitignore"
+      ],
+      "commit": "bf9ebbc",
+      "completed_at": "2026-11-14T18:38:20.159919Z",
+      "landmarks": [
+        {
+          "feature": "desktop packaging",
+          "symbol": "builderConfig",
+          "loc": "scripts/package-desktop.ts:167",
+          "what": "electron-builder config (universal mac, per-user NSIS, x64 AppImage, libsql unpacked) and host-only never-publish package CLI with --sign credential gate"
+        }
+      ]
+    },
+    "t-20": {
+      "files": [
+        "scripts/verify-packaged.ts",
+        "scripts/verify-packaged.spec.ts"
+      ],
+      "commit": "3d38a1b",
+      "completed_at": "2026-11-18T07:10:08.834669Z",
+      "landmarks": [
+        {
+          "feature": "packaged artefact verification",
+          "symbol": "verifyWin",
+          "loc": "scripts/verify-packaged.ts:190",
+          "what": "verify-packaged checks pinned by tests killing its mutation survivors; dead redundant branches removed"
+        }
+      ]
+    },
+    "t-21": {
+      "files": [
+        "scripts/packaged-app.spec.ts"
+      ],
+      "commit": "417a9be",
+      "completed_at": "2026-11-18T07:20:29.542016Z",
+      "landmarks": [
+        {
+          "feature": "packaged artefact verification",
+          "symbol": "locate",
+          "loc": "scripts/packaged-app.ts:121",
+          "what": "packaged-app locate/install/registry parsing pinned by exact-message tests"
+        }
+      ]
+    },
+    "t-22": {
+      "files": [
+        "scripts/process-probe.spec.ts"
+      ],
+      "commit": "60b7e83",
+      "completed_at": "2026-11-18T07:27:56.642397Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "mainProcess",
+          "loc": "scripts/process-probe.ts:186",
+          "what": "process-probe parsing and main-process ranking pinned by exact tests"
+        }
+      ]
+    },
+    "t-23": {
+      "files": [
+        "scripts/update-feed.ts",
+        "scripts/update-feed.spec.ts"
+      ],
+      "commit": "a7130eb",
+      "completed_at": "2026-11-18T07:34:26.74257Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "parseRange",
+          "loc": "scripts/update-feed.ts:69",
+          "what": "loopback update feed statuses, headers and ranges pinned by per-test feeds; dead range checks removed"
+        }
+      ]
+    },
+    "t-24": {
+      "files": [
+        "scripts/release-tag.ts",
+        "scripts/release-tag.spec.ts",
+        "scripts/package-desktop.spec.ts"
+      ],
+      "commit": "8921c2f",
+      "completed_at": "2026-11-18T07:40:32.677503Z",
+      "landmarks": [
+        {
+          "feature": "release tag gate",
+          "symbol": "checkReleaseTag",
+          "loc": "scripts/release-tag.ts:38",
+          "what": "tag regex anchoring, multi-digit versions, object ids and packaging refusals pinned by tests"
+        }
+      ]
+    },
+    "t-25": {
+      "files": [
+        "src/desktop/updater.spec.ts",
+        "src/desktop/lifecycle.spec.ts"
+      ],
+      "commit": "8264abc",
+      "completed_at": "2026-11-18T07:45:37.802787Z",
+      "landmarks": [
+        {
+          "feature": "auto-update",
+          "symbol": "createUpdater",
+          "loc": "src/desktop/updater.ts:115",
+          "what": "post-download state, check-failure handling and single lock request with no predecessor pinned by tests"
+        }
+      ]
+    },
+    "t-26": {
+      "files": [
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/harness.e2e.ts",
+        "e2e/packaged/update.packaged.ts",
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts",
+        ".github/workflows/ci.yml",
+        "scripts/ci-packaged.spec.ts"
+      ],
+      "commit": "c91f58b",
+      "completed_at": "2026-11-18T07:54:53.956127Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "osState",
+          "loc": "e2e/packaged/update.packaged.ts:215",
+          "what": "failed relaunch steps attach app output and per-OS process state; requests time out"
+        }
+      ]
+    },
+    "t-27": {
+      "files": [
+        "e2e/packaged/update.packaged.ts",
+        "scripts/packaged-app.ts",
+        "scripts/packaged-app.spec.ts"
+      ],
+      "commit": "625324d",
+      "completed_at": "2026-11-18T10:14:34.152252Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "replaceExecutable",
+          "loc": "scripts/packaged-app.ts:184",
+          "what": "atomic temp-copy+rename of an executable so a running AppImage never blocks placing build A"
+        }
+      ]
+    },
+    "t-28": {
+      "files": [
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts",
+        "e2e/packaged/launch-packaged.ts",
+        "e2e/packaged/update.packaged.ts"
+      ],
+      "commit": "490dda9",
+      "completed_at": "2026-11-18T10:49:04.143601Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "isAppImageApp",
+          "loc": "scripts/process-probe.ts:290",
+          "what": "Linux instance probe counts only processes whose exe is under the AppImage mount, never the runtime/FUSE daemon"
+        }
+      ]
+    },
+    "t-29": {
+      "files": [
+        "e2e/packaged/update.packaged.ts",
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts"
+      ],
+      "commit": "61cd85e",
+      "completed_at": "2026-11-18T10:54:41.462502Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "processTree",
+          "loc": "scripts/process-probe.ts:474",
+          "what": "Windows relaunch waits 420s with a cheap installer poll and reports the NSIS installer's exit and process tree on failure"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "scripts/release-tag.ts",
+        "scripts/release-tag.spec.ts",
+        ".github/environments/release.json",
+        "scripts/environments.spec.ts"
+      ],
+      "commit": "0d932af",
+      "completed_at": "2026-11-14T18:42:39.982087Z",
+      "landmarks": [
+        {
+          "feature": "release pipeline",
+          "symbol": "checkReleaseTag",
+          "loc": "scripts/release-tag.ts:39",
+          "what": "gates v* tags on package.json version and origin/main; release env deploys only from v* tags"
+        }
+      ]
+    },
+    "t-30": {
+      "files": [
+        "src/desktop/main.ts",
+        "src/desktop/main.spec.ts",
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts",
+        "e2e/packaged/launch-packaged.ts",
+        "e2e/packaged/update.packaged.ts"
+      ],
+      "commit": "b35ec59",
+      "completed_at": "2026-11-18T13:21:46.628305Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "startOutputCapture",
+          "loc": "src/desktop/main.ts:119",
+          "what": "test-only env seam records the app's start, output, errors and exit to a file and hands the variable to the relaunched update"
+        }
+      ]
+    },
+    "t-31": {
+      "files": [
+        "e2e/packaged/update.packaged.ts"
+      ],
+      "commit": "00ff69b",
+      "completed_at": "2026-11-18T14:03:01.588471Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "keepDiagnosis",
+          "loc": "e2e/packaged/update.packaged.ts:453",
+          "what": "failure diagnoses are attached, saved in full under test-results and printed to stderr"
+        }
+      ]
+    },
+    "t-32": {
+      "files": [
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts",
+        "e2e/packaged/launch-packaged.ts",
+        "e2e/packaged/update.packaged.ts"
+      ],
+      "commit": "f3e92eb",
+      "completed_at": "2026-11-18T14:55:08.526319Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "servingPort",
+          "loc": "scripts/process-probe.ts:480",
+          "what": "picks the relaunched app's serving port with the predecessor's inherited ports excluded"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "src/desktop/updater.ts",
+        "src/desktop/updater.spec.ts",
+        "src/desktop/updater-channel.spec.ts"
+      ],
+      "commit": "4a43cac",
+      "completed_at": "2026-11-14T18:51:54.751008Z",
+      "landmarks": [
+        {
+          "feature": "auto update",
+          "symbol": "createUpdater",
+          "loc": "src/desktop/updater.ts:114",
+          "what": "packaged-only update controller: launch + 6 h checks, one notice per downloaded version, install on quit/restart, prerelease pinned off so rc takes final"
+        }
+      ]
+    },
+    "t-5": {
+      "files": [
+        "src/desktop/lifecycle.ts",
+        "src/desktop/lifecycle.spec.ts",
+        "src/desktop/tray.ts",
+        "src/desktop/tray.spec.ts"
+      ],
+      "commit": "c6d7398",
+      "completed_at": "2026-11-14T19:00:32.822634Z",
+      "landmarks": [
+        {
+          "feature": "auto update",
+          "symbol": "installPending",
+          "loc": "src/desktop/lifecycle.ts:228",
+          "what": "Quit and tray Restart to update install a pending update only after DB close, env scrubbed, predecessor-pid wait on relaunch"
+        }
+      ]
+    },
+    "t-6": {
+      "files": [
+        "README.md",
+        "scripts/readme.spec.ts"
+      ],
+      "commit": "efe0cbc",
+      "completed_at": "2026-11-14T19:04:22.421215Z",
+      "landmarks": [
+        {
+          "feature": "release docs",
+          "symbol": "osPart",
+          "loc": "scripts/readme.spec.ts:77",
+          "what": "README pins per-OS install notes: universal dmg, per-user Windows install, AppImage libfuse2 and AppArmor userns step, sandbox kept"
+        }
+      ]
+    },
+    "t-7": {
+      "files": [
+        "scripts/workflow-reader.ts",
+        "scripts/workflow-reader.spec.ts",
+        "scripts/ci-desktop.spec.ts"
+      ],
+      "commit": "fad6bf0",
+      "completed_at": "2026-11-14T19:20:32.166859Z",
+      "landmarks": [
+        {
+          "feature": "workflow pinning specs",
+          "symbol": "readWorkflow",
+          "loc": "scripts/workflow-reader.ts:164",
+          "what": "shared no-YAML-library line reader for jobs, job and top-level keys, on triggers, steps and OS branches"
+        }
+      ]
+    },
+    "t-8": {
+      "files": [
+        "scripts/update-feed.ts",
+        "scripts/update-feed.spec.ts",
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts"
+      ],
+      "commit": "2b00422",
+      "completed_at": "2026-11-14T19:26:29.735976Z",
+      "landmarks": [
+        {
+          "feature": "update test harness",
+          "symbol": "startUpdateFeed",
+          "loc": "scripts/update-feed.ts:163",
+          "what": "127.0.0.1-only feed serving top-level test artefacts with Range plus PowerShell/ss process and listener parsers"
+        }
+      ]
+    },
+    "t-9": {
+      "files": [
+        "scripts/packaged-app.ts",
+        "scripts/packaged-app.spec.ts",
+        "scripts/verify-packaged.ts",
+        "scripts/verify-packaged.spec.ts"
+      ],
+      "commit": "5367b21",
+      "completed_at": "2026-11-14T19:42:08.631901Z",
+      "landmarks": [
+        {
+          "feature": "packaged artefact verification",
+          "symbol": "verifyLayout",
+          "loc": "scripts/verify-packaged.ts:489",
+          "what": "checks packaged app.asar file set, per-OS libsql unpacked, stamped versions, latest*.yml and update feed; mac lipo/signing and win per-user AUMID checks"
+        }
+      ]
+    }
+  },
+  "reviews": {
+    "t-1": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "package.json bumps version 0.1.4 -\u003e 0.1.5, which the t-1 description does not mention. It fits the release_pipeline/device_uat decisions (tag MAJOR.MINOR.PATCH must equal package.json; v0.1.5 tags), but it is an unplanned change in this task.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "yamlSubList (scripts/build-desktop.spec.ts) keeps column-0 '#' comment lines inside the block when computing the minimum indent. One such comment under supportedArchitectures makes the indent 0, so the sub-keys are never matched and the test fails falsely on a valid config.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The darwin libsql test checks more than resolution: it also asserts index.node exists next to each @libsql/darwin-* manifest, which is stronger than the test_contract requires.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-10": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "src/desktop/main.ts isProcessAlive: any kill(pid, 0) error code other than EPERM (not only ESRCH) is quietly read as 'process gone' with nothing logged. The comment covers only ESRCH and EPERM. lifecycle.waitForExit logs a throwing probe, but this catch never lets one reach it. Rethrowing unexpected codes would let the lifecycle log them.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "src/desktop/main.ts parsePid: a malformed PRICE_CHECK_PREDECESSOR_PID turns into null silently, so the c-6 wait for the predecessor is skipped with no log line. A console.error for a set but unparseable value would make that case diagnosable.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/desktop/main.ts: the post-'started' guard `app.isPackaged \u0026\u0026 updater \u0026\u0026 restartToUpdate` silently skips start()/publish if restartToUpdate were null. That cannot happen in practice because createTray runs before 'started', so the guard mainly narrows types.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "boundary.spec source-order and AST checks are textual (comments mentioning PREDECESSOR_PID count as reads, and the restart identity is matched by regex), so a refactor could pass or fail them for cosmetic reasons.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-11": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-1",
+          "text": "e2e/packaged/launch-packaged.ts:349-351 (diff): `launched.evaluate(... electronApp.quit()).catch(() =\u003e undefined)` discards the evaluate rejection with no comment stating why; the adjacent comment explains why the call returns before exit, not why its error may be dropped. A genuine failure is lost and only resurfaces as the 15 s quit-deadline error without the original cause. Add the reason (e.g. the call may reject as the app tears down the connection) or carry the error into the timeout message.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "spawnX64's signalGroup `catch {}` is commented as ESRCH but catches every error from process.kill (e.g. EPERM), so a failed group kill would go unnoticed; consider checking the code and rethrowing anything other than ESRCH.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The libsql check derives the expected dir from process.platform-process.arch as a prefix, so linux-x64-gnu and win32-x64-msvc still match, and the app.asar regex correctly excludes app.asar.unpacked.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "'refuses existing data' injects a counting launcher and asserts zero launches, ownsUserData false and an unchanged directory listing, which is a direct test of the guard.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-1",
+          "text": "e2e/packaged/launch-packaged.ts quit(): the login-item turn-off calls setLoginItemSettings, which Electron does not implement on Linux, so it does nothing there. The app's Linux autostart entry would land under the temp XDG_CONFIG_HOME and only goes away because dispose() removes the temp home. The outcome is safe, but the stated 'turns off the login item' is really done by the cleanup on Linux.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-2",
+          "text": "spawnX64 / the 'x64 slice' test never checks or undoes a login-item registration, unlike launchPackaged's quit(). This is safe today only because the seeded marker stops the app from registering.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "'refuses existing data' proves the refusal through an injected launcher counter and a before/after directory listing. On win32 it never creates or removes a real %APPDATA%\\price-check that already exists.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The libsql check needs at least one @libsql .node file under app.asar.unpacked/node_modules/@libsql/\u003cplatform\u003e-\u003carch\u003e and fails if any native module path contains app.asar/, which covers both halves of the c-1 test_contract line.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-12": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "The 'database is locked' check (update.packaged.ts 'relaunch is B with its data') only reads output from Playwright launches; the installer-relaunched Windows instance and the updater-started Linux B instance are found through the OS, their output is never captured, and those are the runs most at risk of a lock error (c-6)",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "integrityCheck (launch-packaged.ts) runs PRAGMA integrity_check in an inline short-lived Node child with the same createDb/databaseUrl imports as seed-child.ts, not through seed-child itself; equivalent in effect, and seed-child.ts is not in this task's files",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-6",
+          "text": "On win32 exitedAt is when the test saw the launched process exit, which can trail Electron's real exit, so 'StartTime after A's exit' is checked against a later time: stricter, never vacuous",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "'check at launch' measures LAUNCH_CHECK_MS from launchedAt, which includes up to 60 s of launch wait; a slow launch leaves a 1 ms poll window (false-fail risk only)",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-13": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-4",
+          "text": "release-workflow.spec 'uses no cache' matches only /actions\\/cache@/, so actions/cache/restore@\u003csha\u003e or actions/cache/save@\u003csha\u003e would get past it; the test_contract says no job may use actions/cache at all",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "release-workflow.spec checks for always()/cancelled()/failure() only by a regex over the whole text and checks only job-level `if:`; a step-level `if:` written another way (e.g. `if: success() || true`) would not be caught. Low risk, since publish's `needs` is pinned exactly",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "publish runs `gh release list --limit 1000`; a repo with more than 1000 releases could miss an existing draft for the tag. Not a concern at this project's scale",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "`diff \u003c(...) \u003c(...) || true` in the publish script has no comment, but it only prints the mismatch before the unconditional `exit 1`, so no error is swallowed",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-14": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "The 'observed' test_contract line (phase PR test (windows|linux) runs t-12's update e2e green, test (macos) runs verify mac + smoke green) cannot be confirmed from the diff; it rests on the executor's PR run.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ci.yml 'package update build' computes B with version.split('.') and Number(patch)+1; a prerelease package.json version (e.g. 0.1.5-rc.1) would yield NaN. This is fine while package.json stays MAJOR.MINOR.PATCH per release_pipeline, and the spec's next-patch test would catch a change.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "osScript in ci-packaged.spec has its own tests for rejecting a missing, duplicate or extra arm, a non-failing catch-all, an unterminated arm and a second case, so a malformed step script cannot slip past the per-OS checks.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-15": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "On macOS, Quit also relaunches the app after installing: MacUpdater.quitAndInstall ignores its arguments and handleUpdateDownloaded calls nativeUpdater.quitAndInstall() because autoRunAppAfterInstall defaults to true. The lifecycle.ts header comment says so; this is electron-updater's behaviour, not something this diff added.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "watchSquirrel adds 'update-downloaded' and 'error' listeners to Electron's autoUpdater and never removes them. This is harmless because it runs once, on the way to exiting.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "main.ts now reads Electron's autoUpdater on every platform, including Linux, where it is a stub. The Linux packaged smoke run should confirm that reading it is harmless there.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-16": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/desktop/lifecycle.ts:53 rewrapped comment line runs far past the surrounding wrap width ('later only as a backstop, ... A Squirrel error exits at once, and so does a wait that passes'); cosmetic only",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the 'macOS ...' updater specs are not platform-gated, which is fine because installOnExit sets autoRunAppAfterInstall on every platform; the platform split lives inside electron-updater (BaseUpdater.js:16 uses isForceRunAfter when silent, MacUpdater.js:232 reads autoRunAppAfterInstall)",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/desktop/lifecycle.spec.ts is listed in the task's files but left unchanged; the existing lifecycle specs still pin the quit/restart hand-over, so nothing is missing",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-17": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "The fake exists() now builds the path exactly as production does (resolve(root, path), package-desktop.ts:251), so it matches on POSIX and Windows. If production changed how it builds the path, the test would fail loudly, not pass vacuously.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-18": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "The 'database is locked' check in update.packaged.ts ('relaunch is B with its data') now only sees output printed after Playwright attaches. A lock error printed during startup, the likeliest moment for c-6's failure, can no longer fail the test. The header comment documents this, but the c-6 proof is weaker and nothing replaces the lost coverage.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The cleanup loop in update.packaged.ts (around line 206) used to stop every pid that listened on a port. It now stops only the main process mainProcess picks for each port. Other processes holding the same socket are assumed to die with their parent; that holds for Chromium helpers but nothing checks it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The live linux/win32 wiring in e2e/packaged/launch-packaged.ts (instancesByPort, procDetail, and the holders split in windowsAppInstances) has no unit test. Only the pure helpers in scripts/process-probe.ts are pinned.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Moving servingInstance into scripts/process-probe.ts and adding pidsByPort there fits the description's condition 'only if the grouping moves into the parser'.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-19": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-4",
+          "text": "Reorder is behaviour-neutral: the secret-wiring test compares objects with toEqual (key-order-independent) and checks length with toHaveLength(SECRETS.length); dropping any name still fails both",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The historical GitGuardian finding on commit 61c138b still has to be marked a false positive in the dashboard by hand; this diff cannot clear it",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-2": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/package-desktop.ts fileSize (catch at ~line 1078 of the diff) turns every statSync error into null with no comment, so EACCES or EIO on the APPLE_API_KEY path shows up as 'must name an existing, non-empty .p8 file'. It fails closed and the refusal is printed, but the real error is lost.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The files/asarUnpack tests (matchesAll, packed, unpacked in scripts/package-desktop.spec.ts) check against a hand-copied model of app-builder-lib's filter.js and fileMatcher.js, not electron-builder itself. If electron-builder 26 changes how it collects node_modules, these tests can keep passing while the real packaging changes.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "If NSIS gets a null arch for a single-arch build, electron-builder drops '-${arch}' from ARTIFACT_NAME and the installer is named price-check-\u003cv\u003e-win.exe, not ...-win-x64.exe. The spec's expand() always fills in x64, so it can't catch this. Check the real file name before c-4's release job lists its files.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The description says the executor saw 'pnpm package:desktop --version 0.1.4' produce dist-packaged/mac-universal/Price Check.app. That's a manual check the diff can't show.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The tests for refusing --sign also capture process.stdout/stderr and console output, so a leaked secret value would be caught on those paths as well as through the injected stdout/stderr.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-20": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Production edits in scripts/verify-packaged.ts (parseAumid BOM replace, isInside toLowerCase, AUMID code-gated parse, parseUpdateYaml blank/comment skip) remove redundant code without changing behaviour; each now has a comment saying why it is safe",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "listAsar symlink test is skipped on win32 (it.skipIf), so the 'link' kind is only checked on POSIX runners",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-21": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "findUserInstall 'whatever the line endings' test cannot tell split(/\\r?\\n/) from split(/\\n/), because trim() plus taking only the last line hides the \\r. That mutant looks equivalent, so it should be listed in the writer report, not killed artificially.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "spawnRunner tests start real node child processes (process.execPath -e ...). They are hermetic and fast, but they are the only non-fake runner tests in the spec.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "This review cannot confirm the full count of 75 survivors killed or accepted. It needs the re-verify stryker run and the writer report's list of equivalent mutants.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-22": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "No production code changed; the new tests pin exact error messages, both ranking orders in mainProcess, anchoring in MS_DATE and the PPid regex, and the 65535/65536 port limits, which target the stryker survivors",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The diff cannot show which of the 64 survivors were judged equivalent; that list belongs to the writer report and should be checked at re-verify",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-23": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "'takes 65535 as a valid port' only checks the outcome isn't an 'invalid port' error, so any other start-up failure also passes. It kills the boundary mutant but tells you nothing else",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "The locked.bin read-failure and HEAD-without-read tests are skipped on Windows and when run as root. That's the right call, but those survivors are only killed on non-root POSIX runs",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "Both production edits (parseRange start\u003e=size check, empty-file length special case) are equivalent dead-code removals, and each comment explains why",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-24": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-3",
+          "text": "scripts/package-desktop.spec.ts:538 asserts h.out equals the mac dmg path for win32 and linux too; it holds only because the harness build stub always returns that path, so it checks that stdout echoes the build result, not anything per platform",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-4",
+          "text": "scripts/release-tag.ts:81 dropping `?? ''` on run.stderr removes dead code (the utf8 encoding makes stderr a string after a successful spawn, and run.error is rethrown first); a comment explains it",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-25": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "No production change; each named survivor (updater.ts:142 both directions, :171 x2, :172; lifecycle.ts:252) has an assertion in the diff that the mutant would trip, per src/desktop/updater.spec.ts and src/desktop/lifecycle.spec.ts harness behaviour.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The added requestSingleInstanceLock-once assertion in the 'a lost lock touches no key...' test duplicates coverage the new it.each table already gives; harmless.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-26": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-6",
+          "text": "e2e/packaged/update.packaged.ts:146 windowsInstallersJson runs Get-Process -Name 'price-check-*-win-x64' -ErrorAction SilentlyContinue with no comment saying why. A wildcard name gives no not-found error, so the switch only hides real Get-Process failures. The output is then empty, parseProcesses('') returns [], and osState reports 'no update installer running', a false diagnosis. Drop the switch, or catch only ObjectNotFound and report everything else, as NET_TCP_LISTENERS_SCRIPT in launch-packaged.ts does.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "On win32, osState can run three PowerShell probes: two in windowsAppInstances (60s each, PROBE_TIMEOUT_MS) and the installer probe (60s, DIAGNOSIS_MS), so up to about 180s. The 'relaunch after exit' setTimeout adds only DIAGNOSIS_MS (60s) plus 60s of slack, so a slow probe could hit the test timeout before the 'OS state' attachment is written.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The description's ci.yml audit against the supply-chain hardening reference is a report, not code, so nothing in the diff can show it was done; it is not judged here.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "On Linux the OS-state section comes from linuxAppInstances (e2e/packaged/launch-packaged.ts:671), which only lists processes holding a 127.0.0.1 port. If B relaunches but never listens, or hangs before it binds, the diagnosis says 'no instance' and gives no State or wchan for it. That is the exact case the 'no B process served' error reports.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The new wiring in e2e/packaged/update.packaged.ts (diagnosed, osState, probeSection, the INSTALLERS_SCRIPT probe) has no test. Only the pure helpers in scripts/process-probe.ts are pinned, so a mistake in the failure-only path shows up only when CI fails.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "procFile (e2e/packaged/update.packaged.ts) catches every error and returns null, unlike readProc in launch-packaged.ts:638, which rethrows EACCES. The comment says this is deliberate, and the null shows as 'unknown' in the diagnosis.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The ci.yml supply-chain audit in the description is a report, not code. It cannot be checked from this diff.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-27": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "expectNoInstance relies on linuxAppInstances, which only counts processes listening on a 127.0.0.1 port (launch-packaged.ts:671). A lingering AppImage runtime or FUSE process that serves no port is not waited for. The rename in replaceExecutable is what fixes ETXTBSY; the wait only guards the single-instance lock, which matches the record's stated purpose.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "replaceExecutable tests cover the inode change, an open handle still reading the old content, the new content, mode 0o755, creating a missing destination, leaving no temp file, and cleanup after a failed copy and after a failed rename.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-28": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "e2e/packaged/update.packaged.ts: linuxListenPorts(pidA) runs inside the diagnosed step, so a failing `ss` before 'Restart to update' now fails the Linux update test outright, where before only the relaunch could fail it. Consider recording the ports best-effort, so a failure leaves 'not recorded' instead of failing the test.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "e2e/packaged/update.packaged.ts diagnosed(): when `note` is given, the original error is wrapped in a new Error (kept as `cause`). Playwright's matcher error type and its structured expected/received fields are lost from the top-level report; only the message text survives.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "linuxAppImageProcesses reads every /proc entry synchronously. Because the scan is synchronous, the probeSection deadline timer cannot interrupt it. That is acceptable on a CI runner's process count.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "procEntry's `tolerant` mode treats every read failure as null. The doc comment states the reason (a diagnosis reads what it can). The non-tolerant path used for instance counting still throws on EACCES.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-29": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "e2e/packaged/update.packaged.ts waitForInstallers returns as soon as its first check finds no installer running. If the NSIS installer has not shown up in Get-Process yet when A exits, the wait goes straight to the full instance probe every second, so the change of item (2) is lost for that run. The run still fails within the budget and the failure output still lists any installer it finds, so this is not a correctness bug.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "processTree leaves out a child that started before its parent (an older process's child whose pid was reused), along with everything below it, and does not loop forever on a parent-pid cycle; scripts/process-probe.spec.ts tests both.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The test timeout works out to 765 s: EXIT_MS, the 420 s budget, three PowerShell calls of up to 60 s each after the deadline, RESPONSE_MS, the diagnosis time and 60 s of slack. The code comment explains the extra PowerShell allowance.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-3": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/release-tag.spec.ts 'imports only Node built-ins' uses /^import .* from '([^']+)';$/gm. It does not match a multi-line import `import {\\n a\\n} from 'pkg';` or a side-effect import `import 'pkg';`, so a dependency imported in either form would pass the guard. Matching every `from '...'` / `import '...'` specifier across lines would close the gap.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-4",
+          "text": "The test_contract line saying the executor saw `gh api .../environments/release/deployment-branch-policies` return exactly one {name:'v*', type:'tag'} is an executor observation. It is recorded in the task log, not the diff, so this review cannot confirm it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "release.json carries a 'policies' key that the environments PUT endpoint does not accept. The jq projection in the environments.spec.ts header comment strips it before the PUT and sends it through the separate deployment-branch-policies POST, so this is consistent.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The trailing-newline refusal relies on JS `$` without the m flag matching only at end of input. The TAG regex in scripts/release-tag.ts is not multiline, so 'v0.1.5\\n' is correctly refused, and the refusal table pins this.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-30": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "The task's file list names e2e/packaged/output-capture.cjs, but it was never created. That is right: the record allowed the main.ts seam (option 2) if packaged Electron ignores NODE_OPTIONS --require, and the main.ts header gives that reason.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The 'main.ts wiring of the capture' tests in src/desktop/main.spec.ts only search main.ts's source text with indexOf and a regex. Reformatting the file would break them, and they would still pass if the call order were wrong at runtime. The behavioural tests of takeOutputCaptureFile, startOutputCapture and withCaptureHandOver carry the real coverage.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "startOutputCapture (src/desktop/main.ts) records unhandled rejections only through uncaughtExceptionMonitor, so it depends on the runtime's default for unhandled rejections. If Electron only warns, the warning still reaches the capture through the hooked stderr write.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "captureRecord's JSON.parse catch (scripts/process-probe.ts) is not a quiet fallback. It returns an 'unreadable' record, and formatCaptureRecords prints those lines.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-31": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "keepDiagnosis calls writeFileSync in the catch blocks of diagnosed() and the Linux restart test (e2e/packaged/update.packaged.ts:457). If the write throws (for example the output folder is unwritable), that new error replaces the real failure, and in diagnosed() the OS state step is skipped too. A try/catch around the write that logs and carries on would keep the original error.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The record asks for 'the full capture' on stderr once, but keepDiagnosis also prints 'A output' and 'OS state' to stderr. It is harmless and it helps diagnosis, but it goes slightly beyond 'all other behaviour unchanged'.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "diagnosed() is shared with the Windows path, so Windows failures now also write .txt files under test-results/packaged. They end up in test-reports-windows, which is useful.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "keepDiagnosis prints every diagnosis to stderr: 'A output' and 'OS state' on both the win32 and linux paths, as well as the capture. The description only asked for the full capture on stderr once. This adds log volume but doesn't change test results.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The write failure caught in keepDiagnosis (e2e/packaged/update.packaged.ts:460-464) has a comment saying why and is reported in the stderr banner, so it is a surfaced best-effort write, not a swallowed error.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-32": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "linuxAppHolders' inherited path (scripts/process-probe.ts linuxAppHolders) does not check that the sharer's executable lies under an AppImage mount: any process that has no APPIMAGE variable, is not the AppImage file, and shares a socket with the runtime or daemon counts as an app holder. The comment says only the runtime's launch chain inherits such a socket, but the code does not enforce it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "When servingPort throws inside the pollFor probe (two candidate ports A never held), relaunchedPid is never set, so the inner finally in update.packaged.ts does not stopInstance B. A null relaunch already behaves this way, so cleanup depends on whatever else stops B.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The outer catch in the Linux restart test now wraps every error in a new Error with the probed and announced ports prepended (original kept as cause). That changes the top-level error type and stack for Playwright expect failures too, including failures before B is involved, where the note reads 'none picked'.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-4": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "updater-channel.spec's FeedUpdater calls setFeedURL to point the real GitHubProvider at the local fake; this is test-only and the ?raw source guard covers shipped updater.ts, so decision update_flow holds",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "the 'error' listener is attached in start() before the first runCheck(), and a test checks listenerCount('error') from inside checkForUpdates",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-5": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "src/desktop/lifecycle.ts lockAfterPredecessor: when predecessorPid is set but isProcessAlive is not wired, it returns false with nothing logged, so an update-started launch quits as 'second-instance' without trace. A console.error for that misconfiguration would make it visible.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "src/desktop/lifecycle.ts waitForExit: the last probe is at 29750 ms, then it sleeps to 30000 ms and gives up without probing again, logging 'outlived' even if the predecessor exited in that last interval. Harmless, because the lock retry that follows decides, but the log can be wrong.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "installPending removes ALERTS_ENCRYPTION_KEY and DATABASE_URL before calling installOnExit, so a failed hand-over still exits with them scrubbed. That is fine because app.exit(0) follows right after.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-6": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "README tells users the release's .zip and .yml files are for updates, but electron-builder releases usually also carry .blockmap files, which go unmentioned. Harmless, but readers may wonder about them.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-1",
+          "text": "The Windows test checks 'SmartScreen' and 'no administrator rights' but not that SmartScreen is the only warning. That is enough for the test_contract, and the 'no UAC' half is device UAT anyway.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The Development section still says 'Electron packaging is in progress', which is a little stale now that releases ship. It is outside this task's claimed surface.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-7": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/workflow-reader.ts triggers(): eventAt = body.findIndex(l =\u003e pair(l)?.[0] === event) does not check indent, so a nested key (e.g. a workflow_dispatch input named 'push') that comes before the real event line would be taken as that event's body. It should match only at the event's indent (indentOf(body[0])).",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "stripComment (/\\s#.*/) cuts a quoted value that contains ' #' (e.g. key: 'a #b'). The old ci-desktop helpers did the same; this repo's workflows have no such values.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "map() now accepts 'KEY:value' with no space after the colon (pinned by the 'H:v' case), unlike the old helper. It is harmless for ci-desktop.spec's env reads.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "ci-desktop.spec now reads the workflow in beforeEach. No describe-level code reads the reassigned variables at collection time, so moving the cacheDir/cacheSteps setup is safe.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-8": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "spec",
+          "severity": "BLOCKING",
+          "criterion": "c-5",
+          "text": "test_contract says update-feed.spec fails if the server's address is not 127.0.0.1, but the only test asserts feed.url, which update-feed.ts:788 builds from the LOOPBACK constant rather than server.address().address; listening on 0.0.0.0 or with no host leaves every test green. Assert (server.address() as AddressInfo).address === '127.0.0.1' (or return it in UpdateFeed and assert that)",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-5",
+          "text": "Swallowed error at scripts/update-feed.ts:713: `lstat(file).catch(() =\u003e null)` turns every lstat failure (EACCES, EIO, ENOTDIR, not just ENOENT) into a 404 with nothing logged; the adjacent comment explains lstat-vs-stat, not the discard. Return 404 only for ENOENT/ENOTDIR and rethrow (or log) the rest",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/update-feed.ts:772-775 and :743 drop the error object: serve() failures become a bare 500 and read-stream errors a bare res.destroy(), with no log, so a broken CI update run would show only an aborted download with no cause",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "fileNameFor's catch (update-feed.ts:658) maps a malformed percent-encoding to null/404 by design, and the '/%E0%A4%A' case tests it",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "process-probe parsers throw on malformed rows instead of skipping them, and tests cover single-object, empty and array ConvertTo-Json output plus PS 5.1/7 date forms",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-6",
+          "text": "scripts/process-probe.ts parseProcesses runs positiveInt on every row's Id/ProcessId, so an unfiltered `Get-Process | Select-Object Id,Path,StartTime` (the command the header comment documents) or Win32_Process listing includes the Idle process (pid 0) and the whole parse throws. The caller must filter by name or path first, or pid 0 should be allowed or skipped.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "scripts/update-feed.ts fileNameFor: the bare `catch { return null; }` around decodeURIComponent turns malformed percent-encoding into an explicit 404 (the doc comment says null means 404, and the path is recorded in requests()), so the error is not swallowed; a one-line comment at the catch would make this explicit.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "parseSsListeners skips a 127.0.0.1 LISTEN line with a non-numeric port without saying so; ss never prints one for a listener, so this has no practical effect.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "update-feed.spec covers traversal variants, a symlink, a dotfile, a subdirectory, a bad percent escape, suffix and mid-file ranges, 416, HEAD and 405, port release on close, and the ENAMETOOLONG 500 path with its log, well beyond the contract.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-9": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-3",
+          "text": "scripts/verify-packaged.ts:199 `const machineKey = result.code === 0 ? parseRegQuery(result.stdout) : null;` treats any failure of the HKLM uninstall query (spawn failure -1, timeout, access denied) as 'not installed per machine', with no comment, log or violation. HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall always exists on Windows, so a non-zero exit is a real error. As written, the per-machine/UAC check passes quietly when it never ran. Either report the failure as a violation (e.g. via failure(query, ...)), or accept only the documented 'key absent' exit and add a comment saying so.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/verify-packaged.ts:619 isFile's `catch { return false; }` discards every stat error with no comment. It fails closed, because false becomes a 'missing ...' violation, but an EACCES or EIO error is then misreported as a missing file. A comment, or checking for ENOENT, would make the intent explicit.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/packaged-app.ts:274: the comment justifies only reg's exit 1 for an absent key, but every non-zero code (including -1 when reg cannot be spawned) returns null. installWindows then reports 'no per-user (HKCU) uninstall entry', which hides the real cause.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "verify-packaged runCli names the subcommand with argv[0] in its 'ok' and violation-count lines. If an option comes before the subcommand (e.g. `--signed mac \u003capp\u003e`), the message shows the option instead of the command name.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Layout fixtures are real asars built with @electron/asar createPackageWithOptions, and the APP_DIR_NAME test uses vi.doMock to prove the folder name is not a literal. Both match the test_contract wording closely.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "scripts/packaged-app.ts findUserInstall treats every reg exit 1 as 'nothing installed per user'; reg.exe also exits 1 for other failures such as access denied. The comment states the reason and every caller (installWindows, runCli exe, verifyWin) turns null into an error or violation, so this is not a silent pass",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "scripts/verify-packaged.ts verifyWin's check that installed.key.key starts with HKEY_CURRENT_USER can never fail, because findUserInstall only queries HKCU; it is defensive only",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the 'fails an app.asar holding %s' table in scripts/verify-packaged.spec.ts asserts with violations.some(...), so a fixture that also triggers an unrelated violation would still pass; the whole-repo leak test makes up for this",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    }
+  }
+}

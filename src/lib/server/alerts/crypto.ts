@@ -1,8 +1,9 @@
 // Alert channel credentials at rest (decision encryption_key): AES-256-GCM under a
-// dedicated ALERTS_ENCRYPTION_KEY, bound to the owning user and channel kind by the
-// AAD, so a ciphertext copied into another user's row does not decrypt.
+// dedicated ALERTS_ENCRYPTION_KEY, bound to the channel kind by the AAD, so a
+// ciphertext copied into another kind's row does not decrypt. Rows sealed under the
+// old per-user AAD no longer open: they read as unreadable until saved again.
 //
-// Kept free of $app/$env imports: the e2e seed and the legacy backfill load it too.
+// Kept free of $app/$env imports: the e2e seed loads it too.
 // Nothing here ever puts a key, a plaintext or a ciphertext into an error message.
 
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
@@ -61,9 +62,9 @@ export function alertsKey(): Buffer {
 	return current;
 }
 
-/** Additional authenticated data binding a ciphertext to one user's channel of one kind. */
-export function channelAad(userId: string, kind: string): string {
-	return JSON.stringify(['alert-channel', userId, kind]);
+/** Additional authenticated data binding a ciphertext to the channel of one kind. */
+export function channelAad(kind: string): string {
+	return JSON.stringify(['alert-channel', kind]);
 }
 
 /** 'v1:' + base64(iv | tag | ciphertext); a fresh random IV every call. */

@@ -1,0 +1,162 @@
+task_seq = 12
+[phase]
+id = "01-public-ci"
+
+[[task]]
+id            = "t-1"
+wave          = 1
+title         = "Add narrow gitleaks allowlist config"
+files         = [".gitleaks.toml"]
+description   = "New .gitleaks.toml: `[extend] useDefault = true` plus one `[[allowlists]]` entry per triaged finding group. Full-history scan (gitleaks 8.30.1, `gitleaks git --redact`) today reports 10 findings, all in faff963: the handoff's 9 plus a third k-closure-key hit at src/lib/server/shops/amazon/fixtures/recorded-plain.html:9695 (same Amazon page-config value, covered by locked decision fixture_findings).\nInline `gitleaks:allow` markers cannot clear these: a history scan reads faff963's patch, which has no marker. So allowlisting is config-only, and each entry is narrow:\n- recorded-{plain,plain2,deal}.html: targetRules = [\"generic-api-key\"], paths = the three exact files (anchored ^…$), regexTarget = \"match\", regexes = ['k-closure-key'], condition = \"AND\" (the default OR would allow the whole file). Fixtures stay byte-for-byte; never re-recorded.\n- resend.spec.ts (16, 252), ntfy.spec.ts (325), routes/account/alerts/page.server.spec.ts (32, 470): targetRules = [\"generic-api-key\"], exact file paths, regexes pinned to the specific fake values, condition = \"AND\".\n- testing/fixtures/smtp-test-localhost.key and smtp-test-untrusted.key: targetRules = [\"private-key\"], the two exact file paths (rule+path).\nNo directory globs, no stopwords that would match real keys, no .gitleaksignore. Each entry carries a `description` saying why the value is not a secret. Never print finding secrets while working: always --redact, read reports as RuleID/File/StartLine only. Local `gitleaks dir` also flags the gitignored .env; that is out of scope (CI checkouts have no .env).\nBefore committing, run `gitleaks dir --config .gitleaks.toml --redact` over the working tree too, so the new .gitleaks.toml itself (which holds pinned fake-value regexes) is scanned before it enters history.\n"
+covers        = ["c-3"]
+test_contract = [
+  "if any of the 10 history findings is left unallowlisted, `gitleaks git --config .gitleaks.toml --redact --exit-code 1` over the full history exits 1 naming that file:line (expected: exit 0, zero findings)",
+  "if any single [[allowlists]] entry is deleted from a scratch copy of the config, the same full-history scan exits 1 with a finding in exactly that entry's file(s) (proves every entry is load-bearing)",
+  "in a scratch copy of the tree, if a new high-entropy generic-api-key assignment appended to resend.spec.ts or recorded-deal.html is NOT reported by `gitleaks dir --config .gitleaks.toml`, the allowlist is file-wide rather than value-scoped and the check fails",
+  "in a scratch copy, if a new PEM private key written to src/lib/server/testing/fixtures/other-test.key is NOT reported, the private-key allowlist is directory-wide and the check fails",
+]
+status        = "done"
+
+[[task]]
+id            = "t-2"
+wave          = 1
+title         = "Add workflow SHA-pin and permissions checker"
+files         = ["scripts/workflow-policy.ts", "scripts/workflow-policy.spec.ts", "package.json", "vite.config.ts", "stryker.config.json", "tsconfig.json"]
+description   = "scripts/workflow-policy.ts: a pure checker (exported function over file name + YAML text → list of violations with file:line) plus a CLI entry run under Node type stripping (`node scripts/workflow-policy.ts`), exposed as `pnpm ci:policy`. No new dependencies (no YAML library, no zizmor/actionlint download): line-based reading that fails closed on anything it cannot classify.\nRules: every `uses:` must be `./local-path` or `owner/repo[/path]@<40 lowercase hex>` (tags, branches, short SHAs, docker:// refs without @sha256 → violation). Workflow-level `permissions:` must be present and be exactly `contents: read`. Any job-level `permissions:` may only be `{}`, `contents: read` or `contents: none`. Exception hook (coordinator decision, for 05-release): export a `WRITE_SCOPE_ALLOWLIST` map of workflow file name → allowed job-level write scopes; it ships EMPTY in this phase, so today any write scope is still a violation. A listed workflow may grant only its listed scopes, only at job level, never at workflow level. Test both: empty list rejects; a listed workflow passes only for its listed scope. `write-all`, `read-all`, any other scope, any `: write`, and flow-style `permissions: { … }` → violation. The CLI scans .github/workflows/*.yml and *.yaml, prints each violation, and exits non-zero on any violation or when it finds no workflow file (a wrong path must not pass vacuously).\nvite.config.ts: the 'server' vitest project also includes scripts/**/*.{test,spec}.{js,ts}. stryker.config.json mutates scripts/**/*.ts too (minus specs) so dross verify can mutate the checker. tsconfig.json: add \"scripts\" to `include` so pnpm check typechecks scripts/** (today it covers only src + root configs). Make sure pnpm lint covers scripts/.\nCLI shape (review finding): export `runPolicyCli(workflowDir: string, log?): number` returning the exit code; the CLI entry is a one-line wrapper calling process.exit(runPolicyCli(...)). Tests call runPolicyCli in-process against temp dirs, never via a spawned node, so Stryker can credit the mutants.\n"
+covers        = ["c-5"]
+test_contract = ["if `uses: actions/checkout@v4`, `@main`, or a 7-char short SHA is accepted, the workflow-policy.spec 'unpinned uses' table test fails; a 40-hex ref and `./.github/actions/x` must pass it", "if a workflow with no top-level permissions block, `permissions: write-all`, `permissions: read-all`, top-level `contents: write`, or job-level `pull-requests: write` / `id-token: write` is accepted, the 'permissions' table test fails", "if flow-style `permissions: { contents: write }` or any permissions form the checker cannot classify is accepted, the 'fails closed' test fails", "if a violation's report does not carry the file name and 1-based line of the offending line, the 'locates' test fails", "if runPolicyCli returns 0 when the workflow dir holds no workflow file, or when one file has a violation, the 'cli exit' test fails (in-process, no spawned node)", "if, with WRITE_SCOPE_ALLOWLIST empty, a job-level `contents: write` is accepted — or, with a test-injected allowlist {'release.yml': ['contents']}, release.yml's job-level `contents: write` is rejected, its `packages: write` accepted, or a workflow-level `contents: write` accepted — the 'write-scope allowlist' test fails"]
+status        = "done"
+
+[[task]]
+id            = "t-3"
+wave          = 2
+depends_on    = ["t-2"]
+title         = "Rewrite README for end users first"
+files         = ["README.md", "scripts/readme.spec.ts", "package.json"]
+description   = """
+README order: title + one-paragraph pitch; an end-user section first (what it does; install from GitHub Releases (https://github.com/Rivil/price-check/releases) per OS: macOS .dmg, Windows installer including the SmartScreen 'More info → Run anyway' step, Linux AppImage incl. chmod +x; adding a first watch: paste an amazon.co.uk product link, set a target price; a short note that the first release is not published yet); then developer setup using the native toolchain: pnpm install, pnpm exec playwright install chromium, cp .env.example .env, pnpm db:migrate, pnpm admin:create, pnpm dev, and a command table (test:unit --run, test:e2e, check, lint, format, db:generate). Keep the Amazon-terms caveat, the 'tests never hit live shop sites' line and the Licence section.
+Remove every Docker, compose, production-image, reverse-proxy, /health-probing and self-host instruction. No private hostnames, registry, deploy paths or real ntfy topics (r-03).
+scripts/readme.spec.ts pins the structure.
+"""
+covers        = ["c-6"]
+test_contract = [
+  "if the first `## ` heading of README.md is not the end-user section (i.e. developer setup comes first), the readme.spec 'end user first' test fails",
+  "if the end-user section lacks the GitHub Releases link, any of macOS / Windows / Linux, the word SmartScreen, or instructions for adding a first watch, the 'install and first watch' test fails",
+  "if README.md mentions docker, compose, Dockerfile, image-smoke, reverse proxy or self-host (case-insensitive) anywhere, the 'no self-host' test fails",
+]
+status        = "done"
+
+[[task]]
+id            = "t-4"
+wave          = 2
+depends_on    = ["t-1", "t-2"]
+title         = "Add hardened 3-OS PR workflow"
+files         = [".github/workflows/ci.yml", ".node-version", ".gitattributes", "playwright.config.ts", ".github/workflows/audit.yml"]
+description   = ".github/workflows/ci.yml, triggered only by `pull_request` into `main` and `milestone/**` (locked gated_refs). No push trigger (no post-merge re-runs), no pull_request_target, no paths filters (a filtered-out PR would never report its required checks).\nHardening (reference_ci_supply_chain_hardening, Universal + Node/pnpm): top-level `permissions: contents: read`, no job-level permissions. Every action is pinned to a full 40-hex commit SHA with a `# vX.Y.Z` comment, resolved with `git ls-remote` at authoring time, never typed from memory (actions/checkout, actions/setup-node, pnpm/action-setup, actions/cache, actions/upload-artifact, nothing else). checkout uses `persist-credentials: false`. Node is pinned exactly via .node-version (24.14.0, the version observed locally). pnpm comes from package.json packageManager (pnpm@10.33.4). Install is `pnpm install --frozen-lockfile`. Dependency build scripts stay default-denied by pnpm 10 apart from the existing `onlyBuiltDependencies: [esbuild]`, which must not be widened. No `@latest`, no `npx`/`pnpm dlx` of unpinned tools.\nCost (reference_ci_pipeline_optimisation): `concurrency` per PR number with cancel-in-progress. `timeout-minutes` on every job. Cheap jobs gate the matrix: `static` (ubuntu-24.04: pnpm lint, pnpm check, pnpm ci:policy as separate steps) and `gitleaks` (ubuntu-24.04: checkout fetch-depth 0; download the gitleaks 8.30.1 linux_x64 release tarball and verify it against a sha256 pinned in the workflow before running; then `gitleaks git --config .gitleaks.toml --redact --no-banner --exit-code 1`; no gitleaks-action). Then one merged `test` job per OS, with `needs: [static, gitleaks]` and fail-fast false. Matrix include: linux/ubuntu-24.04, macos/macos-15, windows/windows-2025, job name `test (${{ matrix.name }})` so the required-check names survive a runner-image bump. Each runs pnpm install, then Playwright chromium (cached on runner.os + hashFiles('pnpm-lock.yaml'), `--with-deps`/install-deps on Linux only), then `pnpm test:unit --run`, then `pnpm test:e2e`. Unit and e2e run in one job so each OS pays for one VM, one install and one browser install. playwright-report and test-results are uploaded only `if: failure()`, retention 7 days (the repo is public, but artifacts hold only seeded test data). Required-check names end up as: static, gitleaks, test (linux), test (macos), test (windows).\n.gitattributes: add `* text=auto eol=lf` (all 235 tracked text files are already LF, so nothing renormalises) and `-text` on src/lib/server/shops/**/fixtures/*.html and the test PEM/key fixtures, so Windows checkouts keep them byte-for-byte and prettier --check is not tripped by CRLF.\nplaywright.config.ts: `forbidOnly: !!process.env.CI` and `retries: 0`, so a stray test.only cannot turn a run vacuously green.\nPlan-review amendments (coordinator-accepted):\n- Workflow-level `defaults: run: shell: bash`, so Windows runners don't use PowerShell (which only surfaces the last command's exit code).\n- gitleaks runs as `gitleaks git --log-opts=HEAD --config .gitleaks.toml --redact --no-banner --exit-code 1`: the full history of the code under review only, not every fetched branch (otherwise one bad side branch turns every PR red).\n- The pinned gitleaks sha256 comes from the release's published checksums file, cross-checked against a local download of the same tarball; record both observations in the task notes.\n- Set `PLAYWRIGHT_BROWSERS_PATH` to one workspace-relative path at workflow level so the browser cache path/key works on all three OSes.\n- .github/workflows/audit.yml (separate, NOT a required check): `pnpm audit --audit-level=high --prod` on pull_request with `paths: [pnpm-lock.yaml, package.json]` plus a weekly `schedule`. Same hardening as ci.yml (SHA pins, contents: read, bash shell, frozen lockfile); must pass ci:policy.\n"
+covers        = ["c-1", "c-2", "c-5"]
+test_contract = [
+  "if any `uses:` in ci.yml is not a 40-hex SHA, or ci.yml grants anything beyond `contents: read`, `pnpm ci:policy` exits non-zero (expected: exit 0 on the committed ci.yml)",
+  "if a `test.only` is added to any *.e2e.ts, `CI=1 pnpm test:e2e` exits non-zero with Playwright's forbidOnly error (checked locally, then the test.only is removed)",
+  "if the gitleaks tarball's sha256 does not match the pinned value, the gitleaks job fails at the verify step before gitleaks runs (checked by reading the step: verification precedes execution and uses `sha256sum -c` or an equivalent strict compare)",
+  "if lint, check or ci:policy fails, the static job fails and all three `test (…)` jobs are skipped (needs: [static, gitleaks]); proven on GitHub in t-6",
+  "if `git ls-files --eol` shows any tracked text file changing to i/crlf, or `git add --renormalize .` produces a diff, the .gitattributes change is unsafe and the task fails",
+]
+status        = "done"
+
+[[task]]
+id            = "t-5"
+wave          = 3
+depends_on    = ["t-3"]
+title         = "Remove Docker artefacts and every reference"
+files         = ["Dockerfile", "compose.yaml", ".dockerignore", "scripts/image-smoke.sh", "ARCHITECTURE.md", "src/lib/server/health.ts", "src/lib/server/cli/admin-create.ts", "src/lib/server/cli/adapter-check.ts", "scripts/repo-hygiene.spec.ts"]
+description   = "Delete Dockerfile, compose.yaml, .dockerignore and scripts/image-smoke.sh. Remove the image-smoke.sh entries and mentions in ARCHITECTURE.md (lines ~69, 162, 165). Reword the comments that point at docker compose: the cli/admin-create.ts and cli/adapter-check.ts headers (run them with pnpm directly) and health.ts ('5s compose timeout'). Comments only; no behaviour change.\nscripts/repo-hygiene.spec.ts asserts the four paths are absent and that no tracked file (via `git ls-files`, excluding .dross/, pnpm-lock.yaml and the recorded shop fixtures) mentions Dockerfile, compose.yaml, .dockerignore, image-smoke or `docker compose`. Depends on t-3 because README.md is the largest remaining reference.\nStryker-safe (review finding): Stryker runs from .stryker-tmp/ inside the repo, where a bare `git ls-files` returns nothing. Resolve the repo root with `git rev-parse --show-toplevel` from the spec's own directory and run `git -C <root> ls-files`; if that still yields nothing (sandbox), fall back to walking the filesystem from the sandbox root. Exclude scripts/repo-hygiene.spec.ts and scripts/readme.spec.ts from the reference scan, or build the forbidden words from fragments so a spec cannot match itself.\n"
+covers        = ["c-7"]
+test_contract = [
+  "if any of Dockerfile, compose.yaml, .dockerignore or scripts/image-smoke.sh exists, the repo-hygiene.spec 'docker files removed' test fails",
+  "if any tracked file outside .dross/, pnpm-lock.yaml and shop fixtures mentions Dockerfile, compose.yaml, .dockerignore, image-smoke or `docker compose`, the 'no references' test fails, naming the file and line",
+  "if the hygiene spec's file list is empty (git ls-files not run or run from the wrong cwd), the 'scans the tree' guard fails, so the reference check cannot pass vacuously",
+]
+status        = "done"
+
+[[task]]
+id            = "t-6"
+wave          = 4
+depends_on    = ["t-4", "t-5"]
+title         = "Prove CI green on three OS runners"
+files         = [".github/workflows/ci.yml", "playwright.config.ts", "e2e/seed.ts", "e2e/accounts.ts", "vite.config.ts", "src/lib/server/testing/temp-dir.ts", "src/lib/server/testing/temp-dir.spec.ts", "src/lib/server/testing/auth-harness.ts", "src/lib/server/admin-bootstrap.spec.ts", "src/lib/server/alerts/backfill.spec.ts", "src/lib/server/db/check-failure.schema.spec.ts", "src/lib/server/db/migrate.spec.ts", "src/lib/server/db/watch.schema.spec.ts", "src/lib/server/health.spec.ts", "src/routes/layout.e2e.ts", "src/lib/server/db/index.ts", "src/lib/server/db/index.spec.ts"]
+description   = "e2e has never run on CI. Locally on macOS it is green: 127 passed in 1.0m on 2026-11-11, before this plan. Prove the gate on GitHub. Push a probe branch `ci-probe/01-public-ci` whose tree is the phase head with .dross/ excluded (dross ship filters .dross/ for the public repo, so the probe does too). Open a DRAFT PR from it into milestone/v0.1, which fires the pull_request workflow. Read `gh pr checks` and fix any OS-specific failure on the phase branch: Windows paths, the `file:e2e/.data/e2e.db` URL, the webServer `&&` chain under cmd, build time against the 180s webServer timeout, libsql native binaries. Each fix gets its own commit and test, then refresh the probe. Files listed are the likely fix sites; a fix elsewhere is added to this task with `dross task edit` before it is made. Locked e2e_gate: if e2e is red, this phase fixes it; never mark a test skip/fixme to get green.\nRed proofs, each pushed to the probe, observed, then reverted: (a) a prettier violation, which turns static red and skips the test jobs; (b) a fake high-entropy generic-api-key line in a new file, which turns gitleaks red (fake value only, never a real credential); (c) a failing expect in one e2e spec, which turns all three test (…) jobs red. Keep the probe PR open for t-7.\nPlan-review amendments: undo each red proof by `git push --force-with-lease` of the probe back to the previous green commit, never `git revert` (a reverted fake key stays in branch history). Also open a second DRAFT probe PR from `ci-probe/01-public-ci-main` into `main` and observe all five checks run green on it, proving the main trigger; close it and delete its branch at the end of this task.\n"
+covers        = ["c-1", "c-2"]
+test_contract = [
+  "if any of static, gitleaks, test (linux), test (macos), test (windows) is not success on the probe PR's final head (which must equal the phase head minus .dross/), c-1/c-2 are unmet; evidence is the `gh pr checks` output for that head SHA",
+  "if a pushed prettier violation does not turn `static` red with the three test (…) jobs skipped, the cheap-gates-expensive wiring is broken",
+  "if a pushed fake generic-api-key value in a new file does not turn `gitleaks` red, the PR secret gate is broken",
+  "if a pushed failing e2e expect does not turn test (linux), test (macos) and test (windows) red, a failing e2e step is not failing its check",
+  "if the vitest step on any OS reports fewer test files than the local run (61+ files), a project silently did not run (e.g. the browser 'client' project) and the run does not count",
+]
+status        = "done"
+
+[[task]]
+id            = "t-7"
+wave          = 5
+depends_on    = ["t-6"]
+title         = "Apply and prove main/milestone rulesets"
+files         = [".github/rulesets/main.json", ".github/rulesets/milestone.json", "scripts/rulesets.spec.ts"]
+description   = "Commit the two ruleset bodies and apply them with `gh api` to Rivil/price-check: POST /repos/Rivil/price-check/rulesets, or PUT /rulesets/<id> when a ruleset of that name already exists, so the step is idempotent. Not `dross protect --apply`: it derives checks from workflows on origin/main (none until the milestone merges), and its milestone ruleset requires no checks, which contradicts locked gated_refs.\nmain.json: target branch, include refs/heads/main, enforcement active. Rules: pull_request (0 approvals), required_status_checks (static, gitleaks, test (linux), test (macos), test (windows), each with integration_id 15368 = GitHub Actions so another app cannot spoof them, strict policy false), deletion, non_fast_forward.\nmilestone.json: include refs/heads/milestone/**. Rules: pull_request + the same required_status_checks. No deletion rule, because dross milestone --finalize deletes the branch.\nBoth: bypass_actors = [{actor_type RepositoryRole, actor_id 5 (admin), bypass_mode always}] only (locked protection_bypass). Also set repo allow_auto_merge = true (what dross protect --apply would do, so dross's chore-PR route can auto-merge) and confirm actions default_workflow_permissions is still read.\nscripts/rulesets.spec.ts keeps the JSON and ci.yml in step.\nAfter the proofs: close the probe PR and delete the probe branch.\nPlan-review amendments (coordinator-accepted):\n- Ruleset names are \"ci: main\" and \"ci: milestones\" (deliberately NOT dross's own names). Never run `dross protect --apply` on this repo: it would create duplicate rulesets without the admin bypass.\n- Mirror dross's full pull_request rule parameter set from ~/Development/dross/internal/protect/ruleset.go (read it, ~lines 8-13, 66-72, 84-95): required_approving_review_count 0, require_extra_approval_for_unattributed_changes false (explicitly; GitHub defaults it on), dismiss_stale_reviews_on_push false, require_code_owner_review false, require_last_push_approval false, required_review_thread_resolution false, allowed_merge_methods [\"merge\",\"squash\"].\n- Probe proofs: `gh pr ready` the probe before the proofs and `gh pr ready --undo` after (draft PRs report DRAFT, never BLOCKED).\n- Ordering: apply the rulesets last, after everything else in the phase is green. The coordinator then ships phase 01 into milestone/v0.1 and merges milestone/v0.1 into main straight away, so both branches carry ci.yml before any chore PR needs the checks.\n"
+covers        = ["c-4"]
+test_contract = ["if `gh api repos/Rivil/price-check/rules/branches/main` or `.../rules/branches/milestone/v0.1` lacks a pull_request rule or a required_status_checks rule listing exactly the five contexts, c-4/gated_refs are unmet", "if either ruleset's bypass_actors is anything other than the single RepositoryRole admin entry, or enforcement is not active, the check fails (read back with `gh api repos/Rivil/price-check/rulesets/<id>`)", "if a required context in .github/rulesets/*.json names no job that ci.yml produces (renamed job or matrix name), or a ci.yml job is missing from the required list, the rulesets.spec 'contexts match jobs' test fails", "if `gh api repos/Rivil/price-check/actions/permissions/workflow` reports default_workflow_permissions other than read, the check fails", "record (do not gate on) what `dross protect --check main` and `dross protect --check milestone/v0.1` print, in the task notes, so the coordinator knows whether dross will route chores via PR or direct push", "on the probe PR, marked ready: if a pushed prettier violation leaves mergeStateStatus anything but BLOCKED (with `gh pr checks --required` showing the five contexts and static failing), or if after force-pushing back and all checks going green it is still BLOCKED, the required checks are not what gates the merge (never attempt an actual merge of the probe)"]
+status        = "done"
+
+[[task]]
+id = "t-8"
+wave = 6
+title = "Kill verify survivors and pin c-1/c-3 in tests"
+files = ["scripts/workflow-policy.spec.ts", "scripts/rulesets.spec.ts", "scripts/gitleaks-config.spec.ts", "scripts/workflow-policy.ts"]
+description = "Verify 2026-11-11 (a1d6310) failed: mutation 0.67, 122 unaccepted survivors in scripts/workflow-policy.ts; c-1 and c-3 weak.\nTests only — workflow-policy.ts behaviour is correct; do not change its logic unless a test exposes a real bug (then fix + note it).\n1. scripts/workflow-policy.spec.ts: kill the survivors. Read .dross/phases/01-public-ci/verify.toml and the Stryker JSON report it references for the exact survivor list (lines/mutators). Must include: (a) an unpinned `uses:` AFTER a `run: |` block in a later step is still reported (line ~57); (b) quoted keys `\"uses\":` / `'permissions':` are reported (lines ~32-33); (c) workflow-level `permissions: actions: read` (any non-contents scope, read or write) is reported (line ~135). Replace bare `not.toEqual([])` reject assertions with assertions on the specific message and line, so message/branch mutants die.\n2. A separate-process test for the CLI entry guard (line ~242 isEntry): spawn `node scripts/workflow-policy.ts <tmpdir>` via execFileSync on a temp dir holding an unpinned workflow and assert exit code 1 and the file:line in stderr; and exit 0 on a clean dir. (Stryker cannot credit it in-process; that's expected — the coordinator accepts that one mutant at re-verify.)\n3. scripts/rulesets.spec.ts: assert ci.yml's test job runs `pnpm test:unit --run` and `pnpm test:e2e`, and the static job runs `pnpm lint`, `pnpm check` and `pnpm ci:policy` (c-1: deleting any of those steps must fail a test).\n4. New scripts/gitleaks-config.spec.ts (c-3): parse .gitleaks.toml (no new deps; simple line reading is fine) and assert every [[allowlists]] entry has targetRules and only exact anchored file paths (^...$, no `*`/`.*`/directory globs), and every generic-api-key entry has condition = \"AND\" with regexes; no stopwords, no top-level [allowlist] paths.\nRun `pnpm lint` and `pnpm check` too (r-04). Then the coordinator re-runs verify with the same ranges."
+covers = ["c-1", "c-3", "c-5"]
+test_contract = ["if an unpinned `uses:` placed after a `run: |` block in a later step is not reported, the workflow-policy.spec block-scalar test fails", "if a quoted `\"uses\":` or `'permissions':` key is not reported, the workflow-policy.spec quoted-key test fails", "if workflow-level `permissions:` with `actions: read` (or any scope other than contents: read) is accepted, the workflow-policy.spec permissions test fails", "if `node scripts/workflow-policy.ts <dir>` exits 0 on a dir holding an unpinned workflow (e.g. entry guard never fires), the separate-process CLI test fails", "if ci.yml's test job stops running `pnpm test:unit --run` or `pnpm test:e2e`, or the static job stops running `pnpm lint`, `pnpm check` or `pnpm ci:policy`, the rulesets.spec steps test fails", "if a .gitleaks.toml allowlist entry gains a directory glob, an unanchored path, loses targetRules, or a generic-api-key entry loses condition AND/regexes, the gitleaks-config.spec test fails"]
+status = "done"
+depends_on = ["t-7"]
+
+[[task]]
+id = "t-9"
+wave = 7
+title = "Kill the last verify survivors (block scalars, indentless steps)"
+files = ["scripts/workflow-policy.spec.ts"]
+description = "Verify attempt 2 (b019924): mutation 0.90 over 444; 6 blocking survivors (4 keys) in scripts/workflow-policy.ts lines 29, 37, 66, 83. workflow-policy.ts is already correct on each killing input — tests only.\nAdd to scripts/workflow-policy.spec.ts one exact-report test per input (corpus from verify attempt 2):\n- :29 BLOCK_SCALAR `$`: a job as a multi-line flow mapping whose continuation line carries `permissions: write-all` → reported at that line (false negative under the mutant).\n- :29 `\\s*` → `\\s`: `- run:  |` (two spaces) with body `echo \"uses: foo\"` → no violations.\n- :37 `\\s+#` → `\\s#`: `- run: |  # note` with body `echo \"uses: foo\"` → no violations.\n- :66 `/^-\\s*/` → `/-\\s*/`: `my-input: |` under with:, body one column deeper reading `permissions: write-all` → no violations.\n- :83 `indent += 2` → `-= 2`: indentless steps (`    - run: echo hi`) then job-level `permissions:` / `contents: read` → none; with `permissions: write-all` → 'job-level permissions: write-all grants every scope'."
+covers = ["c-5"]
+test_contract = ["if a multi-line flow-mapping job's continuation line with `permissions: write-all` is not reported at that line, the flow-continuation test fails", "if `- run:  |` (two spaces) or `- run: |  # note` stops being treated as a block scalar (body `echo \"uses: foo\"` reported), the block-scalar spacing tests fail", "if a hyphenated key's block scalar body (`my-input: |`) is checked as YAML, the hyphen-key test fails", "if job-level permissions after indentless steps are misclassified (extra violation on contents: read, or a different message for write-all), the indentless-steps tests fail"]
+status = "done"
+depends_on = ["t-8"]
+
+[[task]]
+id = "t-10"
+wave = 8
+title = "Pin lone-CR comment handling in the policy checker"
+files = ["scripts/workflow-policy.spec.ts"]
+description = "Verify attempt 3 (b027b54): one blocking survivor, scripts/workflow-policy.ts:37 /\\s+#.*$/ -> /\\s+#.*/. A line holding a lone CR (valid YAML line break) after a comment is refused today ('uses reference cannot be classified'); the mutant reads through it. Michal chose (2026-11-11): add a test, no source change. Tests only."
+covers = ["c-5"]
+test_contract = ["if a step line '      - uses: # c\\r          actions/checkout@<40-hex>' is not reported as 'uses reference cannot be classified' at its line, the lone-CR test fails"]
+status = "done"
+depends_on = ["t-9"]
+
+[[task]]
+id = "t-11"
+wave = 9
+title = "Pin gate-step and rule-allowlist loopholes"
+files = ["scripts/rulesets.spec.ts", "scripts/gitleaks-config.spec.ts"]
+description = "Verify attempt 4 (894ea94) partial on two FLAGs. Tests only. (1) rulesets.spec: no continue-on-error anywhere in ci.yml, and the only step-level if: is 'if: failure()' on the upload-artifact step. (2) gitleaks-config.spec: no [[rules]] / [rules.*] tables at all, so no custom rule or rule-scoped allowlist can bypass the narrowness checks."
+covers = ["c-1", "c-3"]
+test_contract = ["if continue-on-error or a step-level if: other than failure() on the upload step is added to ci.yml, the rulesets.spec gate-steps test fails", "if .gitleaks.toml gains a [[rules]] table or a [[rules.allowlists]] entry, the gitleaks-config.spec test fails"]
+status = "done"
+depends_on = ["t-10"]
+
+[[task]]
+id = "t-12"
+wave = 10
+title = "Allowlist dross survivor ids in tests.json for gitleaks"
+files = [".gitleaks.toml"]
+description = "Phase PR #3 gitleaks check failed: 4 generic-api-key hits in .dross/phases/01-public-ci/tests.json (commit a1d6310) — dross survivor ids rendered as JSON \"Key\": \"<16 hex>\". Not secrets. Add one narrow [[allowlists]] entry: targetRules generic-api-key, exact path ^\\.dross/phases/01-public-ci/tests\\.json$, condition AND, regexTarget line, regex anchored to the whole line shape '\"Key\": \"<16 lowercase hex>\"'. Must keep gitleaks-config.spec green (exact path, value-pinned)."
+covers = ["c-2", "c-3"]
+test_contract = ["if gitleaks git --log-opts=HEAD --config .gitleaks.toml over the phase history reports anything, the c-2 gate fails (expected exit 0)", "if a real high-entropy generic-api-key line is added to that tests.json, gitleaks dir still reports it (the entry is line-shape-scoped, not file-wide)"]
+status = "done"
+depends_on = ["t-11"]

@@ -1,0 +1,1995 @@
+{
+  "phase": "01-public-ci",
+  "generated_at": "2026-11-11T13:28:01.643264Z",
+  "languages": [
+    {
+      "name": "typescript",
+      "tool": "stryker",
+      "files": [
+        "e2e/accounts.ts",
+        "e2e/seed.ts",
+        "playwright.config.ts",
+        "scripts/gitleaks-config.spec.ts",
+        "scripts/readme.spec.ts",
+        "scripts/repo-hygiene.spec.ts",
+        "scripts/rulesets.spec.ts",
+        "scripts/workflow-policy.spec.ts",
+        "scripts/workflow-policy.ts",
+        "src/lib/server/admin-bootstrap.spec.ts",
+        "src/lib/server/alerts/backfill.spec.ts",
+        "src/lib/server/cli/adapter-check.ts",
+        "src/lib/server/cli/admin-create.ts",
+        "src/lib/server/db/check-failure.schema.spec.ts",
+        "src/lib/server/db/index.spec.ts",
+        "src/lib/server/db/index.ts",
+        "src/lib/server/db/migrate.spec.ts",
+        "src/lib/server/db/watch.schema.spec.ts",
+        "src/lib/server/health.spec.ts",
+        "src/lib/server/health.ts",
+        "src/lib/server/testing/auth-harness.ts",
+        "src/lib/server/testing/temp-dir.spec.ts",
+        "src/lib/server/testing/temp-dir.ts",
+        "src/routes/layout.e2e.ts",
+        "vite.config.ts"
+      ],
+      "mutation": {
+        "Tool": "stryker",
+        "Killed": 405,
+        "Survived": 39,
+        "Timeout": 0,
+        "Errors": 0,
+        "Score": 0.9121621621621622,
+        "Surviving": [
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 144,
+            "Op": "ArrayDeclaration",
+            "Snippet": "[]",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "f73eb9e2ae2e7e8f",
+            "Lifecycle": "accepted",
+            "Note": "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 144,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "bb65550724c8fd68",
+            "Lifecycle": "accepted",
+            "Note": "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 205,
+            "Op": "ObjectLiteral",
+            "Snippet": "{}",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "278a91605d830357",
+            "Lifecycle": "accepted",
+            "Note": "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 205,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "e2fd741aea7b5d33",
+            "Lifecycle": "accepted",
+            "Note": "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 241,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "28c9965c058a3f47",
+            "Lifecycle": "accepted",
+            "Note": "Entry-guard fallback for Node \u003c 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs \u0026\u0026 is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 241,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "28c9965c058a3f47",
+            "Lifecycle": "accepted",
+            "Note": "Entry-guard fallback for Node \u003c 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs \u0026\u0026 is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 241,
+            "Op": "LogicalOperator",
+            "Snippet": "process.argv[1] !== undefined || resolve(process.argv[1]) === fileURLToPath(import.meta.url)",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "2090775e96ae08a4",
+            "Lifecycle": "accepted",
+            "Note": "Entry-guard fallback for Node \u003c 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs \u0026\u0026 is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 241,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "28c9965c058a3f47",
+            "Lifecycle": "accepted",
+            "Note": "Entry-guard fallback for Node \u003c 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs \u0026\u0026 is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 241,
+            "Op": "EqualityOperator",
+            "Snippet": "process.argv[1] === undefined",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "fb5e408eab689f6a",
+            "Lifecycle": "accepted",
+            "Note": "Entry-guard fallback for Node \u003c 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs \u0026\u0026 is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 241,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "28c9965c058a3f47",
+            "Lifecycle": "accepted",
+            "Note": "Entry-guard fallback for Node \u003c 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs \u0026\u0026 is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 241,
+            "Op": "EqualityOperator",
+            "Snippet": "resolve(process.argv[1]) !== fileURLToPath(import.meta.url)",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "fb5e408eab689f6a",
+            "Lifecycle": "accepted",
+            "Note": "Entry-guard fallback for Node \u003c 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs \u0026\u0026 is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 242,
+            "Op": "LogicalOperator",
+            "Snippet": "process.argv[2] \u0026\u0026 '.github/workflows'",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "285f67993742f4d6",
+            "Lifecycle": "accepted",
+            "Note": "CLI entry guard, unreachable in-process. '?? -\u003e \u0026\u0026' makes a given dir argument check .github/workflows instead: killed by workflow-policy.spec 'runs as a separate process' (hand-replayed: exits 0 on the unpinned dir, test expects 1). With no argument it fails closed (exit 1)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 242,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "NotCovered": true,
+            "Origin": "in-hunk",
+            "Key": "0890f1b1660ea113",
+            "Lifecycle": "accepted",
+            "Note": "CLI default dir, unreachable in-process and fails closed: with '' as the default, pnpm ci:policy (no argument, as CI runs it) exits 1 'no workflow files' (hand-replayed), turning the static check red on the next PR; it cannot let a violation pass. Not killed by the separate-process test, which always passes a dir."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 41,
+            "Op": "MethodExpression",
+            "Snippet": "value",
+            "Origin": "in-hunk",
+            "Key": "f8b19e1bf391e805",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 42,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "cfaa815ed2c7edc3",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent on valid YAML: length\u003e=2 -\u003e true only differs for a 1-char value that is a lone quote, i.e. an unterminated quoted scalar GitHub cannot parse. Hand-replayed 2026-11-11: no corpus difference."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 42,
+            "Op": "EqualityOperator",
+            "Snippet": "v.length \u003e 2",
+            "Origin": "in-hunk",
+            "Key": "5f56b59d1dedc3f5",
+            "Lifecycle": "accepted",
+            "Note": "Only differs on an empty quoted value (uses: \"\" / contents: ''), which GitHub rejects (empty action ref / permission level). Both versions still report a violation on that line; only the echoed value text differs. Hand-replayed 2026-11-11."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 79,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "d36fc9c5807f6a52",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent on valid workflows: a bare '-' item only adds '-' to descendant paths, and in a valid workflow a bare dash sits at depth \u003e=3 (steps, matrix.include) or in a scalar list, where both paths fall to the same branch (uses check is path-free; permissions there is the 'cannot classify' fallback either way). Hand-replayed incl. '-' and '- # comment' items: identical."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 79,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "788aa5736ca63182",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: content is never '' here (empty lines return at line 61), so text === '' is always false; the mutant reduces to the bare-dash case, which is equivalent on valid workflows (see line 79 ConditionalExpression). Hand-replayed: identical."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 80,
+            "Op": "StringLiteral",
+            "Snippet": "\"\"",
+            "Origin": "in-hunk",
+            "Key": "6282431a909229b7",
+            "Lifecycle": "accepted",
+            "Note": "The dash frame key is only compared at path[1] !== '-' (jobs.\u003cid\u003e), reachable only when jobs is a sequence, which GitHub rejects. Elsewhere '' vs '-' in the path changes no branch. Hand-replayed: identical."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 87,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "d74ef6aac2054cab",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent on valid workflows: an extra null frame is pushed only for non-key lines (scalar list items, '---'), which have no block children in valid YAML, so it is popped by the next sibling/shallower line before any classified key reads the path. Hand-replayed incl. '---' and scalar lists: identical."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 102,
+            "Op": "EqualityOperator",
+            "Snippet": "childIndent \u003c= 0",
+            "Origin": "in-hunk",
+            "Key": "1a2c67cf66b80698",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: once set, childIndent is a child's indent, which is \u003e the parent indent \u003e= 0, so it is never 0; \u003c 0 and \u003c= 0 agree on -1 and on every reachable value."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 119,
+            "Op": "OptionalChaining",
+            "Snippet": "KEY.exec(entry.text.replace(/^-\\s*/, ''))[2]",
+            "Origin": "in-hunk",
+            "Key": "3f5b268db0abfa95",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 119,
+            "Op": "Regex",
+            "Snippet": "/^-\\S*/",
+            "Origin": "in-hunk",
+            "Key": "84b59b0fb1208785",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: checkPermissions is only called for path [] or [jobs,\u003cid\u003e] with id != '-', so its entry never starts with '-' (a '- permissions:' line has '-' in its path and goes to the fallback). The dash-stripping regex is a no-op there. Hand-replayed both regex mutants: identical."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 119,
+            "Op": "Regex",
+            "Snippet": "/^-\\s/",
+            "Origin": "in-hunk",
+            "Key": "84b59b0fb1208785",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: checkPermissions is only called for path [] or [jobs,\u003cid\u003e] with id != '-', so its entry never starts with '-' (a '- permissions:' line has '-' in its path and goes to the fallback). The dash-stripping regex is a no-op there. Hand-replayed both regex mutants: identical."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 119,
+            "Op": "StringLiteral",
+            "Snippet": "\"Stryker was here!\"",
+            "Origin": "in-hunk",
+            "Key": "d59a08fa73af9b01",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 136,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "6d1a8890f4b5d82a",
+            "Lifecycle": "accepted",
+            "Note": "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 143,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "09fd27033e018c1b",
+            "Lifecycle": "accepted",
+            "Note": "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 168,
+            "Op": "ArrayDeclaration",
+            "Snippet": "[\"Stryker was here\"]",
+            "Origin": "in-hunk",
+            "Key": "79d9ae17e1224491",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 176,
+            "Op": "OptionalChaining",
+            "Snippet": "KEY.exec(bare)[2]",
+            "Origin": "in-hunk",
+            "Key": "9c3f2c2a30862629",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 184,
+            "Op": "UpdateOperator",
+            "Snippet": "topPermissions--",
+            "Origin": "in-hunk",
+            "Key": "10e5b63000de78a2",
+            "Lifecycle": "accepted",
+            "Note": "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 185,
+            "Op": "ArrayDeclaration",
+            "Snippet": "[\"Stryker was here\"]",
+            "Origin": "in-hunk",
+            "Key": "8f64c32b532d2f54",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 204,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "5a393f96c1ee96d6",
+            "Lifecycle": "accepted",
+            "Note": "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 217,
+            "Op": "MethodExpression",
+            "Snippet": "readdirSync(workflowDir).filter(name =\u003e /\\.ya?ml$/.test(name)).map(name =\u003e join(workflowDir, name)).filter(path =\u003e statSync(path).isFile())",
+            "Origin": "in-hunk",
+            "Key": "18eea7e11e40e20c",
+            "Lifecycle": "accepted",
+            "Note": "No-op where the gate runs: libuv's scandir already returns names in strcmp order on Linux/macOS (observed 2026-11-11: raw APFS order unsorted, fs.readdirSync sorted), and pnpm ci:policy runs on ubuntu-24.04. Only log-line order across files could differ elsewhere; each violation, the count and the exit code are unchanged."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 28,
+            "Op": "Regex",
+            "Snippet": "/^([A-Za-z0-9_-]+)\\s*:(?:\\s(.*))?$/",
+            "Origin": "in-hunk",
+            "Key": "0d70c943d61850e7",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent on LF/CRLF YAML: every KEY value capture goes through unquote() (trim) or an undefined check, and \\s(.*) vs \\s+(.*) match the same lines, differing only in leading whitespace of the capture. They diverge only when a JS line terminator other than LF (lone CR, U+2028/9) follows the colon, a layout neither version models. Hand-replayed incl. multi-space values: identical."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 242,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "ccc4f75d4212c263",
+            "Lifecycle": "accepted",
+            "Note": "CLI entry guard, unreachable in-process. 'false' (gate never runs) is killed by workflow-policy.spec 'runs as a separate process' (hand-replayed: mutant exits 0 on the unpinned dir, test expects 1). 'true' is equivalent when run as a script; it differs only when the module is imported (by its spec)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 242,
+            "Op": "ConditionalExpression",
+            "Snippet": "false",
+            "Origin": "in-hunk",
+            "Key": "ccc4f75d4212c263",
+            "Lifecycle": "accepted",
+            "Note": "CLI entry guard, unreachable in-process. 'false' (gate never runs) is killed by workflow-policy.spec 'runs as a separate process' (hand-replayed: mutant exits 0 on the unpinned dir, test expects 1). 'true' is equivalent when run as a script; it differs only when the module is imported (by its spec)."
+          },
+          {
+            "File": "scripts/workflow-policy.ts",
+            "Line": 240,
+            "Op": "LogicalOperator",
+            "Snippet": "import.meta.main \u0026\u0026 process.argv[1] !== undefined \u0026\u0026 resolve(process.argv[1]) === fileURLToPath(import.meta.url)",
+            "Origin": "in-hunk",
+            "Key": "06d68ad207bce430",
+            "Lifecycle": "accepted",
+            "Note": "Entry-guard fallback for Node \u003c 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs \u0026\u0026 is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
+          },
+          {
+            "File": "src/lib/server/testing/temp-dir.ts",
+            "Line": 25,
+            "Op": "ConditionalExpression",
+            "Snippet": "true",
+            "Origin": "in-hunk",
+            "Key": "a6c7c332bdc8f29b",
+            "Lifecycle": "accepted",
+            "Note": "Equivalent: LOCKED.has(undefined) is false, so dropping the code !== undefined guard cannot change the outcome."
+          },
+          {
+            "File": "src/lib/server/testing/auth-harness.ts",
+            "Line": 79,
+            "Op": "BlockStatement",
+            "Snippet": "{}",
+            "Origin": "inherited",
+            "Key": "5cb839e7a9f5133c",
+            "Lifecycle": "accepted",
+            "Note": "Test-harness cleanup body: removing it only leaks a temp directory. src/lib/server/testing/** is excluded from mutation in stryker.config.json; removeTempDir itself is mutation-tested by temp-dir.spec.ts."
+          }
+        ],
+        "NotCovered": 13
+      },
+      "measured_on": "local",
+      "ranges": {
+        "playwright.config.ts": [
+          {
+            "start": 4,
+            "end": 31,
+            "construct": "ExportDefaultDeclaration"
+          }
+        ],
+        "scripts/gitleaks-config.spec.ts": [
+          {
+            "start": 1,
+            "end": 3,
+            "construct": "hunk"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "VariableDeclaration config"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "VariableDeclaration"
+          },
+          {
+            "start": 9,
+            "end": 10,
+            "construct": "hunk"
+          },
+          {
+            "start": 11,
+            "end": 15,
+            "construct": "FunctionDeclaration list"
+          },
+          {
+            "start": 16,
+            "end": 17,
+            "construct": "VariableDeclaration value"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "hunk"
+          },
+          {
+            "start": 19,
+            "end": 68,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "scripts/readme.spec.ts": [
+          {
+            "start": 1,
+            "end": 2,
+            "construct": "hunk"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "hunk"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "VariableDeclaration readme"
+          },
+          {
+            "start": 7,
+            "end": 9,
+            "construct": "VariableDeclaration pkg"
+          },
+          {
+            "start": 10,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 18,
+            "construct": "VariableDeclaration sections"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 55,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "scripts/repo-hygiene.spec.ts": [
+          {
+            "start": 1,
+            "end": 2,
+            "construct": "hunk"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "VariableDeclaration here"
+          },
+          {
+            "start": 10,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 21,
+            "construct": "FunctionDeclaration repoRoot"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "VariableDeclaration root"
+          },
+          {
+            "start": 24,
+            "end": 25,
+            "construct": "hunk"
+          },
+          {
+            "start": 26,
+            "end": 46,
+            "construct": "FunctionDeclaration trackedFiles"
+          },
+          {
+            "start": 47,
+            "end": 48,
+            "construct": "hunk"
+          },
+          {
+            "start": 49,
+            "end": 54,
+            "construct": "VariableDeclaration REMOVED"
+          },
+          {
+            "start": 55,
+            "end": 61,
+            "construct": "VariableDeclaration FORBIDDEN"
+          },
+          {
+            "start": 62,
+            "end": 68,
+            "construct": "VariableDeclaration EXEMPT"
+          },
+          {
+            "start": 69,
+            "end": 69,
+            "construct": "hunk"
+          },
+          {
+            "start": 70,
+            "end": 96,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "scripts/rulesets.spec.ts": [
+          {
+            "start": 1,
+            "end": 3,
+            "construct": "hunk"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "VariableDeclaration read"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "TSTypeAliasDeclaration Rule"
+          },
+          {
+            "start": 10,
+            "end": 16,
+            "construct": "TSTypeAliasDeclaration Ruleset"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 21,
+            "construct": "VariableDeclaration rulesets"
+          },
+          {
+            "start": 22,
+            "end": 23,
+            "construct": "hunk"
+          },
+          {
+            "start": 24,
+            "end": 35,
+            "construct": "FunctionDeclaration ciCheckNames"
+          },
+          {
+            "start": 36,
+            "end": 36,
+            "construct": "hunk"
+          },
+          {
+            "start": 37,
+            "end": 37,
+            "construct": "VariableDeclaration ACTIONS_APP"
+          },
+          {
+            "start": 38,
+            "end": 38,
+            "construct": "VariableDeclaration expected"
+          },
+          {
+            "start": 39,
+            "end": 39,
+            "construct": "hunk"
+          },
+          {
+            "start": 40,
+            "end": 94,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 95,
+            "end": 96,
+            "construct": "hunk"
+          },
+          {
+            "start": 97,
+            "end": 137,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "scripts/workflow-policy.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "hunk"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "VariableDeclaration SHA"
+          },
+          {
+            "start": 10,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 18,
+            "construct": "FunctionDeclaration workflow"
+          },
+          {
+            "start": 19,
+            "end": 19,
+            "construct": "hunk"
+          },
+          {
+            "start": 20,
+            "end": 21,
+            "construct": "VariableDeclaration messages"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 23,
+            "end": 69,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 70,
+            "end": 70,
+            "construct": "hunk"
+          },
+          {
+            "start": 71,
+            "end": 104,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 105,
+            "end": 105,
+            "construct": "hunk"
+          },
+          {
+            "start": 106,
+            "end": 130,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 131,
+            "end": 131,
+            "construct": "hunk"
+          },
+          {
+            "start": 132,
+            "end": 146,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 147,
+            "end": 147,
+            "construct": "hunk"
+          },
+          {
+            "start": 148,
+            "end": 168,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 169,
+            "end": 169,
+            "construct": "hunk"
+          },
+          {
+            "start": 170,
+            "end": 215,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 216,
+            "end": 219,
+            "construct": "hunk"
+          },
+          {
+            "start": 220,
+            "end": 550,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 551,
+            "end": 553,
+            "construct": "hunk"
+          },
+          {
+            "start": 554,
+            "end": 597,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "scripts/workflow-policy.ts": [
+          {
+            "start": 1,
+            "end": 13,
+            "construct": "hunk"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 15,
+            "end": 15,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 16,
+            "end": 16,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "TSTypeAliasDeclaration Violation"
+          },
+          {
+            "start": 19,
+            "end": 20,
+            "construct": "hunk"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "VariableDeclaration WRITE_SCOPE_ALLOWLIST"
+          },
+          {
+            "start": 22,
+            "end": 22,
+            "construct": "hunk"
+          },
+          {
+            "start": 23,
+            "end": 23,
+            "construct": "TSTypeAliasDeclaration Entry"
+          },
+          {
+            "start": 24,
+            "end": 24,
+            "construct": "TSTypeAliasDeclaration Frame"
+          },
+          {
+            "start": 25,
+            "end": 25,
+            "construct": "hunk"
+          },
+          {
+            "start": 26,
+            "end": 26,
+            "construct": "VariableDeclaration SHA_REF"
+          },
+          {
+            "start": 27,
+            "end": 27,
+            "construct": "VariableDeclaration DOCKER_DIGEST"
+          },
+          {
+            "start": 28,
+            "end": 28,
+            "construct": "VariableDeclaration KEY"
+          },
+          {
+            "start": 29,
+            "end": 29,
+            "construct": "VariableDeclaration BLOCK_SCALAR"
+          },
+          {
+            "start": 30,
+            "end": 31,
+            "construct": "hunk"
+          },
+          {
+            "start": 32,
+            "end": 32,
+            "construct": "VariableDeclaration PERMISSIONS_KEY"
+          },
+          {
+            "start": 33,
+            "end": 33,
+            "construct": "VariableDeclaration USES_KEY"
+          },
+          {
+            "start": 34,
+            "end": 34,
+            "construct": "hunk"
+          },
+          {
+            "start": 35,
+            "end": 38,
+            "construct": "FunctionDeclaration stripComment"
+          },
+          {
+            "start": 39,
+            "end": 39,
+            "construct": "hunk"
+          },
+          {
+            "start": 40,
+            "end": 44,
+            "construct": "FunctionDeclaration unquote"
+          },
+          {
+            "start": 45,
+            "end": 46,
+            "construct": "hunk"
+          },
+          {
+            "start": 47,
+            "end": 69,
+            "construct": "FunctionDeclaration entries"
+          },
+          {
+            "start": 70,
+            "end": 71,
+            "construct": "hunk"
+          },
+          {
+            "start": 72,
+            "end": 90,
+            "construct": "FunctionDeclaration withPaths"
+          },
+          {
+            "start": 91,
+            "end": 92,
+            "construct": "hunk"
+          },
+          {
+            "start": 93,
+            "end": 108,
+            "construct": "FunctionDeclaration children"
+          },
+          {
+            "start": 109,
+            "end": 109,
+            "construct": "hunk"
+          },
+          {
+            "start": 110,
+            "end": 154,
+            "construct": "FunctionDeclaration checkPermissions"
+          },
+          {
+            "start": 155,
+            "end": 156,
+            "construct": "hunk"
+          },
+          {
+            "start": 157,
+            "end": 207,
+            "construct": "FunctionDeclaration checkWorkflow"
+          },
+          {
+            "start": 208,
+            "end": 209,
+            "construct": "hunk"
+          },
+          {
+            "start": 210,
+            "end": 235,
+            "construct": "FunctionDeclaration runPolicyCli"
+          },
+          {
+            "start": 236,
+            "end": 238,
+            "construct": "hunk"
+          },
+          {
+            "start": 239,
+            "end": 241,
+            "construct": "VariableDeclaration isEntry"
+          },
+          {
+            "start": 242,
+            "end": 242,
+            "construct": "IfStatement"
+          }
+        ],
+        "src/lib/server/admin-bootstrap.spec.ts": [
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 39,
+            "end": 164,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/alerts/backfill.spec.ts": [
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 13,
+            "end": 13,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 81,
+            "end": 84,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/cli/adapter-check.ts": [
+          {
+            "start": 1,
+            "end": 2,
+            "construct": "hunk"
+          }
+        ],
+        "src/lib/server/cli/admin-create.ts": [
+          {
+            "start": 1,
+            "end": 2,
+            "construct": "hunk"
+          }
+        ],
+        "src/lib/server/db/check-failure.schema.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 73,
+            "end": 162,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/db/index.spec.ts": [
+          {
+            "start": 1,
+            "end": 2,
+            "construct": "hunk"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "hunk"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "VariableDeclaration createDb"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 13,
+            "construct": "FunctionDeclaration load"
+          },
+          {
+            "start": 14,
+            "end": 14,
+            "construct": "hunk"
+          },
+          {
+            "start": 15,
+            "end": 20,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 21,
+            "end": 21,
+            "construct": "hunk"
+          },
+          {
+            "start": 22,
+            "end": 39,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/db/index.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 7,
+            "construct": "hunk"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "IfStatement"
+          },
+          {
+            "start": 10,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 16,
+            "construct": "VariableDeclaration buildTimeDb"
+          },
+          {
+            "start": 17,
+            "end": 17,
+            "construct": "hunk"
+          },
+          {
+            "start": 18,
+            "end": 18,
+            "construct": "VariableDeclaration db"
+          }
+        ],
+        "src/lib/server/db/migrate.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 26,
+            "end": 29,
+            "construct": "ExpressionStatement"
+          },
+          {
+            "start": 31,
+            "end": 140,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/db/watch.schema.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 89,
+            "end": 138,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/health.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 60,
+            "end": 65,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/health.ts": [
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "hunk"
+          }
+        ],
+        "src/lib/server/testing/auth-harness.ts": [
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 31,
+            "end": 85,
+            "construct": "FunctionDeclaration createAuthHarness"
+          }
+        ],
+        "src/lib/server/testing/temp-dir.spec.ts": [
+          {
+            "start": 1,
+            "end": 1,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 2,
+            "end": 2,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 3,
+            "end": 3,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 4,
+            "end": 4,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 10,
+            "construct": "VariableDeclaration failing"
+          },
+          {
+            "start": 11,
+            "end": 11,
+            "construct": "hunk"
+          },
+          {
+            "start": 12,
+            "end": 42,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "src/lib/server/testing/temp-dir.ts": [
+          {
+            "start": 1,
+            "end": 4,
+            "construct": "hunk"
+          },
+          {
+            "start": 5,
+            "end": 5,
+            "construct": "ImportDeclaration"
+          },
+          {
+            "start": 6,
+            "end": 6,
+            "construct": "hunk"
+          },
+          {
+            "start": 7,
+            "end": 7,
+            "construct": "VariableDeclaration REMOVE_RETRIES"
+          },
+          {
+            "start": 8,
+            "end": 8,
+            "construct": "VariableDeclaration REMOVE_RETRY_DELAY_MS"
+          },
+          {
+            "start": 9,
+            "end": 9,
+            "construct": "VariableDeclaration LOCKED"
+          },
+          {
+            "start": 10,
+            "end": 10,
+            "construct": "hunk"
+          },
+          {
+            "start": 11,
+            "end": 28,
+            "construct": "FunctionDeclaration removeTempDir"
+          }
+        ],
+        "src/routes/layout.e2e.ts": [
+          {
+            "start": 118,
+            "end": 157,
+            "construct": "ExpressionStatement"
+          }
+        ],
+        "vite.config.ts": [
+          {
+            "start": 6,
+            "end": 48,
+            "construct": "ExportDefaultDeclaration"
+          }
+        ]
+      },
+      "whole_file": {
+        "e2e/accounts.ts": "file-absent-from-hunks",
+        "e2e/seed.ts": "file-absent-from-hunks"
+      }
+    }
+  ],
+  "skipped": [
+    {
+      "file": ".gitattributes",
+      "reason": "no mutation adapter for .gitattributes"
+    },
+    {
+      "file": ".github/rulesets/main.json",
+      "reason": "no mutation adapter for .json"
+    },
+    {
+      "file": ".github/rulesets/milestone.json",
+      "reason": "no mutation adapter for .json"
+    },
+    {
+      "file": ".github/workflows/audit.yml",
+      "reason": "no mutation adapter for .yml"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "reason": "no mutation adapter for .yml"
+    },
+    {
+      "file": ".gitleaks.toml",
+      "reason": "no mutation adapter for .toml"
+    },
+    {
+      "file": ".node-version",
+      "reason": "no mutation adapter for .node-version"
+    },
+    {
+      "file": "ARCHITECTURE.md",
+      "reason": "no mutation adapter for .md"
+    },
+    {
+      "file": "README.md",
+      "reason": "no mutation adapter for .md"
+    },
+    {
+      "file": "package.json",
+      "reason": "no mutation adapter for .json"
+    },
+    {
+      "file": "stryker.config.json",
+      "reason": "no mutation adapter for .json"
+    },
+    {
+      "file": "tsconfig.json",
+      "reason": "no mutation adapter for .json"
+    },
+    {
+      "file": ".dockerignore",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "Dockerfile",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "compose.yaml",
+      "reason": "file no longer exists in the working tree"
+    },
+    {
+      "file": "scripts/image-smoke.sh",
+      "reason": "file no longer exists in the working tree"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dockerignore",
+      ".dross/phases/01-public-ci/REVIEW.md",
+      ".dross/phases/01-public-ci/changes.json",
+      ".dross/phases/01-public-ci/plan.toml",
+      ".dross/phases/01-public-ci/spec.toml",
+      ".dross/phases/01-public-ci/tests.json",
+      ".dross/phases/01-public-ci/verify.toml",
+      ".dross/project.toml",
+      ".dross/survivors.toml",
+      ".gitattributes",
+      ".github/rulesets/main.json",
+      ".github/rulesets/milestone.json",
+      ".github/workflows/audit.yml",
+      ".github/workflows/ci.yml",
+      ".gitleaks.toml",
+      ".node-version",
+      "ARCHITECTURE.md",
+      "Dockerfile",
+      "README.md",
+      "compose.yaml",
+      "e2e/accounts.ts",
+      "e2e/seed.ts",
+      "package.json",
+      "playwright.config.ts",
+      "scripts/gitleaks-config.spec.ts",
+      "scripts/image-smoke.sh",
+      "scripts/readme.spec.ts",
+      "scripts/repo-hygiene.spec.ts",
+      "scripts/rulesets.spec.ts",
+      "scripts/workflow-policy.spec.ts",
+      "scripts/workflow-policy.ts",
+      "src/lib/server/admin-bootstrap.spec.ts",
+      "src/lib/server/alerts/backfill.spec.ts",
+      "src/lib/server/cli/adapter-check.ts",
+      "src/lib/server/cli/admin-create.ts",
+      "src/lib/server/db/check-failure.schema.spec.ts",
+      "src/lib/server/db/index.spec.ts",
+      "src/lib/server/db/index.ts",
+      "src/lib/server/db/migrate.spec.ts",
+      "src/lib/server/db/watch.schema.spec.ts",
+      "src/lib/server/health.spec.ts",
+      "src/lib/server/health.ts",
+      "src/lib/server/testing/auth-harness.ts",
+      "src/lib/server/testing/temp-dir.spec.ts",
+      "src/lib/server/testing/temp-dir.ts",
+      "src/routes/layout.e2e.ts",
+      "stryker.config.json",
+      "tsconfig.json",
+      "vite.config.ts"
+    ],
+    "hunks": {
+      ".dross/phases/01-public-ci/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 57
+        }
+      ],
+      ".dross/phases/01-public-ci/changes.json": [
+        {
+          "start": 1,
+          "end": 728
+        }
+      ],
+      ".dross/phases/01-public-ci/plan.toml": [
+        {
+          "start": 1,
+          "end": 162
+        }
+      ],
+      ".dross/phases/01-public-ci/spec.toml": [
+        {
+          "start": 1,
+          "end": 73
+        }
+      ],
+      ".dross/phases/01-public-ci/tests.json": [
+        {
+          "start": 1,
+          "end": 1995
+        }
+      ],
+      ".dross/phases/01-public-ci/verify.toml": [
+        {
+          "start": 1,
+          "end": 170
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      ".dross/survivors.toml": [
+        {
+          "start": 1,
+          "end": 316
+        }
+      ],
+      ".gitattributes": [
+        {
+          "start": 2,
+          "end": 9
+        }
+      ],
+      ".github/rulesets/main.json": [
+        {
+          "start": 1,
+          "end": 66
+        }
+      ],
+      ".github/rulesets/milestone.json": [
+        {
+          "start": 1,
+          "end": 60
+        }
+      ],
+      ".github/workflows/audit.yml": [
+        {
+          "start": 1,
+          "end": 34
+        }
+      ],
+      ".github/workflows/ci.yml": [
+        {
+          "start": 1,
+          "end": 134
+        }
+      ],
+      ".gitleaks.toml": [
+        {
+          "start": 1,
+          "end": 69
+        }
+      ],
+      ".node-version": [
+        {
+          "start": 1,
+          "end": 1
+        }
+      ],
+      "ARCHITECTURE.md": [
+        {
+          "start": 161,
+          "end": 161
+        }
+      ],
+      "README.md": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 3,
+          "end": 3
+        },
+        {
+          "start": 5,
+          "end": 5
+        },
+        {
+          "start": 7,
+          "end": 7
+        },
+        {
+          "start": 9,
+          "end": 9
+        },
+        {
+          "start": 11,
+          "end": 11
+        },
+        {
+          "start": 13,
+          "end": 13
+        },
+        {
+          "start": 15,
+          "end": 17
+        },
+        {
+          "start": 19,
+          "end": 19
+        },
+        {
+          "start": 21,
+          "end": 21
+        },
+        {
+          "start": 23,
+          "end": 25
+        },
+        {
+          "start": 27,
+          "end": 27
+        },
+        {
+          "start": 29,
+          "end": 29
+        },
+        {
+          "start": 32,
+          "end": 38
+        },
+        {
+          "start": 41,
+          "end": 52
+        },
+        {
+          "start": 54,
+          "end": 54
+        }
+      ],
+      "package.json": [
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 16,
+          "end": 16
+        },
+        {
+          "start": 25,
+          "end": 25
+        }
+      ],
+      "playwright.config.ts": [
+        {
+          "start": 7,
+          "end": 9
+        },
+        {
+          "start": 28,
+          "end": 29
+        }
+      ],
+      "scripts/gitleaks-config.spec.ts": [
+        {
+          "start": 1,
+          "end": 68
+        }
+      ],
+      "scripts/readme.spec.ts": [
+        {
+          "start": 1,
+          "end": 55
+        }
+      ],
+      "scripts/repo-hygiene.spec.ts": [
+        {
+          "start": 1,
+          "end": 96
+        }
+      ],
+      "scripts/rulesets.spec.ts": [
+        {
+          "start": 1,
+          "end": 137
+        }
+      ],
+      "scripts/workflow-policy.spec.ts": [
+        {
+          "start": 1,
+          "end": 597
+        }
+      ],
+      "scripts/workflow-policy.ts": [
+        {
+          "start": 1,
+          "end": 242
+        }
+      ],
+      "src/lib/server/admin-bootstrap.spec.ts": [
+        {
+          "start": 2,
+          "end": 2
+        },
+        {
+          "start": 13,
+          "end": 13
+        },
+        {
+          "start": 159,
+          "end": 159
+        }
+      ],
+      "src/lib/server/alerts/backfill.spec.ts": [
+        {
+          "start": 2,
+          "end": 2
+        },
+        {
+          "start": 13,
+          "end": 13
+        },
+        {
+          "start": 83,
+          "end": 83
+        }
+      ],
+      "src/lib/server/cli/adapter-check.ts": [
+        {
+          "start": 1,
+          "end": 2
+        }
+      ],
+      "src/lib/server/cli/admin-create.ts": [
+        {
+          "start": 1,
+          "end": 2
+        }
+      ],
+      "src/lib/server/db/check-failure.schema.spec.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 10,
+          "end": 10
+        },
+        {
+          "start": 93,
+          "end": 93
+        }
+      ],
+      "src/lib/server/db/index.spec.ts": [
+        {
+          "start": 1,
+          "end": 39
+        }
+      ],
+      "src/lib/server/db/index.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 3,
+          "end": 3
+        },
+        {
+          "start": 5,
+          "end": 8
+        },
+        {
+          "start": 10,
+          "end": 18
+        }
+      ],
+      "src/lib/server/db/migrate.spec.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 3,
+          "end": 3
+        },
+        {
+          "start": 10,
+          "end": 10
+        },
+        {
+          "start": 28,
+          "end": 28
+        },
+        {
+          "start": 33,
+          "end": 36
+        }
+      ],
+      "src/lib/server/db/watch.schema.spec.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 10,
+          "end": 10
+        },
+        {
+          "start": 135,
+          "end": 135
+        }
+      ],
+      "src/lib/server/health.spec.ts": [
+        {
+          "start": 1,
+          "end": 1
+        },
+        {
+          "start": 10,
+          "end": 10
+        },
+        {
+          "start": 64,
+          "end": 64
+        }
+      ],
+      "src/lib/server/health.ts": [
+        {
+          "start": 10,
+          "end": 10
+        }
+      ],
+      "src/lib/server/testing/auth-harness.ts": [
+        {
+          "start": 4,
+          "end": 4
+        },
+        {
+          "start": 11,
+          "end": 11
+        },
+        {
+          "start": 81,
+          "end": 81
+        }
+      ],
+      "src/lib/server/testing/temp-dir.spec.ts": [
+        {
+          "start": 1,
+          "end": 42
+        }
+      ],
+      "src/lib/server/testing/temp-dir.ts": [
+        {
+          "start": 1,
+          "end": 28
+        }
+      ],
+      "src/routes/layout.e2e.ts": [
+        {
+          "start": 141,
+          "end": 151
+        }
+      ],
+      "stryker.config.json": [
+        {
+          "start": 10,
+          "end": 11
+        }
+      ],
+      "tsconfig.json": [
+        {
+          "start": 7,
+          "end": 7
+        }
+      ],
+      "vite.config.ts": [
+        {
+          "start": 19,
+          "end": 21
+        },
+        {
+          "start": 42,
+          "end": 42
+        }
+      ]
+    },
+    "base": "614dee71bf63aad3b36ddf3843976f92f717ec90",
+    "source": "git+changes"
+  },
+  "measured_on": "local",
+  "measured_commit": "dc1757368b4ed07b5844e2b1279622fa9782b064",
+  "measured_tree": "3138fb884ecfea44cf480dbd3c867cff4e6f4149"
+}

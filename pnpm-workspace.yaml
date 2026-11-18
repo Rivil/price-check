@@ -1,2 +1,15 @@
 onlyBuiltDependencies:
+  - electron
   - esbuild
+
+# The macOS release is one universal app, so both @libsql/darwin-* binaries must be
+# installed whatever the host's arch. libc stays at the host's own: no musl builds.
+supportedArchitectures:
+  os:
+    - current
+  cpu:
+    - current
+    - x64
+    - arm64
+  libc:
+    - current

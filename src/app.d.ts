@@ -1,18 +1,9 @@
-import type { auth } from '#lib/server/auth.ts';
-
-type AuthSession = typeof auth.$Infer.Session;
-
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
 	namespace App {
-		interface Locals {
-			/** Carries the admin plugin's `role`. */
-			user?: AuthSession['user'];
-			session?: AuthSession['session'];
-		}
-
 		// interface Error {}
+		// interface Locals {}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}

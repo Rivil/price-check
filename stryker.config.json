@@ -7,6 +7,8 @@
 	"coverageAnalysis": "perTest",
 	"mutate": [
 		"src/**/*.ts",
+		"scripts/**/*.ts",
+		"!scripts/**/*.spec.ts",
 		"!src/**/*.spec.ts",
 		"!src/**/*.e2e.ts",
 		"!src/**/*.d.ts",

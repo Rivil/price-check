@@ -1,0 +1,3213 @@
+[[category]]
+  name = "policy-duplicate-key"
+  reason = "Reachable only through a duplicate YAML mapping key (two permissions blocks, or two identical contents: read children). GitHub rejects such a workflow as invalid, so no runnable workflow reaches this branch."
+
+[[category]]
+  name = "policy-equivalent"
+  reason = "Equivalent mutant: the mutated value can never differ at this point (KEY captures carry no surrounding whitespace on trimmed, comment-stripped lines; checkPermissions/uses lines always match KEY so the optional-chain and '' fallback are dead; no permission scope is named 'Stryker was here'; workflow-level checks never read the writable list)."
+
+[[category]]
+  name = "node-pinned"
+  reason = "Entry-guard fallback for Node < 24.2 (no import.meta.main). .node-version pins 24.14.0, where import.meta.main is always a boolean, so the argv fallback never runs and ?? vs && is equivalent; the CLI itself was observed exiting 1 on an unpinned workflow."
+
+[[category]]
+  name = "temp-dir-redundant-guard"
+  reason = "Equivalent: LOCKED.has(undefined) is false, so dropping the code !== undefined guard cannot change the outcome."
+
+[[category]]
+  name = "ddl-metadata"
+  reason = "drizzle column names, references() targets and onDelete options only feed drizzle-kit generate; runtime DDL and FKs come from the committed migration SQL (0009/0010/0011, pinned by migrate.spec 'install-owned schema'/'schema matches snapshot' and channel.schema.spec cascade tests), and an empty column name falls back to the property key, which equals the column name here"
+
+[[category]]
+  name = "open-config-ok-false"
+  reason = "Equivalent: openConfig callers only read .ok (opened.ok, previous?.ok, !opened.ok), and {}.ok is undefined, which is falsy exactly like false"
+
+[[category]]
+  name = "desk-build-cli"
+  reason = "build-desktop CLI path (repo root, write default, isEntry block): vitest imports the module and drives it via stdin with write:false, so only `node scripts/build-desktop.ts` runs it; pnpm test:e2e:desktop and the three-OS CI job fail when the real bundle is not built."
+
+[[category]]
+  name = "desk-equivalent"
+  reason = "Equivalent mutant: another guard or fallback on the same path gives the same observable outcome (verify 03 triage reasoned each one from the code)."
+
+[[category]]
+  name = "desk-message-text"
+  reason = "Log, diagnostic or user-facing message wording (or a tooltip/title constant); no criterion or locked decision pins the text, and the tests assert the behaviour around it."
+
+[[category]]
+  name = "desk-fsync"
+  reason = "Directory fsync after creating the alerts key: durability only shows after a power loss, and the win32 skip runs in the Windows CI desktop e2e, which creates the key file."
+
+[[category]]
+  name = "desk-unobservable-io"
+  reason = "Resource or durability detail (fd close, temp cleanup, encoding default, recursive mkdir of a dir that already exists, marker content) with no effect a unit test can observe without fault injection."
+
+[[category]]
+  name = "desk-listen-error"
+  reason = "server.listen on 127.0.0.1 port 0 cannot fail in a unit test without mocking node:http; the error wiring is not reachable."
+
+[[category]]
+  name = "notify-log-only-catch"
+  reason = "A catch body that only logs: emptying it still swallows the error, and every outcome the tests assert (result, retained count, handler calls, startup going on) is unchanged; only the console line is lost."
+
+[[category]]
+  name = "notify-settle-guard"
+  reason = "Equivalent: settle()'s re-entry guard. Resolving an already-settled Promise is ignored and clearTimeout on a cleared timer is a no-op, so dropping the guard or never setting settled changes no show() result (notifier.spec pins show/failed/settleMs outcomes and the zero-timer check)."
+
+[[category]]
+  name = "release-cli-entry"
+  reason = "CLI entry (isEntry guard and its block): vitest imports the module and calls its exports, so only `node scripts/<file>.ts` runs this, in a child process where Stryker's active mutant is never set. Exercised by release-tag.spec 'as a process' and by ci.yml's package/verify/locate steps, which passed on macOS, Windows and Linux in PR run 44136073549."
+
+[[category]]
+  name = "update-notice-log-only"
+  reason = "Only decides whether a failed or rejected update notification gets logged; the notice is still shown and onReady still runs (updater.spec 'notifies once per version and calls onReady once per version')."
+
+[[accepted]]
+  key = "6d1a8890f4b5d82a"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (bad.length)"
+  line = 136
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "09fd27033e018c1b"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (kids.length === 1) return [];"
+  line = 143
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "f73eb9e2ae2e7e8f"
+  file = "scripts/workflow-policy.ts"
+  op = "ArrayDeclaration"
+  text = "return [at(entry.line, 'workflow-level permissions must be exactly one contents: read')];"
+  line = 144
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "bb65550724c8fd68"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "return [at(entry.line, 'workflow-level permissions must be exactly one contents: read')];"
+  line = 144
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "10e5b63000de78a2"
+  file = "scripts/workflow-policy.ts"
+  op = "UpdateOperator"
+  text = "topPermissions++;"
+  line = 184
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "5a393f96c1ee96d6"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (topPermissions > 1)"
+  line = 204
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "278a91605d830357"
+  file = "scripts/workflow-policy.ts"
+  op = "ObjectLiteral"
+  text = "out.push({ file, line: 1, message: 'more than one workflow-level permissions block' });"
+  line = 205
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "e2fd741aea7b5d33"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "out.push({ file, line: 1, message: 'more than one workflow-level permissions block' });"
+  line = 205
+  category = "policy-duplicate-key"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "f8b19e1bf391e805"
+  file = "scripts/workflow-policy.ts"
+  op = "MethodExpression"
+  text = "const v = value.trim();"
+  line = 41
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "3f5b268db0abfa95"
+  file = "scripts/workflow-policy.ts"
+  op = "OptionalChaining"
+  text = "const value = unquote(KEY.exec(entry.text.replace(/^-\\s*/, ''))?.[2] ?? '');"
+  line = 119
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "d59a08fa73af9b01"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "const value = unquote(KEY.exec(entry.text.replace(/^-\\s*/, ''))?.[2] ?? '');"
+  line = 119
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "79d9ae17e1224491"
+  file = "scripts/workflow-policy.ts"
+  op = "ArrayDeclaration"
+  text = "const writable = allowlist[basename(file)] ?? [];"
+  line = 168
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "9c3f2c2a30862629"
+  file = "scripts/workflow-policy.ts"
+  op = "OptionalChaining"
+  text = "const ref = unquote(KEY.exec(bare)?.[2] ?? '');"
+  line = 176
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "8f64c32b532d2f54"
+  file = "scripts/workflow-policy.ts"
+  op = "ArrayDeclaration"
+  text = "out.push(...checkPermissions(file, list, idx, 'workflow', []));"
+  line = 185
+  category = "policy-equivalent"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "06d68ad207bce430"
+  file = "scripts/workflow-policy.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 240
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "28c9965c058a3f47"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 241
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "2090775e96ae08a4"
+  file = "scripts/workflow-policy.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 241
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "fb5e408eab689f6a"
+  file = "scripts/workflow-policy.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 241
+  category = "node-pinned"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "a6c7c332bdc8f29b"
+  file = "src/lib/server/testing/temp-dir.ts"
+  op = "ConditionalExpression"
+  text = "if (platform === 'win32' && code !== undefined && LOCKED.has(code)) return;"
+  line = 25
+  category = "temp-dir-redundant-guard"
+  accepted_in = "01-public-ci"
+
+[[accepted]]
+  key = "cfaa815ed2c7edc3"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (v.length >= 2 && (v[0] === '\"' || v[0] === \"'\") && v.at(-1) === v[0]) return v.slice(1, -1);"
+  line = 42
+  accepted_in = "01-public-ci"
+  reason = "Equivalent on valid YAML: length>=2 -> true only differs for a 1-char value that is a lone quote, i.e. an unterminated quoted scalar GitHub cannot parse. Hand-replayed 2026-11-11: no corpus difference."
+
+[[accepted]]
+  key = "5f56b59d1dedc3f5"
+  file = "scripts/workflow-policy.ts"
+  op = "EqualityOperator"
+  text = "if (v.length >= 2 && (v[0] === '\"' || v[0] === \"'\") && v.at(-1) === v[0]) return v.slice(1, -1);"
+  line = 42
+  accepted_in = "01-public-ci"
+  reason = "Only differs on an empty quoted value (uses: \"\" / contents: ''), which GitHub rejects (empty action ref / permission level). Both versions still report a violation on that line; only the echoed value text differs. Hand-replayed 2026-11-11."
+
+[[accepted]]
+  key = "d36fc9c5807f6a52"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (text === '-' || text.startsWith('- ')) {"
+  line = 79
+  accepted_in = "01-public-ci"
+  reason = "Equivalent on valid workflows: a bare '-' item only adds '-' to descendant paths, and in a valid workflow a bare dash sits at depth >=3 (steps, matrix.include) or in a scalar list, where both paths fall to the same branch (uses check is path-free; permissions there is the 'cannot classify' fallback either way). Hand-replayed incl. '-' and '- # comment' items: identical."
+
+[[accepted]]
+  key = "788aa5736ca63182"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "if (text === '-' || text.startsWith('- ')) {"
+  line = 79
+  accepted_in = "01-public-ci"
+  reason = "Equivalent: content is never '' here (empty lines return at line 61), so text === '' is always false; the mutant reduces to the bare-dash case, which is equivalent on valid workflows (see line 79 ConditionalExpression). Hand-replayed: identical."
+
+[[accepted]]
+  key = "6282431a909229b7"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "stack.push({ indent, key: '-' });"
+  line = 80
+  accepted_in = "01-public-ci"
+  reason = "The dash frame key is only compared at path[1] !== '-' (jobs.<id>), reachable only when jobs is a sequence, which GitHub rejects. Elsewhere '' vs '-' in the path changes no branch. Hand-replayed: identical."
+
+[[accepted]]
+  key = "d74ef6aac2054cab"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (key) stack.push({ indent, key });"
+  line = 87
+  accepted_in = "01-public-ci"
+  reason = "Equivalent on valid workflows: an extra null frame is pushed only for non-key lines (scalar list items, '---'), which have no block children in valid YAML, so it is popped by the next sibling/shallower line before any classified key reads the path. Hand-replayed incl. '---' and scalar lists: identical."
+
+[[accepted]]
+  key = "1a2c67cf66b80698"
+  file = "scripts/workflow-policy.ts"
+  op = "EqualityOperator"
+  text = "if (childIndent < 0) childIndent = e.indent;"
+  line = 102
+  accepted_in = "01-public-ci"
+  reason = "Equivalent: once set, childIndent is a child's indent, which is > the parent indent >= 0, so it is never 0; < 0 and <= 0 agree on -1 and on every reachable value."
+
+[[accepted]]
+  key = "84b59b0fb1208785"
+  file = "scripts/workflow-policy.ts"
+  op = "Regex"
+  text = "const value = unquote(KEY.exec(entry.text.replace(/^-\\s*/, ''))?.[2] ?? '');"
+  line = 119
+  accepted_in = "01-public-ci"
+  reason = "Equivalent: checkPermissions is only called for path [] or [jobs,<id>] with id != '-', so its entry never starts with '-' (a '- permissions:' line has '-' in its path and goes to the fallback). The dash-stripping regex is a no-op there. Hand-replayed both regex mutants: identical."
+
+[[accepted]]
+  key = "18eea7e11e40e20c"
+  file = "scripts/workflow-policy.ts"
+  op = "MethodExpression"
+  text = "files = readdirSync(workflowDir)"
+  line = 217
+  accepted_in = "01-public-ci"
+  reason = "No-op where the gate runs: libuv's scandir already returns names in strcmp order on Linux/macOS (observed 2026-11-11: raw APFS order unsorted, fs.readdirSync sorted), and pnpm ci:policy runs on ubuntu-24.04. Only log-line order across files could differ elsewhere; each violation, the count and the exit code are unchanged."
+
+[[accepted]]
+  key = "0d70c943d61850e7"
+  file = "scripts/workflow-policy.ts"
+  op = "Regex"
+  text = "const KEY = /^([A-Za-z0-9_-]+)\\s*:(?:\\s+(.*))?$/;"
+  line = 28
+  accepted_in = "01-public-ci"
+  reason = "Equivalent on LF/CRLF YAML: every KEY value capture goes through unquote() (trim) or an undefined check, and \\s(.*) vs \\s+(.*) match the same lines, differing only in leading whitespace of the capture. They diverge only when a JS line terminator other than LF (lone CR, U+2028/9) follows the colon, a layout neither version models. Hand-replayed incl. multi-space values: identical."
+
+[[accepted]]
+  key = "ccc4f75d4212c263"
+  file = "scripts/workflow-policy.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) process.exit(runPolicyCli(process.argv[2] ?? '.github/workflows'));"
+  line = 242
+  accepted_in = "01-public-ci"
+  reason = "CLI entry guard, unreachable in-process. 'false' (gate never runs) is killed by workflow-policy.spec 'runs as a separate process' (hand-replayed: mutant exits 0 on the unpinned dir, test expects 1). 'true' is equivalent when run as a script; it differs only when the module is imported (by its spec)."
+
+[[accepted]]
+  key = "285f67993742f4d6"
+  file = "scripts/workflow-policy.ts"
+  op = "LogicalOperator"
+  text = "if (isEntry) process.exit(runPolicyCli(process.argv[2] ?? '.github/workflows'));"
+  line = 242
+  accepted_in = "01-public-ci"
+  reason = "CLI entry guard, unreachable in-process. '?? -> &&' makes a given dir argument check .github/workflows instead: killed by workflow-policy.spec 'runs as a separate process' (hand-replayed: exits 0 on the unpinned dir, test expects 1). With no argument it fails closed (exit 1)."
+
+[[accepted]]
+  key = "0890f1b1660ea113"
+  file = "scripts/workflow-policy.ts"
+  op = "StringLiteral"
+  text = "if (isEntry) process.exit(runPolicyCli(process.argv[2] ?? '.github/workflows'));"
+  line = 242
+  accepted_in = "01-public-ci"
+  reason = "CLI default dir, unreachable in-process and fails closed: with '' as the default, pnpm ci:policy (no argument, as CI runs it) exits 1 'no workflow files' (hand-replayed), turning the static check red on the next PR; it cannot let a violation pass. Not killed by the separate-process test, which always passes a dir."
+
+[[accepted]]
+  key = "cd8dc208215eed1b"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "StringLiteral"
+  text = "kind: text('kind').primaryKey(),"
+  line = 14
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "4f8fded39e06f561"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "StringLiteral"
+  text = "enabled: integer('enabled', { mode: 'boolean' }).default(true).notNull(),"
+  line = 15
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "4482ed5275ce6acc"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "ArrowFunction"
+  text = ".references(() => watch.id, { onDelete: 'cascade' }),"
+  line = 33
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "f13dcb9115977085"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "ObjectLiteral"
+  text = ".references(() => watch.id, { onDelete: 'cascade' }),"
+  line = 33
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "b30e36170aeb2bf3"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "StringLiteral"
+  text = ".references(() => watch.id, { onDelete: 'cascade' }),"
+  line = 33
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "08258689131593c7"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "StringLiteral"
+  text = "kind: text('kind')"
+  line = 34
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "6de93198c34d82cb"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "ArrowFunction"
+  text = ".references(() => notifyChannel.kind, { onDelete: 'cascade' }),"
+  line = 36
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "9149bbeb9715cf36"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "ObjectLiteral"
+  text = ".references(() => notifyChannel.kind, { onDelete: 'cascade' }),"
+  line = 36
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "ad924df8ddd6c8c1"
+  file = "src/lib/server/db/channel.schema.ts"
+  op = "StringLiteral"
+  text = ".references(() => notifyChannel.kind, { onDelete: 'cascade' }),"
+  line = 36
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "b7e5ce097982de2d"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ObjectLiteral"
+  text = "if (row.configEnc === null) return { ok: false };"
+  line = 62
+  category = "open-config-ok-false"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "5f669fb23a890421"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ObjectLiteral"
+  text = "if (!opened.ok) return { ok: false };"
+  line = 64
+  category = "open-config-ok-false"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "cd25736ea9ff4f7e"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ObjectLiteral"
+  text = "return { ok: false };"
+  line = 68
+  category = "open-config-ok-false"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "d725f846d31fc027"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ConditionalExpression"
+  text = "if (row.configEnc === null) return { ok: false };"
+  line = 62
+  accepted_in = "02-single-user"
+  reason = "Equivalent: with the null guard skipped, decryptSecret(key, null, aad) throws on null.startsWith inside its own try and returns { ok: false }, the same result the guard returns"
+
+[[accepted]]
+  key = "50ebc2d433ca9b7f"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ConditionalExpression"
+  text = "if (!opened.ok) return { ok: false };"
+  line = 64
+  accepted_in = "02-single-user"
+  reason = "Equivalent: with the !opened.ok guard skipped, JSON.parse(undefined) throws a SyntaxError that the following catch turns into { ok: false }, the same result"
+
+[[accepted]]
+  key = "676b81e8d492f6c3"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ObjectLiteral"
+  text = "? { priceDrops: existing.priceDrops, checkFailures: existing.checkFailures }"
+  line = 191
+  accepted_in = "02-single-user"
+  reason = "Equivalent: this branch runs only when the channel row exists, so the write is always the onConflictDoUpdate path; with kinds = {} the update sets only configEnc/updatedAt and leaves price_drops/check_failures as stored, which is the value the original copies back"
+
+[[accepted]]
+  key = "d89779be41c89c48"
+  file = "src/lib/server/alerts/alerts.ts"
+  op = "ConditionalExpression"
+  text = "w.targetPence !== null && w.pricePence !== null && w.pricePence <= w.targetPence;"
+  line = 142
+  accepted_in = "02-single-user"
+  reason = "Equivalent for every stored price: with a null target, pricePence <= null compares against 0, and adapters only ever store prices > 0 (amazon/extract.ts:26 returns null for <= 0), so dropped stays false"
+
+[[accepted]]
+  key = "6393b7616b8017c7"
+  file = "src/lib/server/alerts/alerts.ts"
+  op = "StringLiteral"
+  text = "const routed = await channelsFor(db, deps.key(), 'check_failed', { log });"
+  line = 216
+  accepted_in = "02-single-user"
+  reason = "Equivalent: channelsFor picks priceDrops only for 'price_drop' and checkFailures for any other kind, so '' routes exactly like 'check_failed'"
+
+[[accepted]]
+  key = "4ff2f05c6d457098"
+  file = "src/lib/server/local-request.ts"
+  op = "ConditionalExpression"
+  text = "if (host === null) return false;"
+  line = 12
+  accepted_in = "02-single-user"
+  reason = "Equivalent: without the null guard, LOOPBACK_HOST.exec(null) coerces to the string 'null', which never matches, so the function still returns false"
+
+[[accepted]]
+  key = "9cb297f77f7bef3a"
+  file = "src/lib/server/local-request.ts"
+  op = "ObjectLiteral"
+  text = "headers: { 'content-type': 'text/plain; charset=utf-8' }"
+  line = 33
+  accepted_in = "02-single-user"
+  reason = "Equivalent: a Response with a string body defaults to content-type text/plain;charset=UTF-8, the same media type and charset as the explicit header; the 403 status and body are unchanged"
+
+[[accepted]]
+  key = "9c54032ecc58cfe3"
+  file = "src/lib/server/watches.ts"
+  op = "ConditionalExpression"
+  text = "if (existing === null) throw error;"
+  line = 214
+  accepted_in = "02-single-user"
+  reason = "Both paths throw: with the guard skipped, already(null) throws a TypeError instead of rethrowing the unique-constraint error. Reachable only if the race winner's row is deleted between the failed batch and the lookup; the add fails either way"
+
+[[accepted]]
+  key = "e431af43ffe57455"
+  file = "src/routes/account/alerts/+page.server.ts"
+  op = "StringLiteral"
+  text = "kind: 'test',"
+  line = 117
+  accepted_in = "02-single-user"
+  reason = "Equivalent on the wire: only ntfy reads alert.kind, and for '' it sends priority NTFY_PRIORITY[''] = undefined, which JSON.stringify omits, the same body as kind 'test' (no priority); resend and smtp ignore kind"
+
+[[accepted]]
+  key = "04ecbe501faab5a6"
+  file = "src/lib/server/db/watch.schema.ts"
+  op = "StringLiteral"
+  text = "id: text('id').primaryKey(),"
+  line = 9
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "29693a04c43754d4"
+  file = "src/lib/server/db/watch.schema.ts"
+  op = "StringLiteral"
+  text = "shop: text('shop').notNull(),"
+  line = 11
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "bd47c67261a447ff"
+  file = "src/lib/server/db/watch.schema.ts"
+  op = "StringLiteral"
+  text = "title: text('title'),"
+  line = 17
+  category = "ddl-metadata"
+  accepted_in = "02-single-user"
+
+[[accepted]]
+  key = "e0b4a601aab496bb"
+  file = "src/lib/server/health.ts"
+  op = "MethodExpression"
+  text = "const TABLES = Object.values<unknown>(schema).filter((value): value is SQLiteTable =>"
+  line = 16
+  accepted_in = "02-single-user"
+  reason = "Equivalent today: every runtime export of db/schema.ts (watch, pricePoint, checkFailure, notifyChannel, priceDropDelivery) is a sqliteTable, so dropping the is(SQLiteTable) filter leaves TABLES unchanged; the filter only matters if a non-table export is added later. Touched by a comment-only t-15 edit, not phase logic."
+
+[[accepted]]
+  key = "68ab1882916c3b67"
+  file = "src/lib/server/scheduler.ts"
+  op = "ConditionalExpression"
+  text = "if (stopped) return;"
+  line = 82
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: tick() returns at once while stopped, so a followUp set or kept after stop() can never start a pass."
+
+[[accepted]]
+  key = "b28f3c24ef003a03"
+  file = "src/lib/server/scheduler.ts"
+  op = "BooleanLiteral"
+  text = "followUp = false;"
+  line = 92
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: tick() returns at once while stopped, so a followUp set or kept after stop() can never start a pass."
+
+[[accepted]]
+  key = "d17f9ef681f848d3"
+  file = "scripts/build-desktop.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 87
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "a530737a02a833f6"
+  file = "scripts/build-desktop.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 87
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "c6988fe142ca9a8b"
+  file = "scripts/build-desktop.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 87
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "70f2570b456e2308"
+  file = "scripts/build-desktop.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 88
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "82abf81bc782e98a"
+  file = "scripts/build-desktop.ts"
+  op = "LogicalOperator"
+  text = "const entry = process.argv[2] ?? DEFAULT_ENTRY;"
+  line = 89
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "98939a722e7e2e8f"
+  file = "scripts/build-desktop.ts"
+  op = "BlockStatement"
+  text = "try {"
+  line = 90
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "530d17401ce2e50e"
+  file = "scripts/build-desktop.ts"
+  op = "ObjectLiteral"
+  text = "await buildDesktop({ entry, logLevel: 'warning' });"
+  line = 92
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "1f3dbc2c406a96ec"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "await buildDesktop({ entry, logLevel: 'warning' });"
+  line = 92
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "83dbc10d4272a961"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "console.log(`build:desktop: ${entry} -> ${OUTFILE}`);"
+  line = 93
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "0db9c17aa5cdde7f"
+  file = "scripts/build-desktop.ts"
+  op = "BlockStatement"
+  text = "} catch {"
+  line = 94
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "f508b1d54dec9e9c"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "? 'SvelteKit virtual modules exist only inside the Kit build'"
+  line = 38
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "b34695ae66c06cb3"
+  file = "scripts/build-desktop.ts"
+  op = "MethodExpression"
+  text = "return path.startsWith('$app')"
+  line = 37
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "326a82f4fb55a978"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "return path.startsWith('$app')"
+  line = 37
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "c62c15842122cc33"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = ": 'the server bundle owns the only libsql client';"
+  line = 39
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "8738e239eb26916d"
+  file = "scripts/build-desktop.ts"
+  op = "BlockStatement"
+  text = "function reason(path: string): string {"
+  line = 36
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "8fe384b1130090e3"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "target: 'node24',"
+  line = 71
+  accepted_in = "03-desktop-shell"
+  reason = "esbuild target only controls syntax lowering; Electron 45's Node 24 runs the untransformed output, so an empty target builds an equivalent bundle."
+
+[[accepted]]
+  key = "c4e13500029cafd1"
+  file = "scripts/build-desktop.ts"
+  op = "BooleanLiteral"
+  text = "write: input.write ?? true,"
+  line = 75
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "1a0fc9747b313eac"
+  file = "scripts/build-desktop.ts"
+  op = "LogicalOperator"
+  text = "write: input.write ?? true,"
+  line = 75
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "bad496f7ddbf1c6c"
+  file = "scripts/build-desktop.ts"
+  op = "LogicalOperator"
+  text = "logLevel: input.logLevel ?? 'silent'"
+  line = 76
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "2cd819635311b9c6"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "logLevel: input.logLevel ?? 'silent'"
+  line = 76
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "34d06b2bfb21d7e3"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');"
+  line = 28
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "7ff2b522b2811b69"
+  file = "scripts/build-desktop.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 86
+  category = "desk-build-cli"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "b8701de8eb8e62ff"
+  file = "scripts/build-desktop.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 88
+  accepted_in = "03-desktop-shell"
+  reason = "isEntry forced true runs one extra real build when a spec imports the module, and forced false skips the CLI build; the first changes no assertion, the second fails pnpm test:e2e:desktop and CI (no dist-desktop/main.js on a fresh checkout)."
+
+[[accepted]]
+  key = "adf376c4546d03b5"
+  file = "src/desktop/alerts-key.ts"
+  op = "OptionalChaining"
+  text = "return (error as NodeJS.ErrnoException | undefined)?.code;"
+  line = 23
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "ebccb95ca4998c1a"
+  file = "src/desktop/alerts-key.ts"
+  op = "StringLiteral"
+  text = "'decrypted with the original key. Restore it from a backup, or delete it to ' +"
+  line = 35
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "82d084e92b9def6c"
+  file = "src/desktop/alerts-key.ts"
+  op = "ConditionalExpression"
+  text = "if (!(error instanceof AlertsKeyError)) throw error;"
+  line = 31
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "5f21d05d73e547dc"
+  file = "src/desktop/alerts-key.ts"
+  op = "StringLiteral"
+  text = "'It was left untouched, because saved alert channel credentials can only be ' +"
+  line = 34
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "327eca6678f6b0e8"
+  file = "src/desktop/alerts-key.ts"
+  op = "StringLiteral"
+  text = "'start with a new key (alert channels then need their credentials entered again).'"
+  line = 36
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "cd3b19658cb89eb3"
+  file = "src/desktop/alerts-key.ts"
+  op = "ConditionalExpression"
+  text = "if (errorCode(error) === 'ENOENT') return null;"
+  line = 46
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "f72eea9f89a5550b"
+  file = "src/desktop/alerts-key.ts"
+  op = "BlockStatement"
+  text = "async function syncDir(dir: string): Promise<void> {"
+  line = 52
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "d804617b07ee19ca"
+  file = "src/desktop/alerts-key.ts"
+  op = "ConditionalExpression"
+  text = "if (process.platform === 'win32') return;"
+  line = 53
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "c916bd26691573c7"
+  file = "src/desktop/alerts-key.ts"
+  op = "EqualityOperator"
+  text = "if (process.platform === 'win32') return;"
+  line = 53
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "3bd26808560d55d1"
+  file = "src/desktop/alerts-key.ts"
+  op = "StringLiteral"
+  text = "if (process.platform === 'win32') return;"
+  line = 53
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "1701741f079e37e4"
+  file = "src/desktop/alerts-key.ts"
+  op = "BlockStatement"
+  text = "try {"
+  line = 55
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "456ac163283b77bf"
+  file = "src/desktop/alerts-key.ts"
+  op = "BlockStatement"
+  text = "} finally {"
+  line = 57
+  category = "desk-fsync"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "601eb8d3d40eb855"
+  file = "src/desktop/alerts-key.ts"
+  op = "StringLiteral"
+  text = "await handle.writeFile(key.toString('base64'), 'utf8');"
+  line = 73
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "7adfcf737e75d375"
+  file = "src/desktop/alerts-key.ts"
+  op = "BlockStatement"
+  text = "} finally {"
+  line = 75
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "8478b3cd9e54d8be"
+  file = "src/desktop/alerts-key.ts"
+  op = "ConditionalExpression"
+  text = "if (errorCode(error) !== 'EEXIST') throw error;"
+  line = 81
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "95c5b3c7bf6a7879"
+  file = "src/desktop/alerts-key.ts"
+  op = "ObjectLiteral"
+  text = "await rm(temp, { force: true });"
+  line = 88
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "2f6a48107591a868"
+  file = "src/desktop/alerts-key.ts"
+  op = "BooleanLiteral"
+  text = "await rm(temp, { force: true });"
+  line = 88
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "7bf10e2565d2d61e"
+  file = "src/desktop/alerts-key.ts"
+  op = "ConditionalExpression"
+  text = "if (existing !== null) return decodeKeyFile(keyFile, existing);"
+  line = 100
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "e78f9be146d52499"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "redacted = redacted.split(encoded).join('[redacted]');"
+  line = 109
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "42901f1b53b9b5ea"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 118
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "3680405b3a8bbe62"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error(`desktop quit: ${name} failed`, error);"
+  line = 119
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "c301044ff5eb8ee2"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error(`desktop startup: ${stage} failed`, redactKey(messageOf(error), key));"
+  line = 135
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "673ecfa924b64bd3"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (boxError) {"
+  line = 138
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "963ca174c8874673"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop startup: showing the error failed', boxError);"
+  line = 139
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "28319e8d25644b20"
+  file = "src/desktop/lifecycle.ts"
+  op = "ObjectLiteral"
+  text = "const running: Running = {"
+  line = 157
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "71c391493b922ba9"
+  file = "src/desktop/lifecycle.ts"
+  op = "LogicalOperator"
+  text = "if (!running.ready || running.server === null) {"
+  line = 168
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "bc96a77e858aabdd"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (!running.ready || running.server === null) {"
+  line = 168
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "e1e204b3fe674130"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "if (runtime) await step('stopping the scheduler', () => runtime.stop(SCHEDULER_DRAIN_MS));"
+  line = 177
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "7ff998abd0f89e94"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (server) await step('closing the server', () => server.close());"
+  line = 178
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "61950c81be14a669"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "if (server) await step('closing the server', () => server.close());"
+  line = 178
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "8a623c770e7cfe17"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (runtime) await step('closing the database', () => runtime.closeDb());"
+  line = 179
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "cca13982bf5e04ba"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "if (runtime) await step('closing the database', () => runtime.closeDb());"
+  line = 179
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "a6f27f3fbb6da065"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error(`desktop quit: shutdown passed ${SHUTDOWN_DEADLINE_MS}ms, exiting anyway`);"
+  line = 192
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "125a9fbe0185dc27"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "startupFailure(deps, 'server', error, key);"
+  line = 217
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "5fc33fef75d73b35"
+  file = "src/desktop/lifecycle.ts"
+  op = "BooleanLiteral"
+  text = "ready: false,"
+  line = 160
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "0188855cb6fa56ec"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (running.quitting) return;"
+  line = 223
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "5dda0ee0870dde5b"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 226
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "1aca24ef5d5114c8"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (runtime) await step('stopping the scheduler', () => runtime.stop(SCHEDULER_DRAIN_MS));"
+  line = 177
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "d7c7f995c082ed25"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop resume: scheduler pass failed', error);"
+  line = 227
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "325c9379b7d2fd52"
+  file = "src/desktop/lifecycle.ts"
+  op = "BooleanLiteral"
+  text = "running.showRequested = false;"
+  line = 239
+  category = "desk-equivalent"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "fde40685676f11cf"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "export const STARTUP_ERROR_TITLE = 'Price Check could not start';"
+  line = 34
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "ae1376eefcc00ae9"
+  file = "src/desktop/login-item.ts"
+  op = "StringLiteral"
+  text = "return !entryDisabled(readFileSync(autostartFile, 'utf8'));"
+  line = 127
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "234c4002b93688bc"
+  file = "src/desktop/login-item.ts"
+  op = "ObjectLiteral"
+  text = "rmSync(autostartFile, { force: true });"
+  line = 139
+  accepted_in = "03-desktop-shell"
+  reason = "rmSync without force throws only when the autostart entry is already gone; the tray catches a throwing setEnabled and re-reads the OS state (tray.spec 'a throwing setEnabled leaves the checkbox showing the real OS state')."
+
+[[accepted]]
+  key = "79f97e72119c4f05"
+  file = "src/desktop/login-item.ts"
+  op = "BooleanLiteral"
+  text = "rmSync(autostartFile, { force: true });"
+  line = 139
+  accepted_in = "03-desktop-shell"
+  reason = "rmSync without force throws only when the autostart entry is already gone; the tray catches a throwing setEnabled and re-reads the OS state (tray.spec 'a throwing setEnabled leaves the checkbox showing the real OS state')."
+
+[[accepted]]
+  key = "295d2a80ae1ccf6a"
+  file = "src/desktop/login-item.ts"
+  op = "BooleanLiteral"
+  text = "mkdirSync(userData, { recursive: true });"
+  line = 149
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "efa2fd090be820fc"
+  file = "src/desktop/login-item.ts"
+  op = "StringLiteral"
+  text = "writeFileSync(markerFile, `${new Date().toISOString()}\\n`, 'utf8');"
+  line = 150
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "9578f8b06c9a7f78"
+  file = "src/desktop/login-item.ts"
+  op = "StringLiteral"
+  text = "writeFileSync(autostartFile, autostartEntry(env, execPath), 'utf8');"
+  line = 137
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "f5938f375cbf8833"
+  file = "src/desktop/login-item.ts"
+  op = "ObjectLiteral"
+  text = "mkdirSync(userData, { recursive: true });"
+  line = 149
+  category = "desk-unobservable-io"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "a33b0ef6ee785bdc"
+  file = "src/desktop/tray.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop tray: changing start at login failed', error);"
+  line = 92
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "99503e9f5613e260"
+  file = "src/desktop/tray.ts"
+  op = "StringLiteral"
+  text = "export const TRAY_TOOLTIP = 'Price Check';"
+  line = 19
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "48aa8dd11e051ca5"
+  file = "src/desktop/server.ts"
+  op = "StringLiteral"
+  text = "res.setHeader('content-type', 'text/plain; charset=utf-8');"
+  line = 38
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "beff93833ef79b51"
+  file = "src/desktop/server.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop server: request handler failed', error);"
+  line = 61
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "6267d7b0b7dd66f7"
+  file = "src/desktop/server.ts"
+  op = "StringLiteral"
+  text = "else sendText(res, 500, 'Internal Server Error');"
+  line = 63
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "03b19bccd05c3053"
+  file = "src/desktop/server.ts"
+  op = "ConditionalExpression"
+  text = "if (!res.writableEnded) sendText(res, 404, 'Not Found');"
+  line = 77
+  accepted_in = "03-desktop-shell"
+  reason = "next() is only reached when the handler declines a request; adapter-node's handler never calls next after ending the response, so the writableEnded guard never changes an outcome."
+
+[[accepted]]
+  key = "7565d901d08cc046"
+  file = "src/desktop/server.ts"
+  op = "StringLiteral"
+  text = "server.once('error', reject);"
+  line = 88
+  category = "desk-listen-error"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "a5da1890d023603d"
+  file = "src/desktop/server.ts"
+  op = "StringLiteral"
+  text = "server.off('error', reject);"
+  line = 90
+  category = "desk-listen-error"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "8fe9f2c38e0ff2e8"
+  file = "src/desktop/server.ts"
+  op = "ConditionalExpression"
+  text = "if (!(name in env)) delete process.env[name];"
+  line = 119
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: deleting every variable and then Object.assign(process.env, env) leaves process.env equal to env, the same as deleting only those absent from env."
+
+[[accepted]]
+  key = "5a1e89931b47ced1"
+  file = "src/desktop/window.ts"
+  op = "BlockStatement"
+  text = "return (error: unknown): void => {"
+  line = 79
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "63a4c190849381ad"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "console.error(`desktop window: ${what} failed`, error);"
+  line = 80
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "dc1b1af7136c0004"
+  file = "src/desktop/window.ts"
+  op = "BlockStatement"
+  text = "function logFailure(what: string) {"
+  line = 78
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "20aa20157d747f8e"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "deps.shell.openExternal(url).catch(logFailure('opening an external link'));"
+  line = 87
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "42a99ea3e2844d9b"
+  file = "src/desktop/window.ts"
+  op = "BlockStatement"
+  text = "created.on('closed', () => {"
+  line = 147
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+
+[[accepted]]
+  key = "8c96b0e42ef203d8"
+  file = "src/desktop/window.ts"
+  op = "ConditionalExpression"
+  text = "if (state.window === created) state.window = null;"
+  line = 148
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+
+[[accepted]]
+  key = "e56a1a5bbc9fc131"
+  file = "src/desktop/window.ts"
+  op = "EqualityOperator"
+  text = "if (state.window === created) state.window = null;"
+  line = 148
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+
+[[accepted]]
+  key = "37def2591c9a9102"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "window.loadURL(url).catch(logFailure('loading a page'));"
+  line = 113
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "31492305523989f5"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "created.on('closed', () => {"
+  line = 147
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: showWindow also recreates a window whose isDestroyed() is true (window.spec 'recreates a window destroyed without a closed event reaching it'), so the closed handler only drops a reference early."
+
+[[accepted]]
+  key = "ee3b0511ff0cda34"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "export const WINDOW_TITLE = 'Price Check';"
+  line = 19
+  category = "desk-message-text"
+  accepted_in = "03-desktop-shell"
+
+[[accepted]]
+  key = "cb9cce29bafc1dff"
+  file = "src/lib/server/scheduler.ts"
+  op = "ConditionalExpression"
+  text = "if (interval !== null) clearInterval(interval);"
+  line = 93
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: with the guard forced true, stop() calls clearInterval(null) when start() never ran; Node's clearInterval(null) and @sinonjs fake-timers' clearInterval(null) are both no-ops (checked: node -e 'clearInterval(null)' runs clean), and interval is set to null on the next line either way."
+
+[[accepted]]
+  key = "dc9563f41702681f"
+  file = "scripts/build-desktop.ts"
+  op = "StringLiteral"
+  text = "external: ['electron'],"
+  line = 73
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: packages:'external' already leaves every bare import, electron included, external. Probed with esbuild 2026-11-14: external ['electron'], [''] and [] give identical stdin output and a byte-identical src/desktop/main.ts bundle (20685 bytes)."
+
+[[accepted]]
+  key = "c795612e971c2408"
+  file = "scripts/build-desktop.ts"
+  op = "ArrayDeclaration"
+  text = "external: ['electron'],"
+  line = 73
+  accepted_in = "03-desktop-shell"
+  reason = "Equivalent: packages:'external' already leaves every bare import, electron included, external. Probed with esbuild 2026-11-14: external ['electron'], [''] and [] give identical stdin output and a byte-identical src/desktop/main.ts bundle (20685 bytes)."
+
+[[accepted]]
+  key = "01df4a5e2e308499"
+  file = "src/desktop/notifier.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop notification: resolving the click path failed', error);"
+  line = 65
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "dd4244c77d91898a"
+  file = "src/desktop/notifier.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop notification: click handler failed', error);"
+  line = 93
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "659dd29496456631"
+  file = "src/desktop/notifier.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop notification: constructing it failed', error);"
+  line = 110
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "eaa8d05959dcca94"
+  file = "src/desktop/notifier.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop notification: the OS reported a failure', error);"
+  line = 125
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "d8d5c8c958f1dc3d"
+  file = "src/desktop/notifier.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop notification: showing it failed', error);"
+  line = 139
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "327c8ef7a5aa545e"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "window.loadURL(url).catch(logFailure('loading the app'));"
+  line = 133
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "04377912050e3bd9"
+  file = "src/desktop/window.ts"
+  op = "StringLiteral"
+  text = "if (target !== undefined) window.loadURL(target).catch(logFailure('loading a page'));"
+  line = 177
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "ee9f78fd9325fcf7"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop startup: setting the AppUserModelId failed', error);"
+  line = 184
+  category = "desk-message-text"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "ddef87abf042061b"
+  file = "src/desktop/notifier.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 92
+  category = "notify-log-only-catch"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "f11fb4d3acdbab26"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 266
+  category = "notify-log-only-catch"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "f5d44b18832f211c"
+  file = "src/desktop/notifier.ts"
+  op = "ConditionalExpression"
+  text = "typeof path === 'string' &&"
+  line = 53
+  accepted_in = "04-desktop-notify"
+  reason = "Equivalent: with typeof path === 'string' forced true, a non-string clickPath() result throws in path.startsWith inside resolveClickPath's try, whose catch returns the same FALLBACK_PATH '/' that isAppPath false would."
+
+[[accepted]]
+  key = "67d8e354c1b08661"
+  file = "src/desktop/notifier.ts"
+  op = "ConditionalExpression"
+  text = "if (retained.length > MAX_RETAINED) retained.splice(0, retained.length - MAX_RETAINED);"
+  line = 77
+  accepted_in = "04-desktop-notify"
+  reason = "Equivalent: retained.splice(0, retained.length - MAX_RETAINED) removes nothing when the length is at or under the cap (zero or negative deleteCount), so the guard is redundant; notifier.spec 'holds at most the newest 20' pins the cap itself."
+
+[[accepted]]
+  key = "65ca07091857f49e"
+  file = "src/desktop/notifier.ts"
+  op = "EqualityOperator"
+  text = "if (retained.length > MAX_RETAINED) retained.splice(0, retained.length - MAX_RETAINED);"
+  line = 77
+  accepted_in = "04-desktop-notify"
+  reason = "Equivalent: at retained.length === MAX_RETAINED the splice deleteCount is 0, so > and >= remove the same (nothing); notifier.spec 'holds at most the newest 20' pins the cap."
+
+[[accepted]]
+  key = "e6d77803ac611b13"
+  file = "src/desktop/notifier.ts"
+  op = "ConditionalExpression"
+  text = "if (settled) return;"
+  line = 117
+  category = "notify-settle-guard"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "ba2ba0da955af743"
+  file = "src/desktop/notifier.ts"
+  op = "BooleanLiteral"
+  text = "settled = true;"
+  line = 118
+  category = "notify-settle-guard"
+  accepted_in = "04-desktop-notify"
+
+[[accepted]]
+  key = "db4477e3e04fbe30"
+  file = "src/desktop/window.ts"
+  op = "BlockStatement"
+  text = "} catch {"
+  line = 150
+  accepted_in = "04-desktop-notify"
+  reason = "Equivalent: with appUrl's catch emptied, url stays undefined, isAppUrl(undefined) fails parseUrl (new URL throws) and returns false, so appUrl still returns the origin (window.spec off-origin table includes the unparseable 'http://[')."
+
+[[accepted]]
+  key = "5aeacd4d89f32f17"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ObjectLiteral"
+  text = ".onConflictDoNothing({ target: notifyChannel.kind });"
+  line = 230
+  accepted_in = "04-desktop-notify"
+  reason = "Equivalent: notify_channel's only unique key is its kind primary key (drizzle/0009), so onConflictDoNothing() with no target skips exactly the same conflict as target kind."
+
+[[accepted]]
+  key = "c95155427c20e165"
+  file = "src/lib/server/alerts/channels.ts"
+  op = "ConditionalExpression"
+  text = "if (row === undefined || openConfig(key, row).ok) return;"
+  line = 233
+  accepted_in = "04-desktop-notify"
+  reason = "Unobservable for the sole caller: forcing the re-seal makes ensureChannel re-seal a readable desktop row, whose config is always {}; it reopens to {} with flags and updated_at untouched, and the update matches only the blob just read. Add a byte-identical-config test if ensureChannel ever seeds a kind with real settings."
+
+[[accepted]]
+  key = "16605a4211b2e3a7"
+  file = "src/lib/server/alerts/desktop.ts"
+  op = "ConditionalExpression"
+  text = "if (alert.watchId === undefined) return FALLBACK_CLICK_PATH;"
+  line = 33
+  accepted_in = "04-desktop-notify"
+  reason = "Unreachable in practice and fails safe: every routed alert carries watchId (alerts.spec 'watch id' for success and failure) and test alerts return earlier; without the guard, watchExists(undefined) sits inside clickPathFor's try, so a throw or a miss still opens '/'."
+
+[[accepted]]
+  key = "3020c07401cd3427"
+  file = "scripts/package-desktop.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 319
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "78fd89a38a88d8ff"
+  file = "scripts/package-desktop.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 320
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "038f2b006bc779de"
+  file = "scripts/package-desktop.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 320
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6602b65c3e2dbba7"
+  file = "scripts/package-desktop.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 320
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "207f94e9a8160ab4"
+  file = "scripts/package-desktop.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 321
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5752b7008091992e"
+  file = "scripts/package-desktop.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 321
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9eeebe88a158c336"
+  file = "scripts/package-desktop.ts"
+  op = "MethodExpression"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 323
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "99bab898fb73bd13"
+  file = "scripts/package-desktop.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 323
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e97741eac699eaaf"
+  file = "scripts/package-desktop.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 330
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "a83deb7abf2f80a0"
+  file = "scripts/package-desktop.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 331
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f008585dfae6d6aa"
+  file = "scripts/packaged-app.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 356
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "b6a21d9d4da9b653"
+  file = "scripts/packaged-app.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 357
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "b409213c82b03117"
+  file = "scripts/packaged-app.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 357
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "c838f77cf6d322bb"
+  file = "scripts/packaged-app.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 357
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "4ae33fd068c31636"
+  file = "scripts/packaged-app.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 358
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f0977b70a9909fcb"
+  file = "scripts/packaged-app.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 358
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6aac1d8f63ab0ce2"
+  file = "scripts/packaged-app.ts"
+  op = "MethodExpression"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 359
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "a503f2c07552e6b0"
+  file = "scripts/packaged-app.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 359
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "8693eca682bfe8f6"
+  file = "scripts/packaged-app.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 362
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "d4e16c69980a78cf"
+  file = "scripts/packaged-app.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 363
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9e924f49f9798fe4"
+  file = "scripts/release-tag.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 122
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "dd78fd01f2ff2e49"
+  file = "scripts/release-tag.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 123
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9503e6435a1c6929"
+  file = "scripts/release-tag.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 123
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e024fb80159a6fa2"
+  file = "scripts/release-tag.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 123
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "c552066c7c626c02"
+  file = "scripts/release-tag.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 124
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "4517de04a0c218dc"
+  file = "scripts/release-tag.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 124
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "44d7983f40c7d13c"
+  file = "scripts/release-tag.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = runCli({"
+  line = 125
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f04e5f59c8c8c999"
+  file = "scripts/release-tag.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 128
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "de2be21f3c7f5d16"
+  file = "scripts/release-tag.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 129
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "2fe2f2489bc4152f"
+  file = "scripts/verify-packaged.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 643
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "ac3aeb1522d34456"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 644
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "7764ea0a431b7396"
+  file = "scripts/verify-packaged.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 644
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "c0d2c280c5f09c9d"
+  file = "scripts/verify-packaged.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 644
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "1953d1fe3b93fbd1"
+  file = "scripts/verify-packaged.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 645
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f522e9fd4949c286"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 645
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "90abbaa7a3839093"
+  file = "scripts/verify-packaged.ts"
+  op = "MethodExpression"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 646
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "0cbe4a00d4ca086d"
+  file = "scripts/verify-packaged.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 646
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "ea130c17c9e29e11"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrowFunction"
+  text = "readInstaller: (path) => readFileSync(path).toString('latin1'),"
+  line = 651
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "65079f17d7ea487e"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "readInstaller: (path) => readFileSync(path).toString('latin1'),"
+  line = 651
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9067b64fa26cc6d2"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 652
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "07bd0cb177b94a4f"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 653
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6c31c48cd96ff6b6"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop startup: checking the previous version failed', error);"
+  line = 238
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "ce404978c3fa8340"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error(`desktop startup: the previous version outlived ${PREDECESSOR_WAIT_MS}ms`);"
+  line = 243
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "dad370ab2b596bc2"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: the update was not handed to the installer');"
+  line = 271
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "08436fbd2d1d8e30"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 272
+  category = "notify-log-only-catch"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "dc78da0b5cf8fc16"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: installing the update failed', error);"
+  line = 273
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "58f8bc0dca09dbbf"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: Squirrel could not stage the update', error);"
+  line = 289
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e345b96f459bf187"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: listening for Squirrel failed', error);"
+  line = 293
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5606cc79854e9c0a"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 446
+  category = "notify-log-only-catch"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6f671f00eda4836a"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "export const UPDATE_NOTICE_TITLE = 'Price Check update ready';"
+  line = 105
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5821440387f3d5b0"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('info', `update ${version} downloaded`);"
+  line = 152
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "a4e2dd26d1e3f8d3"
+  file = "src/desktop/updater.ts"
+  op = "BlockStatement"
+  text = "(result) => {"
+  line = 154
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "b6c7fc1958d39568"
+  file = "src/desktop/updater.ts"
+  op = "BooleanLiteral"
+  text = "if (!result.ok) safeLog('error', `update notification for ${version}: ${result.reason}`);"
+  line = 155
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "198b8abb5d6dbeca"
+  file = "src/desktop/updater.ts"
+  op = "ConditionalExpression"
+  text = "if (!result.ok) safeLog('error', `update notification for ${version}: ${result.reason}`);"
+  line = 155
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "4cc90b808d021297"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "if (!result.ok) safeLog('error', `update notification for ${version}: ${result.reason}`);"
+  line = 155
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e99cb85ece73b239"
+  file = "src/desktop/updater.ts"
+  op = "ArrowFunction"
+  text = "(error: unknown) => safeLog('error', `update notification for ${version} failed`, error)"
+  line = 157
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "23e231c3eadba7f0"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "(error: unknown) => safeLog('error', `update notification for ${version} failed`, error)"
+  line = 157
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f2bb219805b94d27"
+  file = "src/desktop/updater.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 161
+  category = "notify-log-only-catch"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f2037d76fd4f0856"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'update onReady failed', error);"
+  line = 162
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5e87f541536175dc"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'update check failed', error);"
+  line = 174
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "fa0c52bd66d18e60"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'updater error', error);"
+  line = 199
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "8389334cc00bd311"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('info', `updates on for ${appVersion}`);"
+  line = 206
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "3af1746f7a0da081"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'handing the update to the installer failed', error);"
+  line = 235
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "7cf32c1d99cabee0"
+  file = "src/desktop/app-paths.ts"
+  op = "Regex"
+  text = "return /(^|[\\\\/])app\\.asar$/.test(appRoot) ? `${appRoot}.unpacked` : appRoot;"
+  line = 41
+  accepted_in = "05-release"
+  reason = "Unreachable: appRoot is always absolute (main.ts APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')), so a bare 'app.asar' with no separator before it never occurs."
+
+[[accepted]]
+  key = "55994db13084d5ae"
+  file = "src/desktop/lifecycle.ts"
+  op = "BooleanLiteral"
+  text = "if (!updates) return false;"
+  line = 264
+  accepted_in = "05-release"
+  reason = "Equivalent: with updates undefined, watchSquirrel also returns null (it needs updates), so `installPending(...) && squirrel` is falsy either way and app.exit(0) runs next."
+
+[[accepted]]
+  key = "9d47e44fbab68433"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (!updates) return false;"
+  line = 264
+  accepted_in = "05-release"
+  reason = "Equivalent result: without the guard, updates.pending() on undefined throws inside installPending's try and the catch returns false, the same value; only a console line is added."
+
+[[accepted]]
+  key = "696fda7e1d4d7cdf"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "resolve('failed');"
+  line = 290
+  accepted_in = "05-release"
+  reason = "Equivalent: waitForSquirrel only branches on 'timeout' and 'staged'; an empty outcome takes the same no-wait path as 'failed'."
+
+[[accepted]]
+  key = "457f6b49f2a80665"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "}).catch((error: unknown) => {"
+  line = 292
+  accepted_in = "05-release"
+  reason = "Equivalent: the catch is reached only if nativeUpdater.on throws; emptied, it resolves undefined instead of 'failed', which waitForSquirrel treats like 'failed' (no wait)."
+
+[[accepted]]
+  key = "7ec379a189de2900"
+  file = "src/desktop/tray.ts"
+  op = "BooleanLiteral"
+  text = "updateReady = false"
+  line = 74
+  accepted_in = "05-release"
+  reason = "Unreachable default: the only production caller, createTray (tray.ts:101), always passes updateReady."
+
+[[accepted]]
+  key = "e59b80de5a784ea6"
+  file = "src/desktop/tray.ts"
+  op = "ConditionalExpression"
+  text = "if (ready === updateReady) return;"
+  line = 115
+  accepted_in = "05-release"
+  reason = "Equivalent: without the early return a same-value setUpdateReady rebuilds an identical menu from unchanged state (tray.spec 'a second setUpdateReady(true) adds no second item')."
+
+[[accepted]]
+  key = "a24ba4a7268369cd"
+  file = "src/desktop/updater.ts"
+  op = "BooleanLiteral"
+  text = "let installed = false;"
+  line = 130
+  accepted_in = "05-release"
+  reason = "Equivalent: onDownloaded sets installed=false before downloaded becomes non-null, and while downloaded is null pending() and installOnExit() return false whatever installed holds."
+
+[[accepted]]
+  key = "5697a3cb8ec5c514"
+  file = "src/desktop/updater.ts"
+  op = "ConditionalExpression"
+  text = "if (inFlight === check) inFlight = null;"
+  line = 183
+  accepted_in = "05-release"
+  reason = "Equivalent: runCheck sets inFlight only when it is null and only this check's finally clears it; that finally runs in a later microtask, after inFlight = check, so inFlight === check whenever it runs."
+
+[[accepted]]
+  key = "17d2fb733bacdd78"
+  file = "src/desktop/updater.ts"
+  op = "ConditionalExpression"
+  text = "if (interval !== undefined) timers.clearInterval(interval);"
+  line = 212
+  accepted_in = "05-release"
+  reason = "Equivalent: with the guard forced true, stop() calls clearInterval(undefined), a no-op in Node and in @sinonjs fake timers."
+
+[[accepted]]
+  key = "0a654fee1d6a4b81"
+  file = "scripts/package-desktop.ts"
+  op = "StringLiteral"
+  text = "export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');"
+  line = 32
+  accepted_in = "05-release"
+  reason = "Stryker static-mutant artefact: ROOT is a module-level const its vitest runner never re-evaluates. Hand-mutated '..' to '' in a scratch copy of ca0da85: package-desktop.spec fails at load (ENOENT scripts/node_modules/.pnpm, spec:125); unmutated copy 61/61 green."
+
+[[accepted]]
+  key = "edb8e9f5f4edfb3d"
+  file = "scripts/packaged-app.ts"
+  op = "StringLiteral"
+  text = "const detail = query.stderr.trim().split(/\\r?\\n/).slice(-1)[0] ?? '';"
+  line = 277
+  accepted_in = "05-release"
+  reason = "Unreachable fallback: split() always yields at least one element, so slice(-1)[0] is never undefined and the ?? '' default never applies."
+
+[[accepted]]
+  key = "2b9ebb7a4a62866f"
+  file = "scripts/packaged-app.ts"
+  op = "StringLiteral"
+  text = "`${outDir} holds a single-arch mac build (${singleArch.join(', ')}): only mac-universal ships`"
+  line = 129
+  accepted_in = "05-release"
+  reason = "Error-message wording only: the separator between single-arch dir names in the refusal text; the refusal itself (throw) is pinned by packaged-app.spec."
+
+[[accepted]]
+  key = "726fa545e58ce05c"
+  file = "scripts/packaged-app.ts"
+  op = "ObjectLiteral"
+  text = "{ encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, windowsHide: true, timeout: 15 * 60_000 },"
+  line = 205
+  accepted_in = "05-release"
+  reason = "Test-harness execFile options (maxBuffer 64MB, 15-min timeout, windowsHide): dropping them can only make a CI step fail (1MB maxBuffer error) or hang until the job timeout, never pass a check; execFile already defaults to utf8. A kill needs a >1MB child process and adds nothing."
+
+[[accepted]]
+  key = "81025ea3f42a01d4"
+  file = "scripts/packaged-app.ts"
+  op = "BooleanLiteral"
+  text = "{ encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, windowsHide: true, timeout: 15 * 60_000 },"
+  line = 205
+  accepted_in = "05-release"
+  reason = "windowsHide only controls whether Windows shows a console window for the child; no output, exit code or check result changes."
+
+[[accepted]]
+  key = "6ad4b8e75f90b7eb"
+  file = "scripts/packaged-app.ts"
+  op = "ConditionalExpression"
+  text = "return rest !== null && VERSION.test(rest);"
+  line = 235
+  accepted_in = "05-release"
+  reason = "Equivalent: forcing rest !== null to true leaves VERSION.test(rest); with rest null that tests the string 'null', which VERSION (^MAJOR.MINOR.PATCH(-rc.N)?$) never matches, so the result is false either way."
+
+[[accepted]]
+  key = "4b7674490ec8bdff"
+  file = "scripts/packaged-app.ts"
+  op = "StringLiteral"
+  text = "const uninstaller = /^\"([^\"]+)\"/.exec(key.values.UninstallString?.trim() ?? '')?.[1];"
+  line = 264
+  accepted_in = "05-release"
+  reason = "Equivalent: with UninstallString absent, /^\"([^\"]+)\"/ fails on both '' and the mutant string (no leading quote), so uninstaller is undefined either way."
+
+[[accepted]]
+  key = "2a81b6310e225a7a"
+  file = "scripts/update-feed.ts"
+  op = "StringLiteral"
+  text = "const raw = target ?? '';"
+  line = 156
+  accepted_in = "05-release"
+  reason = "Unreachable: pathOf only receives req.url from an http.Server request, which is always a string; the ?? '' default never applies."
+
+[[accepted]]
+  key = "3a21cc22802fca55"
+  file = "scripts/update-feed.ts"
+  op = "ConditionalExpression"
+  text = "if (!res.headersSent) res.writeHead(500, { 'Content-Length': '0' });"
+  line = 183
+  accepted_in = "05-release"
+  reason = "Unreachable false branch: serve() never rejects after writeHead (after it only createReadStream/pipe, whose errors go to the stream error handler), so headersSent is always false when the catch runs."
+
+[[accepted]]
+  key = "0627d895dffdb53e"
+  file = "scripts/update-feed.ts"
+  op = "BooleanLiteral"
+  text = "server.listen({ host: LOOPBACK, port, exclusive: true }, () => {"
+  line = 190
+  accepted_in = "05-release"
+  reason = "Equivalent: listen's exclusive flag only changes handle sharing between cluster workers; the feed never runs under cluster."
+
+[[accepted]]
+  key = "f6be8e7e2540e8fc"
+  file = "scripts/update-feed.ts"
+  op = "StringLiteral"
+  text = "server.off('error', rejectListen);"
+  line = 191
+  accepted_in = "05-release"
+  reason = "Test-harness listener hygiene: the mutant leaves the once('error') rejecter on a promise that already resolved, so a later error calls a no-op; nothing the feed's API returns changes."
+
+[[accepted]]
+  key = "155e666cd6fcc085"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "const host = URL.canParse(url ?? '') ? new URL(url ?? '') : null;"
+  line = 450
+  accepted_in = "05-release"
+  reason = "Equivalent (both mutants): URL.canParse fails on '' and on the mutant string alike; the second url ?? '' is reached only after canParse succeeded, so url is defined there."
+
+[[accepted]]
+  key = "4197e3a2ff34e34f"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrayDeclaration"
+  text = ": []"
+  line = 509
+  accepted_in = "05-release"
+  reason = "Equivalent: an absent outDir yields a dummy name set instead of an empty one; no expectedArtefacts name equals the dummy, so every artefact is still reported missing."
+
+[[accepted]]
+  key = "86210913bb7a0380"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "if (!isPackagedPlatform(platform)) throw new Error(`no packaged app for ${platform}`);"
+  line = 570
+  accepted_in = "05-release"
+  reason = "Unreachable guard message: hostPlatform runs only on hosts that execute verify-packaged (macos-15, windows-2025, ubuntu-24.04 runners, the dev Mac), all packaged platforms."
+
+[[accepted]]
+  key = "191186399cdab2a5"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (!isPackagedPlatform(platform)) throw new Error(`no packaged app for ${platform}`);"
+  line = 570
+  accepted_in = "05-release"
+  reason = "Unreachable defensive guard: every host that runs verify-packaged (macos-15, windows-2025, ubuntu-24.04 runners, the dev Mac) is a packaged platform, so the refusal never fires."
+
+[[accepted]]
+  key = "016aa7fc513d5888"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "if (located.platform !== 'win32') throw new Error('win needs a Windows output dir');"
+  line = 611
+  accepted_in = "05-release"
+  reason = "Unreachable: locate(dir, 'win32') returns platform 'win32' by construction, so this type-narrowing throw never fires."
+
+[[accepted]]
+  key = "02f06ab84195c372"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (located.platform !== 'win32') throw new Error('win needs a Windows output dir');"
+  line = 611
+  accepted_in = "05-release"
+  reason = "Equivalent: locate(dir, 'win32') always returns platform 'win32', so the type-narrowing condition is always false."
+
+[[accepted]]
+  key = "724fb3d684d8c080"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const fat = /Architectures in the fat file: .* are: (.+)$/m.exec(text);"
+  line = 54
+  accepted_in = "05-release"
+  reason = "Equivalent: (.+) is greedy and . excludes newline, so the capture already ends at end of line; dropping the multiline $ anchor changes nothing."
+
+[[accepted]]
+  key = "1689f533d43263d5"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (kind === 'dir') walk(child, path);"
+  line = 283
+  accepted_in = "05-release"
+  reason = "Equivalent: walking a non-dir node iterates node.files ?? {}, which is empty, so no extra entries are pushed."
+
+[[accepted]]
+  key = "e1d8a8d62628908d"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (name !== undefined && NATIVE_LIBSQL.test(name)) shipped.add(name);"
+  line = 370
+  accepted_in = "05-release"
+  reason = "Equivalent: forcing name !== undefined to true leaves NATIVE_LIBSQL.test(undefined), i.e. 'undefined' against /^(darwin|linux|win32)-/, which is false."
+
+[[accepted]]
+  key = "646a57e6799850d2"
+  file = "scripts/verify-packaged.ts"
+  op = "BooleanLiteral"
+  text = "let inFiles = false;"
+  line = 411
+  accepted_in = "05-release"
+  reason = "Unreachable input: differs only when the first non-blank YAML line is an indented key; electron-builder's latest*.yml and app-update.yml always open with a top-level key (version/provider)."
+
+[[accepted]]
+  key = "7a0b4f59f0a37f23"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const top = /^([A-Za-z0-9_]+):(?:\\s+(.*))?$/.exec(raw);"
+  line = 414
+  accepted_in = "05-release"
+  reason = "Equivalent: \\s versus \\s+ before the value only moves extra leading whitespace into the capture, and unquote() trims it."
+
+[[accepted]]
+  key = "943d8aa25b620afe"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const item = /^\\s+(-\\s+)?([A-Za-z0-9_]+):(?:\\s+(.*))?$/.exec(raw);"
+  line = 421
+  accepted_in = "05-release"
+  reason = "Equivalent: \\s versus \\s+ before the value only moves extra leading whitespace into the capture, and unquote() trims it."
+
+[[accepted]]
+  key = "4170e00437899abf"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "pattern.replace(/\\/\\*\\*(\\/\\*)?$/, '')"
+  line = 308
+  accepted_in = "05-release"
+  reason = "Equivalent for the shipped patterns (both mutants): every APP_FILES entry ends in exactly one trailing /**/*, so dropping $ or making (/*) mandatory strips the same suffix."
+
+[[accepted]]
+  key = "5ec40f13308b2f85"
+  file = "scripts/verify-packaged.ts"
+  op = "Regex"
+  text = "const UNPACK_ROOTS = ASAR_UNPACK.map((pattern) => pattern.replace(/\\/\\*\\*(\\/\\*)?$/, ''));"
+  line = 314
+  accepted_in = "05-release"
+  reason = "Equivalent for the shipped patterns (both mutants): every ASAR_UNPACK entry ends in exactly one trailing /**/*, so dropping $ or making (/*) mandatory strips the same suffix."
+
+[[accepted]]
+  key = "6b702c7105468e26"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {"
+  line = 66
+  accepted_in = "05-release"
+  reason = "Equivalent: Number.isInteger is false for every non-number, so !Number.isInteger(value) still throws for them without the typeof check."
+
+[[accepted]]
+  key = "344ad4f90ef7b8b8"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (colon === -1 || local.slice(0, colon) !== LOOPBACK) continue;"
+  line = 123
+  accepted_in = "05-release"
+  reason = "Equivalent: with no colon, local minus its last char equals 127.0.0.1 only for e.g. 127.0.0.1X, whose whole text then fails the ^\\d+$ port test and is skipped anyway."
+
+[[accepted]]
+  key = "46e8a7c6766c01d3"
+  file = "scripts/process-probe.ts"
+  op = "UnaryOperator"
+  text = "if (colon === -1 || local.slice(0, colon) !== LOOPBACK) continue;"
+  line = 123
+  accepted_in = "05-release"
+  reason = "Equivalent: colon === 1 means a one-char host, which never equals 127.0.0.1, so the line is skipped on both paths; the -1 case is caught by the port test."
+
+[[accepted]]
+  key = "1f464e26bbccbd99"
+  file = "scripts/process-probe.ts"
+  op = "MethodExpression"
+  text = "const users = fields.slice(5).join(' ');"
+  line = 127
+  accepted_in = "05-release"
+  reason = "Equivalent: fields 0-4 of an ss line (LISTEN, queues, local, peer address) never contain pid=, so matching over all fields finds the same pids."
+
+[[accepted]]
+  key = "0fe7e6049e310918"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "const users = fields.slice(5).join(' ');"
+  line = 127
+  accepted_in = "05-release"
+  reason = "Equivalent: ss writes ,pid=N so the word boundary before pid holds whether the users tokens are joined with a space or nothing."
+
+[[accepted]]
+  key = "f6d6bb6bf6c58c2f"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "state: status === null ? null : parseProcStatusState(status),"
+  line = 206
+  accepted_in = "05-release"
+  reason = "Equivalent: parseProcStatusState(null) runs its regex on the string 'null', finds no State: line and returns null, the same as the null branch."
+
+[[accepted]]
+  key = "bfc3c671651f7c3b"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "detail.ppid !== null && pids.has(detail.ppid) ? 1 : 0,"
+  line = 232
+  accepted_in = "05-release"
+  reason = "Equivalent: forcing ppid !== null to true leaves pids.has(null), which is false since pids holds only numbers."
+
+[[accepted]]
+  key = "56d96cf751bdcf6e"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i];"
+  line = 236
+  accepted_in = "05-release"
+  reason = "Equivalent (both mutants): rank arrays have equal length, so at i === a.length both entries are undefined and equal; and a[i] < b[i] versus <= differ only when equal, which the !== check excludes."
+
+[[accepted]]
+  key = "7eeb599e8f904930"
+  file = "scripts/packaged-app.ts"
+  op = "ObjectLiteral"
+  text = "rmSync(temp, { force: true });"
+  line = 191
+  accepted_in = "05-release"
+  reason = "Test-harness cleanup: without force, rmSync of a temp file the failed copy never created throws its own ENOENT in place of the copy's. replaceExecutable still throws and dest is untouched; only which ENOENT is reported changes."
+
+[[accepted]]
+  key = "1fd9a993f091057e"
+  file = "scripts/packaged-app.ts"
+  op = "BooleanLiteral"
+  text = "rmSync(temp, { force: true });"
+  line = 191
+  accepted_in = "05-release"
+  reason = "Test-harness cleanup: without force, rmSync of a temp file the failed copy never created throws its own ENOENT in place of the copy's. replaceExecutable still throws and dest is untouched; only which ENOENT is reported changes."
+
+[[accepted]]
+  key = "2ae464ee0f6827f9"
+  file = "scripts/process-probe.ts"
+  op = "ArrayDeclaration"
+  text = "(listeners.get(proc.pid) ?? []).some((listenPort) => runtimePorts.has(listenPort));"
+  line = 347
+  accepted_in = "05-release"
+  reason = "Equivalent: the placeholder string never equals a numeric listening port, so some(runtimePorts.has) answers as with an empty array."
+
+[[accepted]]
+  key = "9dad007d1ddc8793"
+  file = "scripts/process-probe.ts"
+  op = "ArrayDeclaration"
+  text = ".flatMap(({ appDir }) => (appDir === null ? [] : [appDir]));"
+  line = 363
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis: appImageProcesses lists the processes in the OS state attached after a Linux step already failed. A placeholder mount matches nothing; a null APPDIR beside a matching APPIMAGE (never set so by the runtime) would only make that probe section report a failed probe."
+
+[[accepted]]
+  key = "e2686bfda025a371"
+  file = "scripts/process-probe.ts"
+  op = "OptionalChaining"
+  text = "const startTime = installer.startTime ?? row?.startTime ?? null;"
+  line = 583
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis text: describeInstallerTree's fallback when the installer row is missing; only the wording of the attached Windows OS state changes."
+
+[[accepted]]
+  key = "f922b7f6e27628d1"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "const head = `installer pid ${installer.pid} started ${startTime?.toISOString() ?? 'unknown'} ${installer.path ?? row?.path ?? '<path unknown>'}: ${status}`;"
+  line = 588
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis text: placeholders for a start time or path the OS withheld in describeInstallerTree; only the wording of the attached Windows OS state changes."
+
+[[accepted]]
+  key = "1245b4207bc21e2e"
+  file = "scripts/process-probe.ts"
+  op = "OptionalChaining"
+  text = "const head = `installer pid ${installer.pid} started ${startTime?.toISOString() ?? 'unknown'} ${installer.path ?? row?.path ?? '<path unknown>'}: ${status}`;"
+  line = 588
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis text: placeholders for a start time or path the OS withheld in describeInstallerTree; only the wording of the attached Windows OS state changes."
+
+[[accepted]]
+  key = "559e58dd0c9033fd"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "`${'  '.repeat(depth)}pid ${process.pid} ${process.name ?? '<name unknown>'} started ${process.startTime?.toISOString() ?? 'unknown'} (ppid ${process.ppid ?? 'unknown'})`"
+  line = 593
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis text: placeholders for a name or start time the OS withheld in describeInstallerTree; only the wording of the attached Windows OS state changes."
+
+[[accepted]]
+  key = "8482f64964f08b89"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "origin: typeof row.origin === 'string' ? row.origin : 'unknown origin',"
+  line = 660
+  accepted_in = "05-release"
+  reason = "Field-type check and placeholder for a capture line startOutputCapture never writes otherwise (origin is always a string); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "294ff4d4354cfa79"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "default:"
+  line = 666
+  accepted_in = "05-release"
+  reason = "Unknown record kind, which startOutputCapture never writes; affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "e1398f8e92142cb2"
+  file = "scripts/process-probe.ts"
+  op = "ArrayDeclaration"
+  text = "const [ta, tb] = [startOf(byPid.get(a) ?? []), startOf(byPid.get(b) ?? [])];"
+  line = 718
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment; every record is still printed."
+
+[[accepted]]
+  key = "f373f7dcc72eb696"
+  file = "scripts/process-probe.ts"
+  op = "ArithmeticOperator"
+  text = "return a - b;"
+  line = 724
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment; every record is still printed."
+
+[[accepted]]
+  key = "ad96876e45a5d49b"
+  file = "scripts/process-probe.ts"
+  op = "ArrayDeclaration"
+  text = "const list = byPid.get(pid) ?? [];"
+  line = 728
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment; every record is still printed."
+
+[[accepted]]
+  key = "29b1adf2b06814e3"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "`pid ${pid} (ppid ${record.ppid ?? 'unknown'}) started ${at} argv ${record.argv === null ? '<unknown>' : JSON.stringify(record.argv)}`"
+  line = 736
+  accepted_in = "05-release"
+  reason = "argv placeholder wording in the failure-only capture attachment."
+
+[[accepted]]
+  key = "7cb66a75e8ed7951"
+  file = "scripts/process-probe.ts"
+  op = "LogicalOperator"
+  text = "if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {"
+  line = 94
+  accepted_in = "05-release"
+  reason = "nonNegativeInt parses Win32_Process ids only for the failure-only Windows installer-tree diagnosis. Dropping the typeof check is equivalent (Number.isInteger rejects non-numbers); '&&' would admit a fractional id, which CIM never emits."
+
+[[accepted]]
+  key = "57ffae73f660dd2c"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {"
+  line = 94
+  accepted_in = "05-release"
+  reason = "nonNegativeInt parses Win32_Process ids only for the failure-only Windows installer-tree diagnosis. Dropping the typeof check is equivalent (Number.isInteger rejects non-numbers); '&&' would admit a fractional id, which CIM never emits."
+
+[[accepted]]
+  key = "3e86622d9ac4f057"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return prefix !== '/' && path.startsWith(prefix) && path.length > prefix.length;"
+  line = 281
+  accepted_in = "05-release"
+  reason = "isUnder guards inputs that never occur: an APPDIR of '/' or '' (the AppImage runtime always sets its /tmp/.mount_* dir) and an exe equal to the dir plus '/' (/proc/<pid>/exe never ends in '/')."
+
+[[accepted]]
+  key = "a977844e1c99a65d"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "return prefix !== '/' && path.startsWith(prefix) && path.length > prefix.length;"
+  line = 281
+  accepted_in = "05-release"
+  reason = "isUnder guards inputs that never occur: an APPDIR of '/' or '' (the AppImage runtime always sets its /tmp/.mount_* dir) and an exe equal to the dir plus '/' (/proc/<pid>/exe never ends in '/')."
+
+[[accepted]]
+  key = "e6fc4e974123be18"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "return prefix !== '/' && path.startsWith(prefix) && path.length > prefix.length;"
+  line = 281
+  accepted_in = "05-release"
+  reason = "isUnder guards inputs that never occur: an APPDIR of '/' or '' (the AppImage runtime always sets its /tmp/.mount_* dir) and an exe equal to the dir plus '/' (/proc/<pid>/exe never ends in '/')."
+
+[[accepted]]
+  key = "df8cfb102f917d06"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "ppid: proc.status === null ? null : parseProcStatusPpid(proc.status),"
+  line = 297
+  accepted_in = "05-release"
+  reason = "Equivalent: parseProcStatusPpid(null) runs the PPid regex over the text 'null', finds no match and returns null, the same as the guard."
+
+[[accepted]]
+  key = "336019ca84679a90"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (facts.appImage !== appImage || facts.exe === null || facts.exe === appImage) return false;"
+  line = 312
+  accepted_in = "05-release"
+  reason = "Unreachable: the AppImage file never lies under its own FUSE mount (APPDIR), so isUnder(appImage, appDir) is false and the runtime and daemon stay excluded without this check."
+
+[[accepted]]
+  key = "7a8389beda94cab0"
+  file = "scripts/process-probe.ts"
+  op = "ArrayDeclaration"
+  text = ".flatMap(({ pid }) => listeners.get(pid) ?? [])"
+  line = 338
+  accepted_in = "05-release"
+  reason = "Equivalent: the placeholder string never equals a numeric listening port, so runtimePorts.has() answers as with an empty array."
+
+[[accepted]]
+  key = "bc2fd283daa67937"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = ".flatMap(({ appDir }) => (appDir === null ? [] : [appDir]));"
+  line = 363
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis: appImageProcesses lists the processes in the OS state attached after a Linux step already failed. A placeholder mount matches nothing; a null APPDIR beside a matching APPIMAGE (never set so by the runtime) would only make that probe section report a failed probe."
+
+[[accepted]]
+  key = "e84d5cda0b2f9459"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "return jsonRows(json, 'Win32_Process').map((row) => ({"
+  line = 509
+  accepted_in = "05-release"
+  reason = "Error-message label only, in the failure-only Windows installer-tree diagnosis."
+
+[[accepted]]
+  key = "157dd26f9bfd14fb"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "row.ParentProcessId === null || row.ParentProcessId === undefined"
+  line = 512
+  accepted_in = "05-release"
+  reason = "The Get-CimInstance query always selects ParentProcessId, so the undefined branch only serves a hand-built row; it affects only the failure-only Windows installer-tree text."
+
+[[accepted]]
+  key = "c0a64f2cc2850275"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "path: optionalString(row.ExecutablePath, 'ExecutablePath'),"
+  line = 516
+  accepted_in = "05-release"
+  reason = "Error-message label only, in the failure-only Windows installer-tree diagnosis."
+
+[[accepted]]
+  key = "93897480bf847b9f"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "name: optionalString(row.Name, 'Name'),"
+  line = 515
+  accepted_in = "05-release"
+  reason = "Error-message label only, in the failure-only Windows installer-tree diagnosis."
+
+[[accepted]]
+  key = "f6679e1f4fe3acd2"
+  file = "scripts/process-probe.ts"
+  op = "LogicalOperator"
+  text = "return later === null || earlier === null || later.getTime() >= earlier.getTime() - START_SKEW_MS;"
+  line = 529
+  accepted_in = "05-release"
+  reason = "startedNoEarlier only prunes reused-pid children from the failure-only Windows installer-tree text; the null branches cover a withheld CreationDate, and >= vs > differs only at exactly the 1 s skew."
+
+[[accepted]]
+  key = "e9b567da5636c80c"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return later === null || earlier === null || later.getTime() >= earlier.getTime() - START_SKEW_MS;"
+  line = 529
+  accepted_in = "05-release"
+  reason = "startedNoEarlier only prunes reused-pid children from the failure-only Windows installer-tree text; the null branches cover a withheld CreationDate, and >= vs > differs only at exactly the 1 s skew."
+
+[[accepted]]
+  key = "7bc531c36c4b4d47"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "return later === null || earlier === null || later.getTime() >= earlier.getTime() - START_SKEW_MS;"
+  line = 529
+  accepted_in = "05-release"
+  reason = "startedNoEarlier only prunes reused-pid children from the failure-only Windows installer-tree text; the null branches cover a withheld CreationDate, and >= vs > differs only at exactly the 1 s skew."
+
+[[accepted]]
+  key = "41dd192b6f49050e"
+  file = "scripts/process-probe.ts"
+  op = "OptionalChaining"
+  text = "`${'  '.repeat(depth)}pid ${process.pid} ${process.name ?? '<name unknown>'} started ${process.startTime?.toISOString() ?? 'unknown'} (ppid ${process.ppid ?? 'unknown'})`"
+  line = 593
+  accepted_in = "05-release"
+  reason = "Failure-only diagnosis text: placeholders for a name or start time the OS withheld in describeInstallerTree; only the wording of the attached Windows OS state changes."
+
+[[accepted]]
+  key = "fc4743a3fc351541"
+  file = "scripts/process-probe.ts"
+  op = "BlockStatement"
+  text = "} catch {"
+  line = 632
+  accepted_in = "05-release"
+  reason = "Equivalent: with an empty catch the value stays undefined, and the next check (typeof !== 'object') returns 'unreadable' as the catch did."
+
+[[accepted]]
+  key = "ab35b5766cb3449a"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (typeof value !== 'string') return null;"
+  line = 621
+  accepted_in = "05-release"
+  reason = "captureDate of a non-string 'at': startOutputCapture always writes an ISO string, and the date only labels lines in the failure-only capture attachment."
+
+[[accepted]]
+  key = "687d3da10b8393ab"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (value === null || typeof value !== 'object' || Array.isArray(value)) return unreadable;"
+  line = 635
+  accepted_in = "05-release"
+  reason = "Foreign-line robustness of the capture reader: startOutputCapture writes one JSON object per line, never null, an array or a primitive. Such a line only reaches the failure-only capture attachment."
+
+[[accepted]]
+  key = "fcf3c4692b6eb388"
+  file = "scripts/process-probe.ts"
+  op = "LogicalOperator"
+  text = "if (value === null || typeof value !== 'object' || Array.isArray(value)) return unreadable;"
+  line = 635
+  accepted_in = "05-release"
+  reason = "Foreign-line robustness of the capture reader: startOutputCapture writes one JSON object per line, never null, an array or a primitive. Such a line only reaches the failure-only capture attachment."
+
+[[accepted]]
+  key = "8ac2bf1cf59daa3d"
+  file = "scripts/process-probe.ts"
+  op = "LogicalOperator"
+  text = "if (typeof row.pid !== 'number' || !Number.isInteger(row.pid) || row.pid <= 0) return unreadable;"
+  line = 637
+  accepted_in = "05-release"
+  reason = "startOutputCapture writes process.pid, always a positive integer; the type, integer and <= 0 checks only matter for a foreign line in the failure-only capture attachment."
+
+[[accepted]]
+  key = "16ffdfbeaa1c70c4"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (typeof row.pid !== 'number' || !Number.isInteger(row.pid) || row.pid <= 0) return unreadable;"
+  line = 637
+  accepted_in = "05-release"
+  reason = "startOutputCapture writes process.pid, always a positive integer; the type, integer and <= 0 checks only matter for a foreign line in the failure-only capture attachment."
+
+[[accepted]]
+  key = "15fd02558945a007"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "if (typeof row.pid !== 'number' || !Number.isInteger(row.pid) || row.pid <= 0) return unreadable;"
+  line = 637
+  accepted_in = "05-release"
+  reason = "startOutputCapture writes process.pid, always a positive integer; the type, integer and <= 0 checks only matter for a foreign line in the failure-only capture attachment."
+
+[[accepted]]
+  key = "1412cecaf2aa526c"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "ppid: typeof row.ppid === 'number' ? row.ppid : null,"
+  line = 644
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (ppid is always a number); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "639f1cb8a30d2312"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "Array.isArray(row.argv) && row.argv.every((arg) => typeof arg === 'string')"
+  line = 646
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (argv is always a string array); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "f1f62e2052713bcc"
+  file = "scripts/process-probe.ts"
+  op = "MethodExpression"
+  text = "Array.isArray(row.argv) && row.argv.every((arg) => typeof arg === 'string')"
+  line = 646
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (argv is always a string array); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "3856a44c33f860d6"
+  file = "scripts/process-probe.ts"
+  op = "LogicalOperator"
+  text = "Array.isArray(row.argv) && row.argv.every((arg) => typeof arg === 'string')"
+  line = 646
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (argv is always a string array); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "5cd792763ca42c40"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return typeof row.text === 'string'"
+  line = 652
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (text is always a string); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "8cff638699edf999"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return typeof row.text === 'string'"
+  line = 656
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (text is always a string); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "1fc4aaae67d00dc0"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "origin: typeof row.origin === 'string' ? row.origin : 'unknown origin',"
+  line = 660
+  accepted_in = "05-release"
+  reason = "Field-type check and placeholder for a capture line startOutputCapture never writes otherwise (origin is always a string); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "9abe6ba098a3cbb4"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return { ...base, kind: 'exit', code: typeof row.code === 'number' ? row.code : null };"
+  line = 665
+  accepted_in = "05-release"
+  reason = "Field-type check for a capture line startOutputCapture never writes otherwise (exit code is always a number); affects only the failure-only capture attachment."
+
+[[accepted]]
+  key = "2cde3642a3e38b8d"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "const isoOrUnknown = (at: Date | null) => at?.toISOString() ?? '<time unknown>';"
+  line = 682
+  accepted_in = "05-release"
+  reason = "Placeholder wording for an unknown time in the failure-only capture attachment."
+
+[[accepted]]
+  key = "3d286cc8a447a60d"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (lines.length > 1 && lines.at(-1) === '') lines.pop();"
+  line = 687
+  accepted_in = "05-release"
+  reason = "Line splitting of an empty write in the failure-only capture attachment: only whether one empty prefixed line is printed."
+
+[[accepted]]
+  key = "93218e3abb90f1da"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "if (lines.length > 1 && lines.at(-1) === '') lines.pop();"
+  line = 687
+  accepted_in = "05-release"
+  reason = "Line splitting of an empty write in the failure-only capture attachment: only whether one empty prefixed line is printed."
+
+[[accepted]]
+  key = "74a0a14c3b9e529f"
+  file = "scripts/process-probe.ts"
+  op = "MethodExpression"
+  text = ".filter((line) => line.trim() !== '')"
+  line = 678
+  accepted_in = "05-release"
+  reason = "Whitespace-only capture lines (never written) would read as 'unreadable' instead of being skipped; changes only the failure-only capture attachment's text."
+
+[[accepted]]
+  key = "dc9900cf365f2c63"
+  file = "scripts/process-probe.ts"
+  op = "ArrowFunction"
+  text = "const start = list.find((record) => record.kind === 'start');"
+  line = 711
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "7729f97987859ef2"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "const start = list.find((record) => record.kind === 'start');"
+  line = 711
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "c90b7ea7f8c4db72"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "const start = list.find((record) => record.kind === 'start');"
+  line = 711
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "ac51b8a2952ad17e"
+  file = "scripts/process-probe.ts"
+  op = "StringLiteral"
+  text = "const start = list.find((record) => record.kind === 'start');"
+  line = 711
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "459038aaeb8a104c"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "const times = (start !== undefined && start.at !== null ? [start] : list).flatMap((record) =>"
+  line = 712
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "ad501a19a2b56896"
+  file = "scripts/process-probe.ts"
+  op = "EqualityOperator"
+  text = "const times = (start !== undefined && start.at !== null ? [start] : list).flatMap((record) =>"
+  line = 712
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (start record time vs earliest record); every record is still printed."
+
+[[accepted]]
+  key = "c854bca3c4014273"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "return times.length === 0 ? null : Math.min(...times);"
+  line = 715
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment; every record is still printed."
+
+[[accepted]]
+  key = "e385f9c61725e6c9"
+  file = "scripts/process-probe.ts"
+  op = "MethodExpression"
+  text = "return times.length === 0 ? null : Math.min(...times);"
+  line = 715
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment; every record is still printed."
+
+[[accepted]]
+  key = "363c6a9658733fd1"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (ta !== tb) {"
+  line = 719
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (unknown times last); every record is still printed."
+
+[[accepted]]
+  key = "146ff062fe1673d1"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "if (ta === null) return 1;"
+  line = 720
+  accepted_in = "05-release"
+  reason = "Block order in the failure-only capture attachment (unknown times last); every record is still printed."
+
+[[accepted]]
+  key = "2c81a7775c9b1984"
+  file = "scripts/process-probe.ts"
+  op = "ConditionalExpression"
+  text = "`pid ${pid} (ppid ${record.ppid ?? 'unknown'}) started ${at} argv ${record.argv === null ? '<unknown>' : JSON.stringify(record.argv)}`"
+  line = 736
+  accepted_in = "05-release"
+  reason = "argv placeholder wording in the failure-only capture attachment."
+
+[[accepted]]
+  key = "9b677acfebfd66ef"
+  file = "scripts/process-probe.ts"
+  op = "MethodExpression"
+  text = "const pids = [...(seen.get(listenPort) ?? [])].sort((a, b) => a - b);"
+  line = 803
+  accepted_in = "05-release"
+  reason = "Pid order within one port in the failure-only ports note of the Linux restart test."
+
+[[accepted]]
+  key = "e85592cf66c5feeb"
+  file = "scripts/process-probe.ts"
+  op = "ArithmeticOperator"
+  text = "const pids = [...(seen.get(listenPort) ?? [])].sort((a, b) => a - b);"
+  line = 803
+  accepted_in = "05-release"
+  reason = "Pid order within one port in the failure-only ports note of the Linux restart test."
+
+[[accepted]]
+  key = "95cc56c94797bb1e"
+  file = "scripts/process-probe.ts"
+  op = "ArrowFunction"
+  text = "const pids = [...(seen.get(listenPort) ?? [])].sort((a, b) => a - b);"
+  line = 803
+  accepted_in = "05-release"
+  reason = "Pid order within one port in the failure-only ports note of the Linux restart test."
+
+[[accepted]]
+  key = "cf6b9708a65ff2a9"
+  file = "src/desktop/main.ts"
+  op = "ObjectLiteral"
+  text = "...(updater ? { updates: withCaptureHandOver(updater, outputCapture, process.env) } : {}),"
+  line = 305
+  accepted_in = "05-release"
+  reason = "e2e-only: vitest mocks runDesktop, and isPackaged is false there, so updater is null. Dropping updates stops Restart and Quit from installing, which the packaged e2e 'quit installs in place', 'restart through the predecessor wait' and 'relaunch after exit' would fail on (green in run 44329632272)."
+
+[[accepted]]
+  key = "f491291e6277170f"
+  file = "src/desktop/main.ts"
+  op = "ArrowFunction"
+  text = "now: () => Date = () => new Date()"
+  line = 123
+  accepted_in = "05-release"
+  reason = "Test-only capture seam (packaged e2e only): with the default clock gone each record throws inside record()'s try/catch, so the capture file stays empty. It is read only to diagnose an already-failed Linux restart step, never to decide it."
+
+[[accepted]]
+  key = "855ecf64e1785670"
+  file = "src/desktop/main.ts"
+  op = "ConditionalExpression"
+  text = "text: typeof chunk === 'string' ? chunk : Buffer.from(chunk).toString('utf8')"
+  line = 139
+  accepted_in = "05-release"
+  reason = "Equivalent: Buffer.from(string).toString('utf8') returns the same text for the strings stdout and stderr carry, so taking the Buffer branch for strings records the same line."
+
+[[accepted]]
+  key = "d551df92c2546283"
+  file = "src/desktop/main.ts"
+  op = "StringLiteral"
+  text = "text: typeof chunk === 'string' ? chunk : Buffer.from(chunk).toString('utf8')"
+  line = 139
+  accepted_in = "05-release"
+  reason = "Equivalent: Buffer.from(string).toString('utf8') returns the same text for the strings stdout and stderr carry, so taking the Buffer branch for strings records the same line."
+
+[[accepted]]
+  key = "28014cbc932d2041"
+  file = "src/desktop/main.ts"
+  op = "LogicalOperator"
+  text = "return file !== undefined && isAbsolute(file) ? file : null;"
+  line = 96
+  accepted_in = "05-release"
+  reason = "Stryker static-mutant artefact: reported Survived with testsCompleted=0. Each of the 3 mutants calls isAbsolute(undefined) at import; hand-mutated in a git-archive copy of 95bc4f0, main.spec.ts fails at load (TypeError, no tests), and unmutated passes 12/12."
+
+[[accepted]]
+  key = "1f9c1b001b17235d"
+  file = "src/desktop/main.ts"
+  op = "ConditionalExpression"
+  text = "return file !== undefined && isAbsolute(file) ? file : null;"
+  line = 96
+  accepted_in = "05-release"
+  reason = "Stryker static-mutant artefact: reported Survived with testsCompleted=0. Each of the 3 mutants calls isAbsolute(undefined) at import; hand-mutated in a git-archive copy of 95bc4f0, main.spec.ts fails at load (TypeError, no tests), and unmutated passes 12/12."
+
+[[accepted]]
+  key = "d25968dfeaef8e87"
+  file = "src/desktop/main.ts"
+  op = "EqualityOperator"
+  text = "return file !== undefined && isAbsolute(file) ? file : null;"
+  line = 96
+  accepted_in = "05-release"
+  reason = "Stryker static-mutant artefact: reported Survived with testsCompleted=0. Each of the 3 mutants calls isAbsolute(undefined) at import; hand-mutated in a git-archive copy of 95bc4f0, main.spec.ts fails at load (TypeError, no tests), and unmutated passes 12/12."
+
+[[accepted]]
+  key = "183f14a4dabc1954"
+  file = "src/desktop/main.ts"
+  op = "ConditionalExpression"
+  text = "if (outputCapture !== null) startOutputCapture(outputCapture, process);"
+  line = 176
+  accepted_in = "05-release"
+  reason = "Module-level start of the test-only capture. Forced true (or === null) with no capture file: every append throws inside record()'s try/catch and each write still goes through, so a real launch behaves the same. Forced false: only the e2e diagnosis capture is lost."
+
+[[accepted]]
+  key = "5d4c2c9933e2d589"
+  file = "src/desktop/main.ts"
+  op = "EqualityOperator"
+  text = "if (outputCapture !== null) startOutputCapture(outputCapture, process);"
+  line = 176
+  accepted_in = "05-release"
+  reason = "Module-level start of the test-only capture. Forced true (or === null) with no capture file: every append throws inside record()'s try/catch and each write still goes through, so a real launch behaves the same. Forced false: only the e2e diagnosis capture is lost."

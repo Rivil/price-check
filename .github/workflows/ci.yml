@@ -1,0 +1,280 @@
+# PR gate for main and milestone/* (spec 01-public-ci: c-1, c-2, c-5).
+#
+# Hardening (supply chain): every action is pinned to a full commit SHA, the token
+# is read-only, the install is frozen to the lockfile, and pnpm 10 keeps dependency
+# build scripts denied (pnpm-workspace.yaml onlyBuiltDependencies). `pnpm ci:policy`
+# enforces the first two on every workflow file, including this one.
+#
+# Cost: the cheap Linux jobs (static, gitleaks) gate the three-OS test matrix.
+# Required check names: static, gitleaks, test (linux), test (macos), test (windows).
+name: ci
+
+on:
+  pull_request:
+    branches: [main, 'milestone/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    # Windows runners otherwise default to PowerShell, which only surfaces the
+    # last command's exit code.
+    shell: bash
+
+env:
+  GITLEAKS_VERSION: 8.30.1
+  # From gitleaks_8.30.1_checksums.txt, cross-checked against a local download.
+  GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+
+jobs:
+  static:
+    name: static
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      # Lint, typecheck and the policy check run no install script: none at all here,
+      # so no dependency code runs at install and the Electron binary is not fetched.
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: lint
+        run: pnpm lint
+      - name: typecheck
+        run: pnpm check
+      - name: workflow policy
+        run: pnpm ci:policy
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: install gitleaks (checksum-verified)
+        run: |
+          set -euo pipefail
+          tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL -o "$RUNNER_TEMP/$tarball" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${tarball}"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/$tarball" | sha256sum -c --strict -
+          tar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP" gitleaks
+      - name: scan full history of the code under review
+        # --log-opts=HEAD: only the PR's own history, not every fetched branch.
+        run: |
+          "$RUNNER_TEMP/gitleaks" git --log-opts=HEAD --config .gitleaks.toml \
+            --redact --no-banner --exit-code 1
+
+  test:
+    name: test (${{ matrix.name }})
+    needs: [static, gitleaks]
+    runs-on: ${{ matrix.os }}
+    # The packaged steps package twice on Windows and Linux and run the update test.
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux
+            os: ubuntu-24.04
+          - name: macos
+            os: macos-15
+          - name: windows
+            os: windows-2025
+    env:
+      # One path on every OS, so the browser cache below works everywhere.
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
+      # Where the root postinstall (install-electron, via @electron/get) keeps the
+      # downloaded Electron zip. Inside the checkout, like the browsers above, so the
+      # cache step below can restore it before pnpm install looks for it.
+      electron_config_cache: ${{ github.workspace }}/.electron-cache
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: cache electron binary
+        # Before pnpm install: its postinstall downloads Electron unless the zip is here.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.electron_config_cache }}
+          key: electron-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
+      - name: cache playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - name: install chromium
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            pnpm exec playwright install --with-deps chromium
+          else
+            pnpm exec playwright install chromium
+          fi
+      - name: unit tests
+        run: pnpm test:unit --run
+      - name: e2e tests
+        run: pnpm test:e2e
+        env:
+          CI: 'true'
+      - name: desktop e2e
+        # A shell branch, not a step `if:`, so the step runs (and gates) on every OS.
+        # Linux: Ubuntu 24.04's AppArmor denies the unprivileged user namespaces
+        # Chromium's sandbox needs. Lift that restriction rather than run without the
+        # sandbox, and give Electron a virtual display.
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+            xvfb-run -a pnpm test:e2e:desktop
+          else
+            pnpm test:e2e:desktop
+          fi
+        env:
+          CI: 'true'
+          # The suite's vite build validates src/env.ts, which requires DATABASE_URL.
+          # Electron's main sets the real one in userData at launch (server-env.ts),
+          # so this value only satisfies the build: the web e2e's seeded DB.
+          DATABASE_URL: file:e2e/.data/e2e.db
+      # The packaged app on every PR (spec 05-release c-1, c-2, c-3, c-5, c-6), pinned by
+      # scripts/ci-packaged.spec.ts. Steps of this job, not a job of their own, so the
+      # required check names stay the same. Each script branches on the OS with a case
+      # whose catch-all fails, so every OS runs every step (no step `if:`).
+      #
+      # Build A is package.json's version, packaged from the bundles the desktop e2e just
+      # built (build/ and dist-desktop/). PR builds are never signed: no --sign, and
+      # CSC_IDENTITY_AUTO_DISCOVERY off so no identity on the runner is picked up. Windows
+      # and Linux bake the update test's loopback feed into A (decision update_flow);
+      # macOS keeps the GitHub Releases feed a release build has.
+      - name: package
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          echo "PACKAGED_VERSION=$version" >> "$GITHUB_ENV"
+          case "$RUNNER_OS" in
+            Linux)
+              pnpm package:desktop --version "$version" --feed-url http://127.0.0.1:47811/
+              ;;
+            macOS)
+              pnpm package:desktop --version "$version"
+              ;;
+            Windows)
+              pnpm package:desktop --version "$version" --feed-url http://127.0.0.1:47811/
+              ;;
+            *)
+              echo "::error::no packaged build for $RUNNER_OS"
+              exit 1
+              ;;
+          esac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      # c-1 layout on every OS; c-2 universal lipo and both libsql binaries (unsigned: PRs
+      # never sign); c-3 per-user install, no UAC and the shortcut's AUMID, after a silent
+      # install. Then the executable the packaged suites launch.
+      - name: verify packaged
+        run: |
+          case "$RUNNER_OS" in
+            Linux)
+              node scripts/verify-packaged.ts layout dist-packaged --version "$PACKAGED_VERSION" --mode ci
+              # The AppImage needs FUSE 2 (README).
+              sudo apt-get update
+              sudo apt-get install -y libfuse2t64
+              exe="$(node scripts/packaged-app.ts exe dist-packaged)"
+              ;;
+            macOS)
+              node scripts/verify-packaged.ts layout dist-packaged --version "$PACKAGED_VERSION" --mode release
+              node scripts/verify-packaged.ts mac "dist-packaged/mac-universal/Price Check.app"
+              exe="$(node scripts/packaged-app.ts exe dist-packaged)"
+              ;;
+            Windows)
+              node scripts/verify-packaged.ts layout dist-packaged --version "$PACKAGED_VERSION" --mode ci
+              exe="$(node scripts/packaged-app.ts install dist-packaged)"
+              node scripts/verify-packaged.ts win dist-packaged
+              ;;
+            *)
+              echo "::error::no packaged build for $RUNNER_OS"
+              exit 1
+              ;;
+          esac
+          echo "PRICE_CHECK_PACKAGED_EXE=$exe" >> "$GITHUB_ENV"
+      # Build B, the next patch, for the update test (c-5, c-6): Windows and Linux only,
+      # into the dir the loopback feed serves. macOS updates are device UAT (two notarised
+      # builds), so update.packaged.ts skips there.
+      - name: package update build
+        run: |
+          update="$(node -p 'const [major, minor, patch] = require("./package.json").version.split("."); [major, minor, Number(patch) + 1].join(".")')"
+          case "$RUNNER_OS" in
+            Linux)
+              pnpm package:desktop --version "$update" --feed-url http://127.0.0.1:47811/ --out dist-packaged/update-feed
+              node scripts/verify-packaged.ts layout dist-packaged/update-feed --version "$update" --mode ci
+              echo "PRICE_CHECK_UPDATE_FEED_DIR=$GITHUB_WORKSPACE/dist-packaged/update-feed" >> "$GITHUB_ENV"
+              ;;
+            macOS)
+              echo "macOS: no update build, its updates are device UAT"
+              ;;
+            Windows)
+              pnpm package:desktop --version "$update" --feed-url http://127.0.0.1:47811/ --out dist-packaged/update-feed
+              node scripts/verify-packaged.ts layout dist-packaged/update-feed --version "$update" --mode ci
+              echo "PRICE_CHECK_UPDATE_FEED_DIR=$GITHUB_WORKSPACE/dist-packaged/update-feed" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "::error::no packaged build for $RUNNER_OS"
+              exit 1
+              ;;
+          esac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      # The packaged smoke on every OS, and the update test on Windows and Linux. Linux:
+      # the same AppArmor userns lift and virtual display as the desktop e2e, never
+      # without the sandbox. The list reporter, not CI's default dot: a line per test,
+      # and a failure's text attachments (the update test's diagnosis) in the log.
+      - name: packaged e2e
+        run: |
+          case "$RUNNER_OS" in
+            Linux)
+              sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+              xvfb-run -a pnpm test:e2e:packaged --reporter=list
+              ;;
+            macOS)
+              pnpm test:e2e:packaged --reporter=list
+              ;;
+            Windows)
+              pnpm test:e2e:packaged --reporter=list
+              ;;
+            *)
+              echo "::error::no packaged build for $RUNNER_OS"
+              exit 1
+              ;;
+          esac
+        env:
+          CI: 'true'
+      # Covers the desktop and packaged suites too (outputDir test-results/desktop and
+      # test-results/packaged), plus electron-builder's logs and the update files.
+      - name: upload test reports
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-reports-${{ matrix.name }}
+          path: |
+            playwright-report/
+            test-results/
+            dist-packaged/**/*.yml
+            dist-packaged/**/*.yaml
+          retention-days: 7
+          if-no-files-found: ignore

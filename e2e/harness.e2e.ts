@@ -1,29 +1,25 @@
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { connect } from 'node:net';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
-import { asc, count, eq, inArray, lte } from 'drizzle-orm';
+import { asc, eq, inArray } from 'drizzle-orm';
+import playwrightConfig from '../playwright.config.ts';
 import { loadChannelConfig } from '../src/lib/server/alerts/channels.ts';
 import { parseTopicUrl } from '../src/lib/server/alerts/ntfy.ts';
 import { createDb } from '../src/lib/server/db/client.ts';
-import {
-	alertChannel,
-	checkFailure,
-	pricePoint,
-	user,
-	watch
-} from '../src/lib/server/db/schema.ts';
+import { checkFailure, notifyChannel, pricePoint, watch } from '../src/lib/server/db/schema.ts';
 import {
 	E2E_ALERTS_KEY,
 	E2E_DATABASE_URL,
-	E2E_ORIGIN,
-	SEEDED_ADMIN,
-	SEEDED_DESIGN,
 	SEEDED_DESIGN_TOPIC_URL,
-	SEEDED_LONG_ACCOUNT,
-	SEEDED_MEMBER,
-	SEEDED_OTHER,
-	SEEDED_WATCHES,
-	uniqueEmail
+	SEEDED_WATCHES
 } from './accounts.ts';
+import { freePort, nodeServerEnv, startNodeServer } from './node-server.ts';
 
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
@@ -57,35 +53,45 @@ test('serial workers', () => {
 	expect(test.info().config.workers).toBe(1);
 });
 
+// Runs before every route spec (e2e/ sorts first, one worker), so the database is
+// still exactly what seed.ts wrote: one install's rows, no accounts (data_scope).
 test('fresh seed', async () => {
-	const db = createDb(E2E_DATABASE_URL);
-	try {
-		const seeded = await db
-			.select({ createdAt: user.createdAt })
-			.from(user)
-			.where(inArray(user.email, [SEEDED_ADMIN.email, SEEDED_MEMBER.email]));
-		expect(seeded).toHaveLength(2);
-
-		// Later e2e files add users, so count what existed when seeding finished:
-		// anything older (a previous run's leftovers) would push this above 2.
-		const seedDone = new Date(Math.max(...seeded.map((r) => r.createdAt.getTime())));
-		const [{ n }] = await db.select({ n: count() }).from(user).where(lte(user.createdAt, seedDone));
-		expect(n).toBe(2);
-
-		// The later seed users exist and were all created after the member.
-		const later = await db
-			.select({ email: user.email, createdAt: user.createdAt })
-			.from(user)
-			.where(
-				inArray(user.email, [SEEDED_OTHER.email, SEEDED_DESIGN.email, SEEDED_LONG_ACCOUNT.email])
-			);
-		expect(later).toHaveLength(3);
-		for (const row of later) {
-			expect(row.createdAt.getTime(), row.email).toBeGreaterThan(seedDone.getTime());
+	await withDb(async (db) => {
+		const tables = await db.$client.execute("select name from sqlite_master where type = 'table'");
+		const names = tables.rows.map((row) => String(row.name));
+		expect(names).toContain('watch');
+		for (const gone of ['user', 'session', 'account', 'verification']) {
+			expect(names, `${gone} table`).not.toContain(gone);
 		}
-	} finally {
-		db.$client.close();
-	}
+
+		const ids = (await db.select({ id: watch.id }).from(watch)).map((row) => row.id);
+		expect(ids.sort()).toStrictEqual(
+			Object.values(SEEDED_WATCHES)
+				.map(({ id }) => id)
+				.sort()
+		);
+
+		// The install's one channel, readable with the key the e2e server runs with.
+		expect(await db.select({ kind: notifyChannel.kind }).from(notifyChannel)).toStrictEqual([
+			{ kind: 'ntfy' }
+		]);
+		const key = Buffer.from(E2E_ALERTS_KEY, 'base64');
+		expect(await loadChannelConfig(db, key, 'ntfy')).toMatchObject({
+			url: SEEDED_DESIGN_TOPIC_URL,
+			token: expect.any(String)
+		});
+	});
+});
+
+test('seed refuses a non-file database', () => {
+	// .invalid, so a seed that stopped refusing could never reach a real server.
+	const run = spawnSync(process.execPath, ['e2e/seed.ts'], {
+		cwd: REPO_ROOT,
+		env: { PATH: process.env.PATH ?? '', DATABASE_URL: 'libsql://seed-guard.invalid' },
+		encoding: 'utf8'
+	});
+	expect(run.status).not.toBe(0);
+	expect(run.stderr).toContain('DATABASE_URL must be a file: URL');
 });
 
 test('design seed', async () => {
@@ -95,17 +101,10 @@ test('design seed', async () => {
 		expect(value, `${what} has whitespace`).not.toMatch(/\s/);
 	};
 
-	const db = createDb(E2E_DATABASE_URL);
-	try {
-		const [design] = await db.select().from(user).where(eq(user.email, SEEDED_DESIGN.email));
-		expect(design).toBeDefined();
-
-		// The layout watches belong to the design user only, never the member or other.
+	await withDb(async (db) => {
 		const designIds = [layoutLong.id, layoutCooldown.id, layoutAtTarget.id];
 		const rows = await db.select().from(watch).where(inArray(watch.id, designIds));
-		expect(rows.map((r) => [r.id, r.userId]).sort()).toStrictEqual(
-			designIds.map((id) => [id, design.id]).sort()
-		);
+		expect(rows.map((r) => r.id).sort()).toStrictEqual([...designIds].sort());
 		const byId = Object.fromEntries(rows.map((r) => [r.id, r]));
 
 		const long = byId[layoutLong.id];
@@ -139,30 +138,15 @@ test('design seed', async () => {
 			if (row.imageUrl) expect(new URL(row.imageUrl).hostname).toMatch(/\.invalid$/);
 		}
 
-		// The seed writes the design user's channel to the legacy plaintext table after
-		// migrating; the preview server's startup backfill moved it into encrypted
-		// storage (and scrubbed the legacy row — see 'design seed scrubbed').
 		const key = Buffer.from(E2E_ALERTS_KEY, 'base64');
-		const config = (await loadChannelConfig(db, key, design.id, 'ntfy')) as {
-			url: string;
-			token: string | null;
-		} | null;
+		const config = (await loadChannelConfig(db, key, 'ntfy')) as { url: string } | null;
 		expect(config).toMatchObject({ url: SEEDED_DESIGN_TOPIC_URL });
 		const topicUrl = config!.url;
 		unbrokenAtLeast(topicUrl, 140, 'design topic URL');
 		expect(new URL(topicUrl).hostname).toMatch(/\.invalid$/);
 		// Resubmitting it unchanged must save it unchanged.
 		expect(parseTopicUrl(topicUrl)).toMatchObject({ ok: true, url: topicUrl });
-
-		const [longAccount] = await db
-			.select()
-			.from(user)
-			.where(eq(user.email, SEEDED_LONG_ACCOUNT.email));
-		unbrokenAtLeast(longAccount?.email, 80, 'long account email');
-		unbrokenAtLeast(longAccount?.name, 60, 'long account name');
-	} finally {
-		db.$client.close();
-	}
+	});
 });
 
 test('chart seed', async () => {
@@ -257,31 +241,163 @@ test('dense seed', async () => {
 	});
 });
 
-test('seeded admin signs in', async ({ request }) => {
-	const signIn = await request.post('/api/auth/sign-in/email', {
-		headers: { Origin: E2E_ORIGIN },
-		data: { email: SEEDED_ADMIN.email, password: SEEDED_ADMIN.password }
+// c-2: the server needs only DATABASE_URL and ALERTS_ENCRYPTION_KEY.
+test('webServer env', () => {
+	const servers = [playwrightConfig.webServer ?? []].flat();
+	expect(servers).toHaveLength(1);
+	const env = servers[0].env ?? {};
+	expect(Object.keys(env)).not.toContain('BETTER_AUTH_SECRET');
+	expect(Object.keys(env)).not.toContain('ORIGIN');
+	expect(env).toMatchObject({
+		DATABASE_URL: E2E_DATABASE_URL,
+		ALERTS_ENCRYPTION_KEY: E2E_ALERTS_KEY
 	});
-	expect(signIn.status()).toBe(200);
-
-	const session = await request.get('/api/auth/get-session');
-	expect(session.status()).toBe(200);
-	expect((await session.json())?.user?.role).toBe('admin');
 });
 
-test('sign-up rejected', async ({ request }) => {
-	const res = await request.post('/api/auth/sign-up/email', {
-		headers: { Origin: E2E_ORIGIN },
-		data: { email: uniqueEmail('signup'), password: 'long-enough-password', name: 'Nope' }
-	});
-	expect(res.status()).toBe(400);
+/** Answers every request with the names of the variables it was started with. */
+const ENV_PROBE = `import { createServer } from 'node:http';
+createServer((req, res) => {
+	res.writeHead(200, { 'content-type': 'application/json' });
+	res.end(JSON.stringify(Object.keys(process.env)));
+}).listen(Number(process.env.PORT), process.env.HOST);
+`;
+
+test('node-server env', async () => {
+	// adapter-node drains for SHUTDOWN_TIMEOUT seconds (default 30) on SIGTERM; a
+	// spawned server gets a short one, unless the spec sets its own.
+	const base = { port: 1, dbFile: 'unused.db' };
+	const timeout = nodeServerEnv(base).SHUTDOWN_TIMEOUT;
+	expect(timeout).toMatch(/^\d+$/);
+	expect(Number(timeout)).toBeLessThanOrEqual(2);
+	expect(nodeServerEnv({ ...base, env: { SHUTDOWN_TIMEOUT: '17' } }).SHUTDOWN_TIMEOUT).toBe('17');
+
+	// Set in this process only: a child that sees them got a process.env spread.
+	const parentOnly = ['BETTER_AUTH_SECRET', 'ORIGIN', 'NODE_SERVER_PARENT_ONLY'];
+	const saved = parentOnly.map((name) => [name, process.env[name]] as const);
+	for (const name of parentOnly) process.env[name] = `parent-only-${name}`;
+	const dir = mkdtempSync(join(tmpdir(), 'node-server-probe-'));
+	try {
+		const probe = join(dir, 'probe.mjs');
+		writeFileSync(probe, ENV_PROBE);
+		const server = await startNodeServer({
+			port: await freePort(),
+			dbFile: join(dir, 'probe.db'),
+			env: { ALERTS_ENCRYPTION_KEY: E2E_ALERTS_KEY },
+			entry: probe
+		});
+		let names: string[];
+		try {
+			names = await (await fetch(`${server.url}/health`)).json();
+		} finally {
+			await server.stop();
+		}
+		for (const name of parentOnly) expect(names, name).not.toContain(name);
+		for (const name of [
+			'PATH',
+			'PORT',
+			'DATABASE_URL',
+			'ALERTS_ENCRYPTION_KEY',
+			'SHUTDOWN_TIMEOUT'
+		]) {
+			expect(names, name).toContain(name);
+		}
+		// stop() resolved only once the child was gone: nothing answers any more.
+		await expect(fetch(`${server.url}/health`)).rejects.toThrow();
+	} finally {
+		for (const [name, value] of saved) {
+			if (value === undefined) delete process.env[name];
+			else process.env[name] = value;
+		}
+		rmSync(dir, { recursive: true, force: true });
+	}
 });
 
-test('design seed scrubbed', async () => {
-	await withDb(async (db) => {
-		const [design] = await db.select().from(user).where(eq(user.email, SEEDED_DESIGN.email));
-		expect(await db.select().from(alertChannel).where(eq(alertChannel.userId, design.id))).toEqual(
-			[]
-		);
+/** Opens a socket to `port` and sends a request that never finishes. */
+async function holdConnection(port: number) {
+	const socket = connect(port, '127.0.0.1');
+	await new Promise<void>((done, fail) => {
+		socket.once('connect', done);
+		socket.once('error', fail);
 	});
+	// stop() ends the server under this socket, which may then see ECONNRESET: the
+	// expected end of a held connection, and the tests assert on stop(), not on it.
+	socket.on('error', () => {});
+	socket.write('GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n');
+	return socket;
+}
+
+// A held connection kept adapter-node draining for 30s, the whole test timeout
+// (restart.e2e.ts timed out in 2 of 4 runs): the built server must stop well short.
+test('node-server stop does not wait out a held connection', async () => {
+	const dir = mkdtempSync(join(tmpdir(), 'node-server-held-'));
+	try {
+		const port = await freePort();
+		const server = await startNodeServer({
+			port,
+			dbFile: join(dir, 'held.db'),
+			env: { ALERTS_ENCRYPTION_KEY: E2E_ALERTS_KEY }
+		});
+		try {
+			const socket = await holdConnection(port);
+			try {
+				const started = Date.now();
+				await server.stop();
+				expect(Date.now() - started).toBeLessThan(5_000);
+			} finally {
+				socket.destroy();
+			}
+			await expect(fetch(`${server.url}/health`)).rejects.toThrow();
+		} finally {
+			// A no-op once stopped; otherwise the child must not outlive the test.
+			await server.stop();
+		}
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
+
+/** Answers with its pid and ignores SIGTERM: a drain that never ends. */
+const STUCK_PROBE = `import { createServer } from 'node:http';
+process.on('SIGTERM', () => {});
+createServer((req, res) => res.end(String(process.pid))).listen(Number(process.env.PORT), process.env.HOST);
+`;
+
+// stop() must outlast a server that never drains, and still resolve only once the
+// process is gone: libsql holds the DB file until then (Windows restart, cleanup).
+test('node-server stop kills a stuck server and awaits its exit', async () => {
+	const dir = mkdtempSync(join(tmpdir(), 'node-server-stuck-'));
+	try {
+		const probe = join(dir, 'stuck.mjs');
+		writeFileSync(probe, STUCK_PROBE);
+		const server = await startNodeServer({
+			port: await freePort(),
+			dbFile: join(dir, 'stuck.db'),
+			entry: probe
+		});
+		try {
+			const pid = Number(await (await fetch(`${server.url}/health`)).text());
+			expect(pid).toBeGreaterThan(0);
+
+			const started = Date.now();
+			await server.stop();
+			expect(Date.now() - started).toBeLessThan(5_000);
+			// Reaped, not just signalled: signal 0 finds no such process.
+			expect(() => process.kill(pid, 0)).toThrow(/ESRCH/);
+		} finally {
+			// A no-op once stopped; otherwise the child must not outlive the test.
+			await server.stop();
+		}
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
+
+test('node-server needs a build', async () => {
+	await expect(
+		startNodeServer({
+			port: await freePort(),
+			dbFile: 'unused.db',
+			entry: 'build/no-such-entry.js'
+		})
+	).rejects.toThrow('run pnpm build first');
 });

@@ -1,4 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { RequestEvent } from '@sveltejs/kit';
+import { sql } from 'drizzle-orm';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { channelKinds } from '#lib/server/alerts/channels.ts';
+import type { DesktopDeps } from '#lib/server/alerts/desktop.ts';
+import { notifyChannel, watch } from '#lib/server/db/schema.ts';
+import { publishNotifier, type DesktopNotifier } from '#lib/server/notify-bridge.ts';
+import { createTestDb, type TestDb } from '#lib/server/testing/test-db.ts';
+import hooksSource from './hooks.server.ts?raw';
 
 // The real hooks module, with everything it would start or reach replaced: init
 // must hand the scheduler the server's env, build flag, db and a check that goes
@@ -6,14 +14,23 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // A valid key for the server's ALERTS_ENCRYPTION_KEY: base64 of 32 bytes.
 const VALID_KEY = Buffer.alloc(32, 7).toString('base64');
 
+const RUNTIME_KEY = Symbol.for('price-check.runtime');
+const NOTIFIER_KEY = Symbol.for('price-check.notifier');
+
 const mocks = vi.hoisted(() => ({
-	db: { name: 'the app db' },
-	env: { building: false, key: undefined as string | undefined },
+	db: { name: 'the app db', $client: { close: vi.fn() } },
+	env: { building: false, key: undefined as string | undefined, db: undefined as unknown },
 	setAlertsKey: vi.fn(),
-	backfill: vi.fn(),
+	realSetAlertsKey: undefined as unknown as (key: Buffer) => void,
+	installDesktop: vi.fn(),
+	/** What each successful installDesktop returned; undone after every test. */
+	installed: [] as (() => void)[],
+	/** What each installDesktop threw, so a test can check it never reached the log. */
+	installErrors: [] as unknown[],
 	order: [] as string[],
 	migrateDb: vi.fn(),
 	startScheduler: vi.fn(),
+	publishRuntime: vi.fn(),
 	checkUrl: vi.fn(async (url: string) => ({ ok: false, reason: 'blocked', message: url }))
 }));
 vi.mock('$app/env', () => ({
@@ -22,7 +39,6 @@ vi.mock('$app/env', () => ({
 	}
 }));
 vi.mock('#lib/server/db/migrate.ts', () => ({ migrateDb: mocks.migrateDb }));
-vi.mock('#lib/server/alerts/backfill.ts', () => ({ backfillLegacyNtfy: mocks.backfill }));
 vi.mock('$app/env/private', () => ({
 	CHECK_INTERVAL_HOURS: '12',
 	SCHEDULER_DISABLED: '',
@@ -30,28 +46,60 @@ vi.mock('$app/env/private', () => ({
 		return mocks.env.key;
 	}
 }));
-// The real parser; setAlertsKey records the step so its order can be checked.
-vi.mock('#lib/server/alerts/crypto.ts', async (importOriginal) => ({
-	...(await importOriginal<typeof import('#lib/server/alerts/crypto.ts')>()),
-	setAlertsKey: mocks.setAlertsKey
+// The real parser and key store; setAlertsKey records the step so its order can be
+// checked, then installs the key, so the desktop setup's alertsKey() reads it.
+vi.mock('#lib/server/alerts/crypto.ts', async (importOriginal) => {
+	const real = await importOriginal<typeof import('#lib/server/alerts/crypto.ts')>();
+	mocks.realSetAlertsKey = real.setAlertsKey;
+	return { ...real, setAlertsKey: mocks.setAlertsKey };
+});
+// The real installDesktop; the wrapper records the step and keeps its unregister.
+vi.mock('#lib/server/alerts/desktop.ts', async (importOriginal) => {
+	const real = await importOriginal<typeof import('#lib/server/alerts/desktop.ts')>();
+	mocks.installDesktop.mockImplementation(
+		async (...args: Parameters<typeof real.installDesktop>) => {
+			try {
+				const undo = await real.installDesktop(...args);
+				mocks.installed.push(undo);
+				mocks.order.push('desktop');
+				return undo;
+			} catch (error) {
+				mocks.installErrors.push(error);
+				throw error;
+			}
+		}
+	);
+	return { ...real, installDesktop: mocks.installDesktop };
+});
+// The fake db by default; the desktop tests swap in a real temp-file one.
+vi.mock('#lib/server/db/index.ts', () => ({
+	get db() {
+		return mocks.env.db;
+	}
 }));
-vi.mock('#lib/server/auth.ts', () => ({ auth: { api: { getSession: vi.fn() } } }));
-vi.mock('#lib/server/db/index.ts', () => ({ db: mocks.db }));
 vi.mock('#lib/server/scheduler.ts', () => ({ startScheduler: mocks.startScheduler }));
+// The real bridge; publishRuntime records the step so its order can be checked.
+vi.mock('#lib/server/runtime-bridge.ts', async (importOriginal) => {
+	const real = await importOriginal<typeof import('#lib/server/runtime-bridge.ts')>();
+	mocks.publishRuntime.mockImplementation((runtime) => {
+		mocks.order.push('published');
+		real.publishRuntime(runtime);
+	});
+	return { ...real, publishRuntime: mocks.publishRuntime };
+});
 vi.mock('#lib/server/shops/index.ts', () => ({ checkUrl: mocks.checkUrl }));
 
 beforeEach(() => {
 	mocks.env.building = false;
 	mocks.env.key = VALID_KEY;
+	mocks.env.db = mocks.db;
 	mocks.order.length = 0;
-	mocks.setAlertsKey.mockReset().mockImplementation(() => {
+	mocks.setAlertsKey.mockReset().mockImplementation((key: Buffer) => {
 		mocks.order.push('key');
+		mocks.realSetAlertsKey(key);
 	});
-	mocks.backfill.mockReset().mockImplementation(async () => {
-		await new Promise((done) => setTimeout(done, 5));
-		mocks.order.push('backfilled');
-		return { moved: 0 };
-	});
+	mocks.installDesktop.mockClear();
+	mocks.installErrors.length = 0;
 	mocks.migrateDb.mockReset().mockImplementation(async () => {
 		// Resolves on a later tick: init must wait for it before starting the scheduler.
 		await new Promise((done) => setTimeout(done, 5));
@@ -62,7 +110,20 @@ beforeEach(() => {
 		return null;
 	});
 	mocks.checkUrl.mockClear();
+	mocks.publishRuntime.mockClear();
+	mocks.db.$client.close.mockReset();
+	delete (globalThis as { [RUNTIME_KEY]?: unknown })[RUNTIME_KEY];
+	delete (globalThis as { [NOTIFIER_KEY]?: unknown })[NOTIFIER_KEY];
 });
+afterEach(() => {
+	for (const undo of mocks.installed.splice(0).reverse()) undo();
+});
+
+/** What init published, read back through the real bridge. */
+async function published() {
+	const { readRuntime } = await import('#lib/server/runtime-bridge.ts');
+	return readRuntime();
+}
 
 describe('hooks.server', () => {
 	it('init migrates the app db before starting the scheduler', async () => {
@@ -70,33 +131,19 @@ describe('hooks.server', () => {
 		await hooks.init();
 
 		expect(mocks.migrateDb).toHaveBeenCalledExactlyOnceWith(mocks.db);
-		expect(mocks.order).toEqual(['key', 'migrated', 'backfilled', 'scheduler']);
+		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler', 'published']);
 	});
 
 	it('order', async () => {
 		const hooks = await import('./hooks.server.ts');
 		await hooks.init();
 
-		expect(mocks.order).toEqual(['key', 'migrated', 'backfilled', 'scheduler']);
+		// No legacy-channel backfill step any more: key, migrate, scheduler, then publish.
+		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler', 'published']);
 		expect(mocks.setAlertsKey).toHaveBeenCalledOnce();
 		const [key] = mocks.setAlertsKey.mock.calls[0] as [Buffer];
 		expect(Buffer.isBuffer(key)).toBe(true);
 		expect(key.equals(Buffer.alloc(32, 7))).toBe(true);
-
-		// The backfill gets the app db and the same parsed key.
-		expect(mocks.backfill).toHaveBeenCalledOnce();
-		const [db, backfillKey] = mocks.backfill.mock.calls[0] as [unknown, Buffer];
-		expect(db).toBe(mocks.db);
-		expect(backfillKey).toBe(key);
-	});
-
-	it('a failed backfill stops startup', async () => {
-		mocks.backfill.mockRejectedValueOnce(new Error('backfill broke'));
-		const hooks = await import('./hooks.server.ts');
-
-		await expect(hooks.init()).rejects.toThrow('backfill broke');
-		expect(mocks.order).toEqual(['key', 'migrated']);
-		expect(mocks.startScheduler).not.toHaveBeenCalled();
 	});
 
 	it('refuses', async () => {
@@ -120,6 +167,7 @@ describe('hooks.server', () => {
 			expect(mocks.setAlertsKey).not.toHaveBeenCalled();
 			expect(mocks.migrateDb).not.toHaveBeenCalled();
 			expect(mocks.startScheduler).not.toHaveBeenCalled();
+			expect(mocks.publishRuntime).not.toHaveBeenCalled();
 			expect(mocks.order).toEqual([]);
 		}
 	});
@@ -132,7 +180,6 @@ describe('hooks.server', () => {
 		await expect(hooks.init()).resolves.toBeUndefined();
 		expect(mocks.setAlertsKey).not.toHaveBeenCalled();
 		expect(mocks.migrateDb).not.toHaveBeenCalled();
-		expect(mocks.backfill).not.toHaveBeenCalled();
 	});
 
 	it('init does not migrate while building', async () => {
@@ -151,6 +198,46 @@ describe('hooks.server', () => {
 
 		await expect(hooks.init()).rejects.toThrow('migration broke');
 		expect(mocks.startScheduler).not.toHaveBeenCalled();
+		expect(mocks.publishRuntime).not.toHaveBeenCalled();
+	});
+
+	it('publishes the scheduler controls', async () => {
+		const controls = { requestPass: vi.fn(), stop: vi.fn(async () => {}) };
+		mocks.startScheduler.mockImplementation(() => {
+			mocks.order.push('scheduler');
+			return controls;
+		});
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+
+		expect(mocks.publishRuntime).toHaveBeenCalledOnce();
+		const runtime = await published();
+		expect(runtime.requestPass).toBe(controls.requestPass);
+		expect(runtime.stop).toBe(controls.stop);
+		expect(Object.keys(runtime).sort()).toEqual(['closeDb', 'requestPass', 'stop']);
+	});
+
+	it('closeDb closes the app db client once', async () => {
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+		const runtime = await published();
+		expect(mocks.db.$client.close).not.toHaveBeenCalled();
+
+		await runtime.closeDb();
+		await runtime.closeDb();
+
+		expect(mocks.db.$client.close).toHaveBeenCalledOnce();
+	});
+
+	it('a disabled scheduler publishes no-op controls', async () => {
+		// The default mock: startScheduler returns null, as under SCHEDULER_DISABLED=1.
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+		const runtime = await published();
+
+		expect(() => runtime.requestPass()).not.toThrow();
+		await expect(runtime.stop()).resolves.toBeUndefined();
+		await expect(runtime.stop(0)).resolves.toBeUndefined();
 	});
 
 	it('init', async () => {
@@ -177,6 +264,168 @@ describe('hooks.server', () => {
 		expect(mocks.checkUrl).toHaveBeenCalledExactlyOnceWith(
 			'https://www.amazon.co.uk/dp/B0ABC12345'
 		);
+	});
+});
+
+describe('hooks.server desktop alerts', () => {
+	// A real temp-file db and the real driver registry; the notifier is a fake, so
+	// nothing reaches Electron or the OS.
+	let h: TestDb;
+	let notifier: DesktopNotifier;
+
+	beforeEach(async () => {
+		// No registration left over from an earlier test (each install is undone).
+		expect(channelKinds()).not.toContain('desktop');
+		// createTestDb migrates through the mocked module: let that one call run the real
+		// migrations, then forget it, so init's migrateDb is the only step recorded.
+		const real = await vi.importActual<typeof import('#lib/server/db/migrate.ts')>(
+			'#lib/server/db/migrate.ts'
+		);
+		mocks.migrateDb.mockImplementationOnce(real.migrateDb);
+		h = await createTestDb();
+		mocks.migrateDb.mockClear();
+		mocks.env.db = h.db;
+		notifier = { show: vi.fn(async () => ({ ok: true as const })) };
+	});
+	afterEach(() => {
+		h.dispose();
+	});
+
+	const storedKinds = async () => (await h.db.select().from(notifyChannel)).map(({ kind }) => kind);
+
+	it('installs desktop before the first scheduler pass', async () => {
+		publishNotifier(notifier);
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+
+		expect(mocks.order).toEqual(['key', 'migrated', 'desktop', 'scheduler', 'published']);
+		expect(mocks.installDesktop).toHaveBeenCalledOnce();
+		const [db, key, given] = mocks.installDesktop.mock.calls[0] as unknown[];
+		expect(db).toBe(h.db);
+		expect((key as Buffer).equals(Buffer.alloc(32, 7))).toBe(true);
+		expect(given).toBe(notifier);
+		expect(channelKinds()).toContain('desktop');
+		expect(await storedKinds()).toEqual(['desktop']);
+	});
+
+	it('no Electron, no desktop', async () => {
+		// No notifier published, as under pnpm dev or browser e2e (desktop_only_driver).
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+
+		expect(mocks.installDesktop).not.toHaveBeenCalled();
+		expect(channelKinds()).not.toContain('desktop');
+		expect(await storedKinds()).toEqual([]);
+		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler', 'published']);
+	});
+
+	it('watchExists answers from the watch table', async () => {
+		await h.db.insert(watch).values({
+			id: 'w1',
+			shop: 'amazon-uk',
+			productId: 'B0W1000000',
+			canonicalUrl: 'https://www.amazon.co.uk/dp/B0W1000000',
+			title: 'Acme Kettle',
+			pricePence: 900,
+			targetPence: 1000
+		});
+		publishNotifier(notifier);
+		const hooks = await import('./hooks.server.ts');
+		await hooks.init();
+
+		const [, , , deps] = mocks.installDesktop.mock.calls[0] as [
+			unknown,
+			unknown,
+			unknown,
+			DesktopDeps
+		];
+		expect(await deps.watchExists('w1')).toBe(true);
+		expect(await deps.watchExists('no-such-watch')).toBe(false);
+	});
+
+	it('a failed desktop seed is logged and startup goes on', async () => {
+		// ensureChannel's insert fails for real: the table is gone.
+		await h.db.run(sql`drop table notify_channel`);
+		publishNotifier(notifier);
+		const controls = { requestPass: vi.fn(), stop: vi.fn(async () => {}) };
+		mocks.startScheduler.mockImplementation(() => {
+			mocks.order.push('scheduler');
+			return controls;
+		});
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const hooks = await import('./hooks.server.ts');
+		let logged: unknown[][];
+		try {
+			await expect(hooks.init()).resolves.toBeUndefined();
+		} finally {
+			logged = [...consoleError.mock.calls];
+			consoleError.mockRestore();
+		}
+
+		// The scheduler still starts and main still gets its controls.
+		expect(mocks.order).toEqual(['key', 'migrated', 'scheduler', 'published']);
+		expect((await published()).requestPass).toBe(controls.requestPass);
+		// installDesktop undid its registration, so no driver without a row.
+		expect(channelKinds()).not.toContain('desktop');
+		// One line: the error's type and frames, never its message (a query's params).
+		expect(mocks.installErrors).toHaveLength(1);
+		const [error] = mocks.installErrors as Error[];
+		expect(logged).toHaveLength(1);
+		const [line] = logged[0] as [string];
+		expect(line).toMatch(/^\[server\] desktop alerts not set up: \w+/);
+		expect(error.message).not.toBe('');
+		expect(line).not.toContain(error.message);
+		expect(line).not.toContain('notify_channel');
+	});
+});
+
+describe('handle', () => {
+	function fakeEvent(path: string, headers: Record<string, string>) {
+		const url = new URL(path, 'http://localhost:5173');
+		return {
+			url,
+			route: { id: url.pathname },
+			request: new Request(url, { headers }),
+			cookies: { get: () => undefined, getAll: () => [] },
+			locals: {}
+		} as unknown as RequestEvent;
+	}
+
+	async function run(event: RequestEvent) {
+		const { handle } = await import('./hooks.server.ts');
+		const resolve = vi.fn(async () => new Response('ok'));
+		const res = await handle({ event, resolve });
+		return { res, resolve };
+	}
+
+	it('handle guards /health', async () => {
+		// The guard runs first for every path: no /health bypass ahead of it.
+		const { res, resolve } = await run(fakeEvent('/health', { host: 'evil.example' }));
+
+		expect(res.status).toBe(403);
+		expect(resolve).not.toHaveBeenCalled();
+	});
+
+	it('handle serves / without login', async () => {
+		const event = fakeEvent('/', { host: 'localhost:5173' });
+		const { res, resolve } = await run(event);
+
+		// No cookie and no session, yet no redirect to /login: one resolve, its response.
+		expect(res.status).toBe(200);
+		expect(res.headers.get('location')).toBeNull();
+		expect(await res.text()).toBe('ok');
+		expect(resolve).toHaveBeenCalledExactlyOnceWith(event);
+	});
+
+	it('handle imports', () => {
+		// Static imports only: the auth stack is gone from the request path (c-1).
+		const specifiers = [...hooksSource.matchAll(/\bfrom\s+['"]([^'"]+)['"]/g)].map((m) => m[1]);
+		expect(specifiers).toContain('#lib/server/local-request.ts');
+		expect(specifiers.filter((s) => s === 'better-auth' || s.startsWith('better-auth/'))).toEqual(
+			[]
+		);
+		expect(specifiers.filter((s) => /\/server\/(?:auth|access)(?:\.ts)?$/.test(s))).toEqual([]);
+		expect(hooksSource).not.toMatch(/import\s*\(/);
 	});
 });
 

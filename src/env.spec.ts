@@ -14,7 +14,6 @@ describe('env declarations', () => {
 	it('env', async () => {
 		expect(Object.keys(variables).sort()).toEqual([
 			'ALERTS_ENCRYPTION_KEY',
-			'BETTER_AUTH_SECRET',
 			'CHECK_INTERVAL_HOURS',
 			'DATABASE_URL',
 			'ORIGIN',
@@ -39,5 +38,21 @@ describe('env declarations', () => {
 		expect(variables.ALERTS_ENCRYPTION_KEY.description).toMatch(/openssl rand -base64 32/);
 		expect(await validate('ALERTS_ENCRYPTION_KEY', undefined)).toEqual({ value: undefined });
 		expect(await validate('ALERTS_ENCRYPTION_KEY', 'not-a-key')).toEqual({ value: 'not-a-key' });
+
+		// Optional: the desktop shell sets it to its loopback URL (adapter-node assumes
+		// https without it), but the server starts and serves pages with it unset.
+		expect(variables.ORIGIN.description).toMatch(/Optional/);
+		expect(await validate('ORIGIN', undefined)).toEqual({ value: undefined });
+		expect(await validate('ORIGIN', 'http://127.0.0.1:3000')).toEqual({
+			value: 'http://127.0.0.1:3000'
+		});
+
+		// Only DATABASE_URL is required at declaration (spec c-2): every other key accepts
+		// undefined, so a re-added required secret fails here.
+		for (const name of Object.keys(variables) as (keyof typeof variables)[]) {
+			if (name === 'DATABASE_URL') continue;
+			expect(await validate(name, undefined), name).toEqual({ value: undefined });
+		}
+		expect((variables.DATABASE_URL as { schema?: unknown }).schema).toBeUndefined();
 	});
 });

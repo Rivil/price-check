@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { simpleParser } from 'mailparser';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { priceDropDelivery, watch } from '../db/schema.ts';
-import { createAuthHarness, type AuthHarness } from '../testing/auth-harness.ts';
+import { createTestDb, type TestDb } from '../testing/test-db.ts';
 import { startSmtpServer, type FakeSmtpServer } from '../testing/smtp-server.ts';
 import { failure } from '../shops/types.ts';
 import type { ChannelDriver } from './channel.ts';
@@ -21,21 +21,19 @@ import { smtpDriver, type SmtpConfig } from './smtp.ts';
 // SMTP sends go to the in-process fake server on 127.0.0.1.
 
 const KEY = randomBytes(32);
-let h: AuthHarness;
-let alice: string;
+let h: TestDb;
 const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
 
 beforeEach(async () => {
-	h = await createAuthHarness();
-	alice = (await h.createUser({ email: 'alice@example.test' })).id;
+	h = await createTestDb();
 	setAlertsKey(KEY);
-	await saveChannel(h.db, KEY, alice, 'ntfy', { topic: 'https://ntfy.sh/alice-topic' });
+	await saveChannel(h.db, KEY, 'ntfy', { topic: 'https://ntfy.sh/alice-topic' });
 	fetch.mockClear();
 	vi.stubGlobal('fetch', fetch);
 });
 afterEach(() => {
 	vi.unstubAllGlobals();
-	h.cleanup();
+	h.dispose();
 });
 let undoSmtp: (() => void) | undefined;
 let smtpServer: FakeSmtpServer | undefined;
@@ -49,7 +47,6 @@ afterEach(async () => {
 const addWatch = (fields: Partial<typeof watch.$inferInsert> = {}) =>
 	h.db.insert(watch).values({
 		id: 'w1',
-		userId: alice,
 		shop: 'amazon-uk',
 		productId: 'B0ABC12345',
 		canonicalUrl: 'https://www.amazon.co.uk/dp/B0ABC12345',
@@ -61,17 +58,17 @@ const addWatch = (fields: Partial<typeof watch.$inferInsert> = {}) =>
 
 const RESEND_KEY = 're_AliceResend_9fQ2xLm7Tz0kWv3'; // key-shaped, not a real one
 
-/** Alice swaps her ntfy channel for a Resend one, so every fetch is a Resend send. */
+/** Swaps the ntfy channel for a Resend one, so every fetch is a Resend send. */
 async function useResend(routing?: Routing, apiKey = RESEND_KEY) {
-	await removeChannel(h.db, alice, 'ntfy');
+	await removeChannel(h.db, 'ntfy');
 	const form = { api_key: apiKey, from: 'alerts@alice-shop.test', to: 'alice@example.test' };
-	expect(await saveChannel(h.db, KEY, alice, 'resend', form, routing)).toEqual({ ok: true });
+	expect(await saveChannel(h.db, KEY, 'resend', form, routing)).toEqual({ ok: true });
 }
 
 const SMTP_PASSWORD = 'qzpx vtrw mkdl hsye'; // app-password-shaped, not a real one
 
 /**
- * Alice adds an SMTP channel on a fake server, saved without routing. live.ts hands
+ * Adds an SMTP channel on a fake server, saved without routing. live.ts hands
  * drivers no CA, so the real SMTP driver is registered with the fake server's added.
  */
 async function useSmtp(): Promise<FakeSmtpServer> {
@@ -90,7 +87,7 @@ async function useSmtp(): Promise<FakeSmtpServer> {
 		from: 'alerts@alice-shop.test',
 		to: 'alice@example.test'
 	};
-	expect(await saveChannel(h.db, KEY, alice, 'smtp', form)).toEqual({ ok: true });
+	expect(await saveChannel(h.db, KEY, 'smtp', form)).toEqual({ ok: true });
 	return server;
 }
 
@@ -238,7 +235,7 @@ describe('smtp', () => {
 		const smtp = await useSmtp();
 		await addWatch();
 
-		// Alice's ntfy channel (both kinds) and her new SMTP one (drops only) both get the drop.
+		// The ntfy channel (both kinds) and the new SMTP one (drops only) both get the drop.
 		expect(await liveAfterSuccess(h.db)('w1')).toEqual({
 			outcome: 'sent',
 			channels: { ntfy: 'sent', smtp: 'sent' }

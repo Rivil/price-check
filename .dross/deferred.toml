@@ -26,3 +26,8 @@
   id = "1982388b4d68ca96"
   text = "e2e 'one timezone' check compares the watch page only; 'Last checked' and watchlist card times aren't compared"
   why = "Carried from amazon-price-check deferred store (onboard 2026-11-11)"
+
+[[deferred]]
+  id = "3be9f5786f2570d2"
+  text = "ARCHITECTURE.md has 55 unresolved links in older entries"
+  why = "Carried from amazon-price-check handoff (advisory doc debt); routed from handoff at resume 2026-11-12"

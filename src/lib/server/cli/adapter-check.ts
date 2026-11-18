@@ -1,5 +1,5 @@
-// pnpm adapter:check — one live shop check from the command line (run via
-// `docker compose run --rm app pnpm adapter:check <url>`). Runs under Node type
+// pnpm adapter:check — one live shop check from the command line
+// (`pnpm adapter:check <url>`). Runs under Node type
 // stripping: no $app/* imports, explicit .ts extensions, erasable syntax only.
 import { runCheckCommand } from '../shops/check-command.ts';
 import { defaultRegistry, getSharedClient } from '../shops/index.ts';

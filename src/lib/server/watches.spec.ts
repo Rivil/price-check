@@ -4,7 +4,7 @@ import { checkFailure, notifyChannel, pricePoint, priceDropDelivery, watch } fro
 import { amazonAdapter } from './shops/amazon/adapter.ts';
 import { createShopRegistry } from './shops/registry.ts';
 import { failure, type CheckResult, type FailureReason, type ShopClient } from './shops/types.ts';
-import { createAuthHarness, type AuthHarness } from './testing/auth-harness.ts';
+import { createTestDb, type TestDb } from './testing/test-db.ts';
 import {
 	ALREADY_WATCHED,
 	URL_REQUIRED,
@@ -59,19 +59,15 @@ function deps(...results: CheckResult[]) {
 	return { deps: d, check, identify };
 }
 
-let h: AuthHarness;
-let alice: string;
-let bob: string;
+let h: TestDb;
 /** Watch ids handed out by deps(), unique across one test. */
 let ids = 0;
 
 beforeEach(async () => {
 	ids = 0;
-	h = await createAuthHarness();
-	alice = (await h.createUser({ email: 'alice@example.test' })).id;
-	bob = (await h.createUser({ email: 'bob@example.test' })).id;
+	h = await createTestDb();
 });
-afterEach(() => h.cleanup());
+afterEach(() => h.dispose());
 
 const rows = () => h.db.select().from(watch);
 const failures = () => h.db.select().from(checkFailure);
@@ -80,14 +76,14 @@ describe('addWatch', () => {
 	it('add success', async () => {
 		const { deps: d, check } = deps(ok());
 
-		const result = await addWatch(h.db, alice, { url: ` ${URL_} `, target: '24.99' }, d);
+		const result = await addWatch(h.db, { url: ` ${URL_} `, target: '24.99' }, d);
 
 		expect(check).toHaveBeenCalledExactlyOnceWith(URL_);
 		expect(result).toMatchObject({ ok: true });
 		const [stored] = await rows();
+		expect(stored).not.toHaveProperty('userId');
 		expect(stored).toMatchObject({
 			id: 'w1',
-			userId: alice,
 			shop: 'amazon-uk',
 			productId: ASIN,
 			canonicalUrl: CANONICAL,
@@ -115,7 +111,7 @@ describe('addWatch', () => {
 			now: () => NOW
 		};
 
-		const result = await addWatch(h.db, alice, { url: `${plain}?ref=x`, target: '' }, d);
+		const result = await addWatch(h.db, { url: `${plain}?ref=x`, target: '' }, d);
 
 		expect(result.ok).toBe(true);
 		expect(await rows()).toMatchObject([
@@ -135,7 +131,7 @@ describe('addWatch', () => {
 		for (const reason of ['unsupported', 'not_found', 'variant_required'] as FailureReason[]) {
 			const { deps: d } = deps(failure(reason, `${reason} message`));
 
-			const result = await addWatch(h.db, alice, { url: URL_, target: '' }, d);
+			const result = await addWatch(h.db, { url: URL_, target: '' }, d);
 
 			expect(result, reason).toEqual({ ok: false, field: 'url', message: `${reason} message` });
 		}
@@ -150,13 +146,13 @@ describe('addWatch', () => {
 		]) {
 			const { deps: d, check } = deps();
 
-			const result = await addWatch(h.db, alice, { url, target: '' }, d);
+			const result = await addWatch(h.db, { url, target: '' }, d);
 
 			expect(result, url).toEqual({ ok: false, field: 'url', message: 'unsupported URL' });
 			expect(check).not.toHaveBeenCalled();
 		}
 		const { deps: d, check, identify } = deps();
-		expect(await addWatch(h.db, alice, { url: '   ', target: '' }, d)).toEqual({
+		expect(await addWatch(h.db, { url: '   ', target: '' }, d)).toEqual({
 			ok: false,
 			field: 'url',
 			message: URL_REQUIRED
@@ -174,7 +170,6 @@ describe('addWatch', () => {
 
 			const result = await addWatch(
 				h.db,
-				alice,
 				{ url: `https://www.amazon.co.uk/dp/${productId}?psc=1`, target: '10' },
 				d
 			);
@@ -182,7 +177,6 @@ describe('addWatch', () => {
 			expect(result.ok, reason).toBe(true);
 			const [stored] = await h.db.select().from(watch).where(eq(watch.productId, productId));
 			expect(stored, reason).toMatchObject({
-				userId: alice,
 				shop: 'amazon-uk',
 				productId,
 				canonicalUrl: `https://www.amazon.co.uk/dp/${productId}`,
@@ -202,7 +196,7 @@ describe('addWatch', () => {
 		for (const reason of ['blocked', 'fetch_failed', 'unavailable'] as FailureReason[]) {
 			const { deps: d, check } = deps(failure(reason, `${reason} message`));
 
-			const result = await addWatch(h.db, alice, { url: SHORT, target: '' }, d);
+			const result = await addWatch(h.db, { url: SHORT, target: '' }, d);
 
 			expect(check).toHaveBeenCalledExactlyOnceWith(SHORT);
 			expect(result, reason).toEqual({ ok: false, field: 'url', message: `${reason} message` });
@@ -212,7 +206,7 @@ describe('addWatch', () => {
 
 	it('short link success', async () => {
 		const first = deps(ok());
-		expect(await addWatch(h.db, alice, { url: SHORT, target: '' }, first.deps)).toMatchObject({
+		expect(await addWatch(h.db, { url: SHORT, target: '' }, first.deps)).toMatchObject({
 			ok: true,
 			watch: { productId: ASIN, canonicalUrl: CANONICAL }
 		});
@@ -221,7 +215,7 @@ describe('addWatch', () => {
 		const again = deps(ok());
 		const newId = vi.fn(() => 'never-used');
 		again.deps.newId = newId;
-		expect(await addWatch(h.db, alice, { url: SHORT, target: '' }, again.deps)).toMatchObject({
+		expect(await addWatch(h.db, { url: SHORT, target: '' }, again.deps)).toMatchObject({
 			ok: false,
 			message: ALREADY_WATCHED
 		});
@@ -231,7 +225,7 @@ describe('addWatch', () => {
 
 		// And by its direct URL: deduped before any check.
 		const direct = deps();
-		expect(await addWatch(h.db, alice, { url: URL_, target: '' }, direct.deps)).toMatchObject({
+		expect(await addWatch(h.db, { url: URL_, target: '' }, direct.deps)).toMatchObject({
 			ok: false,
 			message: ALREADY_WATCHED
 		});
@@ -241,25 +235,54 @@ describe('addWatch', () => {
 
 	it('duplicate', async () => {
 		const first = deps(ok());
-		const added = await addWatch(h.db, alice, { url: URL_, target: '' }, first.deps);
+		const added = await addWatch(h.db, { url: URL_, target: '' }, first.deps);
 		const existingId = added.ok ? added.watch.id : '';
 
 		const second = deps(ok());
-		expect(await addWatch(h.db, alice, { url: CANONICAL, target: '5' }, second.deps)).toEqual({
+		expect(await addWatch(h.db, { url: CANONICAL, target: '5' }, second.deps)).toEqual({
 			ok: false,
 			field: 'url',
 			message: ALREADY_WATCHED,
 			existingId
 		});
 		expect(second.check).not.toHaveBeenCalled();
+		expect(await rows()).toHaveLength(1);
+	});
 
-		// Another household user watches the same product independently.
-		const theirs = deps(ok());
-		expect(await addWatch(h.db, bob, { url: URL_, target: '' }, theirs.deps)).toMatchObject({
-			ok: true,
-			watch: { userId: bob, productId: ASIN }
-		});
-		expect(await rows()).toHaveLength(2);
+	it('concurrent adds of one product', async () => {
+		// Both adds look the product up before either inserts; the checks are held
+		// until both have started. A failed check skips the post-check lookup, so
+		// the (shop, product_id) index has to settle it; a success may dedupe first.
+		for (const result of [failure('blocked', 'captcha'), ok()]) {
+			await h.db.delete(watch);
+			let started = 0;
+			let release!: () => void;
+			const bothChecking = new Promise<void>((resolve) => (release = resolve));
+			const racing = () => {
+				const { deps: d } = deps();
+				d.check = async () => {
+					if (++started === 2) release();
+					await bothChecking;
+					return result;
+				};
+				return d;
+			};
+
+			const added = await Promise.all([
+				addWatch(h.db, { url: URL_, target: '' }, racing()),
+				addWatch(h.db, { url: URL_, target: '' }, racing())
+			]);
+
+			const stored = await rows();
+			expect(stored, result.ok ? 'ok' : 'failed').toHaveLength(1);
+			expect(added.map((r) => (r.ok ? r.watch.id : r.existingId))).toEqual([
+				stored[0].id,
+				stored[0].id
+			]);
+			expect(added.filter((r) => !r.ok)).toEqual([
+				{ ok: false, field: 'url', message: ALREADY_WATCHED, existingId: stored[0].id }
+			]);
+		}
 	});
 
 	it('duplicate race', async () => {
@@ -269,7 +292,6 @@ describe('addWatch', () => {
 		d.check = async () => {
 			await h.db.insert(watch).values({
 				id: 'racer',
-				userId: alice,
 				shop: 'amazon-uk',
 				productId: ASIN,
 				canonicalUrl: CANONICAL
@@ -277,7 +299,7 @@ describe('addWatch', () => {
 			return failure('blocked', 'captcha');
 		};
 
-		expect(await addWatch(h.db, alice, { url: URL_, target: '' }, d)).toEqual({
+		expect(await addWatch(h.db, { url: URL_, target: '' }, d)).toEqual({
 			ok: false,
 			field: 'url',
 			message: ALREADY_WATCHED,
@@ -300,7 +322,6 @@ describe('addWatch', () => {
 		d.check = async () => {
 			await h.db.insert(watch).values({
 				id: 'racer',
-				userId: alice,
 				shop: 'amazon-uk',
 				productId: ASIN,
 				canonicalUrl: CANONICAL
@@ -308,9 +329,7 @@ describe('addWatch', () => {
 			return failure('blocked', 'captcha');
 		};
 
-		const error = await addWatch(h.db, alice, { url: URL_, target: '' }, d).catch(
-			(e: unknown) => e
-		);
+		const error = await addWatch(h.db, { url: URL_, target: '' }, d).catch((e: unknown) => e);
 
 		expect(error).toBeInstanceOf(Error);
 		expect((error as Error).cause).toMatchObject({
@@ -324,14 +343,14 @@ describe('addWatch', () => {
 		// primary key (an id collision), not the product index. That is not a
 		// race: the error propagates instead of 'already on your watchlist'.
 		// (SQLite reports the product index when both collide, so the PK failure
-		// is injected at the transaction the insert runs in; reads and the racer's
+		// is injected at the batch the insert runs in; reads and the racer's
 		// insert hit the real database.)
 		const idCollision = Object.assign(new Error('Failed query: insert into "watch"'), {
 			cause: new Error('SQLITE_CONSTRAINT: UNIQUE constraint failed: watch.id')
 		});
 		const db = new Proxy(h.db, {
 			get(target, prop, receiver) {
-				if (prop !== 'transaction') return Reflect.get(target, prop, receiver);
+				if (prop !== 'batch') return Reflect.get(target, prop, receiver);
 				return () => Promise.reject(idCollision);
 			}
 		});
@@ -339,7 +358,6 @@ describe('addWatch', () => {
 		d.check = async () => {
 			await h.db.insert(watch).values({
 				id: 'racer',
-				userId: alice,
 				shop: 'amazon-uk',
 				productId: ASIN,
 				canonicalUrl: CANONICAL
@@ -347,7 +365,7 @@ describe('addWatch', () => {
 			return failure('blocked', 'captcha');
 		};
 
-		const error = await addWatch(db, alice, { url: URL_, target: '' }, d).catch((e: unknown) => e);
+		const error = await addWatch(db, { url: URL_, target: '' }, d).catch((e: unknown) => e);
 
 		expect(error).toBe(idCollision);
 		expect((await rows()).map((r) => r.id)).toEqual(['racer']);
@@ -360,7 +378,7 @@ describe('addWatch', () => {
 			check: async () => ok()
 		};
 
-		const result = await addWatch(h.db, alice, { url: URL_, target: '' }, d);
+		const result = await addWatch(h.db, { url: URL_, target: '' }, d);
 
 		const after = Date.now();
 		const stored = result.ok ? result.watch : null;
@@ -375,23 +393,21 @@ describe('addWatch', () => {
 	it('first point', async () => {
 		const points = () => h.db.select().from(pricePoint);
 
-		const added = await addWatch(h.db, alice, { url: URL_, target: '' }, deps(ok()).deps);
+		const added = await addWatch(h.db, { url: URL_, target: '' }, deps(ok()).deps);
 		const watchId = added.ok ? added.watch.id : '';
 		expect(await points()).toEqual([
 			{ id: expect.any(String), watchId, pricePence: 129900, checkedAt: NOW }
 		]);
 
 		// A duplicate, a stored failure and a refused add write no point.
-		await addWatch(h.db, alice, { url: URL_, target: '' }, deps(ok()).deps);
+		await addWatch(h.db, { url: URL_, target: '' }, deps(ok()).deps);
 		await addWatch(
 			h.db,
-			alice,
 			{ url: 'https://www.amazon.co.uk/dp/B0FAILPNT1', target: '' },
 			deps(failure('blocked', 'captcha')).deps
 		);
 		await addWatch(
 			h.db,
-			alice,
 			{ url: 'https://www.amazon.co.uk/dp/B0REJECTP1', target: '' },
 			deps(failure('not_found', 'gone')).deps
 		);
@@ -402,7 +418,6 @@ describe('addWatch', () => {
 	it('failed first check', async () => {
 		const added = await addWatch(
 			h.db,
-			alice,
 			{ url: URL_, target: '' },
 			deps(failure('blocked', 'captcha')).deps
 		);
@@ -421,7 +436,6 @@ describe('addWatch', () => {
 		// An add whose check succeeded has no failure to store.
 		await addWatch(
 			h.db,
-			alice,
 			{ url: 'https://www.amazon.co.uk/dp/B0FINEADD1', target: '' },
 			deps(ok('B0FINEADD1')).deps
 		);
@@ -432,7 +446,7 @@ describe('addWatch', () => {
 		for (const reason of ['unsupported', 'not_found', 'variant_required'] as FailureReason[]) {
 			const { deps: d } = deps(failure(reason, `${reason} message`));
 
-			expect(await addWatch(h.db, alice, { url: URL_, target: '' }, d), reason).toMatchObject({
+			expect(await addWatch(h.db, { url: URL_, target: '' }, d), reason).toMatchObject({
 				ok: false
 			});
 		}
@@ -443,14 +457,13 @@ describe('addWatch', () => {
 		d.check = async () => {
 			await h.db.insert(watch).values({
 				id: 'racer',
-				userId: alice,
 				shop: 'amazon-uk',
 				productId: ASIN,
 				canonicalUrl: CANONICAL
 			});
 			return failure('blocked', 'captcha');
 		};
-		expect(await addWatch(h.db, alice, { url: URL_, target: '' }, d)).toMatchObject({
+		expect(await addWatch(h.db, { url: URL_, target: '' }, d)).toMatchObject({
 			ok: false,
 			existingId: 'racer'
 		});
@@ -465,20 +478,18 @@ describe('addWatch', () => {
 			return d;
 		};
 
-		const added = await addWatch(h.db, alice, { url: URL_, target: '' }, withHook(ok()));
+		const added = await addWatch(h.db, { url: URL_, target: '' }, withHook(ok()));
 		expect(hook).toHaveBeenCalledExactlyOnceWith(added.ok ? added.watch.id : 'none');
 
 		// Duplicate, stored failure and refused add: no call.
-		await addWatch(h.db, alice, { url: URL_, target: '' }, withHook(ok()));
+		await addWatch(h.db, { url: URL_, target: '' }, withHook(ok()));
 		await addWatch(
 			h.db,
-			alice,
 			{ url: 'https://www.amazon.co.uk/dp/B0HOOKFAIL', target: '' },
 			withHook(failure('blocked', 'captcha'))
 		);
 		await addWatch(
 			h.db,
-			alice,
 			{ url: 'https://www.amazon.co.uk/dp/B0HOOKGONE', target: '' },
 			withHook(failure('not_found', 'gone'))
 		);
@@ -490,7 +501,6 @@ describe('addWatch', () => {
 		try {
 			const second = await addWatch(
 				h.db,
-				alice,
 				{ url: 'https://www.amazon.co.uk/dp/B0HOOKBOOM', target: '' },
 				withHook(ok('B0HOOKBOOM'))
 			);
@@ -510,7 +520,7 @@ describe('addWatch', () => {
 		try {
 			const { deps: d } = deps(ok());
 			expect(d.afterSuccess).toBeUndefined();
-			expect(await addWatch(h.db, alice, { url: URL_, target: '' }, d)).toMatchObject({ ok: true });
+			expect(await addWatch(h.db, { url: URL_, target: '' }, d)).toMatchObject({ ok: true });
 			expect(consoleError).not.toHaveBeenCalled();
 
 			// A hook that rejects with a non-Error is logged as 'error'.
@@ -520,7 +530,6 @@ describe('addWatch', () => {
 			};
 			await addWatch(
 				h.db,
-				alice,
 				{ url: 'https://www.amazon.co.uk/dp/B0NONERROR', target: '' },
 				second.deps
 			);
@@ -537,7 +546,6 @@ describe('addWatch', () => {
 
 			const result = await addWatch(
 				h.db,
-				alice,
 				{ url: `https://www.amazon.co.uk/dp/B0NOTARGE${i}`, target },
 				d
 			);
@@ -551,7 +559,7 @@ describe('addWatch', () => {
 		for (const target of ['24.999', '0', 'abc', '-1', '100000.01']) {
 			const { deps: d, check, identify } = deps(ok());
 
-			const result = await addWatch(h.db, alice, { url: URL_, target }, d);
+			const result = await addWatch(h.db, { url: URL_, target }, d);
 
 			expect(result, target).toMatchObject({ ok: false, field: 'target' });
 			expect(result.ok === false && result.message, target).toMatch(/price/i);
@@ -562,74 +570,63 @@ describe('addWatch', () => {
 	});
 });
 
-describe('watch ownership and edits', () => {
+describe('watch reads and edits', () => {
+	/** Three watches, w1 oldest to w3 newest. */
 	async function seed() {
 		let n = 0;
-		const add = async (userId: string, productId: string) => {
+		const add = async (productId: string) => {
 			const d: WatchDeps = {
 				identify: (url) => registry.identify(url),
 				check: async () => ok(productId),
-				// Distinct, increasing created times so the newest-first order is pinned.
 				now: () => NOW,
-				newId: () => `${userId === alice ? 'a' : 'b'}${++n}`
+				newId: () => `w${++n}`
 			};
 			const result = await addWatch(
 				h.db,
-				userId,
 				{ url: `https://www.amazon.co.uk/dp/${productId}`, target: '20' },
 				d
 			);
 			if (!result.ok) throw new Error(result.message);
+			// Distinct, increasing created times so the newest-first order is pinned.
 			await h.db
 				.update(watch)
 				.set({ createdAt: new Date(NOW.getTime() + n * 1000) })
 				.where(eq(watch.id, result.watch.id));
 			return result.watch.id;
 		};
-		const a1 = await add(alice, 'B0ALICE001');
-		const b1 = await add(bob, 'B0BOB00001');
-		const a2 = await add(alice, 'B0ALICE002');
-		return { a1, a2, b1 };
+		const w1 = await add('B0FIRST001');
+		const w2 = await add('B0SECOND01');
+		const w3 = await add('B0THIRD001');
+		return { w1, w2, w3 };
 	}
 
-	it('ownership', async () => {
-		const { a1, a2, b1 } = await seed();
+	it('list, get, delete', async () => {
+		const { w1, w2, w3 } = await seed();
 
-		expect((await listWatches(h.db, alice)).map((w) => w.id)).toEqual([a2, a1]);
-		expect((await listWatches(h.db, bob)).map((w) => w.id)).toEqual([b1]);
+		expect((await listWatches(h.db)).map((w) => w.id)).toEqual([w3, w2, w1]);
+		expect(await getWatch(h.db, w1)).toMatchObject({ id: w1, productId: 'B0FIRST001' });
 
-		expect(await getWatch(h.db, alice, a1)).toMatchObject({ id: a1, productId: 'B0ALICE001' });
-		expect(await getWatch(h.db, alice, b1)).toBeNull();
-		expect(await getWatch(h.db, alice, 'missing')).toBeNull();
+		// An unknown id is nothing, never an error.
+		expect(await getWatch(h.db, 'missing')).toBeNull();
+		expect(await setTarget(h.db, 'missing', '1')).toEqual({ kind: 'not_found' });
+		expect(await deleteWatch(h.db, 'missing')).toBe(false);
 
-		expect(await setTarget(h.db, alice, b1, '1')).toEqual({ kind: 'not_found' });
-		expect(await deleteWatch(h.db, alice, b1)).toBe(false);
-		expect(await getWatch(h.db, bob, b1)).toMatchObject({ id: b1, targetPence: 2000 });
-
-		expect(await deleteWatch(h.db, alice, a1)).toBe(true);
-		expect(await getWatch(h.db, alice, a1)).toBeNull();
-		expect((await rows()).map((w) => w.id).sort()).toEqual([a2, b1].sort());
-		expect(await deleteWatch(h.db, alice, a1)).toBe(false);
+		expect(await deleteWatch(h.db, w1)).toBe(true);
+		expect(await getWatch(h.db, w1)).toBeNull();
+		expect((await rows()).map((w) => w.id).sort()).toEqual([w2, w3]);
+		expect(await deleteWatch(h.db, w1)).toBe(false);
 	});
 
 	it('target', async () => {
-		const { a1, a2, b1 } = await seed();
+		const { w1, w2, w3 } = await seed();
 
 		// Each watch has delivered its drop alert to an ntfy and a second channel.
-		for (const [owner, ids] of [
-			[alice, [a1, a2]],
-			[bob, [b1]]
-		] as const) {
-			await h.db.insert(notifyChannel).values([
-				{ userId: owner, kind: 'ntfy' },
-				{ userId: owner, kind: 'resend' }
+		await h.db.insert(notifyChannel).values([{ kind: 'ntfy' }, { kind: 'resend' }]);
+		for (const watchId of [w1, w2, w3]) {
+			await h.db.insert(priceDropDelivery).values([
+				{ watchId, kind: 'ntfy', targetPence: 2000 },
+				{ watchId, kind: 'resend', targetPence: 2000 }
 			]);
-			for (const watchId of ids) {
-				await h.db.insert(priceDropDelivery).values([
-					{ watchId, kind: 'ntfy', userId: owner, targetPence: 2000 },
-					{ watchId, kind: 'resend', userId: owner, targetPence: 2000 }
-				]);
-			}
 		}
 		const delivered = async (watchId: string) =>
 			(
@@ -639,46 +636,34 @@ describe('watch ownership and edits', () => {
 					.where(eq(priceDropDelivery.watchId, watchId))
 			).length;
 
-		// Re-saving the same value (20 -> '20.00'), an invalid one, or another
-		// user's watch: no delivery row goes, so one drop never alerts twice.
-		expect(await setTarget(h.db, alice, a1, '20.00')).toEqual({
-			kind: 'updated',
-			targetPence: 2000
-		});
-		expect(await setTarget(h.db, alice, a1, '0')).toMatchObject({ kind: 'invalid' });
-		expect(await setTarget(h.db, alice, b1, '5')).toEqual({ kind: 'not_found' });
-		expect([await delivered(a1), await delivered(a2), await delivered(b1)]).toEqual([2, 2, 2]);
+		// Re-saving the same value (20 -> '20.00'), an invalid one, or an unknown
+		// watch: no delivery row goes, so one drop never alerts twice.
+		expect(await setTarget(h.db, w1, '20.00')).toEqual({ kind: 'updated', targetPence: 2000 });
+		expect(await setTarget(h.db, w1, '0')).toMatchObject({ kind: 'invalid' });
+		expect(await setTarget(h.db, 'missing', '5')).toEqual({ kind: 'not_found' });
+		expect([await delivered(w1), await delivered(w2), await delivered(w3)]).toEqual([2, 2, 2]);
 
-		expect(await setTarget(h.db, alice, a1, '19.99')).toEqual({
-			kind: 'updated',
-			targetPence: 1999
-		});
-		expect(await getWatch(h.db, alice, a1)).toMatchObject({ targetPence: 1999 });
+		expect(await setTarget(h.db, w1, '19.99')).toEqual({ kind: 'updated', targetPence: 1999 });
+		expect(await getWatch(h.db, w1)).toMatchObject({ targetPence: 1999 });
 		// A real change re-arms that watch on every channel, and only that watch.
-		expect([await delivered(a1), await delivered(a2), await delivered(b1)]).toEqual([0, 2, 2]);
+		expect([await delivered(w1), await delivered(w2), await delivered(w3)]).toEqual([0, 2, 2]);
 
 		for (const bad of ['24.999', '0', 'abc']) {
-			expect(await setTarget(h.db, alice, a1, bad), bad).toMatchObject({ kind: 'invalid' });
+			expect(await setTarget(h.db, w1, bad), bad).toMatchObject({ kind: 'invalid' });
 		}
-		expect(await getWatch(h.db, alice, a1)).toMatchObject({ targetPence: 1999 });
+		expect(await getWatch(h.db, w1)).toMatchObject({ targetPence: 1999 });
 
-		expect(await setTarget(h.db, alice, a1, '  ')).toEqual({ kind: 'updated', targetPence: null });
-		expect(await getWatch(h.db, alice, a1)).toMatchObject({ targetPence: null });
+		expect(await setTarget(h.db, w1, '  ')).toEqual({ kind: 'updated', targetPence: null });
+		expect(await getWatch(h.db, w1)).toMatchObject({ targetPence: null });
 		// Only the targeted watch changed.
-		expect(await getWatch(h.db, alice, a2)).toMatchObject({ targetPence: 2000 });
+		expect(await getWatch(h.db, w2)).toMatchObject({ targetPence: 2000 });
 
 		// Clearing re-arms too; clearing again (no change) leaves a new row alone.
-		await h.db
-			.insert(priceDropDelivery)
-			.values({ watchId: a2, kind: 'resend', userId: alice, targetPence: 2000 })
-			.onConflictDoNothing();
-		expect(await setTarget(h.db, alice, a2, '')).toEqual({ kind: 'updated', targetPence: null });
-		expect(await delivered(a2)).toBe(0);
-		await h.db
-			.insert(priceDropDelivery)
-			.values({ watchId: a2, kind: 'ntfy', userId: alice, targetPence: 2000 });
-		expect(await setTarget(h.db, alice, a2, '')).toEqual({ kind: 'updated', targetPence: null });
-		expect(await delivered(a2)).toBe(1);
-		expect(await delivered(b1)).toBe(2);
+		expect(await setTarget(h.db, w2, '')).toEqual({ kind: 'updated', targetPence: null });
+		expect(await delivered(w2)).toBe(0);
+		await h.db.insert(priceDropDelivery).values({ watchId: w2, kind: 'ntfy', targetPence: 2000 });
+		expect(await setTarget(h.db, w2, '')).toEqual({ kind: 'updated', targetPence: null });
+		expect(await delivered(w2)).toBe(1);
+		expect(await delivered(w3)).toBe(2);
 	});
 });

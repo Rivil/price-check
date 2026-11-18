@@ -6,7 +6,7 @@ import {
 	type Page
 } from '@playwright/test';
 import { expectStructure, type Scheme } from '../../e2e/a11y.ts';
-import { SEEDED_MEMBER, SEEDED_WATCHES, signIn } from '../../e2e/accounts.ts';
+import { SEEDED_WATCHES } from '../../e2e/accounts.ts';
 
 // What component tests can't see, on the seeded watches. Nothing here clicks Check
 // now, *.invalid requests are aborted, and 'no live fetch' holds every request to
@@ -16,7 +16,7 @@ const { chartFull, chartDense } = SEEDED_WATCHES;
 const PHONE = { width: 375, height: 800 };
 const TIME = String.raw`\d{1,2} \w+ \d{4}, \d{2}:\d{2}`;
 
-/** Signed in as the chart watches' owner, in a fresh context with `options`. */
+/** A page in a fresh context with `options`. */
 async function withPage(
 	browser: Browser,
 	options: BrowserContextOptions,
@@ -28,9 +28,7 @@ async function withPage(
 		(route) => route.abort()
 	);
 	try {
-		const page = await context.newPage();
-		await signIn(page, SEEDED_MEMBER);
-		await run(page);
+		await run(await context.newPage());
 	} finally {
 		await context.close();
 	}

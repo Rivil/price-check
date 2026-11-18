@@ -1,0 +1,84 @@
+[phase]
+  id = "05-release"
+  title = "05-release"
+  milestone = "v0.1"
+
+[[criteria]]
+  id = "c-1"
+  text = "Each OS's packaged build (macOS universal app, installed Windows x64 app, Linux x64 AppImage) opens on an empty watchlist, saves a watch that is still listed after a relaunch, and loads libsql's native binary from outside app.asar. CI runs this packaged smoke on all three OSes for every PR, and on the release artefacts before publishing."
+  deferred = ["f48477c1db646974", "805f0b6203efa54e"]
+
+[[criteria]]
+  id = "c-2"
+  text = "The macOS release app is one universal build: lipo shows arm64 and x86_64 for its executable, both libsql darwin binaries ship, and codesign --verify --deep --strict, spctl --assess and stapler validate pass in CI before publishing. Opening it with no Gatekeeper override is device UAT."
+
+[[criteria]]
+  id = "c-3"
+  text = "The Windows installer installs for the current user with no admin (UAC) prompt and creates a Start Menu shortcut whose AppUserModelID equals APP_ID (io.github.rivil.price-check), the same value as electron-builder's appId. CI checks both after a silent install. The SmartScreen-only prompt is device UAT."
+  deferred = ["bc845313ff972907"]
+
+[[criteria]]
+  id = "c-4"
+  text = "Pushing tag v<version> on a commit in main, whose MAJOR.MINOR.PATCH equals package.json's version, publishes one GitHub Release with the macOS dmg and zip, the Windows installer, the AppImage and their latest*.yml update files. A -rc.N tag publishes a pre-release. A tag off main or not matching package.json, a missing Apple credential, any failed OS build, or an existing release for the tag publishes nothing."
+
+[[criteria]]
+  id = "c-5"
+  text = "A packaged install checks GitHub Releases at launch and every 6 hours, downloads a newer release in the background, then shows one notification and a tray 'Restart to update' item. Restart or Quit installs it, and the app comes back as the new version with its watches intact. An rc install takes the final release; a final install never takes an rc. CI proves this on Windows and Linux; macOS is device UAT."
+
+[[criteria]]
+  id = "c-6"
+  text = "On Windows, an update's relaunch starts only after the old process has exited, so the new version opens the same DB with all data intact without relying on libsql releasing the file at close."
+  deferred = ["f89d493d2ed2dce7"]
+
+[[decisions]]
+  key = "artefacts"
+  choice = "macOS: one universal app (dmg to install, zip for updates), never separate arm64/x64 builds; both @libsql/darwin-arm64 and @libsql/darwin-x64 ship (pnpm supportedArchitectures; @electron/universal x64ArchFiles). Windows: x64 one-click per-user NSIS. Linux: x64 AppImage only. libsql and @libsql/<platform> are asarUnpack'd and never rebuilt (npmRebuild false); each OS packages on its own runner. electron-builder's appId is read from APP_ID in src/desktop/app-id.ts. The AppImage keeps the Chromium sandbox; the README lists libfuse2 and the Ubuntu 24.04+ AppArmor step."
+  why = "Friends don't know their Mac's chip: one universal app means one download and one latest-mac.yml. Squirrel.Mac updates from the zip. libsql is N-API with prebuilt per-platform binaries, so no rebuild, but a .node file cannot load from inside asar. libsql ships no win32-arm64 binary. Per-user NSIS means no UAC prompt (milestone criterion 1 allows only SmartScreen) and updates without elevation. One APP_ID keeps the shortcut AUMID and the runtime one in step (04 app_user_model_id). CI already lifts the AppArmor restriction rather than drop the sandbox, and the renderer shows scraped shop text."
+  locked = true
+
+[[decisions]]
+  key = "release_pipeline"
+  choice = "release.yml runs on push of v* tags. A cheap first job checks the tag: commit reachable from origin/main, MAJOR.MINOR.PATCH equal to package.json; the tag's full version (rc suffix included) is stamped into the build. Three build jobs (macos-15, windows-2025, ubuntu-24.04) run with contents: read, package with --publish never, run the packaged smoke and upload workflow artifacts. One publish job needs all three and holds the only contents: write (WRITE_SCOPE_ALLOWLIST = { 'release.yml': ['contents'] }); it runs no repo or dependency code, only gh, creates the release with every file at once and refuses if one exists for the tag. No actions/cache and no setup-node cache; frozen lockfile; SHA-pinned actions; persist-credentials false. Release macOS builds set mac.notarize true; PR and local packaging never sign (CSC_IDENTITY_AUTO_DISCOVERY=false). Windows is never signed."
+  why = "Per-job publishing would leave a live latest.yml for one OS when another failed. Keeping the write token in a job that runs no dependency code limits a compromised package to read access. PR-populated caches are the known route for poisoning a release build. electron-builder skips notarisation with only a warning when credentials are missing, which would ship a dmg Gatekeeper blocks for everyone. Never overwriting a release keeps update files consistent with what updaters already fetched. package.json carries only 3 version parts (global versioning rule), so a second release within a phase needs the rc suffix."
+  locked = true
+
+[[decisions]]
+  key = "release_secrets"
+  choice = "Five secrets in the GitHub environment 'release' (deployment rule: tags v*), read only by the macOS build step: CSC_LINK = base64 Developer ID Application .p12 incl. private key; CSC_KEY_PASSWORD = that .p12's export password; APPLE_API_KEY_P8_BASE64 = base64 of the App Store Connect team API key .p8 (Developer role), decoded by the step to $RUNNER_TEMP/AuthKey.p8 with env APPLE_API_KEY set to that path; APPLE_API_KEY_ID = the key's ID; APPLE_API_ISSUER = the issuer UUID. Publishing uses the workflow GITHUB_TOKEN; no other secret. Only a real tag's release run needs them: every other task runs without them."
+  why = "CSC_LINK, CSC_KEY_PASSWORD, APPLE_API_KEY, APPLE_API_KEY_ID and APPLE_API_ISSUER are electron-builder's documented signing and notarytool API-key variables (electron.build notarization docs, checked 2026-11-14), so no glue maps names. APPLE_API_KEY takes a .p8 path in every electron-builder version (base64 content only in recent docs), so the step writes a file. Environment scoping keeps signing keys out of PR workflows and the Windows/Linux jobs, where CSC_LINK would also try to sign. Key ID and issuer are not credentials but identify the Apple account in public logs, so they stay masked."
+  locked = true
+
+[[decisions]]
+  key = "update_flow"
+  choice = "electron-updater with the GitHub provider, packaged builds only. Check at launch and every 6 h; download in the background; once downloaded, one native notification per version and a tray 'Restart to update' item; Quit also installs; never a forced restart. CI proves Windows and Linux updates: an installed older build updates from a local generic feed serving a newer build, with the feed URL set at package time, never a runtime update-URL override in shipped code. macOS updates are proved by device UAT (rc to final)."
+  why = "The app lives in the tray and rarely quits, so install-on-quit alone could strand users on old versions, and a forced restart could cut a user off mid-edit. Squirrel.Mac accepts only an update signed by the same Developer ID, so a macOS CI update test needs two notarised builds per run. A runtime URL override in shipped code would be a way to redirect updates."
+  locked = true
+
+[[decisions]]
+  key = "device_uat"
+  choice = "Milestone close needs, on real devices, after tagging v0.1.5-rc.1 then v0.1.5 on main: macOS opens the downloaded app with no Gatekeeper override, Send test asks notification permission, a toast click opens the watch, rc updates itself to final. Windows shows only SmartScreen (no UAC), a toast shows and its click opens the watch, rc updates to final. Linux AppImage launches on stock Ubuntu following the README, notifies, rc updates to final."
+  why = "Gatekeeper, SmartScreen, OS toast display and a signed macOS update cannot be observed on CI runners. The rc-to-final pair gives the first cross-version update without inventing a patch number outside the phase-ordinal scheme."
+  locked = true
+
+[[edges]]
+  class = "empty"
+  outcome = "covered"
+  criteria = ["c-4"]
+
+[[edges]]
+  class = "idempotency"
+  outcome = "covered"
+  criteria = ["c-4"]
+
+[[edges]]
+  class = "concurrency"
+  outcome = "covered"
+  criteria = ["c-6"]
+
+[[deferred]]
+  text = "Automated macOS cross-version update test in CI"
+  why = "Needs two signed and notarised builds per run; device UAT covers v0.1"
+
+[[deferred]]
+  text = "arm64 Windows and Linux artefacts"
+  why = "libsql ships no win32-arm64 binary, and no v0.1 user needs them"

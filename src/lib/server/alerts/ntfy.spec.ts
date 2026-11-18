@@ -378,7 +378,8 @@ describe('describeFailure', () => {
 			bad_credentials: 'bad credentials',
 			refused: 'refused',
 			unreachable: 'unreachable',
-			timeout: 'timeout'
+			timeout: 'timeout',
+			unsupported: 'notifications not supported'
 		};
 		for (const [reason, label] of Object.entries(labels)) {
 			expect(describeFailure(reason as FailureReason)).toBe(label);

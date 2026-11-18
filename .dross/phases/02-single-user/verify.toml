@@ -1,0 +1,326 @@
+[verify]
+  phase = "02-single-user"
+  generated_at = 2026-11-14T10:30:13.994749Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-11-14T10:30:31.618648Z
+  measured_commit = "a9bbad7d3eab60ca7e1f05348dfdc4b5938dd069"
+  measured_tree = "51fde156b4e4caba496b2d17d3b505f2625857d9"
+
+[summary]
+  mutation_status = "measured"
+  measured_on = "local"
+  mutation_score = 0.952887537993921
+  mutants_killed = 627
+  mutants_survived = 16
+  mutants_not_covered = 0
+  mutants_no_block = 0
+  mutants_test_gap = 0
+  mutants_in_scope = 658
+  unclassified_in_scope = 0
+  criteria_total = 7
+  criteria_covered = 7
+  criteria_uncovered = 0
+
+  [[summary.leg]]
+    language = "typescript"
+    tool = "stryker"
+    killed = 627
+    survived = 16
+    timeout = 15
+    in_scope = 658
+    score = 0.952887537993921
+    file_count = 70
+    measured_on = "local"
+    ranges = ["e2e/accounts.ts:1-3 (hunk)", "e2e/accounts.ts:19-22 (hunk)", "e2e/accounts.ts:38-264 (VariableDeclaration SEEDED_WATCHES)", "e2e/action-endpoints.ts:1-6 (hunk)", "e2e/action-endpoints.ts:20-25 (hunk)", "e2e/action-endpoints.ts:26-34 (FunctionDeclaration actionUrl)", "e2e/action-endpoints.ts:7-7 (TSTypeAliasDeclaration ActionEndpoint)", "e2e/action-endpoints.ts:8-8 (hunk)", "e2e/action-endpoints.ts:9-19 (VariableDeclaration ACTION_ENDPOINTS)", "e2e/fresh-install.e2e.ts:1-1 (ImportDeclaration)", "e2e/fresh-install.e2e.ts:16-16 (VariableDeclaration REPO_ROOT)", "e2e/fresh-install.e2e.ts:17-18 (hunk)", "e2e/fresh-install.e2e.ts:19-22 (VariableDeclaration PARENT_ONLY)", "e2e/fresh-install.e2e.ts:2-2 (ImportDeclaration)", "e2e/fresh-install.e2e.ts:23-23 (hunk)", "e2e/fresh-install.e2e.ts:24-24 (VariableDeclaration dir)", "e2e/fresh-install.e2e.ts:25-25 (VariableDeclaration saved)", "e2e/fresh-install.e2e.ts:26-26 (hunk)", "e2e/fresh-install.e2e.ts:27-31 (ExpressionStatement)", "e2e/fresh-install.e2e.ts:3-3 (ImportDeclaration)", "e2e/fresh-install.e2e.ts:32-32 (hunk)", "e2e/fresh-install.e2e.ts:33-39 (ExpressionStatement)", "e2e/fresh-install.e2e.ts:4-4 (ImportDeclaration)", "e2e/fresh-install.e2e.ts:40-40 (hunk)", "e2e/fresh-install.e2e.ts:41-56 (ExpressionStatement)", "e2e/fresh-install.e2e.ts:5-5 (ImportDeclaration)", "e2e/fresh-install.e2e.ts:57-57 (hunk)", "e2e/fresh-install.e2e.ts:58-78 (ExpressionStatement)", "e2e/fresh-install.e2e.ts:6-6 (ImportDeclaration)", "e2e/fresh-install.e2e.ts:7-7 (ImportDeclaration)", "e2e/fresh-install.e2e.ts:79-79 (hunk)", "e2e/fresh-install.e2e.ts:8-8 (ImportDeclaration)", "e2e/fresh-install.e2e.ts:80-102 (ForOfStatement)", "e2e/fresh-install.e2e.ts:9-15 (hunk)", "e2e/harness.e2e.ts:1-1 (ImportDeclaration)", "e2e/harness.e2e.ts:12-12 (ImportDeclaration)", "e2e/harness.e2e.ts:13-18 (ImportDeclaration)", "e2e/harness.e2e.ts:19-19 (ImportDeclaration)", "e2e/harness.e2e.ts:2-2 (ImportDeclaration)", "e2e/harness.e2e.ts:21-21 (VariableDeclaration REPO_ROOT)", "e2e/harness.e2e.ts:243-243 (hunk)", "e2e/harness.e2e.ts:244-254 (ExpressionStatement)", "e2e/harness.e2e.ts:256-256 (hunk)", "e2e/harness.e2e.ts:257-262 (VariableDeclaration ENV_PROBE)", "e2e/harness.e2e.ts:263-263 (hunk)", "e2e/harness.e2e.ts:264-298 (ExpressionStatement)", "e2e/harness.e2e.ts:3-3 (ImportDeclaration)", "e2e/harness.e2e.ts:300-308 (ExpressionStatement)", "e2e/harness.e2e.ts:4-4 (ImportDeclaration)", "e2e/harness.e2e.ts:5-5 (ImportDeclaration)", "e2e/harness.e2e.ts:55-56 (hunk)", "e2e/harness.e2e.ts:57-83 (ExpressionStatement)", "e2e/harness.e2e.ts:7-7 (ImportDeclaration)", "e2e/harness.e2e.ts:8-8 (ImportDeclaration)", "e2e/harness.e2e.ts:84-84 (hunk)", "e2e/harness.e2e.ts:85-94 (ExpressionStatement)", "e2e/harness.e2e.ts:96-149 (ExpressionStatement)", "e2e/local-guard.e2e.ts:1-1 (ImportDeclaration)", "e2e/local-guard.e2e.ts:123-123 (hunk)", "e2e/local-guard.e2e.ts:124-124 (TSTypeAliasDeclaration RawResponse)", "e2e/local-guard.e2e.ts:125-129 (hunk)", "e2e/local-guard.e2e.ts:130-158 (FunctionDeclaration rawRequest)", "e2e/local-guard.e2e.ts:159-159 (hunk)", "e2e/local-guard.e2e.ts:16-16 (ImportDeclaration)", "e2e/local-guard.e2e.ts:160-160 (TSTypeAliasDeclaration Guarded)", "e2e/local-guard.e2e.ts:161-162 (hunk)", "e2e/local-guard.e2e.ts:163-183 (FunctionDeclaration startGuarded)", "e2e/local-guard.e2e.ts:17-17 (ImportDeclaration)", "e2e/local-guard.e2e.ts:18-29 (hunk)", "e2e/local-guard.e2e.ts:184-184 (hunk)", "e2e/local-guard.e2e.ts:185-185 (VariableDeclaration GUARDED_PATHS)", "e2e/local-guard.e2e.ts:186-186 (hunk)", "e2e/local-guard.e2e.ts:187-223 (ExpressionStatement)", "e2e/local-guard.e2e.ts:2-2 (ImportDeclaration)", "e2e/local-guard.e2e.ts:224-224 (hunk)", "e2e/local-guard.e2e.ts:225-262 (ExpressionStatement)", "e2e/local-guard.e2e.ts:3-3 (ImportDeclaration)", "e2e/local-guard.e2e.ts:30-30 (VariableDeclaration WATCH)", "e2e/local-guard.e2e.ts:31-32 (hunk)", "e2e/local-guard.e2e.ts:33-38 (VariableDeclaration FIELDS)", "e2e/local-guard.e2e.ts:39-41 (VariableDeclaration TEXT_BODY)", "e2e/local-guard.e2e.ts:4-4 (ImportDeclaration)", "e2e/local-guard.e2e.ts:42-43 (hunk)", "e2e/local-guard.e2e.ts:44-44 (VariableDeclaration KIT_CSRF)", "e2e/local-guard.e2e.ts:45-46 (hunk)", "e2e/local-guard.e2e.ts:47-57 (FunctionDeclaration snapshot)", "e2e/local-guard.e2e.ts:5-5 (ImportDeclaration)", "e2e/local-guard.e2e.ts:58-59 (hunk)", "e2e/local-guard.e2e.ts:6-6 (ImportDeclaration)", "e2e/local-guard.e2e.ts:60-79 (FunctionDeclaration forgeries)", "e2e/local-guard.e2e.ts:7-7 (ImportDeclaration)", "e2e/local-guard.e2e.ts:8-8 (ImportDeclaration)", "e2e/local-guard.e2e.ts:80-80 (hunk)", "e2e/local-guard.e2e.ts:81-122 (ExpressionStatement)", "e2e/local-guard.e2e.ts:9-15 (ImportDeclaration)", "e2e/node-server.ts:1-7 (hunk)", "e2e/node-server.ts:10-10 (ImportDeclaration)", "e2e/node-server.ts:11-11 (ImportDeclaration)", "e2e/node-server.ts:12-12 (ImportDeclaration)", "e2e/node-server.ts:13-13 (hunk)", "e2e/node-server.ts:14-14 (VariableDeclaration REPO_ROOT)", "e2e/node-server.ts:15-16 (hunk)", "e2e/node-server.ts:17-17 (VariableDeclaration INHERITED)", "e2e/node-server.ts:18-18 (hunk)", "e2e/node-server.ts:19-29 (TSTypeAliasDeclaration NodeServerOptions)", "e2e/node-server.ts:30-30 (hunk)", "e2e/node-server.ts:31-35 (TSTypeAliasDeclaration NodeServer)", "e2e/node-server.ts:36-37 (hunk)", "e2e/node-server.ts:38-57 (FunctionDeclaration nodeServerEnv)", "e2e/node-server.ts:58-59 (hunk)", "e2e/node-server.ts:60-73 (FunctionDeclaration freePort)", "e2e/node-server.ts:74-79 (hunk)", "e2e/node-server.ts:8-8 (ImportDeclaration)", "e2e/node-server.ts:80-143 (FunctionDeclaration startNodeServer)", "e2e/node-server.ts:9-9 (ImportDeclaration)", "e2e/removed-routes.e2e.ts:1-1 (ImportDeclaration)", "e2e/removed-routes.e2e.ts:2-2 (ImportDeclaration)", "e2e/removed-routes.e2e.ts:21-22 (hunk)", "e2e/removed-routes.e2e.ts:23-23 (VariableDeclaration CREDENTIALS)", "e2e/removed-routes.e2e.ts:24-24 (hunk)", "e2e/removed-routes.e2e.ts:25-52 (ForOfStatement)", "e2e/removed-routes.e2e.ts:3-8 (hunk)", "e2e/removed-routes.e2e.ts:9-20 (VariableDeclaration REMOVED_PATHS)", "e2e/restart.e2e.ts:1-1 (ImportDeclaration)", "e2e/restart.e2e.ts:10-18 (hunk)", "e2e/restart.e2e.ts:19-19 (VariableDeclaration TOPIC)", "e2e/restart.e2e.ts:2-2 (ImportDeclaration)", "e2e/restart.e2e.ts:20-20 (hunk)", "e2e/restart.e2e.ts:21-32 (VariableDeclaration WATCH)", "e2e/restart.e2e.ts:3-3 (ImportDeclaration)", "e2e/restart.e2e.ts:33-37 (hunk)", "e2e/restart.e2e.ts:38-41 (VariableDeclaration POINTS)", "e2e/restart.e2e.ts:4-4 (ImportDeclaration)", "e2e/restart.e2e.ts:42-42 (hunk)", "e2e/restart.e2e.ts:43-43 (VariableDeclaration dir)", "e2e/restart.e2e.ts:44-44 (hunk)", "e2e/restart.e2e.ts:45-47 (ExpressionStatement)", "e2e/restart.e2e.ts:48-50 (hunk)", "e2e/restart.e2e.ts:5-5 (ImportDeclaration)", "e2e/restart.e2e.ts:51-53 (ExpressionStatement)", "e2e/restart.e2e.ts:54-54 (hunk)", "e2e/restart.e2e.ts:55-136 (ExpressionStatement)", "e2e/restart.e2e.ts:6-6 (ImportDeclaration)", "e2e/restart.e2e.ts:7-7 (ImportDeclaration)", "e2e/restart.e2e.ts:8-8 (ImportDeclaration)", "e2e/restart.e2e.ts:9-9 (ImportDeclaration)", "e2e/seed.ts:11-11 (ImportDeclaration)", "e2e/seed.ts:12-20 (ImportDeclaration)", "e2e/seed.ts:2-3 (hunk)", "e2e/seed.ts:43-91 (TryStatement)", "e2e/seed.ts:9-9 (ImportDeclaration)", "playwright.config.ts:2-2 (ImportDeclaration)", "playwright.config.ts:4-31 (ExportDefaultDeclaration)", "scripts/readme.spec.ts:10-10 (VariableDeclaration architecture)", "scripts/readme.spec.ts:11-15 (VariableDeclaration pkg)", "scripts/readme.spec.ts:111-111 (hunk)", "scripts/readme.spec.ts:112-162 (ExpressionStatement)", "scripts/readme.spec.ts:17-17 (hunk)", "scripts/readme.spec.ts:18-18 (VariableDeclaration PNPM_BUILTINS)", "scripts/readme.spec.ts:19-20 (hunk)", "scripts/readme.spec.ts:2-3 (hunk)", "scripts/readme.spec.ts:21-22 (VariableDeclaration pnpmCommands)", "scripts/readme.spec.ts:23-24 (hunk)", "scripts/readme.spec.ts:25-25 (VariableDeclaration AUTH_TRACES)", "scripts/readme.spec.ts:26-30 (hunk)", "scripts/readme.spec.ts:31-31 (VariableDeclaration STALE_ARCHITECTURE)", "scripts/readme.spec.ts:32-32 (hunk)", "scripts/readme.spec.ts:33-34 (VariableDeclaration staleArchitecture)", "scripts/readme.spec.ts:35-36 (hunk)", "scripts/readme.spec.ts:37-37 (VariableDeclaration isTestFile)", "scripts/readme.spec.ts:38-39 (hunk)", "scripts/readme.spec.ts:4-4 (ImportDeclaration)", "scripts/readme.spec.ts:40-43 (VariableDeclaration authSchemaMentions)", "scripts/readme.spec.ts:44-44 (hunk)", "scripts/readme.spec.ts:45-51 (VariableDeclaration srcFiles)", "scripts/readme.spec.ts:52-52 (hunk)", "scripts/readme.spec.ts:62-110 (ExpressionStatement)", "scripts/readme.spec.ts:7-7 (VariableDeclaration read)", "scripts/readme.spec.ts:8-8 (VariableDeclaration readme)", "scripts/readme.spec.ts:9-9 (VariableDeclaration envExample)", "src/app.d.ts:3-11 (TSModuleDeclaration global)", "src/env.spec.ts:13-58 (ExpressionStatement)", "src/env.ts:3-24 (VariableDeclaration variables)", "src/hooks.server.spec.ts:1-1 (ImportDeclaration)", "src/hooks.server.spec.ts:162-210 (ExpressionStatement)", "src/hooks.server.spec.ts:211-211 (hunk)", "src/hooks.server.spec.ts:3-3 (ImportDeclaration)", "src/hooks.server.spec.ts:61-160 (ExpressionStatement)", "src/hooks.server.ts:1-1 (ImportDeclaration)", "src/hooks.server.ts:16-16 (hunk)", "src/hooks.server.ts:18-29 (VariableDeclaration init)", "src/hooks.server.ts:31-36 (hunk)", "src/hooks.server.ts:37-37 (VariableDeclaration handle)", "src/hooks.server.ts:8-8 (ImportDeclaration)", "src/lib/components/SiteFooter.svelte.spec.ts:1-1 (ImportDeclaration)", "src/lib/components/SiteFooter.svelte.spec.ts:2-2 (ImportDeclaration)", "src/lib/components/SiteFooter.svelte.spec.ts:3-3 (ImportDeclaration)", "src/lib/components/SiteFooter.svelte.spec.ts:4-4 (ImportDeclaration)", "src/lib/components/SiteFooter.svelte.spec.ts:5-5 (ImportDeclaration)", "src/lib/components/SiteFooter.svelte.spec.ts:6-6 (hunk)", "src/lib/components/SiteFooter.svelte.spec.ts:7-7 (VariableDeclaration SOURCE_URL)", "src/lib/components/SiteFooter.svelte.spec.ts:8-8 (hunk)", "src/lib/components/SiteFooter.svelte.spec.ts:9-24 (ExpressionStatement)", "src/lib/components/SiteFooter.svelte:1-5 (hunk)", "src/lib/components/SiteFooter.svelte:14-25 (hunk)", "src/lib/components/SiteFooter.svelte:6-6 (VariableDeclaration SOURCE_URL)", "src/lib/components/SiteFooter.svelte:7-8 (hunk)", "src/lib/components/SiteFooter.svelte:9-13 (Element footer)", "src/lib/nav.spec.ts:1-1 (ImportDeclaration)", "src/lib/nav.spec.ts:12-12 (hunk)", "src/lib/nav.spec.ts:13-14 (VariableDeclaration pageFileFor)", "src/lib/nav.spec.ts:15-15 (hunk)", "src/lib/nav.spec.ts:16-36 (ExpressionStatement)", "src/lib/nav.spec.ts:2-2 (ImportDeclaration)", "src/lib/nav.spec.ts:38-69 (ExpressionStatement)", "src/lib/nav.spec.ts:7-10 (VariableDeclaration currentOf)", "src/lib/nav.ts:15-18 (VariableDeclaration ITEMS)", "src/lib/nav.ts:2-3 (hunk)", "src/lib/nav.ts:26-27 (hunk)", "src/lib/nav.ts:29-35 (FunctionDeclaration navItems)", "src/lib/nav.ts:6-6 (TSTypeAliasDeclaration NavHref)", "src/lib/server/alerts/alerts.spec.ts:107-110 (FunctionDeclaration saveNtfy)", "src/lib/server/alerts/alerts.spec.ts:112-114 (FunctionDeclaration saveFake)", "src/lib/server/alerts/alerts.spec.ts:116-128 (FunctionDeclaration addWatch)", "src/lib/server/alerts/alerts.spec.ts:12-12 (ImportDeclaration)", "src/lib/server/alerts/alerts.spec.ts:14-14 (ImportDeclaration)", "src/lib/server/alerts/alerts.spec.ts:174-885 (ExpressionStatement)", "src/lib/server/alerts/alerts.spec.ts:51-51 (VariableDeclaration h)", "src/lib/server/alerts/alerts.spec.ts:57-62 (ExpressionStatement)", "src/lib/server/alerts/alerts.spec.ts:63-70 (ExpressionStatement)", "src/lib/server/alerts/alerts.spec.ts:887-1012 (ExpressionStatement)", "src/lib/server/alerts/alerts.ts:1-1 (hunk)", "src/lib/server/alerts/alerts.ts:129-197 (FunctionDeclaration alertAfterSuccess)", "src/lib/server/alerts/alerts.ts:205-238 (FunctionDeclaration alertAfterFailure)", "src/lib/server/alerts/channels.spec.ts:299-432 (ExpressionStatement)", "src/lib/server/alerts/channels.spec.ts:3-3 (ImportDeclaration)", "src/lib/server/alerts/channels.spec.ts:45-45 (hunk)", "src/lib/server/alerts/channels.spec.ts:454-506 (ExpressionStatement)", "src/lib/server/alerts/channels.spec.ts:46-46 (VariableDeclaration LEGACY_AAD)", "src/lib/server/alerts/channels.spec.ts:48-48 (VariableDeclaration h)", "src/lib/server/alerts/channels.spec.ts:5-5 (ImportDeclaration)", "src/lib/server/alerts/channels.spec.ts:508-540 (ExpressionStatement)", "src/lib/server/alerts/channels.spec.ts:66-69 (ExpressionStatement)", "src/lib/server/alerts/channels.spec.ts:7-7 (ImportDeclaration)", "src/lib/server/alerts/channels.spec.ts:70-74 (ExpressionStatement)", "src/lib/server/alerts/channels.spec.ts:76-77 (VariableDeclaration saveNtfy)", "src/lib/server/alerts/channels.spec.ts:79-79 (VariableDeclaration rows)", "src/lib/server/alerts/channels.spec.ts:80-81 (hunk)", "src/lib/server/alerts/channels.spec.ts:82-88 (FunctionDeclaration fileBytes)", "src/lib/server/alerts/channels.spec.ts:90-297 (ExpressionStatement)", "src/lib/server/alerts/channels.ts:1-4 (hunk)", "src/lib/server/alerts/channels.ts:116-116 (hunk)", "src/lib/server/alerts/channels.ts:117-145 (FunctionDeclaration channelsFor)", "src/lib/server/alerts/channels.ts:148-153 (FunctionDeclaration loadChannelConfig)", "src/lib/server/alerts/channels.ts:165-166 (hunk)", "src/lib/server/alerts/channels.ts:170-205 (FunctionDeclaration saveChannel)", "src/lib/server/alerts/channels.ts:208-215 (FunctionDeclaration setEnabled)", "src/lib/server/alerts/channels.ts:218-220 (FunctionDeclaration removeChannel)", "src/lib/server/alerts/channels.ts:55-57 (FunctionDeclaration undecryptable)", "src/lib/server/alerts/channels.ts:6-7 (hunk)", "src/lib/server/alerts/channels.ts:61-70 (FunctionDeclaration openConfig)", "src/lib/server/alerts/channels.ts:72-74 (FunctionDeclaration sealConfig)", "src/lib/server/alerts/channels.ts:77-77 (hunk)", "src/lib/server/alerts/channels.ts:79-80 (hunk)", "src/lib/server/alerts/channels.ts:90-90 (hunk)", "src/lib/server/alerts/channels.ts:91-112 (FunctionDeclaration listChannels)", "src/lib/server/alerts/crypto.spec.ts:12-12 (VariableDeclaration AAD)", "src/lib/server/alerts/crypto.spec.ts:13-13 (hunk)", "src/lib/server/alerts/crypto.spec.ts:130-146 (ExpressionStatement)", "src/lib/server/alerts/crypto.spec.ts:14-14 (VariableDeclaration LEGACY_AAD)", "src/lib/server/alerts/crypto.spec.ts:94-128 (ExpressionStatement)", "src/lib/server/alerts/crypto.ts:2-4 (hunk)", "src/lib/server/alerts/crypto.ts:6-6 (hunk)", "src/lib/server/alerts/crypto.ts:65-65 (hunk)", "src/lib/server/alerts/crypto.ts:66-68 (FunctionDeclaration channelAad)", "src/lib/server/alerts/live.spec.ts:233-266 (ExpressionStatement)", "src/lib/server/alerts/live.spec.ts:24-24 (VariableDeclaration h)", "src/lib/server/alerts/live.spec.ts:27-33 (ExpressionStatement)", "src/lib/server/alerts/live.spec.ts:34-37 (ExpressionStatement)", "src/lib/server/alerts/live.spec.ts:5-5 (ImportDeclaration)", "src/lib/server/alerts/live.spec.ts:61-61 (hunk)", "src/lib/server/alerts/live.spec.ts:62-66 (FunctionDeclaration useResend)", "src/lib/server/alerts/live.spec.ts:71-71 (hunk)", "src/lib/server/alerts/live.spec.ts:74-92 (FunctionDeclaration useSmtp)", "src/lib/server/checks.spec.ts:17-17 (ImportDeclaration)", "src/lib/server/checks.spec.ts:188-218 (ExpressionStatement)", "src/lib/server/checks.spec.ts:220-358 (ExpressionStatement)", "src/lib/server/checks.spec.ts:23-23 (VariableDeclaration h)", "src/lib/server/checks.spec.ts:360-410 (ExpressionStatement)", "src/lib/server/checks.spec.ts:40-51 (FunctionDeclaration addWatchRow)", "src/lib/server/checks.spec.ts:412-431 (ExpressionStatement)", "src/lib/server/checks.spec.ts:433-466 (ExpressionStatement)", "src/lib/server/checks.spec.ts:59-62 (ExpressionStatement)", "src/lib/server/checks.spec.ts:63-63 (ExpressionStatement)", "src/lib/server/checks.spec.ts:65-186 (ExpressionStatement)", "src/lib/server/checks.ts:139-139 (hunk)", "src/lib/server/checks.ts:140-152 (FunctionDeclaration checkNow)", "src/lib/server/checks.ts:156-156 (hunk)", "src/lib/server/checks.ts:157-163 (FunctionDeclaration priceHistory)", "src/lib/server/checks.ts:167-167 (hunk)", "src/lib/server/checks.ts:168-178 (FunctionDeclaration failureHistory)", "src/lib/server/checks.ts:2-2 (hunk)", "src/lib/server/checks.ts:4-4 (ImportDeclaration)", "src/lib/server/db/channel.schema.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/db/channel.schema.spec.ts:3-3 (ImportDeclaration)", "src/lib/server/db/channel.schema.spec.ts:4-4 (ImportDeclaration)", "src/lib/server/db/channel.schema.spec.ts:6-97 (ExpressionStatement)", "src/lib/server/db/channel.schema.ts:1-4 (hunk)", "src/lib/server/db/channel.schema.ts:12-26 (VariableDeclaration notifyChannel)", "src/lib/server/db/channel.schema.ts:28-47 (VariableDeclaration priceDropDelivery)", "src/lib/server/db/channel.schema.ts:9-9 (ImportDeclaration)", "src/lib/server/db/check-failure.schema.spec.ts:15-68 (ExpressionStatement)", "src/lib/server/db/check-failure.schema.spec.ts:6-6 (ImportDeclaration)", "src/lib/server/db/check-failure.schema.spec.ts:70-168 (ExpressionStatement)", "src/lib/server/db/check-failure.schema.spec.ts:9-9 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:10-10 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:100-100 (hunk)", "src/lib/server/db/migrate.spec.ts:11-11 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:110-629 (ExpressionStatement)", "src/lib/server/db/migrate.spec.ts:12-12 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:13-13 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:16-16 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:17-17 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:22-22 (TSTypeAliasDeclaration Journal)", "src/lib/server/db/migrate.spec.ts:23-25 (VariableDeclaration journal)", "src/lib/server/db/migrate.spec.ts:26-26 (VariableDeclaration entry)", "src/lib/server/db/migrate.spec.ts:27-27 (hunk)", "src/lib/server/db/migrate.spec.ts:28-29 (VariableDeclaration run)", "src/lib/server/db/migrate.spec.ts:30-30 (hunk)", "src/lib/server/db/migrate.spec.ts:31-34 (FunctionDeclaration tables)", "src/lib/server/db/migrate.spec.ts:36-39 (FunctionDeclaration columns)", "src/lib/server/db/migrate.spec.ts:40-40 (hunk)", "src/lib/server/db/migrate.spec.ts:41-44 (VariableDeclaration ids)", "src/lib/server/db/migrate.spec.ts:45-46 (hunk)", "src/lib/server/db/migrate.spec.ts:47-50 (FunctionDeclaration lastApplied)", "src/lib/server/db/migrate.spec.ts:5-5 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:51-52 (hunk)", "src/lib/server/db/migrate.spec.ts:53-61 (FunctionDeclaration folderUpTo)", "src/lib/server/db/migrate.spec.ts:6-6 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:62-63 (hunk)", "src/lib/server/db/migrate.spec.ts:64-73 (FunctionDeclaration dump)", "src/lib/server/db/migrate.spec.ts:74-75 (hunk)", "src/lib/server/db/migrate.spec.ts:76-79 (VariableDeclaration declaredTables)", "src/lib/server/db/migrate.spec.ts:8-8 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:80-81 (hunk)", "src/lib/server/db/migrate.spec.ts:82-87 (VariableDeclaration sealedLegacy)", "src/lib/server/db/migrate.spec.ts:88-88 (hunk)", "src/lib/server/db/migrate.spec.ts:89-91 (FunctionDeclaration addUser)", "src/lib/server/db/migrate.spec.ts:9-9 (ImportDeclaration)", "src/lib/server/db/migrate.spec.ts:92-92 (hunk)", "src/lib/server/db/migrate.spec.ts:93-99 (FunctionDeclaration addWatch)", "src/lib/server/db/price-point.schema.spec.ts:19-19 (ExpressionStatement)", "src/lib/server/db/price-point.schema.spec.ts:3-3 (ImportDeclaration)", "src/lib/server/db/price-point.schema.spec.ts:6-6 (VariableDeclaration h)", "src/lib/server/db/price-point.schema.spec.ts:8-18 (ExpressionStatement)", "src/lib/server/db/watch.schema.spec.ts:100-152 (ExpressionStatement)", "src/lib/server/db/watch.schema.spec.ts:12-12 (VariableDeclaration h)", "src/lib/server/db/watch.schema.spec.ts:14-16 (ExpressionStatement)", "src/lib/server/db/watch.schema.spec.ts:17-17 (ExpressionStatement)", "src/lib/server/db/watch.schema.spec.ts:19-26 (FunctionDeclaration row)", "src/lib/server/db/watch.schema.spec.ts:28-98 (ExpressionStatement)", "src/lib/server/db/watch.schema.spec.ts:6-6 (ImportDeclaration)", "src/lib/server/db/watch.schema.spec.ts:9-9 (ImportDeclaration)", "src/lib/server/db/watch.schema.ts:1-2 (hunk)", "src/lib/server/db/watch.schema.ts:4-4 (ImportDeclaration)", "src/lib/server/db/watch.schema.ts:6-31 (VariableDeclaration watch)", "src/lib/server/health.spec.ts:10-10 (ImportDeclaration)", "src/lib/server/health.spec.ts:67-248 (ExpressionStatement)", "src/lib/server/health.ts:15-15 (hunk)", "src/lib/server/local-request.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/local-request.spec.ts:2-2 (ImportDeclaration)", "src/lib/server/local-request.spec.ts:3-3 (ImportDeclaration)", "src/lib/server/local-request.spec.ts:4-4 (hunk)", "src/lib/server/local-request.spec.ts:49-49 (hunk)", "src/lib/server/local-request.spec.ts:5-48 (ExpressionStatement)", "src/lib/server/local-request.spec.ts:50-111 (ExpressionStatement)", "src/lib/server/local-request.ts:1-3 (hunk)", "src/lib/server/local-request.ts:11-19 (FunctionDeclaration isLoopbackHost)", "src/lib/server/local-request.ts:20-27 (hunk)", "src/lib/server/local-request.ts:28-38 (FunctionDeclaration createLocalRequestHandle)", "src/lib/server/local-request.ts:4-4 (ImportDeclaration)", "src/lib/server/local-request.ts:5-7 (hunk)", "src/lib/server/local-request.ts:8-8 (VariableDeclaration LOOPBACK_HOST)", "src/lib/server/local-request.ts:9-10 (hunk)", "src/lib/server/scheduler.spec.ts:11-11 (ImportDeclaration)", "src/lib/server/scheduler.spec.ts:163-230 (ExpressionStatement)", "src/lib/server/scheduler.spec.ts:232-277 (ExpressionStatement)", "src/lib/server/shops/no-direct-fetch.spec.ts:131-183 (ExpressionStatement)", "src/lib/server/sparklines.spec.ts:11-11 (VariableDeclaration h)", "src/lib/server/sparklines.spec.ts:14-16 (ExpressionStatement)", "src/lib/server/sparklines.spec.ts:17-17 (ExpressionStatement)", "src/lib/server/sparklines.spec.ts:19-26 (FunctionDeclaration addWatch)", "src/lib/server/sparklines.spec.ts:32-79 (ExpressionStatement)", "src/lib/server/sparklines.spec.ts:4-4 (ImportDeclaration)", "src/lib/server/sparklines.ts:1-1 (hunk)", "src/lib/server/sparklines.ts:2-2 (ImportDeclaration)", "src/lib/server/sparklines.ts:4-4 (ImportDeclaration)", "src/lib/server/sparklines.ts:7-7 (hunk)", "src/lib/server/sparklines.ts:8-25 (FunctionDeclaration recentPrices)", "src/lib/server/testing/test-db.spec.ts:1-1 (ImportDeclaration)", "src/lib/server/testing/test-db.spec.ts:14-14 (hunk)", "src/lib/server/testing/test-db.spec.ts:15-20 (ExpressionStatement)", "src/lib/server/testing/test-db.spec.ts:2-2 (ImportDeclaration)", "src/lib/server/testing/test-db.spec.ts:21-22 (hunk)", "src/lib/server/testing/test-db.spec.ts:23-28 (FunctionDeclaration journalWhens)", "src/lib/server/testing/test-db.spec.ts:29-29 (hunk)", "src/lib/server/testing/test-db.spec.ts:3-3 (ImportDeclaration)", "src/lib/server/testing/test-db.spec.ts:30-69 (ExpressionStatement)", "src/lib/server/testing/test-db.spec.ts:4-4 (ImportDeclaration)", "src/lib/server/testing/test-db.spec.ts:5-5 (ImportDeclaration)", "src/lib/server/testing/test-db.spec.ts:6-6 (hunk)", "src/lib/server/testing/test-db.spec.ts:7-7 (VariableDeclaration open)", "src/lib/server/testing/test-db.spec.ts:8-8 (hunk)", "src/lib/server/testing/test-db.spec.ts:9-13 (FunctionDeclaration fresh)", "src/lib/server/testing/test-db.ts:1-3 (hunk)", "src/lib/server/testing/test-db.ts:10-10 (ImportDeclaration)", "src/lib/server/testing/test-db.ts:11-12 (hunk)", "src/lib/server/testing/test-db.ts:13-13 (VariableDeclaration MIGRATIONS_FOLDER)", "src/lib/server/testing/test-db.ts:14-14 (hunk)", "src/lib/server/testing/test-db.ts:15-22 (TSInterfaceDeclaration TestDb)", "src/lib/server/testing/test-db.ts:23-23 (hunk)", "src/lib/server/testing/test-db.ts:24-37 (FunctionDeclaration createTestDb)", "src/lib/server/testing/test-db.ts:4-4 (ImportDeclaration)", "src/lib/server/testing/test-db.ts:5-5 (ImportDeclaration)", "src/lib/server/testing/test-db.ts:6-6 (ImportDeclaration)", "src/lib/server/testing/test-db.ts:7-7 (ImportDeclaration)", "src/lib/server/testing/test-db.ts:8-8 (ImportDeclaration)", "src/lib/server/testing/test-db.ts:9-9 (ImportDeclaration)", "src/lib/server/watches.spec.ts:573-669 (ExpressionStatement)", "src/lib/server/watches.spec.ts:62-62 (VariableDeclaration h)", "src/lib/server/watches.spec.ts:66-69 (ExpressionStatement)", "src/lib/server/watches.spec.ts:7-7 (ImportDeclaration)", "src/lib/server/watches.spec.ts:70-70 (ExpressionStatement)", "src/lib/server/watches.spec.ts:75-571 (ExpressionStatement)", "src/lib/server/watches.ts:1-4 (hunk)", "src/lib/server/watches.ts:120-120 (hunk)", "src/lib/server/watches.ts:121-123 (FunctionDeclaration listWatches)", "src/lib/server/watches.ts:125-125 (hunk)", "src/lib/server/watches.ts:126-129 (FunctionDeclaration getWatch)", "src/lib/server/watches.ts:136-136 (hunk)", "src/lib/server/watches.ts:137-148 (FunctionDeclaration setTarget)", "src/lib/server/watches.ts:167-167 (hunk)", "src/lib/server/watches.ts:168-171 (FunctionDeclaration deleteWatch)", "src/lib/server/watches.ts:173-179 (FunctionDeclaration findWatched)", "src/lib/server/watches.ts:185-217 (FunctionDeclaration insert)", "src/lib/server/watches.ts:219-219 (hunk)", "src/lib/server/watches.ts:220-220 (VariableDeclaration PRODUCT_RACE)", "src/lib/server/watches.ts:54-118 (FunctionDeclaration addWatch)", "src/routes/+layout.svelte:11-11 (VariableDeclaration)", "src/routes/+layout.svelte:14-14 (VariableDeclaration items)", "src/routes/+layout.svelte:21-35 (Element header)", "src/routes/+layout.svelte:39-39 (hunk)", "src/routes/+layout.svelte:40-40 (InlineComponent SiteFooter)", "src/routes/+layout.svelte:41-41 (hunk)", "src/routes/+layout.svelte:7-7 (ImportDeclaration)", "src/routes/+page.server.ts:1-1 (ImportDeclaration)", "src/routes/+page.server.ts:30-45 (VariableDeclaration load)", "src/routes/+page.server.ts:47-59 (VariableDeclaration actions)", "src/routes/account/alerts/+page.server.ts:1-1 (ImportDeclaration)", "src/routes/account/alerts/+page.server.ts:140-147 (FunctionDeclaration toggle)", "src/routes/account/alerts/+page.server.ts:24-27 (hunk)", "src/routes/account/alerts/+page.server.ts:47-74 (VariableDeclaration load)", "src/routes/account/alerts/+page.server.ts:76-138 (VariableDeclaration actions)", "src/routes/account/alerts/+page.svelte:24-24 (hunk)", "src/routes/account/alerts/+page.svelte:25-25 (VariableDeclaration recipient)", "src/routes/account/alerts/+page.svelte:34-34 (VariableDeclaration smtpRecipient)", "src/routes/account/alerts/alerts.e2e.ts:112-146 (ExpressionStatement)", "src/routes/account/alerts/alerts.e2e.ts:13-13 (VariableDeclaration REFUSED_TOPIC)", "src/routes/account/alerts/alerts.e2e.ts:14-14 (VariableDeclaration RECIPIENT)", "src/routes/account/alerts/alerts.e2e.ts:148-158 (ExpressionStatement)", "src/routes/account/alerts/alerts.e2e.ts:15-17 (hunk)", "src/routes/account/alerts/alerts.e2e.ts:160-172 (ExpressionStatement)", "src/routes/account/alerts/alerts.e2e.ts:174-217 (ExpressionStatement)", "src/routes/account/alerts/alerts.e2e.ts:18-18 (VariableDeclaration seeded)", "src/routes/account/alerts/alerts.e2e.ts:19-19 (hunk)", "src/routes/account/alerts/alerts.e2e.ts:2-2 (ImportDeclaration)", "src/routes/account/alerts/alerts.e2e.ts:20-27 (FunctionDeclaration withDb)", "src/routes/account/alerts/alerts.e2e.ts:219-273 (ExpressionStatement)", "src/routes/account/alerts/alerts.e2e.ts:28-28 (hunk)", "src/routes/account/alerts/alerts.e2e.ts:29-32 (ExpressionStatement)", "src/routes/account/alerts/alerts.e2e.ts:3-3 (ImportDeclaration)", "src/routes/account/alerts/alerts.e2e.ts:33-33 (hunk)", "src/routes/account/alerts/alerts.e2e.ts:34-39 (ExpressionStatement)", "src/routes/account/alerts/alerts.e2e.ts:4-4 (ImportDeclaration)", "src/routes/account/alerts/alerts.e2e.ts:41-46 (FunctionDeclaration openAlerts)", "src/routes/account/alerts/alerts.e2e.ts:52-52 (hunk)", "src/routes/account/alerts/alerts.e2e.ts:53-72 (FunctionDeclaration withNoChannels)", "src/routes/account/alerts/alerts.e2e.ts:85-93 (ExpressionStatement)", "src/routes/account/alerts/alerts.e2e.ts:95-110 (ExpressionStatement)", "src/routes/account/alerts/page.server.spec.ts:28-28 (ImportDeclaration)", "src/routes/account/alerts/page.server.spec.ts:3-3 (ImportDeclaration)", "src/routes/account/alerts/page.server.spec.ts:34-35 (hunk)", "src/routes/account/alerts/page.server.spec.ts:36-36 (VariableDeclaration state)", "src/routes/account/alerts/page.server.spec.ts:37-41 (ExpressionStatement)", "src/routes/account/alerts/page.server.spec.ts:47-47 (hunk)", "src/routes/account/alerts/page.server.spec.ts:478-485 (FunctionDeclaration multipartSave)", "src/routes/account/alerts/page.server.spec.ts:48-56 (FunctionDeclaration event)", "src/routes/account/alerts/page.server.spec.ts:487-619 (ExpressionStatement)", "src/routes/account/alerts/page.server.spec.ts:643-800 (ExpressionStatement)", "src/routes/account/alerts/page.server.spec.ts:70-70 (VariableDeclaration db)", "src/routes/account/alerts/page.server.spec.ts:71-71 (VariableDeclaration save)", "src/routes/account/alerts/page.server.spec.ts:80-80 (hunk)", "src/routes/account/alerts/page.server.spec.ts:81-81 (VariableDeclaration page)", "src/routes/account/alerts/page.server.spec.ts:83-86 (ExpressionStatement)", "src/routes/account/alerts/page.server.spec.ts:87-92 (ExpressionStatement)", "src/routes/account/alerts/page.server.spec.ts:94-450 (ExpressionStatement)", "src/routes/account/alerts/page.svelte.spec.ts:43-53 (VariableDeclaration props)", "src/routes/account/alerts/page.svelte.spec.ts:63-220 (ExpressionStatement)", "src/routes/action-endpoints.spec.ts:1-1 (ImportDeclaration)", "src/routes/action-endpoints.spec.ts:101-101 (hunk)", "src/routes/action-endpoints.spec.ts:102-102 (VariableDeclaration weakensCsrf)", "src/routes/action-endpoints.spec.ts:103-103 (hunk)", "src/routes/action-endpoints.spec.ts:104-104 (VariableDeclaration listed)", "src/routes/action-endpoints.spec.ts:105-105 (hunk)", "src/routes/action-endpoints.spec.ts:106-200 (ExpressionStatement)", "src/routes/action-endpoints.spec.ts:13-17 (VariableDeclaration kitConfigs)", "src/routes/action-endpoints.spec.ts:18-20 (hunk)", "src/routes/action-endpoints.spec.ts:2-2 (ImportDeclaration)", "src/routes/action-endpoints.spec.ts:21-27 (FunctionDeclaration routeOf)", "src/routes/action-endpoints.spec.ts:28-28 (hunk)", "src/routes/action-endpoints.spec.ts:29-30 (VariableDeclaration PROPERTY_KEY)", "src/routes/action-endpoints.spec.ts:3-7 (hunk)", "src/routes/action-endpoints.spec.ts:31-32 (hunk)", "src/routes/action-endpoints.spec.ts:33-37 (FunctionDeclaration keyOf)", "src/routes/action-endpoints.spec.ts:38-43 (hunk)", "src/routes/action-endpoints.spec.ts:44-85 (FunctionDeclaration declaredActions)", "src/routes/action-endpoints.spec.ts:8-12 (VariableDeclaration pageServers)", "src/routes/action-endpoints.spec.ts:86-87 (hunk)", "src/routes/action-endpoints.spec.ts:88-92 (FunctionDeclaration declaredEndpoints)", "src/routes/action-endpoints.spec.ts:93-94 (hunk)", "src/routes/action-endpoints.spec.ts:95-100 (VariableDeclaration CSRF_WEAKENERS)", "src/routes/at-target.e2e.ts:37-48 (FunctionDeclaration withPage)", "src/routes/at-target.e2e.ts:4-4 (ImportDeclaration)", "src/routes/at-target.e2e.ts:6-7 (hunk)", "src/routes/chart-a11y.e2e.ts:19-19 (hunk)", "src/routes/chart-a11y.e2e.ts:20-35 (FunctionDeclaration withPage)", "src/routes/chart-a11y.e2e.ts:9-9 (ImportDeclaration)", "src/routes/contrast.e2e.ts:10-15 (hunk)", "src/routes/contrast.e2e.ts:144-150 (FunctionDeclaration expectState)", "src/routes/contrast.e2e.ts:152-311 (ForOfStatement)", "src/routes/contrast.e2e.ts:22-22 (VariableDeclaration SOURCE_URL)", "src/routes/contrast.e2e.ts:23-23 (hunk)", "src/routes/contrast.e2e.ts:24-24 (VariableDeclaration TEXT_MIN)", "src/routes/contrast.e2e.ts:26-26 (hunk)", "src/routes/contrast.e2e.ts:27-42 (FunctionDeclaration withPage)", "src/routes/contrast.e2e.ts:4-4 (ImportDeclaration)", "src/routes/contrast.e2e.ts:44-47 (hunk)", "src/routes/contrast.e2e.ts:48-66 (FunctionDeclaration keepingChannels)", "src/routes/contrast.e2e.ts:67-68 (hunk)", "src/routes/contrast.e2e.ts:69-86 (FunctionDeclaration expectSourceContrast)", "src/routes/contrast.e2e.ts:7-7 (ImportDeclaration)", "src/routes/contrast.e2e.ts:87-87 (hunk)", "src/routes/contrast.e2e.ts:90-90 (hunk)", "src/routes/contrast.e2e.ts:91-141 (FunctionDeclaration expectTokens)", "src/routes/focus.e2e.ts:12-12 (VariableDeclaration SOURCE_URL)", "src/routes/focus.e2e.ts:14-19 (VariableDeclaration PAGES)", "src/routes/focus.e2e.ts:21-29 (FunctionDeclaration open)", "src/routes/focus.e2e.ts:31-107 (ForOfStatement)", "src/routes/focus.e2e.ts:4-4 (ImportDeclaration)", "src/routes/header.e2e.ts:1-1 (ImportDeclaration)", "src/routes/header.e2e.ts:10-16 (VariableDeclaration PAGES)", "src/routes/header.e2e.ts:2-2 (ImportDeclaration)", "src/routes/header.e2e.ts:20-23 (FunctionDeclaration open)", "src/routes/header.e2e.ts:25-34 (ExpressionStatement)", "src/routes/header.e2e.ts:36-46 (ExpressionStatement)", "src/routes/header.e2e.ts:4-5 (hunk)", "src/routes/header.e2e.ts:47-47 (hunk)", "src/routes/header.e2e.ts:48-61 (ExpressionStatement)", "src/routes/header.e2e.ts:62-62 (hunk)", "src/routes/header.e2e.ts:63-74 (ExpressionStatement)", "src/routes/header.e2e.ts:7-7 (VariableDeclaration SOURCE_URL)", "src/routes/header.e2e.ts:75-75 (hunk)", "src/routes/header.e2e.ts:76-95 (ExpressionStatement)", "src/routes/header.e2e.ts:9-9 (hunk)", "src/routes/header.e2e.ts:97-102 (ExpressionStatement)", "src/routes/health/health.e2e.ts:11-19 (ExpressionStatement)", "src/routes/layout.e2e.ts:122-141 (ExpressionStatement)", "src/routes/layout.e2e.ts:143-155 (ExpressionStatement)", "src/routes/layout.e2e.ts:157-169 (ExpressionStatement)", "src/routes/layout.e2e.ts:171-191 (ExpressionStatement)", "src/routes/layout.e2e.ts:24-24 (hunk)", "src/routes/layout.e2e.ts:25-49 (FunctionDeclaration expectNoClipping)", "src/routes/layout.e2e.ts:3-3 (ImportDeclaration)", "src/routes/layout.e2e.ts:57-67 (ExpressionStatement)", "src/routes/layout.e2e.ts:69-79 (ExpressionStatement)", "src/routes/layout.e2e.ts:81-120 (ExpressionStatement)", "src/routes/page.server.spec.ts:101-169 (ExpressionStatement)", "src/routes/page.server.spec.ts:11-11 (hunk)", "src/routes/page.server.spec.ts:13-17 (VariableDeclaration state)", "src/routes/page.server.spec.ts:171-268 (ExpressionStatement)", "src/routes/page.server.spec.ts:3-3 (ImportDeclaration)", "src/routes/page.server.spec.ts:36-42 (TSTypeAliasDeclaration Card)", "src/routes/page.server.spec.ts:48-48 (hunk)", "src/routes/page.server.spec.ts:49-55 (FunctionDeclaration event)", "src/routes/page.server.spec.ts:56-56 (hunk)", "src/routes/page.server.spec.ts:57-59 (FunctionDeclaration cards)", "src/routes/page.server.spec.ts:60-60 (hunk)", "src/routes/page.server.spec.ts:61-65 (FunctionDeclaration card)", "src/routes/page.server.spec.ts:78-78 (hunk)", "src/routes/page.server.spec.ts:79-92 (FunctionDeclaration seed)", "src/routes/page.server.spec.ts:9-9 (ImportDeclaration)", "src/routes/page.server.spec.ts:93-93 (hunk)", "src/routes/page.server.spec.ts:94-98 (ExpressionStatement)", "src/routes/page.server.spec.ts:99-99 (ExpressionStatement)", "src/routes/removed-routes.spec.ts:1-1 (ImportDeclaration)", "src/routes/removed-routes.spec.ts:100-100 (hunk)", "src/routes/removed-routes.spec.ts:101-101 (VariableDeclaration stripExtension)", "src/routes/removed-routes.spec.ts:102-103 (hunk)", "src/routes/removed-routes.spec.ts:104-108 (FunctionDeclaration resolve)", "src/routes/removed-routes.spec.ts:109-109 (hunk)", "src/routes/removed-routes.spec.ts:110-110 (VariableDeclaration isBetterAuth)", "src/routes/removed-routes.spec.ts:111-112 (hunk)", "src/routes/removed-routes.spec.ts:113-124 (FunctionDeclaration importOffenders)", "src/routes/removed-routes.spec.ts:125-125 (hunk)", "src/routes/removed-routes.spec.ts:126-133 (FunctionDeclaration offenders)", "src/routes/removed-routes.spec.ts:13-14 (hunk)", "src/routes/removed-routes.spec.ts:134-134 (hunk)", "src/routes/removed-routes.spec.ts:135-290 (ExpressionStatement)", "src/routes/removed-routes.spec.ts:15-19 (VariableDeclaration e2eSources)", "src/routes/removed-routes.spec.ts:2-2 (ImportDeclaration)", "src/routes/removed-routes.spec.ts:20-22 (hunk)", "src/routes/removed-routes.spec.ts:23-33 (VariableDeclaration REMOVED_PATHS)", "src/routes/removed-routes.spec.ts:3-8 (hunk)", "src/routes/removed-routes.spec.ts:34-35 (hunk)", "src/routes/removed-routes.spec.ts:36-36 (VariableDeclaration REMOVED_TREES)", "src/routes/removed-routes.spec.ts:37-38 (hunk)", "src/routes/removed-routes.spec.ts:39-50 (VariableDeclaration DELETED_MODULES)", "src/routes/removed-routes.spec.ts:51-56 (hunk)", "src/routes/removed-routes.spec.ts:57-57 (VariableDeclaration AUTH_TEXT)", "src/routes/removed-routes.spec.ts:58-58 (hunk)", "src/routes/removed-routes.spec.ts:59-59 (VariableDeclaration TEXT_PATTERNS)", "src/routes/removed-routes.spec.ts:60-61 (hunk)", "src/routes/removed-routes.spec.ts:62-62 (VariableDeclaration SPECIFIER)", "src/routes/removed-routes.spec.ts:63-63 (hunk)", "src/routes/removed-routes.spec.ts:64-64 (VariableDeclaration isRouteFile)", "src/routes/removed-routes.spec.ts:65-66 (hunk)", "src/routes/removed-routes.spec.ts:67-72 (FunctionDeclaration routeSegments)", "src/routes/removed-routes.spec.ts:73-74 (hunk)", "src/routes/removed-routes.spec.ts:75-88 (FunctionDeclaration answers)", "src/routes/removed-routes.spec.ts:89-89 (hunk)", "src/routes/removed-routes.spec.ts:9-12 (VariableDeclaration sources)", "src/routes/removed-routes.spec.ts:90-99 (FunctionDeclaration removedRoutes)", "src/routes/watches/[id]/+page.server.ts:11-11 (hunk)", "src/routes/watches/[id]/+page.server.ts:13-29 (VariableDeclaration load)", "src/routes/watches/[id]/+page.server.ts:31-57 (VariableDeclaration actions)", "src/routes/watches/[id]/page.server.spec.ts:109-109 (ExpressionStatement)", "src/routes/watches/[id]/page.server.spec.ts:111-364 (ExpressionStatement)", "src/routes/watches/[id]/page.server.spec.ts:13-13 (hunk)", "src/routes/watches/[id]/page.server.spec.ts:15-18 (VariableDeclaration state)", "src/routes/watches/[id]/page.server.spec.ts:33-33 (hunk)", "src/routes/watches/[id]/page.server.spec.ts:34-43 (FunctionDeclaration event)", "src/routes/watches/[id]/page.server.spec.ts:72-74 (FunctionDeclaration page)", "src/routes/watches/[id]/page.server.spec.ts:9-9 (ImportDeclaration)", "src/routes/watches/[id]/page.server.spec.ts:90-108 (ExpressionStatement)", "src/routes/watches/[id]/watch-page.e2e.ts:56-71 (ExpressionStatement)", "src/routes/watches/[id]/watch-page.e2e.ts:6-6 (ImportDeclaration)", "src/routes/watches/[id]/watch-page.e2e.ts:86-98 (ExpressionStatement)", "src/routes/watchlist.e2e.ts:2-2 (ImportDeclaration)", "src/routes/watchlist.e2e.ts:22-24 (ExpressionStatement)", "src/routes/watchlist.e2e.ts:25-25 (hunk)", "src/routes/watchlist.e2e.ts:26-40 (ExpressionStatement)", "src/routes/watchlist.e2e.ts:7-16 (VariableDeclaration)"]
+    whole_file = ["src/lib/server/db/schema.ts — file-absent-from-hunks"]
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["src/routes/page.server.spec.ts:test('fresh install')", "e2e/fresh-install.e2e.ts:test('fresh database opens on the empty watchlist')", "src/hooks.server.spec.ts:test('handle serves / without login')", "src/routes/watchlist.e2e.ts:test('opens without login')"]
+  notes = "load on a fresh test DB must resolve { watches: [] } with no 401/redirect; the node build on an empty temp DB must answer / with 200, no Location, no Set-Cookie, no password input and the empty-watchlist text. Survivors in watches.ts/+page.server.ts are accepted equivalents."
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["src/env.spec.ts:test('env')", "e2e/fresh-install.e2e.ts:test('minimal env serves every page')", "e2e/fresh-install.e2e.ts:test('refuses to start without ALERTS_ENCRYPTION_KEY|DATABASE_URL')", "src/routes/removed-routes.spec.ts:test('no source reaches the auth stack')"]
+  notes = "env.spec pins the exact key set with only DATABASE_URL and ALERTS_ENCRYPTION_KEY required; the node build started with only those two (parent BETTER_AUTH_SECRET/ORIGIN not passed) serves /, /account/alerts and /health 200, and exits without either required var. No mutable lines in env.ts survived."
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["e2e/removed-routes.e2e.ts:test('<path> is a plain 404')", "src/routes/removed-routes.spec.ts:test('no route answers a removed path')", "src/routes/removed-routes.spec.ts:test('deleted modules are gone')"]
+  notes = "Over HTTP, GET and same-origin POSTs to /login, /logout, /account/password, /admin/users(/x/password), /api/auth/* must be exactly 404 with no Location/Set-Cookie; the route-tree scan fails if any page/server file or a root rest route answers those paths."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["src/routes/header.e2e.ts:test('no auth chrome')", "src/routes/header.e2e.ts:test('source link on every page')", "src/lib/components/SiteFooter.svelte.spec.ts:test('renders exactly one Source link, to the public repo, inside the contentinfo landmark')", "src/lib/nav.spec.ts:test('Watchlist and Alerts, in that order, and nothing else')"]
+  notes = "e2e checks /, a watch page, /account/alerts and the 404 page for exactly one footer Source link to https://github.com/Rivil/price-check and no Sign out/Admin/Account; nav.ts had no survivors. Footer/header .svelte are e2e-only (not in the vitest mutation leg)."
+
+[[criterion]]
+  id = "c-5"
+  status = "covered"
+  tests = ["src/lib/server/db/migrate.spec.ts:test('restart keeps data')", "src/lib/server/db/migrate.spec.ts:test('idempotent restart')", "e2e/restart.e2e.ts:test('data survives a restart on the same database')"]
+  notes = "migrate.spec asserts exact listWatches/priceHistory/listChannels after close + reopen + migrate, and a full-table dump equality across a second migrateDb; the node-build e2e restarts on the same file and reads the watch, history and decrypted ntfy topic. The t-13 FLAG (a lost £19.99 point would pass the e2e) is caught by the dump equality; tightened anyway in t-14."
+
+[[criterion]]
+  id = "c-6"
+  status = "covered"
+  tests = ["e2e/local-guard.e2e.ts:test('<action url> refuses cross-site posts')", "e2e/local-guard.e2e.ts:test('a same-origin post reaches the action')", "src/routes/action-endpoints.spec.ts:test('every declared action is listed')", "src/routes/action-endpoints.spec.ts:test('Kit config keeps the origin check on')"]
+  notes = "Every declared form action (the spec fails if one is missing from ACTION_ENDPOINTS) gets evil-Origin urlencoded/multipart/text-plain, Origin null and no-Origin POSTs, each must be 403 with Kit's CSRF text and leave the seeded rows unchanged; a same-origin control reaches the action (400)."
+
+[[criterion]]
+  id = "c-7"
+  status = "covered"
+  tests = ["src/lib/server/local-request.spec.ts:test('accepts %j') (localhost:1, 127.0.0.1:1, :65535) / test('rejects %j')", "src/hooks.server.spec.ts:test('handle guards /health')", "e2e/local-guard.e2e.ts:test('a foreign Host is refused on every path')", "e2e/local-guard.e2e.ts:test('a loopback Host on any port is served')"]
+  notes = "t-14 added port 1 and 65535 on both names to the accepted table, so local-request.ts:18 'n >= 1' -> 'n > 1' is now killed. Rejection side pinned (look-alikes, IPv6, :0, :65536, /health, node build). Survivors :12 and :33 are accepted equivalents."
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .env.example: no mutation adapter for .example"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .gitleaks.toml: no mutation adapter for .toml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped ARCHITECTURE.md: no mutation adapter for .md"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped README.md: no mutation adapter for .md"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped drizzle/0009_single_user_channels.sql: no mutation adapter for .sql"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped drizzle/0010_single_user_watches.sql: no mutation adapter for .sql"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped drizzle/0011_drop_auth.sql: no mutation adapter for .sql"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped drizzle/meta/0009_snapshot.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped drizzle/meta/0010_snapshot.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped drizzle/meta/0011_snapshot.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped drizzle/meta/_journal.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped package.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped pnpm-lock.yaml: no mutation adapter for .yaml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/access.spec.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/access.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/accounts.spec.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/accounts.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/admin-bootstrap.spec.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/admin-bootstrap.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/alerts/backfill.spec.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/alerts/backfill.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/auth-factory.spec.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/auth-factory.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/auth.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/cli/admin-create.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/db/alert.schema.spec.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/db/alert.schema.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/db/auth.schema.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/login-limiter.spec.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/login-limiter.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/own-password.spec.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/own-password.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/lib/server/testing/auth-harness.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/+layout.server.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/account/password: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/account/password/+page.server.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/account/password/+page.svelte: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/account/password/change-password.e2e.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/admin: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/admin/users/+page.server.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/admin/users/+page.svelte: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/admin/users/[id]/password/+page.server.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/admin/users/[id]/password/+page.svelte: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/admin/users/[id]/password/reset-password.e2e.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/admin/users/admin-users.e2e.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/layout.server.spec.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/login: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/login/+page.server.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/login/+page.svelte: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/login/login.e2e.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/login/page.server.spec.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/logout: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/logout/+server.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/no-public-signup.spec.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped src/routes/page.svelte.e2e.ts: file no longer exists in the working tree"
+
+[[finding]]
+  severity = "NOTE"
+  text = "Mutation ran as ranged Stryker (dross mutate-scope sidestep: mutationCandidates still feeds spec/e2e files to --mutate) over the prior leg's production ranges (86 ranges, 16 files) plus health.ts:15-18 for t-15's comment hunk; src/routes/watches/*/+page.server.ts passed whole-file as a glob because a bracketed path matches nothing (first run missed it and was discarded). 1m55s, fresh report 10:17 with 16 files, then dross verify --reuse-report. Spec/e2e ranges in the leg were not instrumented; .svelte, app.d.ts, playwright.config.ts, testing/test-db.ts not mutated."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Denominator 658 vs 603 last run: ranges taken from dross's own leg ranges this time, and 15 schema mutants landed as Timeout (excluded from killed/survived). Prior-run in-hunk gaps both resolved: local-request.ts:18 EqualityOperator killed by t-14; alerts.ts:216 ObjectLiteral killed by t-14's 'undecryptable channel' test."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Accepted this run (4, all inherited): watch.schema.ts:9/11/17 StringLiteral under ddl-metadata (empty column name falls back to property key id/shop/title, which equals the column name; these were Timeout last run), and health.ts:16 MethodExpression (every schema export is a sqliteTable, so dropping the filter is a no-op today). 16/16 survivors now accepted."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Observed green this session at HEAD ae2eb53: dross test (vitest 62 files / 925 tests) and pnpm test:e2e (Playwright 131 passed). c-3/c-5/c-6/c-7 node-build proofs are e2e-only and were in that run."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Solo review: all 14 tasks passed in 1 round, none failed. t-1..t-13 FLAGs as recorded in the prior verify (resolved or left as hygiene). t-14 NOTE: restart.e2e's raw-HTML toContain check is now redundant with the per-row filter (left). t-15 NOTEs: srcFiles() needs Node >= 20.12 Dirent.parentPath, isTestFile filter scope (left; .node-version pins 24)."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Re-measured after 9be1341 (gitleaks allowlist for survivor ids in tests.json and survivors.toml; config only, no source change). dross verify --reuse-report re-parsed the 10:17 Stryker report over identical source: 0.95 over 658, killed 627, survived 16 (all accepted), 0 unclassified. Criterion mappings carried over unchanged. Observed this run: dross test 927/927, pnpm lint clean, gitleaks git --log-opts=HEAD exit 0."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Re-measured after a9bbad7 (restart.e2e afterEach uses removeTempDir: PR #6 test (windows) hit EPERM removing the temp dir after the test passed; e2e cleanup only, no source change). --reuse-report over identical source: same 0.95 over 658, 0 unclassified. c-5 mapping unchanged. Observed: restart.e2e 1/1 locally, dross test 927/927, lint and check clean."

@@ -1,4 +1,4 @@
-// Alert routing: after every check, which of the user's channels get told, and the
+// Alert routing: after every check, which of the channels get told, and the
 // per-channel record of which have had the current price drop (decision
 // delivery_state_per_channel). Sending goes through each channel's driver with an
 // injected fetch, so nothing here reaches a real server on its own.
@@ -94,7 +94,6 @@ async function recordDelivery(
 				.select({
 					watchId: watch.id,
 					kind: sql<string>`${kind}`.as('kind'),
-					userId: watch.userId,
 					targetPence: sql<number>`${watch.targetPence}`.as('target_pence'),
 					deliveredAt: sql<Date>`${at.getTime()}`.as('delivered_at')
 				})
@@ -150,7 +149,7 @@ export async function alertAfterSuccess(
 		}
 		const targetPence = w.targetPence!;
 
-		const routed = await channelsFor(db, deps.key(), w.userId, 'price_drop', { log });
+		const routed = await channelsFor(db, deps.key(), 'price_drop', { log });
 		if (routed.length === 0) return { outcome: 'no_channel', channels: {} };
 
 		const delivered = await db
@@ -164,7 +163,9 @@ export async function alertAfterSuccess(
 			kind: 'price_drop',
 			title: `Price drop: ${label}`,
 			message: `${label} is now ${formatPence(w.pricePence!)}, at or below your ${formatPence(targetPence)} target.`,
-			click: w.canonicalUrl
+			// The shop link for remote channels; the watch for the desktop (decision click_target).
+			click: w.canonicalUrl,
+			watchId: w.id
 		};
 		const now = deps.now ?? (() => new Date());
 
@@ -214,7 +215,7 @@ export async function alertAfterFailure(
 		const [w] = await db.select().from(watch).where(eq(watch.id, watchId));
 		if (w === undefined) return { outcome: 'not_found', channels: {} };
 
-		const routed = await channelsFor(db, deps.key(), w.userId, 'check_failed', { log });
+		const routed = await channelsFor(db, deps.key(), 'check_failed', { log });
 		if (routed.length === 0) return { outcome: 'no_channel', channels: {} };
 
 		const label = w.title ?? w.canonicalUrl;
@@ -222,7 +223,8 @@ export async function alertAfterFailure(
 			kind: 'check_failed',
 			title: `Check failed: ${label}`,
 			message: `Couldn't check ${label}: ${result.message}.`,
-			click: w.canonicalUrl
+			click: w.canonicalUrl,
+			watchId: w.id
 		};
 		const channels: Record<string, ChannelOutcome> = {};
 		await Promise.allSettled(

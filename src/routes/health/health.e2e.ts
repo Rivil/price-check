@@ -12,7 +12,8 @@ test('health exact path', async ({ request }) => {
 	for (const path of ['/healthx', '/health/anything']) {
 		const res = await request.get(path, { maxRedirects: 0 });
 
-		expect(res.status(), path).toBe(303);
-		expect(res.headers().location, path).toBe('/login');
+		// No sign-in to bounce to (decision removed_routes): an unknown path is a plain 404.
+		expect(res.status(), path).toBe(404);
+		expect(res.headers().location, path).toBeUndefined();
 	}
 });

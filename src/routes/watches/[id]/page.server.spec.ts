@@ -6,14 +6,14 @@ import { saveChannel } from '#lib/server/alerts/channels.ts';
 import { setAlertsKey } from '#lib/server/alerts/crypto.ts';
 import { checkFailure, pricePoint, watch } from '#lib/server/db/schema.ts';
 import type { CheckResult } from '#lib/server/shops/types.ts';
-import { createAuthHarness, type AuthHarness } from '#lib/server/testing/auth-harness.ts';
+import { createTestDb, type TestDb } from '#lib/server/testing/test-db.ts';
 import type { ChartInput } from '#lib/chart.ts';
 import type { PriceStats, TimelineRow } from '#lib/watch-history.ts';
 
-// The route's db is the harness's temp SQLite; checkUrl is a stub, so 'Check now'
+// The route's db is a fresh migrated temp SQLite; checkUrl is a stub, so 'Check now'
 // never reaches amazon.co.uk (r-01).
 const state = vi.hoisted(() => ({
-	h: null as AuthHarness | null,
+	h: null as TestDb | null,
 	checkUrl: null as unknown as Mock<(url: string) => Promise<CheckResult>>
 }));
 vi.mock('#lib/server/shops/index.ts', async (importOriginal) => ({
@@ -29,11 +29,11 @@ vi.mock('#lib/server/db/index.ts', () => ({
 const { load, actions } = await import('./+page.server.ts');
 
 type Event = Parameters<typeof load>[0];
-type User = { id: string };
 
-function event(user: User | undefined, id: string, form?: Record<string, string>): Event {
+/** No signed-in user anywhere: the install's data is everyone's who can reach it. */
+function event(id: string, form?: Record<string, string>): Event {
 	return {
-		locals: { user },
+		locals: {},
 		params: { id },
 		request: new Request(`http://localhost/watches/${id}`, {
 			method: 'POST',
@@ -69,8 +69,8 @@ type Page = {
 	now: number;
 };
 
-async function page(user: User, id: string) {
-	return (await load(event(user, id))) as unknown as Page;
+async function page(id: string) {
+	return (await load(event(id))) as unknown as Page;
 }
 
 let rows = 0;
@@ -87,17 +87,11 @@ function addFailure(watchId: string, checkedAt: Date, message: string | null = n
 		.values({ id: `f${++rows}`, watchId, reason: 'blocked', message, checkedAt });
 }
 
-let alice: User;
-let bob: User;
-
 beforeEach(async () => {
-	state.h = await createAuthHarness();
+	state.h = await createTestDb();
 	state.checkUrl = vi.fn<(url: string) => Promise<CheckResult>>();
-	alice = { id: (await state.h.createUser({ email: 'alice@example.test' })).id };
-	bob = { id: (await state.h.createUser({ email: 'bob@example.test' })).id };
-	const row = (id: string, userId: string, productId: string) => ({
+	const row = (id: string, productId: string) => ({
 		id,
-		userId,
 		shop: 'amazon-uk',
 		productId,
 		canonicalUrl: `https://www.amazon.co.uk/dp/${productId}`,
@@ -110,17 +104,13 @@ beforeEach(async () => {
 	});
 	await state.h.db
 		.insert(watch)
-		.values([
-			row('a1', alice.id, 'B0ALICE001'),
-			row('a2', alice.id, 'B0ALICE002'),
-			row('b1', bob.id, 'B0BOB00001')
-		]);
+		.values([row('a1', 'B0ALICE001'), row('a2', 'B0ALICE002'), row('b1', 'B0BOB00001')]);
 });
-afterEach(() => state.h!.cleanup());
+afterEach(() => state.h!.dispose());
 
 describe('watch page', () => {
 	it('load', async () => {
-		expect(await load(event(alice, 'a1'))).toEqual({
+		expect(await load(event('a1'))).toEqual({
 			timeline: [],
 			stats: null,
 			chart: null,
@@ -134,17 +124,17 @@ describe('watch page', () => {
 				failure: null
 			})
 		});
-		expect(await load(event(alice, 'a2'))).toMatchObject({
+		expect(await load(event('a2'))).toMatchObject({
 			watch: { failure: { reason: 'blocked', label: 'Blocked by Amazon', message: 'captcha page' } }
 		});
 
-		expect(await status(() => load(event(alice, 'b1')))).toBe('404 No such watch');
-		expect(await status(() => load(event(alice, 'missing')))).toBe('404 No such watch');
-		expect(await status(() => load(event(undefined, 'a1')))).toBe('401 Sign in first');
+		// Every watch is the install's: b1 loads like any other.
+		expect(await load(event('b1'))).toMatchObject({ watch: { id: 'b1' } });
+		expect(await status(() => load(event('missing')))).toBe('404 No such watch');
 	});
 
 	it('load keys', async () => {
-		expect(Object.keys(await page(alice, 'a1')).sort()).toEqual([
+		expect(Object.keys(await page('a1')).sort()).toEqual([
 			'chart',
 			'now',
 			'stats',
@@ -154,10 +144,10 @@ describe('watch page', () => {
 	});
 
 	it('target', async () => {
-		expect(await actions.target!(event(alice, 'a1', { target: '19.99' }))).toEqual({ saved: true });
+		expect(await actions.target!(event('a1', { target: '19.99' }))).toEqual({ saved: true });
 		expect(await target('a1')).toBe(1999);
 
-		const invalid = await actions.target!(event(alice, 'a1', { target: '24.999' }));
+		const invalid = await actions.target!(event('a1', { target: '24.999' }));
 		expect(isActionFailure(invalid)).toBe(true);
 		expect(invalid).toMatchObject({
 			status: 400,
@@ -165,16 +155,13 @@ describe('watch page', () => {
 		});
 		expect(await target('a1')).toBe(1999);
 
-		expect(await actions.target!(event(alice, 'a1', {}))).toEqual({ saved: true });
+		expect(await actions.target!(event('a1', {}))).toEqual({ saved: true });
 		expect(await target('a1')).toBeNull();
 
-		// Another user's watch: 404, and untouched.
-		expect(await status(() => actions.target!(event(alice, 'b1', { target: '1' })))).toBe(
-			'404 No such watch'
-		);
+		// Only the named watch changed; an unknown one is 404.
 		expect(await target('b1')).toBe(2000);
-		expect(await status(() => actions.target!(event(undefined, 'a1', { target: '1' })))).toBe(
-			'401 Sign in first'
+		expect(await status(() => actions.target!(event('missing', { target: '1' })))).toBe(
+			'404 No such watch'
 		);
 	});
 
@@ -186,7 +173,7 @@ describe('watch page', () => {
 			{ id: 'p4', watchId: 'b1', pricePence: 2, checkedAt: new Date('2026-11-01T14:00:00Z') }
 		]);
 
-		expect((await page(alice, 'a1')).timeline).toEqual([
+		expect((await page('a1')).timeline).toEqual([
 			{ kind: 'price', price: '£1,299.00', checkedAt: '1 Nov 2026, 12:00' },
 			{ kind: 'price', price: '£25.00', checkedAt: '30 Oct 2026, 08:00' }
 		]);
@@ -197,7 +184,7 @@ describe('watch page', () => {
 		await addFailure('a1', new Date('2026-10-31T08:00:00Z'), 'captcha page');
 		await addPoint('a1', 2400, new Date('2026-11-01T08:00:00Z'));
 
-		expect((await page(alice, 'a1')).timeline).toEqual([
+		expect((await page('a1')).timeline).toEqual([
 			{ kind: 'price', checkedAt: '1 Nov 2026, 08:00', price: '£24.00' },
 			{
 				kind: 'failure',
@@ -210,17 +197,17 @@ describe('watch page', () => {
 
 	it('target in chart', async () => {
 		await addPoint('a1', 2500, new Date('2026-10-30T08:00:00Z'));
-		expect((await page(alice, 'a1')).chart?.targetPence).toBe(2000);
+		expect((await page('a1')).chart?.targetPence).toBe(2000);
 
-		await actions.target!(event(alice, 'a1', {}));
-		expect((await page(alice, 'a1')).chart?.targetPence).toBeNull();
+		await actions.target!(event('a1', {}));
+		expect((await page('a1')).chart?.targetPence).toBeNull();
 	});
 
 	it('no success', async () => {
 		await addFailure('a1', new Date('2026-10-30T08:00:00Z'));
 		await addFailure('a1', new Date('2026-10-31T08:00:00Z'));
 
-		const { chart, stats, timeline } = await page(alice, 'a1');
+		const { chart, stats, timeline } = await page('a1');
 
 		expect(chart).toBeNull();
 		expect(stats).toBeNull();
@@ -233,7 +220,7 @@ describe('watch page', () => {
 	it('stats ignore failures', async () => {
 		await addPoint('a1', 2000, new Date('2026-10-29T08:00:00Z'));
 		await addPoint('a1', 3000, new Date('2026-10-30T08:00:00Z'));
-		const before = (await page(alice, 'a1')).stats;
+		const before = (await page('a1')).stats;
 
 		await addFailure('a1', new Date('2026-10-31T08:00:00Z'));
 
@@ -243,7 +230,7 @@ describe('watch page', () => {
 			average: '£25.00',
 			change: '+50.0%'
 		});
-		expect((await page(alice, 'a1')).stats).toEqual(before);
+		expect((await page('a1')).stats).toEqual(before);
 	});
 
 	it('stats ignore recency', async () => {
@@ -252,20 +239,18 @@ describe('watch page', () => {
 		await addPoint('a1', 2000, daysAgo(10));
 		await addPoint('a1', 3000, daysAgo(1));
 
-		expect((await page(alice, 'a1')).stats).toMatchObject({
+		expect((await page('a1')).stats).toMatchObject({
 			lowest: '£10.00',
 			change: '+200.0%'
 		});
 	});
 
-	it('other user', async () => {
+	it('other watch', async () => {
 		await addFailure('a1', new Date('2026-10-30T08:00:00Z'));
 		await addFailure('b1', new Date('2026-10-31T08:00:00Z'));
 
-		expect((await page(alice, 'a1')).timeline.map((row) => row.checkedAt)).toEqual([
-			'30 Oct 2026, 08:00'
-		]);
-		expect(await status(() => load(event(alice, 'b1')))).toBe('404 No such watch');
+		expect((await page('a1')).timeline.map((row) => row.checkedAt)).toEqual(['30 Oct 2026, 08:00']);
+		expect((await page('b1')).timeline.map((row) => row.checkedAt)).toEqual(['31 Oct 2026, 08:00']);
 	});
 
 	it('labels', async () => {
@@ -285,7 +270,7 @@ describe('watch page', () => {
 			}
 		}
 		vi.stubGlobal('Date', TickingDate);
-		const data = await page(alice, 'a1').finally(() => vi.unstubAllGlobals());
+		const data = await page('a1').finally(() => vi.unstubAllGlobals());
 
 		expect(data.chart?.points[0].label).toBe('£25.00 · 1 Jul 2026, 12:00');
 		expect(data.chart?.failures[0].label).toBe('Failed: Blocked by Amazon · 1 Jul 2026, 13:00');
@@ -306,7 +291,7 @@ describe('watch page', () => {
 		state.checkUrl.mockResolvedValue(ok);
 
 		// a1 was last checked long ago: the check runs and is recorded like a scheduled one.
-		expect(await actions.check!(event(alice, 'a1'))).toEqual({ checked: true });
+		expect(await actions.check!(event('a1'))).toEqual({ checked: true });
 		expect(state.checkUrl).toHaveBeenCalledExactlyOnceWith(
 			'https://www.amazon.co.uk/dp/B0ALICE001'
 		);
@@ -317,7 +302,7 @@ describe('watch page', () => {
 		).toHaveLength(1);
 
 		// Checked moments ago: refused with the cooldown message, no second request.
-		const refused = await actions.check!(event(alice, 'a1'));
+		const refused = await actions.check!(event('a1'));
 		expect(isActionFailure(refused)).toBe(true);
 		expect(refused).toMatchObject({
 			status: 429,
@@ -327,10 +312,9 @@ describe('watch page', () => {
 
 		// A failed check reports checked: false and keeps the price.
 		state.checkUrl.mockResolvedValue({ ok: false, reason: 'blocked', message: 'captcha' });
-		expect(await actions.check!(event(alice, 'a2'))).toEqual({ checked: false });
+		expect(await actions.check!(event('a2'))).toEqual({ checked: false });
 
-		expect(await status(() => actions.check!(event(alice, 'b1')))).toBe('404 No such watch');
-		expect(await status(() => actions.check!(event(undefined, 'a1')))).toBe('401 Sign in first');
+		expect(await status(() => actions.check!(event('missing')))).toBe('404 No such watch');
 		expect(state.checkUrl).toHaveBeenCalledTimes(2);
 	});
 
@@ -341,9 +325,7 @@ describe('watch page', () => {
 		try {
 			const key = randomBytes(32);
 			setAlertsKey(key);
-			await saveChannel(state.h!.db, key, alice.id, 'ntfy', {
-				topic: 'https://ntfy.sh/alice-page'
-			});
+			await saveChannel(state.h!.db, key, 'ntfy', { topic: 'https://ntfy.sh/page-topic' });
 			state.checkUrl.mockResolvedValueOnce({
 				ok: true,
 				shop: 'amazon-uk',
@@ -354,13 +336,13 @@ describe('watch page', () => {
 				imageUrl: null
 			});
 
-			expect(await actions.check!(event(alice, 'a1'))).toEqual({ checked: true });
+			expect(await actions.check!(event('a1'))).toEqual({ checked: true });
 
 			expect(fetch).toHaveBeenCalledOnce();
 			const [target, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
 			expect(target).toBe('https://ntfy.sh/');
 			expect(JSON.parse(String(init.body))).toMatchObject({
-				topic: 'alice-page',
+				topic: 'page-topic',
 				message: 'Dropped is now £19.00, at or below your £20.00 target.'
 			});
 		} finally {
@@ -369,14 +351,14 @@ describe('watch page', () => {
 	});
 
 	it('delete', async () => {
-		expect(await status(() => actions.delete!(event(alice, 'b1')))).toBe('404 No such watch');
-		expect(await target('b1')).toBe(2000);
-		expect(await status(() => actions.delete!(event(undefined, 'a1')))).toBe('401 Sign in first');
+		expect(await status(() => actions.delete!(event('missing')))).toBe('404 No such watch');
 
-		const done = await thrown(() => actions.delete!(event(alice, 'a1')));
+		const done = await thrown(() => actions.delete!(event('a1')));
 		expect(isRedirect(done) && [done.status, done.location]).toEqual([303, '/']);
 		expect(await target('a1')).toBe('gone');
-		expect(await status(() => actions.delete!(event(alice, 'a1')))).toBe('404 No such watch');
+		expect(await status(() => load(event('a1')))).toBe('404 No such watch');
+		expect(await status(() => actions.delete!(event('a1')))).toBe('404 No such watch');
 		expect(await target('a2')).toBe(2000);
+		expect(await target('b1')).toBe(2000);
 	});
 });

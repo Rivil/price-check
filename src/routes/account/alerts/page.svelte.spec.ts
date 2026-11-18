@@ -38,17 +38,28 @@ const DEFAULTS = {
 	resend: { priceDrops: true, checkFailures: false },
 	smtp: { priceDrops: true, checkFailures: false }
 };
-const LOGIN_EMAIL = 'alice@example.test';
+
+/** The desktop row as installDesktop seeds it: on, price drops only (c-4). */
+const seededDesktop = { enabled: true, priceDrops: true, checkFailures: false };
+const DESKTOP_DEFAULTS = { priceDrops: true, checkFailures: false };
 
 type Props = Parameters<typeof render<typeof Page>>[1];
+/** desktop left out: no 'desktop' key at all, as load returns outside Electron. */
 const props = (
 	ntfy: typeof saved | null,
 	form: unknown = null,
 	resend: typeof savedResend | null = null,
-	smtp: typeof savedSmtp | null = null
+	smtp: typeof savedSmtp | null = null,
+	desktop?: typeof seededDesktop | null
 ) =>
 	({
-		data: { channels: { ntfy, resend, smtp }, defaults: DEFAULTS, loginEmail: LOGIN_EMAIL },
+		data:
+			desktop === undefined
+				? { channels: { ntfy, resend, smtp }, defaults: DEFAULTS }
+				: {
+						channels: { ntfy, resend, smtp, desktop },
+						defaults: { ...DEFAULTS, desktop: DESKTOP_DEFAULTS }
+					},
 		form,
 		params: {}
 	}) as unknown as Props;
@@ -115,9 +126,13 @@ describe('account alerts page', () => {
 		// Ticks come from load's resend defaults: drops only (c-3).
 		await expect.element(card.getByLabelText('Price drops')).toBeChecked();
 		await expect.element(card.getByLabelText('Failed checks')).not.toBeChecked();
-		await expect.element(card.getByLabelText('Recipient address')).toHaveValue(LOGIN_EMAIL);
+		// No login email to start from: the recipient starts empty.
+		await expect.element(card.getByLabelText('Recipient address')).toHaveValue('');
 		await expect.element(card.getByLabelText('Sender address')).toHaveValue('');
 		await expect.element(card.getByLabelText('Resend API key')).toHaveValue('');
+		await expect
+			.element(card.getByTestId('current-email'))
+			.toHaveTextContent('No email settings saved');
 		await expect.element(card.getByTestId('key-state')).toHaveTextContent('API key: none.');
 		expect(card.getByRole('button', { name: 'Send test' }).elements()).toHaveLength(0);
 		expect(card.getByTestId('channel-state').elements()).toHaveLength(0);
@@ -141,11 +156,11 @@ describe('account alerts page', () => {
 	it('smtp new', async () => {
 		render(Page, props(saved, null, savedResend));
 		const card = smtpCard();
-		// Port 587 (decision port_default), drops only (c-3), recipient = login email.
+		// Port 587 (decision port_default), drops only (c-3), recipient empty.
 		await expect.element(card.getByLabelText('Port')).toHaveValue('587');
 		await expect.element(card.getByLabelText('Price drops')).toBeChecked();
 		await expect.element(card.getByLabelText('Failed checks')).not.toBeChecked();
-		await expect.element(card.getByLabelText('Recipient address')).toHaveValue(LOGIN_EMAIL);
+		await expect.element(card.getByLabelText('Recipient address')).toHaveValue('');
 		await expect.element(card.getByLabelText('SMTP server host')).toHaveValue('');
 		await expect.element(card.getByLabelText('Password')).toHaveValue('');
 		await expect.element(card.getByTestId('password-state')).toHaveTextContent('Password: none.');
@@ -213,5 +228,106 @@ describe('account alerts page', () => {
 			}
 			unmount();
 		}
+	});
+});
+
+describe('desktop card', () => {
+	const desktopCard = () => page.getByTestId('channel-desktop');
+	/** Every saved channel, desktop included. */
+	const allSaved = (form: unknown = null, desktop = seededDesktop) =>
+		props(saved, form, savedResend, savedSmtp, desktop);
+
+	it('no desktop key', async () => {
+		render(Page, props(saved, null, savedResend, savedSmtp));
+		await expect.element(ntfyCard()).toBeVisible();
+		expect(desktopCard().elements()).toHaveLength(0);
+		expect(document.querySelectorAll('[data-testid="channel-desktop"]')).toHaveLength(0);
+		expect(page.getByRole('heading', { name: 'Desktop' }).elements()).toHaveLength(0);
+	});
+
+	it('seeded desktop', async () => {
+		render(Page, allSaved());
+		const card = desktopCard();
+		await expect.element(card.getByTestId('channel-state')).toHaveTextContent('Status: Enabled');
+		await expect.element(card.getByLabelText('Price drops')).toBeChecked();
+		await expect.element(card.getByLabelText('Failed checks')).not.toBeChecked();
+		await expect.element(card.getByRole('button', { name: 'Disable' })).toBeVisible();
+		await expect.element(card.getByRole('button', { name: 'Send test' })).toBeVisible();
+		// First on the page.
+		const first = document.querySelector('main section.channel');
+		expect(first?.getAttribute('data-testid')).toBe('channel-desktop');
+	});
+
+	it('disabled desktop', async () => {
+		render(Page, allSaved(null, { ...seededDesktop, enabled: false }));
+		const card = desktopCard();
+		await expect.element(card.getByTestId('channel-state')).toHaveTextContent('Disabled');
+		await expect.element(card.getByRole('button', { name: 'Enable' })).toBeVisible();
+		await expect.element(card.getByRole('button', { name: 'Send test' })).toBeVisible();
+	});
+
+	it('no remove, no fields', async () => {
+		render(Page, allSaved());
+		await expect.element(desktopCard()).toBeVisible();
+		const card = desktopCard().element();
+		expect(desktopCard().getByRole('button', { name: 'Remove' }).elements()).toHaveLength(0);
+		expect(card.querySelector('form[action="?/remove"]')).toBeNull();
+		// Hidden kind inputs and the two ticks only: nothing to type into.
+		const inputs = [...card.querySelectorAll('input')].map((input) => input.type);
+		expect(inputs.filter((type) => type !== 'hidden' && type !== 'checkbox')).toEqual([]);
+		expect(desktopCard().getByRole('textbox').elements()).toHaveLength(0);
+		// The other saved cards keep their Remove.
+		for (const other of Object.values(cards)) {
+			await expect.element(other().getByRole('button', { name: 'Remove' })).toBeVisible();
+		}
+	});
+
+	it('desktop messages', async () => {
+		const unsupported = 'Not delivered: notifications not supported.';
+		const failed = render(Page, allSaved({ testKind: 'desktop', testMessage: unsupported }));
+		await expect.element(desktopCard().getByRole('alert')).toHaveTextContent(unsupported);
+		expect(page.getByRole('alert').elements()).toHaveLength(1);
+		for (const other of Object.values(cards)) {
+			expect(other().getByRole('alert').elements()).toHaveLength(0);
+		}
+		failed.unmount();
+
+		const sent = render(Page, allSaved({ tested: 'desktop' }));
+		await expect.element(desktopCard().getByRole('status')).toHaveTextContent('Test alert sent.');
+		for (const other of Object.values(cards)) {
+			expect(other().getByRole('status').elements()).toHaveLength(0);
+		}
+		sent.unmount();
+
+		// A refused removal shows in the desktop card only.
+		render(
+			Page,
+			allSaved({
+				kind: 'desktop',
+				message: "The desktop channel can't be removed; disable it instead."
+			})
+		);
+		await expect.element(desktopCard().getByRole('alert')).toHaveTextContent('disable it instead');
+		for (const other of Object.values(cards)) {
+			expect(other().getByRole('alert').elements()).toHaveLength(0);
+		}
+	});
+
+	it('desktop save form', async () => {
+		render(Page, allSaved());
+		const card = desktopCard();
+		await expect.element(card.getByRole('button', { name: 'Save desktop settings' })).toBeVisible();
+		const form = card.element().querySelector<HTMLFormElement>('form[action="?/save"]')!;
+		expect([...new FormData(form)]).toEqual([
+			['kind', 'desktop'],
+			['price_drops', 'on']
+		]);
+
+		await card.getByLabelText('Price drops').click();
+		await card.getByLabelText('Failed checks').click();
+		expect([...new FormData(form)]).toEqual([
+			['kind', 'desktop'],
+			['check_failures', 'on']
+		]);
 	});
 });

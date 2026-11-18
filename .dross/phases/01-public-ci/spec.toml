@@ -1,0 +1,73 @@
+[phase]
+  id = "01-public-ci"
+  title = "01-public-ci"
+  milestone = "v0.1"
+
+[[criteria]]
+  id = "c-1"
+  text = "A PR to main runs vitest, Playwright e2e, pnpm check and pnpm lint in GitHub Actions; any failing step fails the check."
+
+[[criteria]]
+  id = "c-2"
+  text = "gitleaks runs on every PR and fails the check on any unallowlisted finding."
+
+[[criteria]]
+  id = "c-3"
+  text = "gitleaks over the full git history reports zero unallowlisted findings; each of the 10 known findings is allowlisted narrowly (inline marker or rule+path), never by blanket directory ignores."
+
+[[criteria]]
+  id = "c-4"
+  text = "main is protected: a PR cannot merge unless the c-1 and c-2 checks pass."
+
+[[criteria]]
+  id = "c-5"
+  text = "CI fails if any workflow references an action by tag instead of a full commit SHA, or grants more than contents: read."
+
+[[criteria]]
+  id = "c-6"
+  text = "README opens with an end-user section (what it does, install from GitHub Releases per OS incl. the Windows SmartScreen step, adding a first watch); developer setup follows; no Docker/self-host instructions remain."
+
+[[criteria]]
+  id = "c-7"
+  text = "Dockerfile, compose.yaml, .dockerignore and scripts/image-smoke.sh are removed, and no script, doc or config references them."
+
+[[decisions]]
+  key = "gated_refs"
+  choice = "CI runs on PRs into main and milestone/* branches; both are merge-protected by the required checks."
+  why = "Phase PRs target milestone/v0.1, so gating main alone would leave all phase work unchecked until the milestone merges."
+  locked = true
+
+[[decisions]]
+  key = "protection_bypass"
+  choice = "Required checks block PR merges; repo admin may bypass to push dross chores directly."
+  why = "dross commits .dross/ chores straight to main (e.g. milestone scoping); strict no-bypass would break that flow."
+  locked = true
+
+[[decisions]]
+  key = "e2e_gate"
+  choice = "Playwright e2e is a required, blocking check from this phase on; if it is red today, this phase fixes it."
+  why = "Safety net for 02-single-user, which rewrites the auth the e2e seed relies on."
+  locked = true
+
+[[decisions]]
+  key = "os_matrix"
+  choice = "The PR gate runs on Linux, macOS and Windows runners."
+  why = "App ships on all three and @libsql/client loads a per-platform native binary; catch path/native issues before 05-release."
+  locked = true
+
+[[decisions]]
+  key = "fixture_findings"
+  choice = "Allowlist the k-closure-key hits in recorded fixtures narrowly; do not re-record."
+  why = "Value sits in Amazon's anonymous page config, not a secret; re-recording means a live fetch for no gain."
+  locked = true
+
+[[deferred]]
+  id = "b6b94cda0fcf3988"
+  text = "libsql keeps the SQLite file locked on Windows after client close(); desktop must open one long-lived client and never rely on close() releasing the file (updater, DB move/backup)"
+  why = "Found 2026-11-11 by 01-public-ci CI: every temp-DB cleanup failed with EPERM on windows-2025 even after retries; tests now clean up best-effort on win32"
+  target = "03-desktop-shell"
+
+[[deferred]]
+  id = "7b806c5ada93c2e7"
+  text = "Every phase's .dross/phases/<id>/tests.json records survivor ids as \"Key\": \"<16 hex>\", which gitleaks generic-api-key flags; each phase needs an exact-path allowlist entry (as 01-public-ci t-12 did) or a general reviewed pattern / dross-side rename"
+  why = "Found 2026-11-11 when PR #3's gitleaks check failed; probes excluded .dross so it surfaced only at ship"

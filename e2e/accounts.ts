@@ -1,34 +1,11 @@
-// Seeded e2e credentials, shared by e2e/seed.ts (Node type stripping) and the
-// Playwright specs. Test-only values for a throwaway database.
-import type { Page } from '@playwright/test';
+// Seeded e2e data, shared by e2e/seed.ts (Node type stripping) and the Playwright
+// specs. Test-only values for a throwaway database. There are no accounts: the
+// seed is one install's data (decision data_scope).
 
 export const E2E_ORIGIN = 'http://localhost:4173';
 export const E2E_DATABASE_URL = 'file:e2e/.data/e2e.db';
-export const E2E_SECRET = 'e2e-only-better-auth-secret-0123456789abcdef';
 /** Test-only ALERTS_ENCRYPTION_KEY (base64 of 32 bytes) for the throwaway e2e database. */
 export const E2E_ALERTS_KEY = Buffer.from('e2e-only-alerts-key-0123456789ab').toString('base64');
-
-export const SEEDED_ADMIN = {
-	email: 'admin@e2e.test',
-	name: 'E2E Admin',
-	password: 'e2e-admin-password',
-	role: 'admin'
-} as const;
-
-export const SEEDED_MEMBER = {
-	email: 'member@e2e.test',
-	name: 'E2E Member',
-	password: 'e2e-member-password',
-	role: 'user'
-} as const;
-
-/** Owns watches the member must never see or change (cross-user tests). */
-export const SEEDED_OTHER = {
-	email: 'other@e2e.test',
-	name: 'E2E Other',
-	password: 'e2e-other-password',
-	role: 'user'
-} as const;
 
 /**
  * An unbroken run of letters exactly `length` long: no spaces or hyphens, so the
@@ -39,29 +16,10 @@ function unbroken(prefix: string, length: number): string {
 }
 
 /**
- * app-design's edge-case user: owns the layout watches and a long ntfy topic.
- * Seeded after the member, so harness 'fresh seed' still counts two seed users.
- */
-export const SEEDED_DESIGN = {
-	email: 'design@e2e.test',
-	name: 'E2E Design',
-	password: 'e2e-design-password',
-	role: 'user'
-} as const;
-
-/** Listed in the admin table: a long unbroken name and email (app-design c-4). */
-export const SEEDED_LONG_ACCOUNT = {
-	// Lower-case: better-auth stores emails lower-cased, and specs look this one up.
-	email: `${unbroken('longaccount', 50)}@${unbroken('layout', 30)}.e2e.test`.toLowerCase(),
-	name: unbroken('E2ELongAccountName', 60),
-	password: 'e2e-long-account-password',
-	role: 'user'
-} as const;
-
-/**
- * SEEDED_DESIGN's ntfy topic link, 150 chars with no whitespace. The topic itself
- * stays within ntfy's 64-char rule (a long self-hosted base path carries the rest),
- * so resubmitting it unchanged on /account/alerts saves. The host is .invalid (r-01).
+ * The install's seeded ntfy topic link, 150 chars with no whitespace. The topic
+ * itself stays within ntfy's 64-char rule (a long self-hosted base path carries the
+ * rest), so resubmitting it unchanged on /account/alerts saves. The host is
+ * .invalid (r-01).
  */
 export const SEEDED_DESIGN_TOPIC_URL = `https://ntfy.e2e.invalid/${unbroken('basepath', 60)}/${unbroken('topic', 64)}`;
 
@@ -78,10 +36,9 @@ const ago = (msAgo: number): Ago => ({ msAgo });
  * rendering the list must never reach Amazon (r-01).
  */
 export const SEEDED_WATCHES = {
-	/** watchlist.e2e.ts: the member's priced watch. */
+	/** watchlist.e2e.ts: a priced watch. */
 	listPriced: {
 		id: 'e2e-list-priced',
-		owner: 'member',
 		productId: 'B0E2ELIST1',
 		title: 'E2E Listed Kettle',
 		imageUrl: 'https://images.e2e.invalid/list-priced.jpg',
@@ -91,10 +48,9 @@ export const SEEDED_WATCHES = {
 		lastCheckReason: null,
 		lastCheckMessage: null
 	},
-	/** watchlist.e2e.ts: the member's watch whose first check failed (untitled, unpriced). */
+	/** watchlist.e2e.ts: a watch whose first check failed (untitled, unpriced). */
 	listFailed: {
 		id: 'e2e-list-failed',
-		owner: 'member',
 		productId: 'B0E2ELIST2',
 		title: null,
 		imageUrl: null,
@@ -107,7 +63,6 @@ export const SEEDED_WATCHES = {
 	/** watch-page.e2e.ts: details of a priced watch with a target. */
 	pageDetail: {
 		id: 'e2e-page-detail',
-		owner: 'member',
 		productId: 'B0E2EPAGE1',
 		title: 'E2E Detail Blender',
 		imageUrl: 'https://images.e2e.invalid/page-detail.jpg',
@@ -120,7 +75,6 @@ export const SEEDED_WATCHES = {
 	/** watch-page.e2e.ts: a watch whose last check failed. */
 	pageFailed: {
 		id: 'e2e-page-failed',
-		owner: 'member',
 		productId: 'B0E2EPAGE2',
 		title: null,
 		imageUrl: null,
@@ -133,7 +87,6 @@ export const SEEDED_WATCHES = {
 	/** watch-page.e2e.ts: its target is changed and cleared. */
 	pageEdit: {
 		id: 'e2e-page-edit',
-		owner: 'member',
 		productId: 'B0E2EPAGE3',
 		title: 'E2E Editable Lamp',
 		imageUrl: null,
@@ -146,7 +99,6 @@ export const SEEDED_WATCHES = {
 	/** watch-page.e2e.ts: deleted by the 'delete' test. */
 	pageDelete: {
 		id: 'e2e-page-delete',
-		owner: 'member',
 		productId: 'B0E2EPAGE4',
 		title: 'E2E Deletable Mug',
 		imageUrl: null,
@@ -159,7 +111,6 @@ export const SEEDED_WATCHES = {
 	/** Read-only: a failed check that kept its last known price (scheduled-checks c-3). */
 	failedPriced: {
 		id: 'e2e-failed-priced',
-		owner: 'member',
 		productId: 'B0E2EFPRC1',
 		title: 'E2E Kept Price Toaster',
 		imageUrl: null,
@@ -176,7 +127,6 @@ export const SEEDED_WATCHES = {
 	 */
 	pageCooldown: {
 		id: 'e2e-page-cooldown',
-		owner: 'member',
 		productId: 'B0E2ECOOL1',
 		title: 'E2E Cooldown Radio',
 		imageUrl: null,
@@ -189,7 +139,6 @@ export const SEEDED_WATCHES = {
 	/** app-design layout checks: a 240-char unbroken title and failure message. */
 	layoutLong: {
 		id: 'e2e-layout-long',
-		owner: 'design',
 		productId: 'B0E2ELAYT1',
 		title: unbroken('E2ELayoutLongTitle', 240),
 		imageUrl: 'https://images.e2e.invalid/layout-long.jpg',
@@ -203,7 +152,6 @@ export const SEEDED_WATCHES = {
 	/** app-design: Check now is refused (last checked one day after seeding, r-01). */
 	layoutCooldown: {
 		id: 'e2e-layout-cooldown',
-		owner: 'design',
 		productId: 'B0E2ELAYT2',
 		title: 'E2E Layout Cooldown Speaker',
 		imageUrl: null,
@@ -216,7 +164,6 @@ export const SEEDED_WATCHES = {
 	/** app-design: a successful check at or below target (the green 'at or below target' label). */
 	layoutAtTarget: {
 		id: 'e2e-layout-at-target',
-		owner: 'design',
 		productId: 'B0E2ELAYT3',
 		title: 'E2E Layout Bargain Kettle',
 		imageUrl: null,
@@ -233,7 +180,6 @@ export const SEEDED_WATCHES = {
 	 */
 	chartFull: {
 		id: 'e2e-chart-full',
-		owner: 'member',
 		productId: 'B0E2ECHRT1',
 		title: 'E2E Chart Full Speaker',
 		imageUrl: null,
@@ -246,7 +192,6 @@ export const SEEDED_WATCHES = {
 	/** A chart with no target line. */
 	chartNoTarget: {
 		id: 'e2e-chart-no-target',
-		owner: 'member',
 		productId: 'B0E2ECHRT2',
 		title: 'E2E Chart Untargeted Fan',
 		imageUrl: null,
@@ -259,7 +204,6 @@ export const SEEDED_WATCHES = {
 	/** A year of 6-hourly checks: far denser than a finger can pick out by mark. */
 	chartDense: {
 		id: 'e2e-chart-dense',
-		owner: 'member',
 		productId: 'B0E2ECHRT3',
 		title: 'E2E Chart Dense Heater',
 		imageUrl: null,
@@ -272,7 +216,6 @@ export const SEEDED_WATCHES = {
 	/** Checked well inside the 6-hour interval. */
 	cardFresh: {
 		id: 'e2e-card-fresh',
-		owner: 'member',
 		productId: 'B0E2ECARD1',
 		title: 'E2E Card Fresh Grinder',
 		imageUrl: null,
@@ -285,7 +228,6 @@ export const SEEDED_WATCHES = {
 	/** Past the interval and its hour of grace (overdue_grace). */
 	cardOverdue: {
 		id: 'e2e-card-overdue',
-		owner: 'member',
 		productId: 'B0E2ECARD2',
 		title: 'E2E Card Overdue Scale',
 		imageUrl: null,
@@ -298,7 +240,6 @@ export const SEEDED_WATCHES = {
 	/** Late, but inside the grace for as long as the suite can plausibly run. */
 	cardInGrace: {
 		id: 'e2e-card-in-grace',
-		owner: 'member',
 		productId: 'B0E2ECARD3',
 		title: 'E2E Card In Grace Whisk',
 		imageUrl: null,
@@ -311,26 +252,12 @@ export const SEEDED_WATCHES = {
 	/** Has a price and history, but nothing in the sparkline's 30 days. */
 	cardStale: {
 		id: 'e2e-card-stale',
-		owner: 'member',
 		productId: 'B0E2ECARD4',
 		title: 'E2E Card Stale Peeler',
 		imageUrl: null,
 		pricePence: 2500,
 		targetPence: null,
 		lastCheckedAt: ago(40 * DAY),
-		lastCheckReason: null,
-		lastCheckMessage: null
-	},
-	/** Owned by SEEDED_OTHER; never visible to the member. */
-	otherPriced: {
-		id: 'e2e-other-priced',
-		owner: 'other',
-		productId: 'B0E2EOTHR1',
-		title: 'E2E Other Users Toaster',
-		imageUrl: 'https://images.e2e.invalid/other-priced.jpg',
-		pricePence: 4999,
-		targetPence: 3999,
-		lastCheckedAt: '2026-11-01T10:00:00.000Z',
 		lastCheckReason: null,
 		lastCheckMessage: null
 	}
@@ -466,30 +393,3 @@ export const SEEDED_FAILURES: {
 		checkedAt: '2026-11-01T14:30:00.000Z'
 	}
 ];
-
-/** An email no other test (or earlier run) has used. */
-export function uniqueEmail(prefix = 'user') {
-	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@e2e.test`;
-}
-
-export interface Credentials {
-	email: string;
-	password: string;
-}
-
-/**
- * Fills and submits the /login form. Going through the form (a SvelteKit action
- * calling auth.api) avoids better-auth's per-IP HTTP sign-in rate limit.
- */
-export async function submitLogin(page: Page, { email, password }: Credentials) {
-	await page.goto('/login');
-	await page.getByLabel('Email').fill(email);
-	await page.getByLabel('Password').fill(password);
-	await page.getByRole('button', { name: 'Sign in' }).click();
-}
-
-/** Signs in through the /login form and waits to land on the home page. */
-export async function signIn(page: Page, credentials: Credentials) {
-	await submitLogin(page, credentials);
-	await page.waitForURL((url) => url.pathname === '/');
-}
