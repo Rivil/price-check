@@ -31,7 +31,9 @@
 // When a step fails, the test records what the OS shows: on linux each holder's
 // State and wchan (withProcState) and every process of the AppImage, listening or not
 // (appImageProcesses), on win32 every instance row, one with no port included
-// (describeInstances).
+// (describeInstances), and each update installer the test saw: whether it still runs
+// or when it was first seen gone, and every process it started, grandchildren included
+// (describeInstallerTree, over Get-CimInstance Win32_Process rows by ParentProcessId).
 //
 // Node built-ins only.
 
@@ -73,6 +75,14 @@ function jsonRows(json: string, what: string): Row[] {
 function positiveInt(value: unknown, what: string): number {
 	if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
 		throw new Error(`${what}: not a positive integer: ${JSON.stringify(value)}`);
+	}
+	return value;
+}
+
+/** A ProcessId or ParentProcessId as Win32_Process gives it: 0 is the System Idle Process's. */
+function nonNegativeInt(value: unknown, what: string): number {
+	if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
+		throw new Error(`${what}: not a non-negative integer: ${JSON.stringify(value)}`);
 	}
 	return value;
 }
@@ -417,4 +427,105 @@ export function servingInstance<
 		throw new Error(`more than one instance is serving: ${detail}`);
 	}
 	return serving[0] ?? null;
+}
+
+/** One row of Get-CimInstance Win32_Process; a field is null where the OS withheld it. */
+export type WindowsProcess = {
+	pid: number;
+	/** ParentProcessId: the pid of its creator, who may since have exited (or whose pid was reused). */
+	ppid: number | null;
+	name: string | null;
+	path: string | null;
+	startTime: Date | null;
+};
+
+/** Get-CimInstance Win32_Process (ProcessId, ParentProcessId, Name, ExecutablePath, CreationDate) JSON. */
+export function parseWin32Processes(json: string): WindowsProcess[] {
+	return jsonRows(json, 'Win32_Process').map((row) => ({
+		pid: nonNegativeInt(row.ProcessId, 'ProcessId'),
+		ppid:
+			row.ParentProcessId === null || row.ParentProcessId === undefined
+				? null
+				: nonNegativeInt(row.ParentProcessId, 'ParentProcessId'),
+		name: optionalString(row.Name, 'Name'),
+		path: optionalString(row.ExecutablePath, 'ExecutablePath'),
+		startTime: parsePsDate(row.CreationDate)
+	}));
+}
+
+/**
+ * How far apart two readings of one process's start may be: Get-Process's StartTime and
+ * Win32_Process's CreationDate are separate reads of it, each cut to whole milliseconds.
+ */
+const START_SKEW_MS = 1_000;
+
+/** False only when both start times are known and the later one is more than START_SKEW_MS before the earlier. */
+function startedNoEarlier(later: Date | null, earlier: Date | null): boolean {
+	return later === null || earlier === null || later.getTime() >= earlier.getTime() - START_SKEW_MS;
+}
+
+/**
+ * Every process descended from `root` by ParentProcessId, children before their own
+ * children (pre-order, siblings by pid), with its depth below `root` (a child is 1).
+ * Windows reuses pids and never rewrites a ParentProcessId, so a process that started
+ * before its supposed parent (START_SKEW_MS aside) is an older process's child, not
+ * this one's, and is left out with whatever hangs below it.
+ */
+export function processTree(
+	processes: readonly WindowsProcess[],
+	root: { pid: number; startTime: Date | null }
+): { process: WindowsProcess; depth: number }[] {
+	const tree: { process: WindowsProcess; depth: number }[] = [];
+	const visited = new Set<number>([root.pid]);
+	const walk = (parent: { pid: number; startTime: Date | null }, depth: number) => {
+		const children = processes
+			.filter(
+				(child) => child.ppid === parent.pid && startedNoEarlier(child.startTime, parent.startTime)
+			)
+			.sort((a, b) => a.pid - b.pid);
+		for (const child of children) {
+			// A ParentProcessId cycle (pid reuse again) would otherwise never end.
+			if (visited.has(child.pid)) continue;
+			visited.add(child.pid);
+			tree.push({ process: child, depth });
+			walk(child, depth + 1);
+		}
+	};
+	walk(root, 1);
+	return tree;
+}
+
+/**
+ * An update installer for a failed relaunch's diagnosis: its pid, start and path, then
+ * 'still running at <readAt>' while `processes` (Win32_Process rows read at `readAt`)
+ * hold it (same pid, same start within START_SKEW_MS), else 'exited by <goneAt>', the
+ * time it was first seen gone (`readAt` when that was this read). Then one indented
+ * line per process it started (processTree), an exited installer's orphans included:
+ * pid, name, start and ppid.
+ */
+export function describeInstallerTree(
+	installer: ProcessInfo,
+	goneAt: Date | null,
+	processes: readonly WindowsProcess[],
+	readAt: Date
+): string {
+	const row = processes.find(
+		({ pid, startTime }) =>
+			pid === installer.pid &&
+			startedNoEarlier(startTime, installer.startTime) &&
+			startedNoEarlier(installer.startTime, startTime)
+	);
+	const startTime = installer.startTime ?? row?.startTime ?? null;
+	const status =
+		row === undefined
+			? `exited by ${(goneAt ?? readAt).toISOString()}`
+			: `still running at ${readAt.toISOString()}`;
+	const head = `installer pid ${installer.pid} started ${startTime?.toISOString() ?? 'unknown'} ${installer.path ?? row?.path ?? '<path unknown>'}: ${status}`;
+	const tree = processTree(processes, { pid: installer.pid, startTime });
+	if (tree.length === 0) return `${head}\n  no descendant process`;
+	const lines = tree.map(
+		({ process, depth }) =>
+			`${'  '.repeat(depth)}pid ${process.pid} ${process.name ?? '<name unknown>'} started ${process.startTime?.toISOString() ?? 'unknown'} (ppid ${process.ppid ?? 'unknown'})`
+	);
+	return [head, ...lines].join('\n');
 }

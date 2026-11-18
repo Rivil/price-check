@@ -7,10 +7,14 @@
 // names each linux holder's state, wait channel and cmdline, and every win32 row, one
 // with no port included. On linux only the app's own processes count: CI 44283563089's
 // FUSE daemon, running the AppImage file itself, held a port alone and was no instance.
+// A failed Windows relaunch names each update installer, still running or when it was
+// seen gone, and every process it started: CI 44283563089's installer pid 7336 ran on
+// past the relaunch budget, and what it was waiting on was never recorded.
 import { describe, expect, it } from 'vitest';
 import {
 	appImageProcesses,
 	describeHolders,
+	describeInstallerTree,
 	describeInstances,
 	instancesByPort,
 	isAppImageApp,
@@ -27,11 +31,14 @@ import {
 	parseProcWchan,
 	parsePsDate,
 	parseSsListeners,
+	parseWin32Processes,
 	pidsByPort,
+	processTree,
 	servingInstance,
 	withProcState,
 	type LinuxProc,
-	type ProcessDetail
+	type ProcessDetail,
+	type WindowsProcess
 } from './process-probe.ts';
 
 const EXE = 'C:\\Users\\runneradmin\\AppData\\Local\\Programs\\price-check\\Price-Check.exe';
@@ -716,6 +723,145 @@ describe('appImageProcesses', () => {
 		);
 		expect(describeHolders([{ pid: 3, ppid: null, cmdline: null, exe: null }])).toBe(
 			'pid 3 (ppid unknown) exe unknown <cmdline unknown>'
+		);
+	});
+});
+
+const INSTALLER_EXE = 'C:\\Users\\runneradmin\\AppData\\Local\\Temp\\price-check-0.1.6-win-x64.exe';
+const INSTALLER_START = new Date('2026-11-17T10:23:48.000Z');
+const INSTALLER = { pid: 7336, path: INSTALLER_EXE, startTime: INSTALLER_START };
+const READ_AT = new Date('2026-11-17T10:26:51.000Z');
+
+function win(
+	pid: number,
+	ppid: number | null,
+	name: string | null,
+	startTime: string | null
+): WindowsProcess {
+	return {
+		pid,
+		ppid,
+		name,
+		path: null,
+		startTime: startTime === null ? null : new Date(startTime)
+	};
+}
+
+// The installer, its uninstaller-copy child, that child's PowerShell, a stray process and
+// one whose ParentProcessId names 7336 but which started before the installer: an older
+// 7336's child (pid reuse), with a child of its own.
+const INSTALLER_ROW = win(7336, 5000, 'price-check-0.1.6-win-x64.exe', '2026-11-17T10:23:48.000Z');
+const CHILD = win(7400, 7336, 'Un_A.exe', '2026-11-17T10:23:50.000Z');
+const GRANDCHILD = win(7500, 7400, 'powershell.exe', '2026-11-17T10:23:51.000Z');
+const SECOND_CHILD = win(7450, 7336, 'conhost.exe', '2026-11-17T10:23:49.000Z');
+const STRAY = win(9000, 1, 'svchost.exe', '2026-11-17T09:00:00.000Z');
+const REUSED = win(6100, 7336, 'old-child.exe', '2026-11-17T08:00:00.000Z');
+const REUSED_CHILD = win(6200, 6100, 'old-grandchild.exe', '2026-11-17T08:00:01.000Z');
+const TREE = [STRAY, GRANDCHILD, REUSED_CHILD, INSTALLER_ROW, SECOND_CHILD, REUSED, CHILD];
+
+describe('parseWin32Processes', () => {
+	it('reads a single object, ParentProcessId, Name and the System Idle Process', () => {
+		const one = JSON.stringify({
+			ProcessId: 7336,
+			ParentProcessId: 5000,
+			Name: 'price-check-0.1.6-win-x64.exe',
+			ExecutablePath: INSTALLER_EXE,
+			CreationDate: '/Date(1731600000000)/'
+		});
+		expect(parseWin32Processes(one)).toEqual([
+			{
+				pid: 7336,
+				ppid: 5000,
+				name: 'price-check-0.1.6-win-x64.exe',
+				path: INSTALLER_EXE,
+				startTime: new Date(1731600000000)
+			}
+		]);
+		const idle = JSON.stringify([
+			{ ProcessId: 0, ParentProcessId: 0, Name: 'System Idle Process', CreationDate: null },
+			{ ProcessId: 4, ParentProcessId: null, Name: '', ExecutablePath: null }
+		]);
+		expect(parseWin32Processes(idle)).toEqual([
+			{ pid: 0, ppid: 0, name: 'System Idle Process', path: null, startTime: null },
+			{ pid: 4, ppid: null, name: null, path: null, startTime: null }
+		]);
+		expect(parseWin32Processes('')).toEqual([]);
+	});
+
+	it('rejects a row whose pid is no integer', () => {
+		expect(() => parseWin32Processes('{"ProcessId":"7336"}')).toThrow(/ProcessId/);
+		expect(() => parseWin32Processes('{"ProcessId":1,"ParentProcessId":-1}')).toThrow(
+			/ParentProcessId/
+		);
+	});
+});
+
+describe('processTree', () => {
+	it('lists children and grandchildren by ParentProcessId, pre-order, siblings by pid', () => {
+		expect(processTree(TREE, INSTALLER).map(({ process, depth }) => [process.pid, depth])).toEqual([
+			[7400, 1],
+			[7500, 2],
+			[7450, 1]
+		]);
+	});
+
+	it("leaves out a reused pid's older child and its subtree, and survives a cycle", () => {
+		const pids = processTree(TREE, INSTALLER).map(({ process }) => process.pid);
+		expect(pids).not.toContain(6100);
+		expect(pids).not.toContain(6200);
+		// Unknown start times cannot rule a child out.
+		const loop = [win(1, 2, 'a', null), win(2, 1, 'b', null), win(3, 2, 'c', null)];
+		expect(
+			processTree(loop, { pid: 1, startTime: null }).map(({ process }) => process.pid)
+		).toEqual([2, 3]);
+		expect(processTree([STRAY], INSTALLER)).toEqual([]);
+	});
+});
+
+describe('describeInstallerTree', () => {
+	it("names a running installer as still running, with every descendant's pid and name", () => {
+		const text = describeInstallerTree(INSTALLER, null, TREE, READ_AT);
+		expect(text).toBe(
+			[
+				`installer pid 7336 started 2026-11-17T10:23:48.000Z ${INSTALLER_EXE}: still running at 2026-11-17T10:26:51.000Z`,
+				'  pid 7400 Un_A.exe started 2026-11-17T10:23:50.000Z (ppid 7336)',
+				'    pid 7500 powershell.exe started 2026-11-17T10:23:51.000Z (ppid 7400)',
+				'  pid 7450 conhost.exe started 2026-11-17T10:23:49.000Z (ppid 7336)'
+			].join('\n')
+		);
+		expect(text).not.toMatch(/exited/);
+	});
+
+	it('names it still running even when an earlier check had seen it gone', () => {
+		const goneAt = new Date('2026-11-17T10:25:00.000Z');
+		expect(describeInstallerTree(INSTALLER, goneAt, TREE, READ_AT).split('\n')[0]).toMatch(
+			/: still running at 2026-11-17T10:26:51\.000Z$/
+		);
+	});
+
+	it("names an exited installer's exit time, and lists the processes it left behind", () => {
+		const goneAt = new Date('2026-11-17T10:25:30.000Z');
+		const left = TREE.filter(({ pid }) => pid !== 7336);
+		const text = describeInstallerTree(INSTALLER, goneAt, left, READ_AT);
+		expect(text.split('\n')[0]).toBe(
+			`installer pid 7336 started 2026-11-17T10:23:48.000Z ${INSTALLER_EXE}: exited by 2026-11-17T10:25:30.000Z`
+		);
+		expect(text).toContain('  pid 7400 Un_A.exe');
+		expect(text).toContain('    pid 7500 powershell.exe');
+		expect(text).not.toMatch(/still running/);
+	});
+
+	it('takes the read time as the exit time when this read first finds it gone', () => {
+		const text = describeInstallerTree(INSTALLER, null, [STRAY], READ_AT);
+		expect(text).toBe(
+			`installer pid 7336 started 2026-11-17T10:23:48.000Z ${INSTALLER_EXE}: exited by 2026-11-17T10:26:51.000Z\n  no descendant process`
+		);
+	});
+
+	it('takes a reused pid (a later start) as the installer gone', () => {
+		const reused = win(7336, 1, 'notepad.exe', '2026-11-17T10:26:00.000Z');
+		expect(describeInstallerTree(INSTALLER, null, [reused], READ_AT)).toMatch(
+			/: exited by 2026-11-17T10:26:51\.000Z\n/
 		);
 	});
 });

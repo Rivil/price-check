@@ -15,7 +15,9 @@
 // per version however often it checks.
 //
 // Windows: 'Restart to update' hands B to the NSIS installer, which relaunches the
-// app. The relaunch is found by install path (Get-Process) and its port
+// app as its last step. While the installer runs, only it is checked for, every
+// INSTALLER_POLL_MS (one cheap PowerShell, not the instance probe's two a second);
+// once it is gone, the relaunch is found by install path (Get-Process) and its port
 // (Get-NetTCPConnection): it must have started after A's process exited (c-6) and
 // serve the seeded watch. Linux: Quit installs B over the AppImage at its own path
 // and does not relaunch; then, once nothing runs from the AppImage's path, a fresh
@@ -38,10 +40,12 @@
 // Install/Executing lines, and what the OS shows while the relaunch still runs: on
 // Linux each holder's State, wchan and cmdline, and every process of the AppImage
 // (runtime and FUSE daemon included), listening or not, with its exe, ppid, State and
-// wchan; on Windows every process of the install path, port or none, and any update
-// installer still running. On Linux the failure also names the 127.0.0.1 ports A
-// itself listened on just before 'Restart to update': a socket of A's that the
-// updater's spawn passed down stays listening with nothing to accept on it.
+// wchan; on Windows every process of the install path, port or none, and each update
+// installer seen, still running or when it was seen gone, with every process it
+// started (Win32_Process by ParentProcessId, grandchildren included). On Linux the
+// failure also names the 127.0.0.1 ports A itself listened on just before 'Restart to
+// update': a socket of A's that the updater's spawn passed down stays listening with
+// nothing to accept on it.
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -56,10 +60,13 @@ import {
 } from '../../scripts/packaged-app.ts';
 import {
 	describeHolders,
+	describeInstallerTree,
 	describeInstances,
 	parseProcesses,
+	parseWin32Processes,
 	servingInstance,
-	withProcState
+	withProcState,
+	type ProcessInfo
 } from '../../scripts/process-probe.ts';
 import { startUpdateFeed, type UpdateFeed } from '../../scripts/update-feed.ts';
 import { insertWatches, makeTempDir, rawRequest, REPO_ROOT } from '../desktop/launch.ts';
@@ -107,8 +114,15 @@ const NOTIFY_SETTLE_MS = 15_000;
 const NOTIFY_POLL_MS = 500;
 /** From 'Restart to update' or Quit until A's process has exited. */
 const EXIT_MS = 30_000;
-/** Windows: from A's exit until the installer's relaunch serves on its port. */
-const WINDOWS_RELAUNCH_MS = 180_000;
+/**
+ * Windows: from A's exit until the installer's relaunch serves on its port. The
+ * installer took 2.3 min in a passing run and was still running past 3 min in a failing
+ * one (CI 44283563089), its slowness unexplained: the budget leaves room for that, and a
+ * relaunch that misses it says whether the installer had finished (osState).
+ */
+const WINDOWS_RELAUNCH_MS = 420_000;
+/** Windows: how often the relaunch wait checks whether an update installer still runs. */
+const INSTALLER_POLL_MS = 5_000;
 /** Linux: from A's exit until B, past its predecessor wait, serves on its port. */
 const LINUX_RELAUNCH_MS = 30_000;
 /** Linux: how long an instance from the previous test may take to be gone before A is placed. */
@@ -123,6 +137,11 @@ const RESPONSE_MS = 15_000;
 const DIAGNOSIS_MS = 60_000;
 /** electron-updater's NSIS installer, by process name: price-check-<version>-win-x64.exe. */
 const INSTALLER_PROCESS = 'price-check-*-win-x64';
+/** INSTALLER_PROCESS as a Win32_Process Name, which keeps the .exe. */
+const INSTALLER_NAME = /^price-check-.+-win-x64\.exe$/i;
+
+/** An update installer the relaunch wait saw, and when it first found it gone (null: not yet). */
+type InstallerSeen = { installer: ProcessInfo; goneAt: Date | null };
 
 const feedDir = process.env[UPDATE_FEED_DIR_ENV]?.trim();
 const platform: PackagedPlatform | null = isPackagedPlatform(process.platform)
@@ -174,19 +193,67 @@ const INSTALLERS_SCRIPT = [
 	'if ($rows.Count -gt 0) { $rows | Select-Object Id, Path, StartTime | ConvertTo-Json -Compress }'
 ].join('\n');
 
-/** Every running update installer (win32), as Get-Process JSON; rejects on a failed probe. */
-function windowsInstallersJson(): Promise<string> {
+/**
+ * Every process as Win32_Process JSON: its parent's pid is what ties an installer to
+ * what it started. A failure goes to stderr with exit 1.
+ */
+const PROCESSES_SCRIPT = [
+	'[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
+	"$ErrorActionPreference = 'Stop'",
+	'try {',
+	'  Get-CimInstance Win32_Process | Select-Object ProcessId, ParentProcessId, Name, ExecutablePath, CreationDate | ConvertTo-Json -Compress',
+	'} catch { [Console]::Error.WriteLine($_.ToString()); exit 1 }'
+].join('\n');
+
+/** `script`'s output (win32), within DIAGNOSIS_MS; rejects, naming `what`, on a failed probe. */
+function powershellOutput(what: string, script: string): Promise<string> {
 	return new Promise((done, fail) => {
 		execFile(
 			'powershell.exe',
-			['-NoProfile', '-NonInteractive', '-Command', INSTALLERS_SCRIPT],
-			{ encoding: 'utf8', windowsHide: true, timeout: DIAGNOSIS_MS },
+			['-NoProfile', '-NonInteractive', '-Command', script],
+			{ encoding: 'utf8', windowsHide: true, timeout: DIAGNOSIS_MS, maxBuffer: 16 * 1024 * 1024 },
 			(error, stdout, stderr) => {
-				if (error) fail(new Error(`Get-Process ${INSTALLER_PROCESS}: ${error.message}\n${stderr}`));
+				if (error) fail(new Error(`${what}: ${error.message}\n${stderr}`));
 				else done(stdout);
 			}
 		);
 	});
+}
+
+/** Every running update installer (win32), as Get-Process JSON; rejects on a failed probe. */
+function windowsInstallersJson(): Promise<string> {
+	return powershellOutput(`Get-Process ${INSTALLER_PROCESS}`, INSTALLERS_SCRIPT);
+}
+
+/** Every process (win32), as Win32_Process JSON; rejects on a failed probe. */
+function windowsProcessesJson(): Promise<string> {
+	return powershellOutput('Get-CimInstance Win32_Process', PROCESSES_SCRIPT);
+}
+
+/**
+ * Checks for a running update installer every INSTALLER_POLL_MS until none runs or
+ * `deadline` (a Date.now() time) has passed, recording into `seen` each installer and
+ * the time a check first found it gone. Resolves with the installers still running at
+ * the last check; rejects on a failed probe.
+ */
+async function waitForInstallers(
+	seen: Map<number, InstallerSeen>,
+	deadline: number
+): Promise<ProcessInfo[]> {
+	for (;;) {
+		const running = parseProcesses(await windowsInstallersJson());
+		const checkedAt = new Date();
+		const live = new Set(running.map(({ pid }) => pid));
+		for (const entry of seen.values()) {
+			if (entry.goneAt === null && !live.has(entry.installer.pid)) entry.goneAt = checkedAt;
+		}
+		for (const installer of running) {
+			if (!seen.has(installer.pid)) seen.set(installer.pid, { installer, goneAt: null });
+		}
+		const left = deadline - Date.now();
+		if (running.length === 0 || left <= 0) return running;
+		await new Promise((done) => setTimeout(done, Math.min(INSTALLER_POLL_MS, left)));
+	}
 }
 
 /**
@@ -220,11 +287,17 @@ async function probeSection(
 }
 
 /**
- * What the OS shows of the app at `exe`, and on win32 of any running update installer.
- * The probes run side by side under one DIAGNOSIS_MS budget, so this settles within it
+ * What the OS shows of the app at `exe`, and on win32 of each update installer, those
+ * in `installers` (seen by the relaunch wait) and any running now: still running or
+ * when it was seen gone, and the processes it started (describeInstallerTree). The
+ * probes run side by side under one DIAGNOSIS_MS budget, so this settles within it
  * whatever they do.
  */
-async function osState(platform: 'win32' | 'linux', exe: string): Promise<string> {
+async function osState(
+	platform: 'win32' | 'linux',
+	exe: string,
+	installers: ReadonlyMap<number, InstallerSeen>
+): Promise<string> {
 	const deadline = Date.now() + DIAGNOSIS_MS;
 	const instances = probeSection(`instances of ${exe}`, deadline, async () => {
 		const found = await appInstances(platform, exe);
@@ -244,21 +317,25 @@ async function osState(platform: 'win32' | 'linux', exe: string): Promise<string
 		});
 		return (await Promise.all([instances, processes])).join('\n');
 	}
-	const installers = probeSection(
-		`update installers (${INSTALLER_PROCESS})`,
+	const installerTrees = probeSection(
+		`update installers (${INSTALLER_PROCESS}) and the processes they started`,
 		deadline,
 		async () => {
-			const rows = parseProcesses(await windowsInstallersJson());
-			if (rows.length === 0) return 'none running';
-			return rows
-				.map(
-					({ pid, path, startTime }) =>
-						`installer pid ${pid} started ${startTime?.toISOString() ?? 'unknown'} ${path ?? '<path unknown>'}`
-				)
+			const processes = parseWin32Processes(await windowsProcessesJson());
+			const readAt = new Date();
+			const known = new Map(installers);
+			for (const { pid, name, path, startTime } of processes) {
+				if (name !== null && INSTALLER_NAME.test(name) && !known.has(pid)) {
+					known.set(pid, { installer: { pid, path, startTime }, goneAt: null });
+				}
+			}
+			if (known.size === 0) return 'none seen, none running';
+			return [...known.values()]
+				.map(({ installer, goneAt }) => describeInstallerTree(installer, goneAt, processes, readAt))
 				.join('\n');
 		}
 	);
-	return (await Promise.all([instances, installers])).join('\n');
+	return (await Promise.all([instances, installerTrees])).join('\n');
 }
 
 test.describe.serial('packaged update', () => {
@@ -278,6 +355,8 @@ test.describe.serial('packaged update', () => {
 	 * PackagedApp.output), for the 'database is locked' check.
 	 */
 	const outputs: (() => string)[] = [];
+	/** Windows: each update installer the relaunch wait saw, for a failure's diagnosis. */
+	const installersSeen = new Map<number, InstallerSeen>();
 
 	const launch = async (fresh = false) => {
 		current = await launchPackaged(run, { fresh });
@@ -371,7 +450,7 @@ test.describe.serial('packaged update', () => {
 				contentType: 'text/plain'
 			});
 			// Settles within DIAGNOSIS_MS and never rejects (see osState).
-			const state = await osState(os, run.exe);
+			const state = await osState(os, run.exe, installersSeen);
 			await info.attach('OS state', { body: state, contentType: 'text/plain' });
 			if (note === undefined) throw error;
 			const message = error instanceof Error ? error.message : String(error);
@@ -471,7 +550,11 @@ test.describe.serial('packaged update', () => {
 
 	test('relaunch after exit', async () => {
 		test.skip(platform !== 'win32', 'the NSIS installer relaunch is Windows only');
-		test.setTimeout(EXIT_MS + WINDOWS_RELAUNCH_MS + RESPONSE_MS + DIAGNOSIS_MS + 60_000);
+		// The installer wait's last check (one PowerShell) and the instance probe after it
+		// (two) may run past the relaunch deadline, each PowerShell bounded at 60 s.
+		test.setTimeout(
+			EXIT_MS + WINDOWS_RELAUNCH_MS + 3 * DIAGNOSIS_MS + RESPONSE_MS + DIAGNOSIS_MS + 60_000
+		);
 		const app = current;
 		if (!app) throw new Error('A is not running');
 		const pidA = app.pid;
@@ -479,13 +562,23 @@ test.describe.serial('packaged update', () => {
 		try {
 			await diagnosed(app, 'win32', async () => {
 				const exitedAt = await restartToUpdate(app);
+				const deadline = exitedAt + WINDOWS_RELAUNCH_MS;
 
+				// The relaunch is the installer's last step: no instance probe until it is gone.
+				const stillRunning = await waitForInstallers(installersSeen, deadline);
+				if (stillRunning.length > 0) {
+					throw new Error(
+						`update installer still running ${WINDOWS_RELAUNCH_MS}ms after A's exit, no relaunch yet: pid ${stillRunning.map(({ pid }) => pid).join(', ')}`
+					);
+				}
 				const relaunched = await pollFor(
 					async () => servingInstance(await appInstances('win32', run.exe)),
-					WINDOWS_RELAUNCH_MS
+					Math.max(deadline - Date.now(), 1)
 				);
 				if (relaunched === null || relaunched.port === null) {
-					throw new Error(`no relaunch served from ${run.exe} within ${WINDOWS_RELAUNCH_MS}ms`);
+					throw new Error(
+						`no relaunch served from ${run.exe} within ${WINDOWS_RELAUNCH_MS}ms of A's exit`
+					);
 				}
 				relaunchedPid = relaunched.pid;
 				expect(relaunched.pid).not.toBe(pidA);
