@@ -58,6 +58,42 @@ describe('parseProcesses', () => {
 		]);
 	});
 
+	it('reads a withheld (null, absent or blank) path as null', () => {
+		const json = JSON.stringify([
+			{ ProcessId: 4, ExecutablePath: null, CreationDate: null },
+			{ Id: 5 },
+			{ Id: 6, Path: '' }
+		]);
+		expect(parseProcesses(json)).toEqual([
+			{ pid: 4, path: null, startTime: null },
+			{ pid: 5, path: null, startTime: null },
+			{ pid: 6, path: null, startTime: null }
+		]);
+	});
+
+	it.each([
+		['a number', '[4242]', '4242'],
+		['null', '[null]', 'null'],
+		['a string', '["4242"]', '"4242"'],
+		['an array', '[[4242]]', '[4242]']
+	])('names a row that is %s as no JSON object', (_case, json, row) => {
+		expect(() => parseProcesses(json)).toThrow(
+			`processes: expected a JSON object per row, got ${row}`
+		);
+	});
+
+	it.each([
+		['{"Id":"4242"}', 'process pid: not a positive integer: "4242"'],
+		['{"Id":1.5}', 'process pid: not a positive integer: 1.5'],
+		['{"Id":0}', 'process pid: not a positive integer: 0'],
+		['{"Id":-1}', 'process pid: not a positive integer: -1'],
+		['{"Path":"x"}', 'process pid: not a positive integer: undefined'],
+		['{"Id":1,"Path":42}', 'process path: not a string: 42'],
+		['{"Id":1,"StartTime":"yesterday"}', 'not a date: "yesterday"']
+	])('names the bad field of %s', (json, message) => {
+		expect(() => parseProcesses(json)).toThrow(message);
+	});
+
 	it('reads no output as no processes', () => {
 		expect(parseProcesses('')).toEqual([]);
 		expect(parseProcesses('  \r\n')).toEqual([]);
@@ -87,6 +123,18 @@ describe('parsePsDate', () => {
 	it('maps null and undefined to null', () => {
 		expect(parsePsDate(null)).toBeNull();
 		expect(parsePsDate(undefined)).toBeNull();
+	});
+
+	it.each(['/Date(1731600000000)/x', 'x/Date(1731600000000)/'])(
+		'takes %j, /Date(ms)/ with more around it, for no date',
+		(value) => {
+			expect(() => parsePsDate(value)).toThrow(`not a date: ${JSON.stringify(value)}`);
+		}
+	);
+
+	it('throws on a bare number, never reading it as epoch ms', () => {
+		expect(() => parsePsDate(42)).toThrow('not a date: 42');
+		expect(() => parsePsDate({ value: 42 })).toThrow('not a date: 42');
 	});
 });
 
@@ -138,6 +186,36 @@ describe('parseSsListeners', () => {
 		expect(parseSsListeners(text).get(7)).toEqual([8000, 9000]);
 	});
 
+	it('reads ss columns padded with runs of spaces, and indented lines', () => {
+		const text = [
+			'LISTEN 0      511        127.0.0.1:40123      0.0.0.0:*    users:(("price-check",pid=4242,fd=33))',
+			'   LISTEN\t0 511 127.0.0.1:40200 0.0.0.0:* users:(("price-check",pid=4242,fd=34))  '
+		].join('\n');
+		expect(parseSsListeners(text)).toEqual(new Map([[4242, [40123, 40200]]]));
+	});
+
+	it('skips non-LISTEN, truncated and port-less lines', () => {
+		const text = [
+			'ESTAB 0 0 127.0.0.1:5000 127.0.0.1:6000 users:(("x",pid=3,fd=1))',
+			'LISTEN 0 511',
+			'LISTEN 0 511 127.0.0.1:70000',
+			'LISTEN 0 511 127.0.0.1:* 0.0.0.0:* users:(("x",pid=4,fd=1))',
+			'LISTEN 0 511 127.0.0.1:abc5 0.0.0.0:* users:(("x",pid=5,fd=1))',
+			'LISTEN 0 511 127.0.0.1:5x 0.0.0.0:* users:(("x",pid=6,fd=1))'
+		].join('\n');
+		expect(parseSsListeners(text)).toEqual(new Map());
+	});
+
+	it('throws on a port out of TCP range, and on pid 0', () => {
+		expect(parseSsListeners('LISTEN 0 511 127.0.0.1:65535 0.0.0.0:*')).toEqual(new Map());
+		expect(() => parseSsListeners('LISTEN 0 511 127.0.0.1:65536 0.0.0.0:*')).toThrow(
+			'ss port: not a TCP port: 65536'
+		);
+		expect(() =>
+			parseSsListeners('LISTEN 0 511 127.0.0.1:5000 0.0.0.0:* users:(("x",pid=0,fd=3))')
+		).toThrow('ss pid: not a positive integer: 0');
+	});
+
 	it('reads empty output as no listeners', () => {
 		expect(parseSsListeners('')).toEqual(new Map());
 	});
@@ -176,8 +254,24 @@ describe('parseNetTcpListeners', () => {
 
 	it('reads no output as no listeners and throws on a malformed row', () => {
 		expect(parseNetTcpListeners('')).toEqual(new Map());
-		expect(() => parseNetTcpListeners(JSON.stringify({ ...ROW, LocalPort: 'x' }))).toThrow();
-		expect(() => parseNetTcpListeners(JSON.stringify({ ...ROW, OwningProcess: 0 }))).toThrow();
+		expect(() => parseNetTcpListeners(JSON.stringify({ ...ROW, LocalPort: 'x' }))).toThrow(
+			'LocalPort: not a positive integer: "x"'
+		);
+		expect(() => parseNetTcpListeners(JSON.stringify({ ...ROW, OwningProcess: 0 }))).toThrow(
+			'OwningProcess: not a positive integer: 0'
+		);
+		expect(() => parseNetTcpListeners('[4242]')).toThrow(
+			'Get-NetTCPConnection: expected a JSON object per row, got 4242'
+		);
+	});
+
+	it('takes port 65535 and throws on 65536', () => {
+		expect(parseNetTcpListeners(JSON.stringify({ ...ROW, LocalPort: 65535 }))).toEqual(
+			new Map([[4242, [65535]]])
+		);
+		expect(() => parseNetTcpListeners(JSON.stringify({ ...ROW, LocalPort: 65536 }))).toThrow(
+			'LocalPort: not a TCP port: 65536'
+		);
 	});
 });
 
@@ -224,6 +318,10 @@ describe('pidsByPort', () => {
 		]);
 	});
 
+	it('lists a pid once under a port its map entry repeats', () => {
+		expect(pidsByPort(new Map([[7, [80, 80]]]))).toEqual(new Map([[80, [7]]]));
+	});
+
 	it('reads no listeners as no ports', () => {
 		expect(pidsByPort(new Map())).toEqual(new Map());
 	});
@@ -238,28 +336,62 @@ describe('/proc readers', () => {
 		expect(parseProcStatusPpid('Name:\tx\n')).toBeNull();
 	});
 
+	it('reads PPid with any whitespace around its value, and nothing else', () => {
+		expect(parseProcStatusPpid('PPid:9917\n')).toBe(9917);
+		expect(parseProcStatusPpid('PPid:  9917 \n')).toBe(9917);
+		expect(parseProcStatusPpid('PPid:\t9917x\n')).toBeNull();
+		expect(parseProcStatusPpid('PPid:\t12 34\n')).toBeNull();
+		expect(parseProcStatusPpid('NSPPid:\t9917\n')).toBeNull();
+	});
+
 	it('splits /proc/<pid>/cmdline on NUL, without the trailing empty argument', () => {
 		expect(parseProcCmdline(`${APPIMAGE}\0--type=zygote\0`)).toEqual([APPIMAGE, '--type=zygote']);
 		expect(parseProcCmdline(`${APPIMAGE}\0`)).toEqual([APPIMAGE]);
 		expect(parseProcCmdline('')).toEqual([]);
+	});
+
+	it('keeps the last argument when no NUL ends it', () => {
+		expect(parseProcCmdline(`${APPIMAGE}\0--type=zygote`)).toEqual([APPIMAGE, '--type=zygote']);
 	});
 });
 
 describe('mainProcess', () => {
 	it('picks the holder that is no Chromium helper', () => {
 		expect(mainProcess([HELPER, MAIN])).toBe(MAIN);
+		expect(mainProcess([MAIN, HELPER])).toBe(MAIN);
+	});
+
+	it('knows a helper by --type= alone, even at a lower pid and with an outside parent', () => {
+		const helper = { pid: 5, ppid: 1, cmdline: [APPIMAGE, '--type=renderer'] };
+		const main = { pid: 9, ppid: 1, cmdline: [APPIMAGE, '--no-sandbox'] };
+		expect(mainProcess([helper, main])).toBe(main);
+		expect(mainProcess([main, helper])).toBe(main);
+	});
+
+	it('takes an unknown cmdline for no helper', () => {
+		const unknown = { pid: 5, ppid: 1, cmdline: null };
+		const main = { pid: 9, ppid: 1, cmdline: [APPIMAGE] };
+		expect(mainProcess([main, unknown])).toBe(unknown);
 	});
 
 	it('then the holder whose parent holds no share of the socket', () => {
 		const child = { pid: 9910, ppid: 9917, cmdline: [APPIMAGE] };
 		expect(mainProcess([child, MAIN])).toBe(MAIN);
+		expect(mainProcess([MAIN, child])).toBe(MAIN);
 	});
 
 	it('then the lowest pid, when nothing else tells them apart (win32, no details)', () => {
 		const a = { pid: 30, ppid: null, cmdline: null };
 		const b = { pid: 10, ppid: null, cmdline: null };
 		expect(mainProcess([a, b])).toBe(b);
+		expect(mainProcess([b, a])).toBe(b);
 		expect(mainProcess([a])).toBe(a);
+	});
+
+	it('keeps the first of two details that rank alike (one pid listed twice)', () => {
+		const first = { pid: 7, ppid: null, cmdline: null };
+		const second = { pid: 7, ppid: null, cmdline: null };
+		expect(mainProcess([first, second])).toBe(first);
 	});
 
 	it('throws on no holders', () => {
