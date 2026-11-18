@@ -8,17 +8,21 @@ import { APP_DIR_NAME } from '../src/desktop/app-paths.ts';
 import {
 	executablePath,
 	expectedArtefacts,
+	findUserInstall,
 	installLocationOf,
 	installWindows,
 	locate,
 	packagedUserDataDir,
 	parseRegQuery,
 	runCli,
+	spawnRunner,
 	type Command,
 	type RunResult,
 	type Runner
 } from './packaged-app.ts';
 import { PRODUCT_NAME } from './package-desktop.ts';
+
+type PackagedApp = typeof import('./packaged-app.ts');
 
 const HKCU_UNINSTALL = 'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall';
 const INSTALL_DIR = 'C:\\Users\\runner\\AppData\\Local\\Programs\\price-check-app';
@@ -52,6 +56,31 @@ const PRODUCT = {
 		DisplayVersion: '0.1.5'
 	}
 };
+
+/** The message `fn` throws, so a test can pin it exactly rather than by pattern. */
+function thrownMessage(fn: () => unknown): string {
+	try {
+		fn();
+	} catch (error) {
+		return error instanceof Error ? error.message : String(error);
+	}
+	throw new Error('expected a throw');
+}
+
+/** Loads a fresh packaged-app.ts with package-desktop.ts's ARTIFACT_NAME replaced. */
+async function withArtifactName(name: string, check: (fresh: PackagedApp) => void): Promise<void> {
+	vi.resetModules();
+	vi.doMock('./package-desktop.ts', async (importOriginal) => ({
+		...(await importOriginal<typeof import('./package-desktop.ts')>()),
+		ARTIFACT_NAME: name
+	}));
+	try {
+		check(await import('./packaged-app.ts'));
+	} finally {
+		vi.doUnmock('./package-desktop.ts');
+		vi.resetModules();
+	}
+}
 
 function fakeRunner(respond: (command: Command) => RunResult): Runner & { calls: Command[] } {
 	const calls: Command[] = [];
@@ -99,6 +128,30 @@ describe('expectedArtefacts', () => {
 		expect(() => expectedArtefacts('darwin', '0.1')).toThrow(/MAJOR\.MINOR\.PATCH/);
 		expect(() => expectedArtefacts('linux', '0.1.5 beta')).toThrow(/MAJOR\.MINOR\.PATCH/);
 		expect(() => expectedArtefacts('win32', '0.1.5-beta.1')).toThrow(/MAJOR\.MINOR\.PATCH/);
+		expect(() => expectedArtefacts('linux', 'v0.1.5')).toThrow(/MAJOR\.MINOR\.PATCH/);
+	});
+
+	it('takes one- and many-digit MAJOR, MINOR, PATCH and rc numbers', () => {
+		expect(expectedArtefacts('linux', '1.0.0')[0]).toBe('price-check-1.0.0-linux-x86_64.AppImage');
+		expect(expectedArtefacts('linux', '10.20.30-rc.12')[0]).toBe(
+			'price-check-10.20.30-rc.12-linux-x86_64.AppImage'
+		);
+	});
+
+	it('refuses an ARTIFACT_NAME macro it cannot fill', async () => {
+		await withArtifactName('price-check-${version}-${channel}.${ext}', (fresh) => {
+			expect(thrownMessage(() => fresh.expectedArtefacts('linux', '0.1.5'))).toBe(
+				'ARTIFACT_NAME uses an unknown macro ${channel}'
+			);
+		});
+	});
+
+	it('refuses an ARTIFACT_NAME that yields a name with whitespace', async () => {
+		await withArtifactName('Price Check-${version}-${os}-${arch}.${ext}', (fresh) => {
+			expect(thrownMessage(() => fresh.expectedArtefacts('linux', '0.1.5'))).toBe(
+				"artefact name contains whitespace: 'Price Check-0.1.5-linux-x86_64.AppImage'"
+			);
+		});
 	});
 });
 
@@ -126,7 +179,9 @@ describe('locate and executablePath', () => {
 	it.each(['mac-arm64', 'mac-x64', 'mac'])('refuses an output dir holding %s/', (dir) => {
 		universalApp();
 		mkdirSync(join(out, dir));
-		expect(() => locate(out, 'darwin')).toThrow(/single-arch/);
+		expect(thrownMessage(() => locate(out, 'darwin'))).toBe(
+			`${out} holds a single-arch mac build (${dir}): only mac-universal ships`
+		);
 	});
 
 	it('refuses a dir with no universal app', () => {
@@ -137,13 +192,40 @@ describe('locate and executablePath', () => {
 	});
 
 	it('returns the one AppImage on linux and refuses two or none', () => {
-		expect(() => locate(out, 'linux')).toThrow(/exactly one AppImage.*found 0/);
+		expect(thrownMessage(() => locate(out, 'linux'))).toBe(
+			`expected exactly one AppImage in ${out}, found 0`
+		);
 		writeFileSync(join(out, 'price-check-0.1.5-linux-x86_64.AppImage'), '');
 		expect(executablePath(locate(out, 'linux'))).toBe(
 			join(out, 'price-check-0.1.5-linux-x86_64.AppImage')
 		);
 		writeFileSync(join(out, 'price-check-0.1.4-linux-x86_64.AppImage'), '');
-		expect(() => locate(out, 'linux')).toThrow(/exactly one AppImage.*found 2/);
+		expect(thrownMessage(() => locate(out, 'linux'))).toBe(
+			`expected exactly one AppImage in ${out}, found 2: ` +
+				'price-check-0.1.4-linux-x86_64.AppImage, price-check-0.1.5-linux-x86_64.AppImage'
+		);
+	});
+
+	it('names clashing files in sorted order whatever order the dir is read in', async () => {
+		for (const name of ['a.AppImage', 'b.AppImage', 'c.AppImage']) {
+			writeFileSync(join(out, name), '');
+		}
+		vi.resetModules();
+		vi.doMock('node:fs', async (importOriginal) => {
+			const fs = await importOriginal<typeof import('node:fs')>();
+			const readdirSync = (path: string, options: { withFileTypes: true }) =>
+				fs.readdirSync(path, options).sort((a, b) => b.name.localeCompare(a.name));
+			return { ...fs, readdirSync };
+		});
+		try {
+			const fresh = await import('./packaged-app.ts');
+			expect(thrownMessage(() => fresh.locate(out, 'linux'))).toBe(
+				`expected exactly one AppImage in ${out}, found 3: a.AppImage, b.AppImage, c.AppImage`
+			);
+		} finally {
+			vi.doUnmock('node:fs');
+			vi.resetModules();
+		}
 	});
 
 	it('locates the one installer on win32 and runs the app from its install dir', () => {
@@ -178,6 +260,15 @@ describe('packagedUserDataDir', () => {
 			packagedUserDataDir('win32', { APPDATA: 'C:\\Users\\u\\AppData\\Roaming' }, 'C:\\Users\\u')
 		).toBe('C:\\Users\\u\\AppData\\Roaming\\price-check');
 		expect(() => packagedUserDataDir('win32', {}, 'C:\\Users\\u')).toThrow(/APPDATA/);
+	});
+
+	it('trims APPDATA and treats a blank one as unset', () => {
+		expect(packagedUserDataDir('win32', { APPDATA: ' C:\\A ' }, 'C:\\U')).toBe(
+			'C:\\A\\price-check'
+		);
+		expect(() => packagedUserDataDir('win32', { APPDATA: '  ' }, 'C:\\U')).toThrow(
+			/APPDATA is not set/
+		);
 	});
 
 	it('is $XDG_CONFIG_HOME/price-check on linux, falling back to <home>/.config', () => {
@@ -253,6 +344,87 @@ describe('parseRegQuery', () => {
 		};
 		expect(installLocationOf(parseRegQuery(regOutput([neither]))!)).toBeNull();
 	});
+
+	const PRODUCT_LINES = [
+		`    DisplayName    REG_SZ    ${PRODUCT_NAME} 0.1.5`,
+		`    UninstallString    REG_SZ    "C:\\A\\u.exe" /currentuser`
+	];
+	const PRODUCT_VALUES = {
+		DisplayName: `${PRODUCT_NAME} 0.1.5`,
+		UninstallString: '"C:\\A\\u.exe" /currentuser'
+	};
+
+	it('reads LF-only output as well as CRLF', () => {
+		expect(parseRegQuery(['', PRODUCT.key, ...PRODUCT_LINES, ''].join('\n'))).toEqual({
+			key: PRODUCT.key,
+			values: PRODUCT_VALUES
+		});
+	});
+
+	it('strips a leading byte-order mark before the first key', () => {
+		expect(parseRegQuery(['\uFEFF' + PRODUCT.key, ...PRODUCT_LINES].join('\r\n'))).toEqual({
+			key: PRODUCT.key,
+			values: PRODUCT_VALUES
+		});
+	});
+
+	it('keeps a byte-order mark that is not at the start', () => {
+		const text = [PRODUCT.key, ...PRODUCT_LINES, '    InstallLocation    REG_SZ    D:\\\uFEFFApps'];
+		expect(parseRegQuery(text.join('\r\n'))?.values.InstallLocation).toBe('D:\\\uFEFFApps');
+	});
+
+	it('drops trailing whitespace from every line', () => {
+		const text = [
+			`${PRODUCT.key}  `,
+			`    DisplayName    REG_SZ    ${PRODUCT_NAME} 0.1.5   `,
+			`    UninstallString    REG_SZ    "C:\\A\\u.exe" /currentuser\t `
+		];
+		expect(parseRegQuery(text.join('\r\n'))).toEqual({ key: PRODUCT.key, values: PRODUCT_VALUES });
+	});
+
+	it('keeps a value with no data as an empty string', () => {
+		// reg prints '    Name    REG_SZ    ' for an empty value; its trailing spaces go.
+		const text = [PRODUCT.key, ...PRODUCT_LINES, '    InstallLocation    REG_SZ    '];
+		const key = parseRegQuery(text.join('\r\n'));
+		expect(key).toEqual({ key: PRODUCT.key, values: { ...PRODUCT_VALUES, InstallLocation: '' } });
+		expect(installLocationOf(key!)).toBe('C:\\A');
+	});
+
+	it('ignores lines that are not a key or a four-space-column value', () => {
+		const text = [
+			'    Stray    REG_SZ    before any key',
+			PRODUCT.key,
+			'    Parent    REG_SZ    HKEY_CURRENT_USER\\Software\\Other',
+			'Unindented    Extra    REG_SZ    x',
+			'    Narrow    REG_SZ  x',
+			...PRODUCT_LINES
+		];
+		expect(parseRegQuery(text.join('\r\n'))).toEqual({
+			key: PRODUCT.key,
+			values: { Parent: 'HKEY_CURRENT_USER\\Software\\Other', ...PRODUCT_VALUES }
+		});
+	});
+});
+
+describe('installLocationOf', () => {
+	const at = (values: Record<string, string>) => installLocationOf({ key: PRODUCT.key, values });
+
+	it('trims InstallLocation and skips a blank one', () => {
+		expect(at({ InstallLocation: ' D:\\Apps\\pc ' })).toBe('D:\\Apps\\pc');
+		expect(at({ InstallLocation: '   ', UninstallString: '"C:\\P\\u.exe"' })).toBe('C:\\P');
+	});
+
+	it('reads a quoted UninstallString after leading whitespace', () => {
+		expect(at({ UninstallString: '  "C:\\P\\u.exe" /currentuser' })).toBe('C:\\P');
+	});
+
+	it('takes the quoted path only when it opens the UninstallString', () => {
+		expect(at({ UninstallString: 'C:\\P\\u.exe "C:\\Q\\arg.txt"' })).toBeNull();
+	});
+
+	it('is null with neither value', () => {
+		expect(at({})).toBeNull();
+	});
 });
 
 describe('installWindows', () => {
@@ -311,6 +483,33 @@ describe('installWindows', () => {
 				: { code: 0, stdout: '', stderr: '' }
 		);
 		await expect(installWindows(installer, other)).rejects.toThrow(/no per-user \(HKCU\)/);
+	});
+});
+
+describe('findUserInstall', () => {
+	const query = 'reg query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall /s';
+	const failing = (code: number, stderr: string) =>
+		findUserInstall(fakeRunner(() => ({ code, stdout: '', stderr })));
+
+	it("names reg's last stderr line, whatever the line endings", async () => {
+		await expect(failing(5, 'WARNING: slow\r\nERROR: Access is denied.\r\n')).rejects.toThrow(
+			new Error(`${query} exited 5: ERROR: Access is denied.`)
+		);
+		await expect(failing(5, 'WARNING: slow\nERROR: Access is denied.')).rejects.toThrow(
+			new Error(`${query} exited 5: ERROR: Access is denied.`)
+		);
+	});
+
+	it('names only the exit code when reg wrote no stderr', async () => {
+		await expect(failing(5, '')).rejects.toThrow(new Error(`${query} exited 5`));
+	});
+
+	it('refuses a product key it cannot find the install dir from', async () => {
+		const bare = { key: PRODUCT.key, values: { DisplayName: PRODUCT_NAME } };
+		const run = fakeRunner(() => ({ code: 0, stdout: regOutput([bare]), stderr: '' }));
+		await expect(findUserInstall(run)).rejects.toThrow(
+			new Error(`${PRODUCT.key} names no InstallLocation or quoted UninstallString`)
+		);
 	});
 });
 
@@ -390,6 +589,43 @@ describe('runCli', () => {
 		expect(await runCli(['exe'], deps('darwin'))).toBe(1);
 		expect(await runCli(['exe', out], deps('freebsd'))).toBe(1);
 		expect(lines.stdout).toEqual([]);
-		expect(lines.stderr).toHaveLength(5);
+		const usage = 'packaged-app: usage: packaged-app.ts exe <outDir> | install <outDir>';
+		expect(lines.stderr).toEqual([
+			'packaged-app: install is Windows-only',
+			usage,
+			usage,
+			usage,
+			'packaged-app: no packaged app for freebsd'
+		]);
+	});
+});
+
+describe('spawnRunner', () => {
+	const node = (script: string): Command => ({ file: process.execPath, args: ['-e', script] });
+
+	it('resolves exit 0 with stdout and stderr as text, past a few KB of output', async () => {
+		const script = "process.stdout.write('x'.repeat(4096)); process.stderr.write('note')";
+		expect(await spawnRunner(node(script))).toEqual({
+			code: 0,
+			stdout: 'x'.repeat(4096),
+			stderr: 'note'
+		});
+	});
+
+	it("resolves a non-zero exit with the process's own code and stderr", async () => {
+		const script = "process.stdout.write('part'); process.stderr.write('bad'); process.exit(3)";
+		expect(await spawnRunner(node(script))).toEqual({ code: 3, stdout: 'part', stderr: 'bad' });
+	});
+
+	it('falls back to the error message when the process wrote no stderr', async () => {
+		const result = await spawnRunner(node('process.exit(4)'));
+		expect(result.code).toBe(4);
+		expect(result.stderr).toMatch(/^Command failed: /);
+	});
+
+	it('resolves -1 with the spawn error when the file cannot be run', async () => {
+		const result = await spawnRunner({ file: join(tmpdir(), 'no-such-packaged-app'), args: [] });
+		expect(result.code).toBe(-1);
+		expect(result.stderr).toMatch(/ENOENT/);
 	});
 });
