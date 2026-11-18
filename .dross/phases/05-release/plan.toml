@@ -1,4 +1,4 @@
-task_seq = 26
+task_seq = 27
 [phase]
 id = "05-release"
 
@@ -363,3 +363,14 @@ covers = ["c-5", "c-6"]
 test_contract = ["If rawRequest with timeoutMs waits past the timeout on a server that accepts but never answers, harness.e2e fails", "If describeHolders drops a holder's process state, wait channel or cmdline on Linux, or a Windows instance row with no port, process-probe.spec fails", "If the packaged e2e step loses its list reporter, ci-packaged.spec fails"]
 status = "done"
 depends_on = ["t-22"]
+
+[[task]]
+id = "t-27"
+wave = 10
+title = "Linux packaged update: replace the AppImage only once nothing runs it"
+files = ["e2e/packaged/update.packaged.ts", "scripts/packaged-app.ts", "scripts/packaged-app.spec.ts"]
+description = "Verify 05-release (3cf0e07) BLOCKING: on Linux, CI 'packaged e2e' fails 'restart through the predecessor wait' within 3 ms. placeBuildA (update.packaged.ts:279) calls copyFileSync(buildA, run.exe), which throws ETXTBSY because a process from the previous test ('quit installs in place', which ends with quitCleanly) still has the AppImage at run.exe open for execution, most likely the AppImage runtime or FUSE mount outliving the Electron process. 'relaunch is B with its data' then never runs on Linux. This is a test-side fix only, with no src/ change. (1) Add an exported helper in scripts/packaged-app.ts that replaces an executable atomically: copy to a temp file in the same directory, chmod 0o755, then renameSync over the destination. A running inode is unaffected and the path gets a new inode. (2) Before placeBuildA, wait with a bound (reuse pollFor/appInstances('linux', run.exe) from process-probe) until no instance runs from run.exe. On timeout, throw with describeInstances output so CI shows what is holding it. A lingering B would otherwise make A lose the single-instance lock. (3) placeBuildA uses the helper. Keep every other test's behaviour unchanged."
+covers = ["c-5", "c-6"]
+test_contract = ["If the replace helper writes into the destination in place instead of renaming a new file over it (destination inode unchanged), packaged-app.spec fails", "If the replace helper leaves the destination non-executable or with the old content, packaged-app.spec fails"]
+status = "pending"
+depends_on = ["t-26"]
