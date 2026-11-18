@@ -82,7 +82,8 @@ export function parseRange(
 	}
 	const start = Number(first);
 	const end = last === '' ? size - 1 : Math.min(Number(last), size - 1);
-	if (start >= size || start > end) return 'unsatisfiable';
+	// end is at most size - 1, so this also refuses a start at or past the end.
+	if (start > end) return 'unsatisfiable';
 	return { start, end };
 }
 
@@ -130,7 +131,9 @@ async function serve(dir: string, req: IncomingMessage, res: ServerResponse): Pr
 		return;
 	}
 	const { start, end } = range ?? { start: 0, end: info.size - 1 };
-	const length = info.size === 0 ? 0 : end - start + 1;
+	// An empty file is never ranged (parseRange refuses every range of 0 bytes), so
+	// it lands here as 0..-1: length 0.
+	const length = end - start + 1;
 	res.writeHead(range === null ? 200 : 206, {
 		...headers,
 		'Content-Length': String(length),
