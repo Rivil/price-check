@@ -196,6 +196,51 @@ describe('createUpdater, packaged', () => {
 		expect(unhandled).toEqual([]);
 	});
 
+	it.each([
+		['no result', null],
+		['a null download', { isUpdateAvailable: false, downloadPromise: null }],
+		['no download', { isUpdateAvailable: false }]
+	])('a check that resolves with %s logs no error', async (_name, result) => {
+		const fake = new FakeUpdater();
+		fake.checkForUpdates.mockResolvedValue(result as UpdateCheckResult | null);
+		const { updater, log } = setup({ fake });
+
+		updater.start();
+		await flush();
+		await updater.checkNow();
+
+		expect(fake.checkForUpdates).toHaveBeenCalledTimes(2);
+		expect(log.error).not.toHaveBeenCalled();
+		updater.stop();
+	});
+
+	it.each([
+		['rejects', (error: Error) => Promise.reject(error)],
+		[
+			'throws',
+			(error: Error) => {
+				throw error;
+			}
+		]
+	])("a check that %s is logged and returns 'checking' to 'idle'", async (_name, fail) => {
+		const fake = new FakeUpdater();
+		const error = new Error('offline');
+		// electron-updater emits 'checking-for-update' before the check can fail.
+		fake.checkForUpdates.mockImplementation(() => {
+			fake.emit('checking-for-update');
+			return fail(error);
+		});
+		const { updater, log } = setup({ fake });
+
+		updater.start();
+		await flush();
+
+		expect(updater.status().state).toBe('idle');
+		expect(log.error).toHaveBeenCalledTimes(1);
+		expect(log.error).toHaveBeenCalledWith('update check failed', error);
+		updater.stop();
+	});
+
 	it('survives a throwing logger', async () => {
 		const fake = new FakeUpdater();
 		fake.checkForUpdates.mockRejectedValue(new Error('offline'));
@@ -373,6 +418,29 @@ describe('createUpdater, downloads', () => {
 		fake.emit('checking-for-update');
 		fake.emit('error', new Error('offline'));
 		expect(updater.status().state).toBe('idle');
+		updater.stop();
+	});
+
+	it("a later check that finds nothing, errors or fails keeps 'downloaded'", async () => {
+		const fake = new FakeUpdater();
+		const { log, updater } = setup({ fake });
+		updater.start();
+		await flush();
+		fake.emit('update-downloaded', { version: '0.1.6' });
+		const downloaded = { state: 'downloaded', version: '0.1.6', notified: ['0.1.6'] };
+
+		fake.emit('checking-for-update');
+		fake.emit('update-not-available');
+		expect(updater.status()).toEqual(downloaded);
+
+		fake.emit('error', new Error('feed 404'));
+		expect(updater.status()).toEqual(downloaded);
+
+		fake.checkForUpdates.mockRejectedValueOnce(new Error('offline'));
+		await updater.checkNow();
+		expect(log.error).toHaveBeenCalledWith('update check failed', expect.any(Error));
+		expect(updater.status()).toEqual(downloaded);
+		expect(updater.pending()).toBe(true);
 		updater.stop();
 	});
 

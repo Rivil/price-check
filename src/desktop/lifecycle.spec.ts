@@ -268,6 +268,7 @@ describe('single instance', () => {
 	it('a lost lock touches no key, server, tray or window and quits', async () => {
 		const h = harness({ lock: false });
 		await expect(runDesktop(h.deps)).resolves.toBe('second-instance');
+		expect(h.app.requestSingleInstanceLock).toHaveBeenCalledTimes(1);
 		expect(h.app.quit).toHaveBeenCalledTimes(1);
 		expect(h.deps.loadKey).not.toHaveBeenCalled();
 		expect(h.deps.startServer).not.toHaveBeenCalled();
@@ -1208,16 +1209,28 @@ describe('waiting for the version an update replaced (05-release c-6)', () => {
 		expect(h.app.requestSingleInstanceLock).toHaveBeenCalledTimes(2);
 	});
 
-	it('with predecessorPid null a lost lock quits at once', async () => {
-		const { h, run } = launch({
+	// Each part of the guard alone: a wait would poll a live probe (or log a missing
+	// one) and ask for the lock a second time.
+	it.each([
+		{ name: 'predecessorPid null', predecessorPid: null, probe: true },
+		{ name: 'no predecessorPid', predecessorPid: undefined, probe: true },
+		{ name: 'no isProcessAlive', predecessorPid: PID, probe: false }
+	])('with $name a lost lock asks for it once and quits at once', async (row) => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const alive = vi.fn(() => true);
+		const { h, run, result } = launch({
 			lock: false,
-			predecessorPid: null,
-			isProcessAlive: () => true
+			predecessorPid: row.predecessorPid,
+			...(row.probe ? { isProcessAlive: alive } : {})
 		});
-		await expect(run).resolves.toBe('second-instance');
-		expect(h.deps.isProcessAlive).not.toHaveBeenCalled();
+		await vi.advanceTimersByTimeAsync(0);
+		expect(result.outcome).toBe('second-instance');
+		expect(alive).not.toHaveBeenCalled();
 		expect(h.app.requestSingleInstanceLock).toHaveBeenCalledTimes(1);
 		expect(h.app.quit).toHaveBeenCalledTimes(1);
+		expect(h.log).toEqual(['setPath:userData', 'lock', 'quit']);
+		expect(error).not.toHaveBeenCalled();
+		await expect(run).resolves.toBe('second-instance');
 	});
 
 	it('a launch that gets the lock never asks about the predecessor', async () => {
