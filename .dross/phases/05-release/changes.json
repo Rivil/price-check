@@ -417,6 +417,21 @@
         }
       ]
     },
+    "t-31": {
+      "files": [
+        "e2e/packaged/update.packaged.ts"
+      ],
+      "commit": "00ff69b",
+      "completed_at": "2026-11-18T14:03:01.588471Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "keepDiagnosis",
+          "loc": "e2e/packaged/update.packaged.ts:453",
+          "what": "failure diagnoses are attached, saved in full under test-results and printed to stderr"
+        }
+      ]
+    },
     "t-4": {
       "files": [
         "src/desktop/updater.ts",
@@ -1264,6 +1279,47 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "captureRecord's JSON.parse catch (scripts/process-probe.ts) is not a quiet fallback. It returns an 'unreadable' record, and formatCaptureRecords prints those lines.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-31": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "keepDiagnosis calls writeFileSync in the catch blocks of diagnosed() and the Linux restart test (e2e/packaged/update.packaged.ts:457). If the write throws (for example the output folder is unwritable), that new error replaces the real failure, and in diagnosed() the OS state step is skipped too. A try/catch around the write that logs and carries on would keep the original error.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The record asks for 'the full capture' on stderr once, but keepDiagnosis also prints 'A output' and 'OS state' to stderr. It is harmless and it helps diagnosis, but it goes slightly beyond 'all other behaviour unchanged'.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "diagnosed() is shared with the Windows path, so Windows failures now also write .txt files under test-results/packaged. They end up in test-reports-windows, which is useful.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "keepDiagnosis prints every diagnosis to stderr: 'A output' and 'OS state' on both the win32 and linux paths, as well as the capture. The description only asked for the full capture on stderr once. This adds log volume but doesn't change test results.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The write failure caught in keepDiagnosis (e2e/packaged/update.packaged.ts:460-464) has a comment saying why and is reported in the stderr banner, so it is a surfaced best-effort write, not a swallowed error.",
           "resolution": "non-blocking, left"
         }
       ]
