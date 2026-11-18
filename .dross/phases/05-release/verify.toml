@@ -1,0 +1,1779 @@
+[verify]
+  phase = "05-release"
+  generated_at = 2026-11-18T06:40:58.07138Z
+  verdict = "fail"
+  finalized = true
+  finalized_at = 2026-11-18T06:42:24.261604Z
+  measured_commit = "ce66faf995128412d30eb69a37f6df4d87aaec4b"
+  measured_tree = "d9ee37f882108f1c9df89b348c549f425a8205f0"
+
+[summary]
+  mutation_status = "measured"
+  measured_on = "local"
+  mutation_score = 0.8046103183315039
+  mutants_killed = 2199
+  mutants_survived = 531
+  mutants_not_covered = 129
+  mutants_no_block = 0
+  mutants_test_gap = 0
+  mutants_in_scope = 2733
+  unclassified_in_scope = 410
+  criteria_total = 6
+  criteria_covered = 0
+  criteria_uncovered = 6
+
+  [[summary.leg]]
+    language = "typescript"
+    tool = "stryker"
+    killed = 2199
+    survived = 531
+    timeout = 3
+    in_scope = 2733
+    score = 0.8046103183315039
+    file_count = 38
+    measured_on = "local"
+    ranges = ["e2e/desktop/harness.e2e.ts:10-11 (hunk)", "e2e/desktop/harness.e2e.ts:177-177 (hunk)", "e2e/desktop/harness.e2e.ts:178-190 (ExpressionStatement)", "e2e/packaged/launch-packaged.ts:1-32 (hunk)", "e2e/packaged/launch-packaged.ts:103-104 (hunk)", "e2e/packaged/launch-packaged.ts:105-120 (TSTypeAliasDeclaration PackagedRun)", "e2e/packaged/launch-packaged.ts:121-122 (hunk)", "e2e/packaged/launch-packaged.ts:123-140 (FunctionDeclaration packagedEnv)", "e2e/packaged/launch-packaged.ts:141-142 (hunk)", "e2e/packaged/launch-packaged.ts:143-163 (FunctionDeclaration createPackagedRun)", "e2e/packaged/launch-packaged.ts:164-168 (hunk)", "e2e/packaged/launch-packaged.ts:169-178 (FunctionDeclaration claimUserData)", "e2e/packaged/launch-packaged.ts:179-179 (hunk)", "e2e/packaged/launch-packaged.ts:180-180 (TSTypeAliasDeclaration ExitStatus)", "e2e/packaged/launch-packaged.ts:181-181 (hunk)", "e2e/packaged/launch-packaged.ts:182-211 (TSTypeAliasDeclaration PackagedApp)", "e2e/packaged/launch-packaged.ts:212-212 (hunk)", "e2e/packaged/launch-packaged.ts:213-218 (TSTypeAliasDeclaration LaunchPackagedOptions)", "e2e/packaged/launch-packaged.ts:219-219 (hunk)", "e2e/packaged/launch-packaged.ts:220-228 (FunctionDeclaration collectOutput)", "e2e/packaged/launch-packaged.ts:229-229 (hunk)", "e2e/packaged/launch-packaged.ts:230-230 (VariableDeclaration tail)", "e2e/packaged/launch-packaged.ts:231-231 (hunk)", "e2e/packaged/launch-packaged.ts:232-232 (VariableDeclaration isRunning)", "e2e/packaged/launch-packaged.ts:233-233 (hunk)", "e2e/packaged/launch-packaged.ts:234-239 (FunctionDeclaration exitOf)", "e2e/packaged/launch-packaged.ts:240-241 (hunk)", "e2e/packaged/launch-packaged.ts:242-253 (FunctionDeclaration killTree)", "e2e/packaged/launch-packaged.ts:254-254 (hunk)", "e2e/packaged/launch-packaged.ts:255-265 (FunctionDeclaration withDeadline)", "e2e/packaged/launch-packaged.ts:266-267 (hunk)", "e2e/packaged/launch-packaged.ts:268-271 (FunctionDeclaration registeredLoginItem)", "e2e/packaged/launch-packaged.ts:272-273 (hunk)", "e2e/packaged/launch-packaged.ts:274-360 (FunctionDeclaration launchPackaged)", "e2e/packaged/launch-packaged.ts:33-33 (ImportDeclaration)", "e2e/packaged/launch-packaged.ts:34-34 (ImportDeclaration)", "e2e/packaged/launch-packaged.ts:35-35 (ImportDeclaration)", "e2e/packaged/launch-packaged.ts:36-36 (ImportDeclaration)", "e2e/packaged/launch-packaged.ts:361-361 (hunk)", "e2e/packaged/launch-packaged.ts:362-370 (TSTypeAliasDeclaration SpawnedApp)", "e2e/packaged/launch-packaged.ts:37-37 (ImportDeclaration)", "e2e/packaged/launch-packaged.ts:371-377 (hunk)", "e2e/packaged/launch-packaged.ts:378-456 (FunctionDeclaration spawnX64)", "e2e/packaged/launch-packaged.ts:38-38 (ImportDeclaration)", "e2e/packaged/launch-packaged.ts:39-43 (ImportDeclaration)", "e2e/packaged/launch-packaged.ts:44-54 (ImportDeclaration)", "e2e/packaged/launch-packaged.ts:457-470 (hunk)", "e2e/packaged/launch-packaged.ts:471-471 (VariableDeclaration UPDATER_HANDLE_KEY)", "e2e/packaged/launch-packaged.ts:472-473 (hunk)", "e2e/packaged/launch-packaged.ts:474-482 (FunctionDeclaration updaterStatus)", "e2e/packaged/launch-packaged.ts:483-484 (hunk)", "e2e/packaged/launch-packaged.ts:485-492 (FunctionDeclaration updaterCheckNow)", "e2e/packaged/launch-packaged.ts:493-498 (hunk)", "e2e/packaged/launch-packaged.ts:499-510 (FunctionDeclaration updaterRestart)", "e2e/packaged/launch-packaged.ts:511-512 (hunk)", "e2e/packaged/launch-packaged.ts:513-521 (TSTypeAliasDeclaration AppInstance)", "e2e/packaged/launch-packaged.ts:522-526 (hunk)", "e2e/packaged/launch-packaged.ts:527-538 (FunctionDeclaration instancesByPort)", "e2e/packaged/launch-packaged.ts:539-539 (hunk)", "e2e/packaged/launch-packaged.ts:540-540 (VariableDeclaration PROBE_TIMEOUT_MS)", "e2e/packaged/launch-packaged.ts:541-541 (hunk)", "e2e/packaged/launch-packaged.ts:542-561 (FunctionDeclaration runProbe)", "e2e/packaged/launch-packaged.ts:55-55 (ImportDeclaration)", "e2e/packaged/launch-packaged.ts:56-56 (ImportDeclaration)", "e2e/packaged/launch-packaged.ts:562-563 (hunk)", "e2e/packaged/launch-packaged.ts:564-575 (FunctionDeclaration powershell)", "e2e/packaged/launch-packaged.ts:57-63 (ImportDeclaration)", "e2e/packaged/launch-packaged.ts:576-577 (hunk)", "e2e/packaged/launch-packaged.ts:578-578 (VariableDeclaration PROBE_EXE_ENV)", "e2e/packaged/launch-packaged.ts:579-587 (hunk)", "e2e/packaged/launch-packaged.ts:588-596 (VariableDeclaration NET_TCP_LISTENERS_SCRIPT)", "e2e/packaged/launch-packaged.ts:597-598 (hunk)", "e2e/packaged/launch-packaged.ts:599-631 (FunctionDeclaration windowsAppInstances)", "e2e/packaged/launch-packaged.ts:632-637 (hunk)", "e2e/packaged/launch-packaged.ts:638-646 (FunctionDeclaration readProc)", "e2e/packaged/launch-packaged.ts:64-64 (hunk)", "e2e/packaged/launch-packaged.ts:647-648 (hunk)", "e2e/packaged/launch-packaged.ts:649-654 (FunctionDeclaration appImageOf)", "e2e/packaged/launch-packaged.ts:65-65 (VariableDeclaration PACKAGED_EXE_ENV)", "e2e/packaged/launch-packaged.ts:655-656 (hunk)", "e2e/packaged/launch-packaged.ts:657-665 (FunctionDeclaration procDetail)", "e2e/packaged/launch-packaged.ts:66-67 (hunk)", "e2e/packaged/launch-packaged.ts:666-670 (hunk)", "e2e/packaged/launch-packaged.ts:671-676 (FunctionDeclaration linuxAppInstances)", "e2e/packaged/launch-packaged.ts:677-678 (hunk)", "e2e/packaged/launch-packaged.ts:679-683 (FunctionDeclaration appInstances)", "e2e/packaged/launch-packaged.ts:68-68 (VariableDeclaration MARKER_SEED)", "e2e/packaged/launch-packaged.ts:684-684 (hunk)", "e2e/packaged/launch-packaged.ts:685-685 (VariableDeclaration POLL_MS)", "e2e/packaged/launch-packaged.ts:686-687 (hunk)", "e2e/packaged/launch-packaged.ts:688-696 (FunctionDeclaration pollFor)", "e2e/packaged/launch-packaged.ts:69-70 (hunk)", "e2e/packaged/launch-packaged.ts:697-697 (hunk)", "e2e/packaged/launch-packaged.ts:698-698 (VariableDeclaration STOP_TIMEOUT_MS)", "e2e/packaged/launch-packaged.ts:699-700 (hunk)", "e2e/packaged/launch-packaged.ts:701-711 (FunctionDeclaration isAlive)", "e2e/packaged/launch-packaged.ts:71-71 (VariableDeclaration LISTENING)", "e2e/packaged/launch-packaged.ts:712-713 (hunk)", "e2e/packaged/launch-packaged.ts:714-722 (FunctionDeclaration signal)", "e2e/packaged/launch-packaged.ts:72-73 (hunk)", "e2e/packaged/launch-packaged.ts:723-729 (hunk)", "e2e/packaged/launch-packaged.ts:730-748 (FunctionDeclaration stopInstance)", "e2e/packaged/launch-packaged.ts:74-74 (VariableDeclaration APP_URL)", "e2e/packaged/launch-packaged.ts:749-755 (hunk)", "e2e/packaged/launch-packaged.ts:75-75 (hunk)", "e2e/packaged/launch-packaged.ts:756-791 (FunctionDeclaration integrityCheck)", "e2e/packaged/launch-packaged.ts:76-76 (VariableDeclaration LAUNCH_TIMEOUT_MS)", "e2e/packaged/launch-packaged.ts:77-81 (hunk)", "e2e/packaged/launch-packaged.ts:82-82 (VariableDeclaration X64_LAUNCH_TIMEOUT_MS)", "e2e/packaged/launch-packaged.ts:83-83 (VariableDeclaration QUIT_TIMEOUT_MS)", "e2e/packaged/launch-packaged.ts:84-85 (hunk)", "e2e/packaged/launch-packaged.ts:86-95 (FunctionDeclaration packagedExe)", "e2e/packaged/launch-packaged.ts:96-96 (hunk)", "e2e/packaged/launch-packaged.ts:97-102 (FunctionDeclaration hostPlatform)", "e2e/packaged/smoke.packaged.ts:1-13 (hunk)", "e2e/packaged/smoke.packaged.ts:14-14 (ImportDeclaration)", "e2e/packaged/smoke.packaged.ts:15-15 (ImportDeclaration)", "e2e/packaged/smoke.packaged.ts:16-16 (ImportDeclaration)", "e2e/packaged/smoke.packaged.ts:17-17 (ImportDeclaration)", "e2e/packaged/smoke.packaged.ts:18-18 (ImportDeclaration)", "e2e/packaged/smoke.packaged.ts:181-181 (hunk)", "e2e/packaged/smoke.packaged.ts:182-210 (ExpressionStatement)", "e2e/packaged/smoke.packaged.ts:19-26 (ImportDeclaration)", "e2e/packaged/smoke.packaged.ts:27-28 (hunk)", "e2e/packaged/smoke.packaged.ts:29-35 (VariableDeclaration WATCH)", "e2e/packaged/smoke.packaged.ts:36-37 (hunk)", "e2e/packaged/smoke.packaged.ts:38-38 (VariableDeclaration OFFLINE_WINDOW_MS)", "e2e/packaged/smoke.packaged.ts:39-39 (hunk)", "e2e/packaged/smoke.packaged.ts:40-40 (VariableDeclaration UPDATER_HANDLE_KEY)", "e2e/packaged/smoke.packaged.ts:41-41 (hunk)", "e2e/packaged/smoke.packaged.ts:42-180 (ExpressionStatement)", "e2e/packaged/update.packaged.ts:1-32 (hunk)", "e2e/packaged/update.packaged.ts:103-103 (hunk)", "e2e/packaged/update.packaged.ts:104-110 (FunctionDeclaration packageVersion)", "e2e/packaged/update.packaged.ts:111-111 (hunk)", "e2e/packaged/update.packaged.ts:112-114 (FunctionDeclaration sha256)", "e2e/packaged/update.packaged.ts:115-115 (hunk)", "e2e/packaged/update.packaged.ts:116-369 (ExpressionStatement)", "e2e/packaged/update.packaged.ts:33-33 (ImportDeclaration)", "e2e/packaged/update.packaged.ts:34-34 (ImportDeclaration)", "e2e/packaged/update.packaged.ts:35-35 (ImportDeclaration)", "e2e/packaged/update.packaged.ts:36-36 (ImportDeclaration)", "e2e/packaged/update.packaged.ts:37-42 (ImportDeclaration)", "e2e/packaged/update.packaged.ts:43-43 (ImportDeclaration)", "e2e/packaged/update.packaged.ts:44-44 (ImportDeclaration)", "e2e/packaged/update.packaged.ts:45-45 (ImportDeclaration)", "e2e/packaged/update.packaged.ts:46-60 (ImportDeclaration)", "e2e/packaged/update.packaged.ts:61-61 (hunk)", "e2e/packaged/update.packaged.ts:62-62 (VariableDeclaration UPDATE_FEED_DIR_ENV)", "e2e/packaged/update.packaged.ts:63-64 (hunk)", "e2e/packaged/update.packaged.ts:65-71 (VariableDeclaration WATCH)", "e2e/packaged/update.packaged.ts:72-73 (hunk)", "e2e/packaged/update.packaged.ts:74-74 (VariableDeclaration LAUNCH_CHECK_MS)", "e2e/packaged/update.packaged.ts:75-75 (hunk)", "e2e/packaged/update.packaged.ts:76-76 (VariableDeclaration DOWNLOAD_MS)", "e2e/packaged/update.packaged.ts:77-77 (hunk)", "e2e/packaged/update.packaged.ts:78-78 (VariableDeclaration NO_FORCED_RESTART_MS)", "e2e/packaged/update.packaged.ts:79-82 (hunk)", "e2e/packaged/update.packaged.ts:83-83 (VariableDeclaration NOTIFY_SETTLE_MS)", "e2e/packaged/update.packaged.ts:84-84 (VariableDeclaration NOTIFY_POLL_MS)", "e2e/packaged/update.packaged.ts:85-85 (hunk)", "e2e/packaged/update.packaged.ts:86-86 (VariableDeclaration EXIT_MS)", "e2e/packaged/update.packaged.ts:87-87 (hunk)", "e2e/packaged/update.packaged.ts:88-88 (VariableDeclaration WINDOWS_RELAUNCH_MS)", "e2e/packaged/update.packaged.ts:89-89 (hunk)", "e2e/packaged/update.packaged.ts:90-90 (VariableDeclaration LINUX_RELAUNCH_MS)", "e2e/packaged/update.packaged.ts:91-91 (hunk)", "e2e/packaged/update.packaged.ts:92-92 (VariableDeclaration feedDir)", "e2e/packaged/update.packaged.ts:93-95 (VariableDeclaration platform)", "e2e/packaged/update.packaged.ts:96-97 (hunk)", "e2e/packaged/update.packaged.ts:98-102 (FunctionDeclaration nextPatch)", "playwright.packaged.config.ts:1-8 (hunk)", "playwright.packaged.config.ts:10-10 (hunk)", "playwright.packaged.config.ts:11-23 (ExportDefaultDeclaration)", "playwright.packaged.config.ts:9-9 (ImportDeclaration)", "scripts/build-desktop.spec.ts:114-118 (hunk)", "scripts/build-desktop.spec.ts:119-129 (FunctionDeclaration yamlSubList)", "scripts/build-desktop.spec.ts:130-130 (hunk)", "scripts/build-desktop.spec.ts:131-167 (ExpressionStatement)", "scripts/build-desktop.spec.ts:168-168 (hunk)", "scripts/build-desktop.spec.ts:4-6 (hunk)", "scripts/ci-desktop.spec.ts:13-13 (ImportDeclaration)", "scripts/ci-desktop.spec.ts:15-15 (ImportDeclaration)", "scripts/ci-desktop.spec.ts:28-29 (hunk)", "scripts/ci-desktop.spec.ts:30-30 (VariableDeclaration testJob)", "scripts/ci-desktop.spec.ts:31-31 (VariableDeclaration testSteps)", "scripts/ci-desktop.spec.ts:32-32 (VariableDeclaration testEnv)", "scripts/ci-desktop.spec.ts:33-33 (VariableDeclaration staticJob)", "scripts/ci-desktop.spec.ts:34-34 (VariableDeclaration staticSteps)", "scripts/ci-desktop.spec.ts:35-35 (VariableDeclaration desktopSteps)", "scripts/ci-desktop.spec.ts:36-36 (VariableDeclaration desktop)", "scripts/ci-desktop.spec.ts:37-37 (VariableDeclaration branch)", "scripts/ci-desktop.spec.ts:38-38 (VariableDeclaration cacheDir)", "scripts/ci-desktop.spec.ts:39-39 (VariableDeclaration cacheSteps)", "scripts/ci-desktop.spec.ts:40-52 (ExpressionStatement)", "scripts/ci-desktop.spec.ts:8-8 (hunk)", "scripts/ci-packaged.spec.ts:1-13 (hunk)", "scripts/ci-packaged.spec.ts:108-109 (hunk)", "scripts/ci-packaged.spec.ts:110-111 (VariableDeclaration flag)", "scripts/ci-packaged.spec.ts:112-112 (hunk)", "scripts/ci-packaged.spec.ts:113-113 (VariableDeclaration stepEnv)", "scripts/ci-packaged.spec.ts:114-116 (hunk)", "scripts/ci-packaged.spec.ts:117-117 (VariableDeclaration lines)", "scripts/ci-packaged.spec.ts:118-118 (VariableDeclaration testJob)", "scripts/ci-packaged.spec.ts:119-119 (VariableDeclaration testSteps)", "scripts/ci-packaged.spec.ts:120-120 (VariableDeclaration named)", "scripts/ci-packaged.spec.ts:121-121 (VariableDeclaration scripts)", "scripts/ci-packaged.spec.ts:122-133 (ExpressionStatement)", "scripts/ci-packaged.spec.ts:134-134 (hunk)", "scripts/ci-packaged.spec.ts:135-135 (VariableDeclaration step)", "scripts/ci-packaged.spec.ts:136-136 (VariableDeclaration arm)", "scripts/ci-packaged.spec.ts:137-140 (VariableDeclaration everyOs)", "scripts/ci-packaged.spec.ts:14-14 (ImportDeclaration)", "scripts/ci-packaged.spec.ts:141-142 (VariableDeclaration indexOfRun)", "scripts/ci-packaged.spec.ts:143-143 (hunk)", "scripts/ci-packaged.spec.ts:144-194 (ExpressionStatement)", "scripts/ci-packaged.spec.ts:15-15 (ImportDeclaration)", "scripts/ci-packaged.spec.ts:16-16 (ImportDeclaration)", "scripts/ci-packaged.spec.ts:17-17 (ImportDeclaration)", "scripts/ci-packaged.spec.ts:18-18 (ImportDeclaration)", "scripts/ci-packaged.spec.ts:19-19 (ImportDeclaration)", "scripts/ci-packaged.spec.ts:195-195 (hunk)", "scripts/ci-packaged.spec.ts:196-247 (ExpressionStatement)", "scripts/ci-packaged.spec.ts:20-20 (ImportDeclaration)", "scripts/ci-packaged.spec.ts:21-21 (ImportDeclaration)", "scripts/ci-packaged.spec.ts:22-22 (ImportDeclaration)", "scripts/ci-packaged.spec.ts:23-23 (hunk)", "scripts/ci-packaged.spec.ts:24-24 (VariableDeclaration ROOT)", "scripts/ci-packaged.spec.ts:248-248 (hunk)", "scripts/ci-packaged.spec.ts:249-276 (ExpressionStatement)", "scripts/ci-packaged.spec.ts:25-25 (VariableDeclaration ci)", "scripts/ci-packaged.spec.ts:26-26 (hunk)", "scripts/ci-packaged.spec.ts:27-27 (VariableDeclaration OSES)", "scripts/ci-packaged.spec.ts:277-277 (hunk)", "scripts/ci-packaged.spec.ts:278-299 (ExpressionStatement)", "scripts/ci-packaged.spec.ts:28-28 (TSTypeAliasDeclaration Os)", "scripts/ci-packaged.spec.ts:29-29 (hunk)", "scripts/ci-packaged.spec.ts:30-30 (VariableDeclaration DESKTOP_RUN)", "scripts/ci-packaged.spec.ts:300-300 (hunk)", "scripts/ci-packaged.spec.ts:301-361 (ExpressionStatement)", "scripts/ci-packaged.spec.ts:31-31 (VariableDeclaration PACKAGED_RUN)", "scripts/ci-packaged.spec.ts:32-32 (VariableDeclaration PACKAGE)", "scripts/ci-packaged.spec.ts:33-33 (VariableDeclaration SYSCTL)", "scripts/ci-packaged.spec.ts:34-34 (VariableDeclaration LIBFUSE)", "scripts/ci-packaged.spec.ts:35-35 (VariableDeclaration FEED_URL)", "scripts/ci-packaged.spec.ts:36-36 (VariableDeclaration FEED_DIR_ENV)", "scripts/ci-packaged.spec.ts:362-362 (hunk)", "scripts/ci-packaged.spec.ts:363-403 (ExpressionStatement)", "scripts/ci-packaged.spec.ts:37-38 (VariableDeclaration MAC_VERIFY)", "scripts/ci-packaged.spec.ts:39-39 (VariableDeclaration WIN_INSTALL)", "scripts/ci-packaged.spec.ts:40-40 (VariableDeclaration WIN_VERIFY)", "scripts/ci-packaged.spec.ts:404-405 (hunk)", "scripts/ci-packaged.spec.ts:406-434 (FunctionDeclaration collected)", "scripts/ci-packaged.spec.ts:41-41 (VariableDeclaration LOCATE)", "scripts/ci-packaged.spec.ts:42-43 (VariableDeclaration layout)", "scripts/ci-packaged.spec.ts:435-435 (hunk)", "scripts/ci-packaged.spec.ts:436-480 (ExpressionStatement)", "scripts/ci-packaged.spec.ts:44-45 (hunk)", "scripts/ci-packaged.spec.ts:46-46 (VariableDeclaration STEP_NAMES)", "scripts/ci-packaged.spec.ts:47-47 (TSTypeAliasDeclaration StepName)", "scripts/ci-packaged.spec.ts:48-48 (hunk)", "scripts/ci-packaged.spec.ts:49-55 (TSTypeAliasDeclaration OsScript)", "scripts/ci-packaged.spec.ts:56-62 (hunk)", "scripts/ci-packaged.spec.ts:63-88 (FunctionDeclaration osScript)", "scripts/ci-packaged.spec.ts:89-90 (hunk)", "scripts/ci-packaged.spec.ts:91-95 (VariableDeclaration linesFor)", "scripts/ci-packaged.spec.ts:96-97 (hunk)", "scripts/ci-packaged.spec.ts:98-107 (FunctionDeclaration jobIds)", "scripts/environments.spec.ts:1-12 (hunk)", "scripts/environments.spec.ts:13-13 (ImportDeclaration)", "scripts/environments.spec.ts:14-14 (ImportDeclaration)", "scripts/environments.spec.ts:15-15 (hunk)", "scripts/environments.spec.ts:16-18 (VariableDeclaration release)", "scripts/environments.spec.ts:19-20 (hunk)", "scripts/environments.spec.ts:21-27 (FunctionDeclaration keys)", "scripts/environments.spec.ts:28-28 (hunk)", "scripts/environments.spec.ts:29-58 (ExpressionStatement)", "scripts/package-desktop.spec.ts:1-10 (hunk)", "scripts/package-desktop.spec.ts:102-103 (hunk)", "scripts/package-desktop.spec.ts:104-110 (FunctionDeclaration unpacked)", "scripts/package-desktop.spec.ts:11-11 (ImportDeclaration)", "scripts/package-desktop.spec.ts:111-111 (hunk)", "scripts/package-desktop.spec.ts:112-113 (VariableDeclaration unsigned)", "scripts/package-desktop.spec.ts:114-114 (VariableDeclaration signed)", "scripts/package-desktop.spec.ts:115-115 (hunk)", "scripts/package-desktop.spec.ts:116-131 (VariableDeclaration LIBSQL_PLATFORM_PACKAGES)", "scripts/package-desktop.spec.ts:12-12 (ImportDeclaration)", "scripts/package-desktop.spec.ts:13-13 (ImportDeclaration)", "scripts/package-desktop.spec.ts:132-132 (hunk)", "scripts/package-desktop.spec.ts:133-181 (ExpressionStatement)", "scripts/package-desktop.spec.ts:14-14 (ImportDeclaration)", "scripts/package-desktop.spec.ts:15-15 (ImportDeclaration)", "scripts/package-desktop.spec.ts:16-16 (ImportDeclaration)", "scripts/package-desktop.spec.ts:17-31 (ImportDeclaration)", "scripts/package-desktop.spec.ts:182-182 (hunk)", "scripts/package-desktop.spec.ts:183-307 (ExpressionStatement)", "scripts/package-desktop.spec.ts:308-308 (hunk)", "scripts/package-desktop.spec.ts:309-423 (ExpressionStatement)", "scripts/package-desktop.spec.ts:32-32 (hunk)", "scripts/package-desktop.spec.ts:33-40 (TSTypeAliasDeclaration MinimatchClass)", "scripts/package-desktop.spec.ts:41-43 (hunk)", "scripts/package-desktop.spec.ts:424-424 (hunk)", "scripts/package-desktop.spec.ts:425-447 (ExpressionStatement)", "scripts/package-desktop.spec.ts:44-44 (VariableDeclaration requireBuilder)", "scripts/package-desktop.spec.ts:448-448 (hunk)", "scripts/package-desktop.spec.ts:449-451 (VariableDeclaration SENTINELS)", "scripts/package-desktop.spec.ts:45-45 (VariableDeclaration requireLib)", "scripts/package-desktop.spec.ts:452-452 (hunk)", "scripts/package-desktop.spec.ts:453-457 (TSTypeAliasDeclaration Harness)", "scripts/package-desktop.spec.ts:458-458 (hunk)", "scripts/package-desktop.spec.ts:459-481 (FunctionDeclaration harness)", "scripts/package-desktop.spec.ts:46-49 (VariableDeclaration)", "scripts/package-desktop.spec.ts:482-482 (hunk)", "scripts/package-desktop.spec.ts:483-485 (FunctionDeclaration signingEnvVars)", "scripts/package-desktop.spec.ts:486-486 (VariableDeclaration KEY_FILES)", "scripts/package-desktop.spec.ts:487-487 (hunk)", "scripts/package-desktop.spec.ts:488-645 (ExpressionStatement)", "scripts/package-desktop.spec.ts:50-50 (hunk)", "scripts/package-desktop.spec.ts:51-52 (VariableDeclaration asArray)", "scripts/package-desktop.spec.ts:53-53 (hunk)", "scripts/package-desktop.spec.ts:54-56 (FunctionDeclaration hasMagic)", "scripts/package-desktop.spec.ts:57-58 (hunk)", "scripts/package-desktop.spec.ts:59-73 (FunctionDeclaration matchesAll)", "scripts/package-desktop.spec.ts:646-646 (hunk)", "scripts/package-desktop.spec.ts:647-656 (ExpressionStatement)", "scripts/package-desktop.spec.ts:74-74 (hunk)", "scripts/package-desktop.spec.ts:75-75 (TSTypeAliasDeclaration PlatformKey)", "scripts/package-desktop.spec.ts:76-76 (hunk)", "scripts/package-desktop.spec.ts:77-79 (FunctionDeclaration stringPatterns)", "scripts/package-desktop.spec.ts:80-81 (hunk)", "scripts/package-desktop.spec.ts:82-85 (FunctionDeclaration mainMatch)", "scripts/package-desktop.spec.ts:86-92 (hunk)", "scripts/package-desktop.spec.ts:93-101 (FunctionDeclaration packed)", "scripts/package-desktop.ts:1-23 (hunk)", "scripts/package-desktop.ts:109-114 (hunk)", "scripts/package-desktop.ts:115-116 (VariableDeclaration X64_ARCH_FILES)", "scripts/package-desktop.ts:117-118 (hunk)", "scripts/package-desktop.ts:119-119 (VariableDeclaration VERSION)", "scripts/package-desktop.ts:120-121 (hunk)", "scripts/package-desktop.ts:122-122 (VariableDeclaration LOOPBACK_HOSTS)", "scripts/package-desktop.ts:123-123 (hunk)", "scripts/package-desktop.ts:124-133 (TSTypeAliasDeclaration BuilderConfigInput)", "scripts/package-desktop.ts:134-134 (hunk)", "scripts/package-desktop.ts:135-142 (FunctionDeclaration checkVersion)", "scripts/package-desktop.ts:143-143 (hunk)", "scripts/package-desktop.ts:144-164 (FunctionDeclaration publishTo)", "scripts/package-desktop.ts:165-166 (hunk)", "scripts/package-desktop.ts:167-203 (FunctionDeclaration builderConfig)", "scripts/package-desktop.ts:204-205 (hunk)", "scripts/package-desktop.ts:206-208 (FunctionDeclaration signingEnv)", "scripts/package-desktop.ts:209-210 (hunk)", "scripts/package-desktop.ts:211-211 (TSTypeAliasDeclaration FileSize)", "scripts/package-desktop.ts:212-213 (hunk)", "scripts/package-desktop.ts:214-224 (FunctionDeclaration missingSigningVariables)", "scripts/package-desktop.ts:225-225 (hunk)", "scripts/package-desktop.ts:226-230 (VariableDeclaration HOST_TARGET)", "scripts/package-desktop.ts:231-231 (hunk)", "scripts/package-desktop.ts:232-241 (TSTypeAliasDeclaration PackageDeps)", "scripts/package-desktop.ts:24-24 (ImportDeclaration)", "scripts/package-desktop.ts:242-243 (hunk)", "scripts/package-desktop.ts:244-265 (FunctionDeclaration packageDesktop)", "scripts/package-desktop.ts:25-25 (ImportDeclaration)", "scripts/package-desktop.ts:26-26 (ImportDeclaration)", "scripts/package-desktop.ts:266-267 (hunk)", "scripts/package-desktop.ts:268-288 (FunctionDeclaration parseCliArgs)", "scripts/package-desktop.ts:27-27 (ImportDeclaration)", "scripts/package-desktop.ts:28-28 (ImportDeclaration)", "scripts/package-desktop.ts:289-289 (hunk)", "scripts/package-desktop.ts:29-29 (ImportDeclaration)", "scripts/package-desktop.ts:290-293 (TSTypeAliasDeclaration CliDeps)", "scripts/package-desktop.ts:294-295 (hunk)", "scripts/package-desktop.ts:296-306 (FunctionDeclaration runCli)", "scripts/package-desktop.ts:30-31 (hunk)", "scripts/package-desktop.ts:307-307 (hunk)", "scripts/package-desktop.ts:308-315 (VariableDeclaration fileSize)", "scripts/package-desktop.ts:316-317 (hunk)", "scripts/package-desktop.ts:318-320 (VariableDeclaration isEntry)", "scripts/package-desktop.ts:32-32 (VariableDeclaration ROOT)", "scripts/package-desktop.ts:321-333 (IfStatement)", "scripts/package-desktop.ts:33-34 (hunk)", "scripts/package-desktop.ts:35-35 (VariableDeclaration PRODUCT_NAME)", "scripts/package-desktop.ts:36-41 (hunk)", "scripts/package-desktop.ts:42-42 (VariableDeclaration ARTIFACT_NAME)", "scripts/package-desktop.ts:43-43 (hunk)", "scripts/package-desktop.ts:44-44 (VariableDeclaration DEFAULT_OUT)", "scripts/package-desktop.ts:45-49 (hunk)", "scripts/package-desktop.ts:50-50 (VariableDeclaration BUILD_RESOURCES)", "scripts/package-desktop.ts:51-52 (hunk)", "scripts/package-desktop.ts:53-53 (VariableDeclaration REQUIRED_INPUTS)", "scripts/package-desktop.ts:54-55 (hunk)", "scripts/package-desktop.ts:56-62 (VariableDeclaration SIGNING_VARIABLES)", "scripts/package-desktop.ts:63-63 (hunk)", "scripts/package-desktop.ts:64-64 (VariableDeclaration GITHUB_RELEASES)", "scripts/package-desktop.ts:65-66 (hunk)", "scripts/package-desktop.ts:67-75 (VariableDeclaration APP_FILES)", "scripts/package-desktop.ts:76-77 (hunk)", "scripts/package-desktop.ts:78-85 (VariableDeclaration ASAR_UNPACK)", "scripts/package-desktop.ts:86-95 (hunk)", "scripts/package-desktop.ts:96-108 (VariableDeclaration PLATFORM_FILES)", "scripts/packaged-app.spec.ts:1-2 (hunk)", "scripts/packaged-app.spec.ts:104-104 (hunk)", "scripts/packaged-app.spec.ts:105-167 (ExpressionStatement)", "scripts/packaged-app.spec.ts:168-168 (hunk)", "scripts/packaged-app.spec.ts:169-211 (ExpressionStatement)", "scripts/packaged-app.spec.ts:21-21 (ImportDeclaration)", "scripts/packaged-app.spec.ts:212-212 (hunk)", "scripts/packaged-app.spec.ts:213-256 (ExpressionStatement)", "scripts/packaged-app.spec.ts:22-22 (hunk)", "scripts/packaged-app.spec.ts:23-23 (VariableDeclaration HKCU_UNINSTALL)", "scripts/packaged-app.spec.ts:24-24 (VariableDeclaration INSTALL_DIR)", "scripts/packaged-app.spec.ts:25-26 (hunk)", "scripts/packaged-app.spec.ts:257-257 (hunk)", "scripts/packaged-app.spec.ts:258-315 (ExpressionStatement)", "scripts/packaged-app.spec.ts:27-38 (FunctionDeclaration regOutput)", "scripts/packaged-app.spec.ts:3-3 (ImportDeclaration)", "scripts/packaged-app.spec.ts:316-316 (hunk)", "scripts/packaged-app.spec.ts:317-395 (ExpressionStatement)", "scripts/packaged-app.spec.ts:39-39 (hunk)", "scripts/packaged-app.spec.ts:4-4 (ImportDeclaration)", "scripts/packaged-app.spec.ts:40-46 (VariableDeclaration OTHER_APP)", "scripts/packaged-app.spec.ts:47-54 (VariableDeclaration PRODUCT)", "scripts/packaged-app.spec.ts:5-5 (ImportDeclaration)", "scripts/packaged-app.spec.ts:55-55 (hunk)", "scripts/packaged-app.spec.ts:56-64 (FunctionDeclaration fakeRunner)", "scripts/packaged-app.spec.ts:6-6 (ImportDeclaration)", "scripts/packaged-app.spec.ts:65-65 (hunk)", "scripts/packaged-app.spec.ts:66-103 (ExpressionStatement)", "scripts/packaged-app.spec.ts:7-7 (ImportDeclaration)", "scripts/packaged-app.spec.ts:8-20 (ImportDeclaration)", "scripts/packaged-app.ts:1-19 (hunk)", "scripts/packaged-app.ts:102-102 (hunk)", "scripts/packaged-app.ts:103-108 (FunctionDeclaration topLevelFiles)", "scripts/packaged-app.ts:109-109 (hunk)", "scripts/packaged-app.ts:110-118 (FunctionDeclaration exactlyOne)", "scripts/packaged-app.ts:119-120 (hunk)", "scripts/packaged-app.ts:121-140 (FunctionDeclaration locate)", "scripts/packaged-app.ts:141-142 (hunk)", "scripts/packaged-app.ts:143-145 (FunctionDeclaration installedExecutable)", "scripts/packaged-app.ts:146-150 (hunk)", "scripts/packaged-app.ts:151-163 (FunctionDeclaration executablePath)", "scripts/packaged-app.ts:164-168 (hunk)", "scripts/packaged-app.ts:169-187 (FunctionDeclaration packagedUserDataDir)", "scripts/packaged-app.ts:188-188 (hunk)", "scripts/packaged-app.ts:189-189 (TSTypeAliasDeclaration Command)", "scripts/packaged-app.ts:190-190 (TSTypeAliasDeclaration RunResult)", "scripts/packaged-app.ts:191-191 (hunk)", "scripts/packaged-app.ts:192-192 (TSTypeAliasDeclaration Runner)", "scripts/packaged-app.ts:193-193 (hunk)", "scripts/packaged-app.ts:194-198 (FunctionDeclaration formatCommand)", "scripts/packaged-app.ts:199-199 (hunk)", "scripts/packaged-app.ts:20-20 (ImportDeclaration)", "scripts/packaged-app.ts:200-212 (VariableDeclaration spawnRunner)", "scripts/packaged-app.ts:21-21 (ImportDeclaration)", "scripts/packaged-app.ts:213-213 (hunk)", "scripts/packaged-app.ts:214-214 (TSTypeAliasDeclaration UninstallScope)", "scripts/packaged-app.ts:215-215 (hunk)", "scripts/packaged-app.ts:216-216 (VariableDeclaration UNINSTALL_SUBKEY)", "scripts/packaged-app.ts:217-218 (hunk)", "scripts/packaged-app.ts:219-224 (FunctionDeclaration uninstallQuery)", "scripts/packaged-app.ts:22-22 (ImportDeclaration)", "scripts/packaged-app.ts:225-225 (hunk)", "scripts/packaged-app.ts:226-226 (TSTypeAliasDeclaration RegKey)", "scripts/packaged-app.ts:227-228 (hunk)", "scripts/packaged-app.ts:229-236 (FunctionDeclaration isProductName)", "scripts/packaged-app.ts:23-23 (ImportDeclaration)", "scripts/packaged-app.ts:237-237 (hunk)", "scripts/packaged-app.ts:238-238 (VariableDeclaration REG_VALUE)", "scripts/packaged-app.ts:239-243 (hunk)", "scripts/packaged-app.ts:24-24 (ImportDeclaration)", "scripts/packaged-app.ts:244-258 (FunctionDeclaration parseRegQuery)", "scripts/packaged-app.ts:25-25 (ImportDeclaration)", "scripts/packaged-app.ts:259-260 (hunk)", "scripts/packaged-app.ts:26-26 (hunk)", "scripts/packaged-app.ts:261-266 (FunctionDeclaration installLocationOf)", "scripts/packaged-app.ts:267-267 (hunk)", "scripts/packaged-app.ts:268-268 (TSTypeAliasDeclaration Installed)", "scripts/packaged-app.ts:269-270 (hunk)", "scripts/packaged-app.ts:27-27 (TSTypeAliasDeclaration PackagedPlatform)", "scripts/packaged-app.ts:271-289 (FunctionDeclaration findUserInstall)", "scripts/packaged-app.ts:28-28 (hunk)", "scripts/packaged-app.ts:29-29 (VariableDeclaration PACKAGED_PLATFORMS)", "scripts/packaged-app.ts:290-295 (hunk)", "scripts/packaged-app.ts:296-306 (FunctionDeclaration installWindows)", "scripts/packaged-app.ts:30-31 (hunk)", "scripts/packaged-app.ts:307-307 (hunk)", "scripts/packaged-app.ts:308-313 (TSTypeAliasDeclaration CliDeps)", "scripts/packaged-app.ts:314-314 (hunk)", "scripts/packaged-app.ts:315-315 (VariableDeclaration USAGE)", "scripts/packaged-app.ts:316-316 (hunk)", "scripts/packaged-app.ts:317-320 (FunctionDeclaration hostPlatform)", "scripts/packaged-app.ts:32-32 (VariableDeclaration VERSION)", "scripts/packaged-app.ts:321-322 (hunk)", "scripts/packaged-app.ts:323-352 (FunctionDeclaration runCli)", "scripts/packaged-app.ts:33-34 (hunk)", "scripts/packaged-app.ts:35-40 (VariableDeclaration TARGETS)", "scripts/packaged-app.ts:353-354 (hunk)", "scripts/packaged-app.ts:355-357 (VariableDeclaration isEntry)", "scripts/packaged-app.ts:358-365 (IfStatement)", "scripts/packaged-app.ts:41-42 (hunk)", "scripts/packaged-app.ts:43-47 (VariableDeclaration UPDATE_FILE)", "scripts/packaged-app.ts:48-49 (hunk)", "scripts/packaged-app.ts:50-50 (VariableDeclaration BLOCKMAPPED)", "scripts/packaged-app.ts:51-52 (hunk)", "scripts/packaged-app.ts:53-53 (VariableDeclaration SINGLE_ARCH_MAC_DIRS)", "scripts/packaged-app.ts:54-54 (hunk)", "scripts/packaged-app.ts:55-57 (FunctionDeclaration isPackagedPlatform)", "scripts/packaged-app.ts:58-58 (hunk)", "scripts/packaged-app.ts:59-66 (FunctionDeclaration checkVersion)", "scripts/packaged-app.ts:67-67 (hunk)", "scripts/packaged-app.ts:68-76 (FunctionDeclaration artefactName)", "scripts/packaged-app.ts:77-82 (hunk)", "scripts/packaged-app.ts:83-96 (FunctionDeclaration expectedArtefacts)", "scripts/packaged-app.ts:97-97 (hunk)", "scripts/packaged-app.ts:98-101 (TSTypeAliasDeclaration Located)", "scripts/process-probe.spec.ts:1-6 (hunk)", "scripts/process-probe.spec.ts:145-145 (hunk)", "scripts/process-probe.spec.ts:146-182 (ExpressionStatement)", "scripts/process-probe.spec.ts:183-184 (hunk)", "scripts/process-probe.spec.ts:185-186 (VariableDeclaration SHARED_SOCKET)", "scripts/process-probe.spec.ts:187-187 (hunk)", "scripts/process-probe.spec.ts:188-188 (VariableDeclaration APPIMAGE)", "scripts/process-probe.spec.ts:189-189 (VariableDeclaration MAIN)", "scripts/process-probe.spec.ts:190-194 (VariableDeclaration HELPER)", "scripts/process-probe.spec.ts:195-195 (hunk)", "scripts/process-probe.spec.ts:196-230 (ExpressionStatement)", "scripts/process-probe.spec.ts:21-21 (hunk)", "scripts/process-probe.spec.ts:22-22 (VariableDeclaration EXE)", "scripts/process-probe.spec.ts:23-23 (hunk)", "scripts/process-probe.spec.ts:231-231 (hunk)", "scripts/process-probe.spec.ts:232-246 (ExpressionStatement)", "scripts/process-probe.spec.ts:24-75 (ExpressionStatement)", "scripts/process-probe.spec.ts:247-247 (hunk)", "scripts/process-probe.spec.ts:248-268 (ExpressionStatement)", "scripts/process-probe.spec.ts:269-269 (hunk)", "scripts/process-probe.spec.ts:270-299 (ExpressionStatement)", "scripts/process-probe.spec.ts:300-300 (hunk)", "scripts/process-probe.spec.ts:301-307 (ExpressionStatement)", "scripts/process-probe.spec.ts:7-7 (ImportDeclaration)", "scripts/process-probe.spec.ts:76-76 (hunk)", "scripts/process-probe.spec.ts:77-91 (ExpressionStatement)", "scripts/process-probe.spec.ts:8-20 (ImportDeclaration)", "scripts/process-probe.spec.ts:92-92 (hunk)", "scripts/process-probe.spec.ts:93-144 (ExpressionStatement)", "scripts/process-probe.ts:1-25 (hunk)", "scripts/process-probe.ts:101-101 (hunk)", "scripts/process-probe.ts:102-109 (FunctionDeclaration add)", "scripts/process-probe.ts:110-111 (hunk)", "scripts/process-probe.ts:112-129 (FunctionDeclaration parseSsListeners)", "scripts/process-probe.ts:130-131 (hunk)", "scripts/process-probe.ts:132-140 (FunctionDeclaration parseNetTcpListeners)", "scripts/process-probe.ts:141-142 (hunk)", "scripts/process-probe.ts:143-154 (FunctionDeclaration pidsByPort)", "scripts/process-probe.ts:155-156 (hunk)", "scripts/process-probe.ts:157-162 (TSTypeAliasDeclaration ProcessDetail)", "scripts/process-probe.ts:163-164 (hunk)", "scripts/process-probe.ts:165-168 (FunctionDeclaration parseProcStatusPpid)", "scripts/process-probe.ts:169-170 (hunk)", "scripts/process-probe.ts:171-175 (FunctionDeclaration parseProcCmdline)", "scripts/process-probe.ts:176-177 (hunk)", "scripts/process-probe.ts:178-180 (FunctionDeclaration isHelper)", "scripts/process-probe.ts:181-185 (hunk)", "scripts/process-probe.ts:186-199 (FunctionDeclaration mainProcess)", "scripts/process-probe.ts:200-201 (hunk)", "scripts/process-probe.ts:202-209 (FunctionDeclaration describeHolders)", "scripts/process-probe.ts:210-215 (hunk)", "scripts/process-probe.ts:216-228 (FunctionDeclaration servingInstance)", "scripts/process-probe.ts:26-32 (TSTypeAliasDeclaration ProcessInfo)", "scripts/process-probe.ts:33-34 (hunk)", "scripts/process-probe.ts:35-35 (TSTypeAliasDeclaration ListenMap)", "scripts/process-probe.ts:36-36 (hunk)", "scripts/process-probe.ts:37-37 (VariableDeclaration LOOPBACK)", "scripts/process-probe.ts:38-39 (hunk)", "scripts/process-probe.ts:40-40 (VariableDeclaration MS_DATE)", "scripts/process-probe.ts:41-42 (hunk)", "scripts/process-probe.ts:43-43 (VariableDeclaration LISTEN_STATES)", "scripts/process-probe.ts:44-44 (hunk)", "scripts/process-probe.ts:45-45 (TSTypeAliasDeclaration Row)", "scripts/process-probe.ts:46-47 (hunk)", "scripts/process-probe.ts:48-59 (FunctionDeclaration jsonRows)", "scripts/process-probe.ts:60-60 (hunk)", "scripts/process-probe.ts:61-66 (FunctionDeclaration positiveInt)", "scripts/process-probe.ts:67-67 (hunk)", "scripts/process-probe.ts:68-72 (FunctionDeclaration port)", "scripts/process-probe.ts:73-74 (hunk)", "scripts/process-probe.ts:75-85 (FunctionDeclaration parsePsDate)", "scripts/process-probe.ts:86-86 (hunk)", "scripts/process-probe.ts:87-91 (FunctionDeclaration optionalString)", "scripts/process-probe.ts:92-93 (hunk)", "scripts/process-probe.ts:94-100 (FunctionDeclaration parseProcesses)", "scripts/readme.spec.ts:62-62 (hunk)", "scripts/readme.spec.ts:63-72 (VariableDeclaration subsections)", "scripts/readme.spec.ts:73-73 (hunk)", "scripts/readme.spec.ts:74-74 (VariableDeclaration installParts)", "scripts/readme.spec.ts:75-76 (hunk)", "scripts/readme.spec.ts:77-77 (VariableDeclaration osPart)", "scripts/readme.spec.ts:78-82 (hunk)", "scripts/readme.spec.ts:83-83 (VariableDeclaration SANDBOX_BYPASSES)", "scripts/readme.spec.ts:84-85 (hunk)", "scripts/readme.spec.ts:86-86 (VariableDeclaration APPARMOR_STEP)", "scripts/readme.spec.ts:87-87 (hunk)", "scripts/readme.spec.ts:88-181 (ExpressionStatement)", "scripts/release-tag.spec.ts:1-4 (hunk)", "scripts/release-tag.spec.ts:10-10 (ImportDeclaration)", "scripts/release-tag.spec.ts:106-106 (hunk)", "scripts/release-tag.spec.ts:107-128 (ExpressionStatement)", "scripts/release-tag.spec.ts:11-11 (ImportDeclaration)", "scripts/release-tag.spec.ts:12-12 (hunk)", "scripts/release-tag.spec.ts:129-129 (hunk)", "scripts/release-tag.spec.ts:13-13 (VariableDeclaration SCRIPT)", "scripts/release-tag.spec.ts:130-207 (ExpressionStatement)", "scripts/release-tag.spec.ts:14-14 (hunk)", "scripts/release-tag.spec.ts:15-63 (ExpressionStatement)", "scripts/release-tag.spec.ts:208-208 (hunk)", "scripts/release-tag.spec.ts:209-218 (ExpressionStatement)", "scripts/release-tag.spec.ts:5-5 (ImportDeclaration)", "scripts/release-tag.spec.ts:6-6 (ImportDeclaration)", "scripts/release-tag.spec.ts:64-65 (hunk)", "scripts/release-tag.spec.ts:66-66 (TSTypeAliasDeclaration Fixture)", "scripts/release-tag.spec.ts:67-67 (hunk)", "scripts/release-tag.spec.ts:68-83 (FunctionDeclaration git)", "scripts/release-tag.spec.ts:7-7 (ImportDeclaration)", "scripts/release-tag.spec.ts:8-8 (ImportDeclaration)", "scripts/release-tag.spec.ts:84-84 (hunk)", "scripts/release-tag.spec.ts:85-105 (FunctionDeclaration makeFixture)", "scripts/release-tag.spec.ts:9-9 (ImportDeclaration)", "scripts/release-tag.ts:1-11 (hunk)", "scripts/release-tag.ts:100-118 (FunctionDeclaration runCli)", "scripts/release-tag.ts:119-120 (hunk)", "scripts/release-tag.ts:12-12 (ImportDeclaration)", "scripts/release-tag.ts:121-123 (VariableDeclaration isEntry)", "scripts/release-tag.ts:124-131 (IfStatement)", "scripts/release-tag.ts:13-13 (ImportDeclaration)", "scripts/release-tag.ts:14-14 (ImportDeclaration)", "scripts/release-tag.ts:15-15 (ImportDeclaration)", "scripts/release-tag.ts:16-16 (hunk)", "scripts/release-tag.ts:17-17 (VariableDeclaration TAG_PREFIX)", "scripts/release-tag.ts:18-19 (hunk)", "scripts/release-tag.ts:20-20 (VariableDeclaration TAG)", "scripts/release-tag.ts:21-22 (hunk)", "scripts/release-tag.ts:23-23 (VariableDeclaration OBJECT_ID)", "scripts/release-tag.ts:24-24 (hunk)", "scripts/release-tag.ts:25-32 (TSTypeAliasDeclaration ReleaseTagInput)", "scripts/release-tag.ts:33-33 (hunk)", "scripts/release-tag.ts:34-35 (TSTypeAliasDeclaration ReleaseTagResult)", "scripts/release-tag.ts:36-37 (hunk)", "scripts/release-tag.ts:38-65 (FunctionDeclaration checkReleaseTag)", "scripts/release-tag.ts:66-70 (hunk)", "scripts/release-tag.ts:71-83 (FunctionDeclaration isOnMain)", "scripts/release-tag.ts:84-84 (hunk)", "scripts/release-tag.ts:85-91 (TSTypeAliasDeclaration CliDeps)", "scripts/release-tag.ts:92-92 (hunk)", "scripts/release-tag.ts:93-97 (FunctionDeclaration required)", "scripts/release-tag.ts:98-99 (hunk)", "scripts/release-workflow.spec.ts:1-10 (hunk)", "scripts/release-workflow.spec.ts:108-108 (hunk)", "scripts/release-workflow.spec.ts:109-132 (ExpressionStatement)", "scripts/release-workflow.spec.ts:11-11 (ImportDeclaration)", "scripts/release-workflow.spec.ts:12-12 (ImportDeclaration)", "scripts/release-workflow.spec.ts:13-13 (ImportDeclaration)", "scripts/release-workflow.spec.ts:133-133 (hunk)", "scripts/release-workflow.spec.ts:134-158 (ExpressionStatement)", "scripts/release-workflow.spec.ts:14-14 (ImportDeclaration)", "scripts/release-workflow.spec.ts:15-15 (ImportDeclaration)", "scripts/release-workflow.spec.ts:159-159 (hunk)", "scripts/release-workflow.spec.ts:16-16 (ImportDeclaration)", "scripts/release-workflow.spec.ts:160-188 (ExpressionStatement)", "scripts/release-workflow.spec.ts:17-17 (ImportDeclaration)", "scripts/release-workflow.spec.ts:18-18 (ImportDeclaration)", "scripts/release-workflow.spec.ts:189-189 (hunk)", "scripts/release-workflow.spec.ts:19-19 (hunk)", "scripts/release-workflow.spec.ts:190-285 (ExpressionStatement)", "scripts/release-workflow.spec.ts:20-20 (VariableDeclaration ROOT)", "scripts/release-workflow.spec.ts:21-21 (VariableDeclaration read)", "scripts/release-workflow.spec.ts:22-22 (hunk)", "scripts/release-workflow.spec.ts:23-27 (VariableDeclaration BUILDS)", "scripts/release-workflow.spec.ts:28-28 (VariableDeclaration JOBS)", "scripts/release-workflow.spec.ts:286-286 (hunk)", "scripts/release-workflow.spec.ts:287-302 (ExpressionStatement)", "scripts/release-workflow.spec.ts:29-35 (VariableDeclaration SECRETS)", "scripts/release-workflow.spec.ts:303-303 (hunk)", "scripts/release-workflow.spec.ts:304-329 (ExpressionStatement)", "scripts/release-workflow.spec.ts:330-331 (hunk)", "scripts/release-workflow.spec.ts:332-340 (FunctionDeclaration requiredFiles)", "scripts/release-workflow.spec.ts:341-341 (hunk)", "scripts/release-workflow.spec.ts:342-343 (VariableDeclaration union)", "scripts/release-workflow.spec.ts:344-344 (hunk)", "scripts/release-workflow.spec.ts:345-376 (ExpressionStatement)", "scripts/release-workflow.spec.ts:36-36 (VariableDeclaration VERSION_REF)", "scripts/release-workflow.spec.ts:37-37 (VariableDeclaration PRERELEASE_REF)", "scripts/release-workflow.spec.ts:377-377 (hunk)", "scripts/release-workflow.spec.ts:378-382 (ExpressionStatement)", "scripts/release-workflow.spec.ts:38-38 (VariableDeclaration MAC_APP)", "scripts/release-workflow.spec.ts:383-385 (hunk)", "scripts/release-workflow.spec.ts:386-568 (ExpressionStatement)", "scripts/release-workflow.spec.ts:39-40 (VariableDeclaration LAYOUT)", "scripts/release-workflow.spec.ts:41-41 (VariableDeclaration SMOKE)", "scripts/release-workflow.spec.ts:42-42 (VariableDeclaration SHA_PINNED)", "scripts/release-workflow.spec.ts:43-44 (hunk)", "scripts/release-workflow.spec.ts:45-54 (FunctionDeclaration jobIds)", "scripts/release-workflow.spec.ts:55-55 (hunk)", "scripts/release-workflow.spec.ts:56-56 (VariableDeclaration indexWhere)", "scripts/release-workflow.spec.ts:57-57 (VariableDeclaration runs)", "scripts/release-workflow.spec.ts:58-58 (VariableDeclaration uses)", "scripts/release-workflow.spec.ts:59-59 (VariableDeclaration stepEnv)", "scripts/release-workflow.spec.ts:60-62 (hunk)", "scripts/release-workflow.spec.ts:63-63 (VariableDeclaration text)", "scripts/release-workflow.spec.ts:64-64 (VariableDeclaration wf)", "scripts/release-workflow.spec.ts:65-65 (VariableDeclaration jobSteps)", "scripts/release-workflow.spec.ts:66-66 (VariableDeclaration allSteps)", "scripts/release-workflow.spec.ts:67-67 (VariableDeclaration macPackage)", "scripts/release-workflow.spec.ts:68-68 (VariableDeclaration publishStep)", "scripts/release-workflow.spec.ts:69-76 (ExpressionStatement)", "scripts/release-workflow.spec.ts:77-77 (hunk)", "scripts/release-workflow.spec.ts:78-92 (ExpressionStatement)", "scripts/release-workflow.spec.ts:93-93 (hunk)", "scripts/release-workflow.spec.ts:94-107 (ExpressionStatement)", "scripts/update-feed.spec.ts:1-6 (hunk)", "scripts/update-feed.spec.ts:10-10 (ImportDeclaration)", "scripts/update-feed.spec.ts:11-11 (ImportDeclaration)", "scripts/update-feed.spec.ts:12-18 (ImportDeclaration)", "scripts/update-feed.spec.ts:19-19 (hunk)", "scripts/update-feed.spec.ts:20-20 (TSTypeAliasDeclaration Reply)", "scripts/update-feed.spec.ts:200-200 (hunk)", "scripts/update-feed.spec.ts:201-215 (ExpressionStatement)", "scripts/update-feed.spec.ts:21-21 (hunk)", "scripts/update-feed.spec.ts:216-216 (hunk)", "scripts/update-feed.spec.ts:217-233 (ExpressionStatement)", "scripts/update-feed.spec.ts:22-47 (FunctionDeclaration get)", "scripts/update-feed.spec.ts:48-48 (hunk)", "scripts/update-feed.spec.ts:49-49 (VariableDeclaration LATEST)", "scripts/update-feed.spec.ts:50-50 (VariableDeclaration BINARY)", "scripts/update-feed.spec.ts:51-51 (hunk)", "scripts/update-feed.spec.ts:52-52 (VariableDeclaration root)", "scripts/update-feed.spec.ts:53-53 (VariableDeclaration dir)", "scripts/update-feed.spec.ts:54-54 (VariableDeclaration feed)", "scripts/update-feed.spec.ts:55-55 (hunk)", "scripts/update-feed.spec.ts:56-67 (ExpressionStatement)", "scripts/update-feed.spec.ts:68-68 (hunk)", "scripts/update-feed.spec.ts:69-72 (ExpressionStatement)", "scripts/update-feed.spec.ts:7-7 (ImportDeclaration)", "scripts/update-feed.spec.ts:73-73 (hunk)", "scripts/update-feed.spec.ts:74-199 (ExpressionStatement)", "scripts/update-feed.spec.ts:8-8 (ImportDeclaration)", "scripts/update-feed.spec.ts:9-9 (ImportDeclaration)", "scripts/update-feed.ts:1-13 (hunk)", "scripts/update-feed.ts:100-149 (FunctionDeclaration serve)", "scripts/update-feed.ts:14-14 (ImportDeclaration)", "scripts/update-feed.ts:15-15 (ImportDeclaration)", "scripts/update-feed.ts:150-151 (hunk)", "scripts/update-feed.ts:152-156 (FunctionDeclaration pathOf)", "scripts/update-feed.ts:157-162 (hunk)", "scripts/update-feed.ts:16-16 (ImportDeclaration)", "scripts/update-feed.ts:163-205 (FunctionDeclaration startUpdateFeed)", "scripts/update-feed.ts:17-17 (ImportDeclaration)", "scripts/update-feed.ts:18-18 (ImportDeclaration)", "scripts/update-feed.ts:19-20 (hunk)", "scripts/update-feed.ts:21-21 (VariableDeclaration UPDATE_FEED_PORT)", "scripts/update-feed.ts:22-22 (hunk)", "scripts/update-feed.ts:23-23 (VariableDeclaration LOOPBACK)", "scripts/update-feed.ts:24-25 (hunk)", "scripts/update-feed.ts:26-26 (VariableDeclaration FILE_NAME)", "scripts/update-feed.ts:27-28 (hunk)", "scripts/update-feed.ts:29-29 (VariableDeclaration SINGLE_RANGE)", "scripts/update-feed.ts:30-30 (hunk)", "scripts/update-feed.ts:31-36 (TSTypeAliasDeclaration UpdateFeedOptions)", "scripts/update-feed.ts:37-37 (hunk)", "scripts/update-feed.ts:38-47 (TSTypeAliasDeclaration UpdateFeed)", "scripts/update-feed.ts:48-49 (hunk)", "scripts/update-feed.ts:50-60 (FunctionDeclaration fileNameFor)", "scripts/update-feed.ts:61-61 (hunk)", "scripts/update-feed.ts:62-62 (TSTypeAliasDeclaration ByteRange)", "scripts/update-feed.ts:63-68 (hunk)", "scripts/update-feed.ts:69-87 (FunctionDeclaration parseRange)", "scripts/update-feed.ts:88-88 (hunk)", "scripts/update-feed.ts:89-93 (FunctionDeclaration contentType)", "scripts/update-feed.ts:94-94 (hunk)", "scripts/update-feed.ts:95-98 (FunctionDeclaration notFound)", "scripts/update-feed.ts:99-99 (hunk)", "scripts/verify-packaged.spec.ts:1-4 (hunk)", "scripts/verify-packaged.spec.ts:10-10 (ImportDeclaration)", "scripts/verify-packaged.spec.ts:11-11 (ImportDeclaration)", "scripts/verify-packaged.spec.ts:111-111 (hunk)", "scripts/verify-packaged.spec.ts:112-153 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:12-19 (ImportDeclaration)", "scripts/verify-packaged.spec.ts:154-154 (hunk)", "scripts/verify-packaged.spec.ts:155-206 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:20-39 (ImportDeclaration)", "scripts/verify-packaged.spec.ts:207-209 (hunk)", "scripts/verify-packaged.spec.ts:210-210 (VariableDeclaration LOCAL)", "scripts/verify-packaged.spec.ts:211-211 (VariableDeclaration ROAMING)", "scripts/verify-packaged.spec.ts:212-212 (VariableDeclaration INSTALL_DIR)", "scripts/verify-packaged.spec.ts:213-213 (VariableDeclaration WIN_EXE)", "scripts/verify-packaged.spec.ts:214-214 (VariableDeclaration HKCU_UNINSTALL)", "scripts/verify-packaged.spec.ts:215-216 (VariableDeclaration HKLM_UNINSTALL)", "scripts/verify-packaged.spec.ts:217-219 (VariableDeclaration MANIFEST)", "scripts/verify-packaged.spec.ts:220-220 (hunk)", "scripts/verify-packaged.spec.ts:221-229 (FunctionDeclaration productKey)", "scripts/verify-packaged.spec.ts:230-230 (hunk)", "scripts/verify-packaged.spec.ts:231-242 (TSTypeAliasDeclaration WinFake)", "scripts/verify-packaged.spec.ts:243-243 (hunk)", "scripts/verify-packaged.spec.ts:244-271 (FunctionDeclaration winDeps)", "scripts/verify-packaged.spec.ts:272-272 (hunk)", "scripts/verify-packaged.spec.ts:273-278 (VariableDeclaration HAPPY)", "scripts/verify-packaged.spec.ts:279-279 (hunk)", "scripts/verify-packaged.spec.ts:280-292 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:293-293 (hunk)", "scripts/verify-packaged.spec.ts:294-304 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:305-305 (hunk)", "scripts/verify-packaged.spec.ts:306-318 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:319-319 (hunk)", "scripts/verify-packaged.spec.ts:320-451 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:40-40 (hunk)", "scripts/verify-packaged.spec.ts:41-41 (VariableDeclaration OK)", "scripts/verify-packaged.spec.ts:42-42 (hunk)", "scripts/verify-packaged.spec.ts:43-51 (FunctionDeclaration fakeRunner)", "scripts/verify-packaged.spec.ts:452-454 (hunk)", "scripts/verify-packaged.spec.ts:455-455 (VariableDeclaration VERSION)", "scripts/verify-packaged.spec.ts:456-457 (VariableDeclaration GITHUB_FEED)", "scripts/verify-packaged.spec.ts:458-459 (VariableDeclaration LOOPBACK_FEED)", "scripts/verify-packaged.spec.ts:460-460 (hunk)", "scripts/verify-packaged.spec.ts:461-478 (TSTypeAliasDeclaration LayoutFixture)", "scripts/verify-packaged.spec.ts:479-479 (hunk)", "scripts/verify-packaged.spec.ts:480-484 (FunctionDeclaration resourcesFor)", "scripts/verify-packaged.spec.ts:485-485 (hunk)", "scripts/verify-packaged.spec.ts:486-492 (FunctionDeclaration writeTree)", "scripts/verify-packaged.spec.ts:493-494 (hunk)", "scripts/verify-packaged.spec.ts:495-540 (FunctionDeclaration buildOutDir)", "scripts/verify-packaged.spec.ts:5-5 (ImportDeclaration)", "scripts/verify-packaged.spec.ts:52-52 (hunk)", "scripts/verify-packaged.spec.ts:53-53 (VariableDeclaration temps)", "scripts/verify-packaged.spec.ts:54-58 (FunctionDeclaration tempDir)", "scripts/verify-packaged.spec.ts:541-541 (hunk)", "scripts/verify-packaged.spec.ts:542-543 (VariableDeclaration layout)", "scripts/verify-packaged.spec.ts:544-544 (hunk)", "scripts/verify-packaged.spec.ts:545-729 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:59-61 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:6-6 (ImportDeclaration)", "scripts/verify-packaged.spec.ts:62-64 (hunk)", "scripts/verify-packaged.spec.ts:65-65 (VariableDeclaration APP)", "scripts/verify-packaged.spec.ts:66-66 (VariableDeclaration EXE)", "scripts/verify-packaged.spec.ts:67-67 (VariableDeclaration FAT)", "scripts/verify-packaged.spec.ts:68-68 (VariableDeclaration THIN)", "scripts/verify-packaged.spec.ts:69-79 (VariableDeclaration libsqlBinary)", "scripts/verify-packaged.spec.ts:7-7 (ImportDeclaration)", "scripts/verify-packaged.spec.ts:730-730 (hunk)", "scripts/verify-packaged.spec.ts:731-754 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:755-755 (hunk)", "scripts/verify-packaged.spec.ts:756-767 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:768-768 (hunk)", "scripts/verify-packaged.spec.ts:769-795 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:796-796 (hunk)", "scripts/verify-packaged.spec.ts:797-833 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:8-8 (ImportDeclaration)", "scripts/verify-packaged.spec.ts:80-80 (hunk)", "scripts/verify-packaged.spec.ts:81-91 (ExpressionStatement)", "scripts/verify-packaged.spec.ts:9-9 (ImportDeclaration)", "scripts/verify-packaged.spec.ts:92-92 (hunk)", "scripts/verify-packaged.spec.ts:93-110 (ExpressionStatement)", "scripts/verify-packaged.ts:1-26 (hunk)", "scripts/verify-packaged.ts:127-127 (hunk)", "scripts/verify-packaged.ts:128-130 (FunctionDeclaration resourcesOf)", "scripts/verify-packaged.ts:131-134 (hunk)", "scripts/verify-packaged.ts:135-144 (FunctionDeclaration aumidCommand)", "scripts/verify-packaged.ts:145-146 (hunk)", "scripts/verify-packaged.ts:147-150 (FunctionDeclaration parseAumid)", "scripts/verify-packaged.ts:151-152 (hunk)", "scripts/verify-packaged.ts:153-157 (FunctionDeclaration parseExecutionLevels)", "scripts/verify-packaged.ts:158-159 (hunk)", "scripts/verify-packaged.ts:160-169 (FunctionDeclaration startMenuShortcut)", "scripts/verify-packaged.ts:170-171 (hunk)", "scripts/verify-packaged.ts:172-175 (FunctionDeclaration isInside)", "scripts/verify-packaged.ts:176-176 (hunk)", "scripts/verify-packaged.ts:177-183 (TSTypeAliasDeclaration WinDeps)", "scripts/verify-packaged.ts:184-185 (hunk)", "scripts/verify-packaged.ts:186-253 (FunctionDeclaration verifyWin)", "scripts/verify-packaged.ts:254-257 (hunk)", "scripts/verify-packaged.ts:258-262 (VariableDeclaration EXPECTED_LIBSQL)", "scripts/verify-packaged.ts:263-264 (hunk)", "scripts/verify-packaged.ts:265-265 (VariableDeclaration NATIVE_LIBSQL)", "scripts/verify-packaged.ts:266-266 (hunk)", "scripts/verify-packaged.ts:267-267 (TSTypeAliasDeclaration AppEntry)", "scripts/verify-packaged.ts:268-268 (hunk)", "scripts/verify-packaged.ts:269-269 (TSTypeAliasDeclaration HeaderNode)", "scripts/verify-packaged.ts:27-27 (ImportDeclaration)", "scripts/verify-packaged.ts:270-271 (hunk)", "scripts/verify-packaged.ts:272-284 (FunctionDeclaration listAsar)", "scripts/verify-packaged.ts:28-28 (ImportDeclaration)", "scripts/verify-packaged.ts:285-286 (hunk)", "scripts/verify-packaged.ts:287-299 (FunctionDeclaration listTree)", "scripts/verify-packaged.ts:29-29 (ImportDeclaration)", "scripts/verify-packaged.ts:30-30 (ImportDeclaration)", "scripts/verify-packaged.ts:300-301 (hunk)", "scripts/verify-packaged.ts:302-307 (VariableDeclaration APP_ROOTS)", "scripts/verify-packaged.ts:308-309 (hunk)", "scripts/verify-packaged.ts:31-31 (ImportDeclaration)", "scripts/verify-packaged.ts:310-310 (VariableDeclaration UNPACK_ROOTS)", "scripts/verify-packaged.ts:311-311 (hunk)", "scripts/verify-packaged.ts:312-316 (FunctionDeclaration underRoots)", "scripts/verify-packaged.ts:317-317 (hunk)", "scripts/verify-packaged.ts:318-318 (VariableDeclaration SPEC_FILE)", "scripts/verify-packaged.ts:319-319 (VariableDeclaration DATABASE)", "scripts/verify-packaged.ts:32-32 (ImportDeclaration)", "scripts/verify-packaged.ts:320-320 (VariableDeclaration FIXTURE_DIRS)", "scripts/verify-packaged.ts:321-322 (hunk)", "scripts/verify-packaged.ts:323-336 (FunctionDeclaration devFileReason)", "scripts/verify-packaged.ts:33-33 (ImportDeclaration)", "scripts/verify-packaged.ts:337-338 (hunk)", "scripts/verify-packaged.ts:339-383 (FunctionDeclaration verifyAppFiles)", "scripts/verify-packaged.ts:34-48 (ImportDeclaration)", "scripts/verify-packaged.ts:384-384 (hunk)", "scripts/verify-packaged.ts:385-388 (TSTypeAliasDeclaration YamlDoc)", "scripts/verify-packaged.ts:389-389 (hunk)", "scripts/verify-packaged.ts:390-399 (FunctionDeclaration unquote)", "scripts/verify-packaged.ts:400-404 (hunk)", "scripts/verify-packaged.ts:405-423 (FunctionDeclaration parseUpdateYaml)", "scripts/verify-packaged.ts:424-424 (hunk)", "scripts/verify-packaged.ts:425-425 (TSTypeAliasDeclaration LayoutMode)", "scripts/verify-packaged.ts:426-426 (hunk)", "scripts/verify-packaged.ts:427-427 (VariableDeclaration LOOPBACK_HOSTS)", "scripts/verify-packaged.ts:428-429 (hunk)", "scripts/verify-packaged.ts:430-450 (FunctionDeclaration verifyFeed)", "scripts/verify-packaged.ts:451-452 (hunk)", "scripts/verify-packaged.ts:453-473 (FunctionDeclaration verifyUpdateFile)", "scripts/verify-packaged.ts:474-474 (hunk)", "scripts/verify-packaged.ts:475-479 (FunctionDeclaration resourcesDir)", "scripts/verify-packaged.ts:480-480 (hunk)", "scripts/verify-packaged.ts:481-486 (TSTypeAliasDeclaration LayoutInput)", "scripts/verify-packaged.ts:487-488 (hunk)", "scripts/verify-packaged.ts:489-548 (FunctionDeclaration verifyLayout)", "scripts/verify-packaged.ts:49-52 (hunk)", "scripts/verify-packaged.ts:53-58 (FunctionDeclaration parseLipoArchs)", "scripts/verify-packaged.ts:549-551 (hunk)", "scripts/verify-packaged.ts:552-560 (TSTypeAliasDeclaration CliDeps)", "scripts/verify-packaged.ts:561-561 (hunk)", "scripts/verify-packaged.ts:562-563 (VariableDeclaration USAGE)", "scripts/verify-packaged.ts:564-564 (hunk)", "scripts/verify-packaged.ts:565-568 (FunctionDeclaration hostPlatform)", "scripts/verify-packaged.ts:569-569 (hunk)", "scripts/verify-packaged.ts:570-611 (FunctionDeclaration violationsFor)", "scripts/verify-packaged.ts:59-59 (hunk)", "scripts/verify-packaged.ts:60-60 (VariableDeclaration MAC_ARCHS)", "scripts/verify-packaged.ts:61-61 (hunk)", "scripts/verify-packaged.ts:612-613 (hunk)", "scripts/verify-packaged.ts:614-628 (FunctionDeclaration runCli)", "scripts/verify-packaged.ts:62-62 (VariableDeclaration DARWIN_LIBSQL)", "scripts/verify-packaged.ts:629-630 (hunk)", "scripts/verify-packaged.ts:63-63 (hunk)", "scripts/verify-packaged.ts:631-639 (VariableDeclaration isFile)", "scripts/verify-packaged.ts:64-66 (FunctionDeclaration macExecutable)", "scripts/verify-packaged.ts:640-641 (hunk)", "scripts/verify-packaged.ts:642-644 (VariableDeclaration isEntry)", "scripts/verify-packaged.ts:645-655 (IfStatement)", "scripts/verify-packaged.ts:67-68 (hunk)", "scripts/verify-packaged.ts:69-79 (FunctionDeclaration macCommands)", "scripts/verify-packaged.ts:80-80 (hunk)", "scripts/verify-packaged.ts:81-81 (TSTypeAliasDeclaration MacDeps)", "scripts/verify-packaged.ts:82-82 (hunk)", "scripts/verify-packaged.ts:83-86 (FunctionDeclaration failure)", "scripts/verify-packaged.ts:87-88 (hunk)", "scripts/verify-packaged.ts:89-126 (FunctionDeclaration verifyMac)", "scripts/workflow-policy.spec.ts:148-193 (ExpressionStatement)", "scripts/workflow-policy.spec.ts:195-255 (ExpressionStatement)", "scripts/workflow-policy.ts:20-24 (hunk)", "scripts/workflow-policy.ts:25-27 (VariableDeclaration WRITE_SCOPE_ALLOWLIST)", "scripts/workflow-policy.ts:9-9 (hunk)", "scripts/workflow-reader.spec.ts:1-3 (hunk)", "scripts/workflow-reader.spec.ts:101-101 (VariableDeclaration wf)", "scripts/workflow-reader.spec.ts:102-104 (ExpressionStatement)", "scripts/workflow-reader.spec.ts:105-105 (hunk)", "scripts/workflow-reader.spec.ts:106-150 (ExpressionStatement)", "scripts/workflow-reader.spec.ts:151-151 (hunk)", "scripts/workflow-reader.spec.ts:152-239 (ExpressionStatement)", "scripts/workflow-reader.spec.ts:19-19 (hunk)", "scripts/workflow-reader.spec.ts:20-20 (VariableDeclaration ROOT)", "scripts/workflow-reader.spec.ts:21-21 (VariableDeclaration read)", "scripts/workflow-reader.spec.ts:22-22 (hunk)", "scripts/workflow-reader.spec.ts:23-98 (VariableDeclaration FIXTURE)", "scripts/workflow-reader.spec.ts:240-240 (hunk)", "scripts/workflow-reader.spec.ts:241-255 (ExpressionStatement)", "scripts/workflow-reader.spec.ts:256-256 (hunk)", "scripts/workflow-reader.spec.ts:257-339 (ExpressionStatement)", "scripts/workflow-reader.spec.ts:340-340 (hunk)", "scripts/workflow-reader.spec.ts:341-395 (ExpressionStatement)", "scripts/workflow-reader.spec.ts:396-396 (hunk)", "scripts/workflow-reader.spec.ts:397-423 (ExpressionStatement)", "scripts/workflow-reader.spec.ts:4-4 (ImportDeclaration)", "scripts/workflow-reader.spec.ts:424-424 (hunk)", "scripts/workflow-reader.spec.ts:425-447 (ExpressionStatement)", "scripts/workflow-reader.spec.ts:448-448 (hunk)", "scripts/workflow-reader.spec.ts:449-462 (ExpressionStatement)", "scripts/workflow-reader.spec.ts:463-463 (hunk)", "scripts/workflow-reader.spec.ts:464-485 (ExpressionStatement)", "scripts/workflow-reader.spec.ts:5-5 (ImportDeclaration)", "scripts/workflow-reader.spec.ts:6-6 (ImportDeclaration)", "scripts/workflow-reader.spec.ts:7-7 (ImportDeclaration)", "scripts/workflow-reader.spec.ts:8-18 (ImportDeclaration)", "scripts/workflow-reader.spec.ts:99-100 (hunk)", "scripts/workflow-reader.ts:1-11 (hunk)", "scripts/workflow-reader.ts:116-116 (hunk)", "scripts/workflow-reader.ts:117-118 (VariableDeclaration asList)", "scripts/workflow-reader.ts:119-120 (hunk)", "scripts/workflow-reader.ts:12-12 (TSTypeAliasDeclaration Value)", "scripts/workflow-reader.ts:121-147 (FunctionDeclaration steps)", "scripts/workflow-reader.ts:13-13 (hunk)", "scripts/workflow-reader.ts:14-23 (TSTypeAliasDeclaration Step)", "scripts/workflow-reader.ts:148-152 (hunk)", "scripts/workflow-reader.ts:153-161 (FunctionDeclaration branches)", "scripts/workflow-reader.ts:162-163 (hunk)", "scripts/workflow-reader.ts:164-209 (FunctionDeclaration readWorkflow)", "scripts/workflow-reader.ts:24-24 (hunk)", "scripts/workflow-reader.ts:25-35 (TSTypeAliasDeclaration Workflow)", "scripts/workflow-reader.ts:36-36 (hunk)", "scripts/workflow-reader.ts:37-41 (FunctionDeclaration unquote)", "scripts/workflow-reader.ts:42-42 (hunk)", "scripts/workflow-reader.ts:43-43 (VariableDeclaration indentOf)", "scripts/workflow-reader.ts:44-44 (VariableDeclaration isComment)", "scripts/workflow-reader.ts:45-45 (VariableDeclaration isSignificant)", "scripts/workflow-reader.ts:46-46 (VariableDeclaration stripComment)", "scripts/workflow-reader.ts:47-47 (VariableDeclaration escape)", "scripts/workflow-reader.ts:48-49 (hunk)", "scripts/workflow-reader.ts:50-51 (VariableDeclaration keyLine)", "scripts/workflow-reader.ts:52-53 (hunk)", "scripts/workflow-reader.ts:54-57 (FunctionDeclaration pair)", "scripts/workflow-reader.ts:58-59 (hunk)", "scripts/workflow-reader.ts:60-64 (FunctionDeclaration childrenOf)", "scripts/workflow-reader.ts:65-66 (hunk)", "scripts/workflow-reader.ts:67-70 (FunctionDeclaration block)", "scripts/workflow-reader.ts:71-72 (hunk)", "scripts/workflow-reader.ts:73-80 (FunctionDeclaration map)", "scripts/workflow-reader.ts:81-82 (hunk)", "scripts/workflow-reader.ts:83-83 (VariableDeclaration flowItems)", "scripts/workflow-reader.ts:84-85 (hunk)", "scripts/workflow-reader.ts:86-115 (FunctionDeclaration value)", "src/desktop/app-paths.spec.ts:110-110 (hunk)", "src/desktop/app-paths.spec.ts:111-138 (ExpressionStatement)", "src/desktop/app-paths.spec.ts:2-2 (ImportDeclaration)", "src/desktop/app-paths.spec.ts:4-4 (ImportDeclaration)", "src/desktop/app-paths.spec.ts:5-5 (ImportDeclaration)", "src/desktop/app-paths.spec.ts:6-6 (ImportDeclaration)", "src/desktop/app-paths.spec.ts:75-75 (hunk)", "src/desktop/app-paths.spec.ts:76-109 (ExpressionStatement)", "src/desktop/app-paths.ts:32-39 (hunk)", "src/desktop/app-paths.ts:40-42 (FunctionDeclaration serverCwdFor)", "src/desktop/app-paths.ts:43-43 (hunk)", "src/desktop/boundary.spec.ts:243-246 (hunk)", "src/desktop/boundary.spec.ts:247-248 (VariableDeclaration isUpdater)", "src/desktop/boundary.spec.ts:249-249 (hunk)", "src/desktop/boundary.spec.ts:250-250 (VariableDeclaration FEED_OVERRIDE)", "src/desktop/boundary.spec.ts:251-251 (hunk)", "src/desktop/boundary.spec.ts:252-252 (VariableDeclaration mainSource)", "src/desktop/boundary.spec.ts:253-253 (VariableDeclaration mainFile)", "src/desktop/boundary.spec.ts:254-254 (hunk)", "src/desktop/boundary.spec.ts:255-269 (FunctionDeclaration callsTo)", "src/desktop/boundary.spec.ts:270-271 (hunk)", "src/desktop/boundary.spec.ts:272-281 (FunctionDeclaration propertyOf)", "src/desktop/boundary.spec.ts:282-283 (hunk)", "src/desktop/boundary.spec.ts:284-292 (FunctionDeclaration requiresPackaged)", "src/desktop/boundary.spec.ts:293-294 (hunk)", "src/desktop/boundary.spec.ts:295-305 (FunctionDeclaration inPackagedBranch)", "src/desktop/boundary.spec.ts:306-306 (hunk)", "src/desktop/boundary.spec.ts:307-396 (ExpressionStatement)", "src/desktop/lifecycle.spec.ts:1-1 (ImportDeclaration)", "src/desktop/lifecycle.spec.ts:107-125 (TSTypeAliasDeclaration HarnessOptions)", "src/desktop/lifecycle.spec.ts:1126-1126 (hunk)", "src/desktop/lifecycle.spec.ts:1127-1229 (ExpressionStatement)", "src/desktop/lifecycle.spec.ts:1230-1232 (hunk)", "src/desktop/lifecycle.spec.ts:1233-1298 (ExpressionStatement)", "src/desktop/lifecycle.spec.ts:127-247 (FunctionDeclaration harness)", "src/desktop/lifecycle.spec.ts:2-2 (ImportDeclaration)", "src/desktop/lifecycle.spec.ts:249-249 (hunk)", "src/desktop/lifecycle.spec.ts:25-25 (ImportDeclaration)", "src/desktop/lifecycle.spec.ts:250-250 (VariableDeclaration harnesses)", "src/desktop/lifecycle.spec.ts:251-251 (hunk)", "src/desktop/lifecycle.spec.ts:258-265 (ExpressionStatement)", "src/desktop/lifecycle.spec.ts:27-28 (hunk)", "src/desktop/lifecycle.spec.ts:29-34 (TSTypeAliasDeclaration RealDeps)", "src/desktop/lifecycle.spec.ts:3-3 (ImportDeclaration)", "src/desktop/lifecycle.spec.ts:35-37 (VariableDeclaration realDepsFit)", "src/desktop/lifecycle.spec.ts:39-39 (hunk)", "src/desktop/lifecycle.spec.ts:4-4 (ImportDeclaration)", "src/desktop/lifecycle.spec.ts:40-40 (VariableDeclaration updaterFits)", "src/desktop/lifecycle.spec.ts:41-41 (ExpressionStatement)", "src/desktop/lifecycle.spec.ts:5-5 (ImportDeclaration)", "src/desktop/lifecycle.spec.ts:6-6 (ImportDeclaration)", "src/desktop/lifecycle.spec.ts:733-733 (hunk)", "src/desktop/lifecycle.spec.ts:734-1125 (ExpressionStatement)", "src/desktop/lifecycle.spec.ts:8-24 (ImportDeclaration)", "src/desktop/lifecycle.spec.ts:85-85 (TSTypeAliasDeclaration FakeApp)", "src/desktop/lifecycle.spec.ts:86-86 (TSTypeAliasDeclaration FakeNative)", "src/desktop/lifecycle.spec.ts:87-87 (hunk)", "src/desktop/lifecycle.spec.ts:88-105 (TSTypeAliasDeclaration Harness)", "src/desktop/lifecycle.ts:114-119 (TSTypeAliasDeclaration LifecycleTrayActions)", "src/desktop/lifecycle.ts:120-121 (hunk)", "src/desktop/lifecycle.ts:122-127 (TSTypeAliasDeclaration LifecycleUpdates)", "src/desktop/lifecycle.ts:128-132 (hunk)", "src/desktop/lifecycle.ts:133-136 (TSTypeAliasDeclaration LifecycleNativeUpdater)", "src/desktop/lifecycle.ts:144-176 (TSTypeAliasDeclaration LifecycleDeps)", "src/desktop/lifecycle.ts:180-180 (hunk)", "src/desktop/lifecycle.ts:181-181 (TSTypeAliasDeclaration SquirrelOutcome)", "src/desktop/lifecycle.ts:182-182 (hunk)", "src/desktop/lifecycle.ts:183-199 (TSTypeAliasDeclaration Running)", "src/desktop/lifecycle.ts:19-22 (hunk)", "src/desktop/lifecycle.ts:224-224 (hunk)", "src/desktop/lifecycle.ts:225-227 (FunctionDeclaration sleep)", "src/desktop/lifecycle.ts:228-232 (hunk)", "src/desktop/lifecycle.ts:233-244 (FunctionDeclaration waitForExit)", "src/desktop/lifecycle.ts:245-249 (hunk)", "src/desktop/lifecycle.ts:250-255 (FunctionDeclaration lockAfterPredecessor)", "src/desktop/lifecycle.ts:256-262 (hunk)", "src/desktop/lifecycle.ts:263-276 (FunctionDeclaration installPending)", "src/desktop/lifecycle.ts:277-282 (hunk)", "src/desktop/lifecycle.ts:283-296 (FunctionDeclaration watchSquirrel)", "src/desktop/lifecycle.ts:297-301 (hunk)", "src/desktop/lifecycle.ts:302-316 (FunctionDeclaration waitForSquirrel)", "src/desktop/lifecycle.ts:317-317 (hunk)", "src/desktop/lifecycle.ts:34-56 (hunk)", "src/desktop/lifecycle.ts:344-474 (FunctionDeclaration runDesktop)", "src/desktop/lifecycle.ts:65-65 (ImportDeclaration)", "src/desktop/lifecycle.ts:72-72 (hunk)", "src/desktop/lifecycle.ts:73-73 (VariableDeclaration PREDECESSOR_PID_ENV)", "src/desktop/lifecycle.ts:74-74 (hunk)", "src/desktop/lifecycle.ts:75-75 (VariableDeclaration PREDECESSOR_WAIT_MS)", "src/desktop/lifecycle.ts:76-76 (hunk)", "src/desktop/lifecycle.ts:77-77 (VariableDeclaration PREDECESSOR_POLL_MS)", "src/desktop/lifecycle.ts:78-78 (hunk)", "src/desktop/lifecycle.ts:79-79 (VariableDeclaration SQUIRREL_STAGE_WAIT_MS)", "src/desktop/lifecycle.ts:80-80 (hunk)", "src/desktop/lifecycle.ts:81-81 (VariableDeclaration SQUIRREL_HANDOFF_MS)", "src/desktop/lifecycle.ts:82-82 (hunk)", "src/desktop/lifecycle.ts:83-83 (VariableDeclaration INHERITED_SECRETS)", "src/desktop/main.ts:100-100 (hunk)", "src/desktop/main.ts:101-101 (VariableDeclaration restartToUpdate)", "src/desktop/main.ts:102-103 (hunk)", "src/desktop/main.ts:104-104 (VariableDeclaration predecessorPid)", "src/desktop/main.ts:105-105 (ExpressionStatement)", "src/desktop/main.ts:106-106 (hunk)", "src/desktop/main.ts:107-111 (FunctionDeclaration parsePid)", "src/desktop/main.ts:112-113 (hunk)", "src/desktop/main.ts:114-121 (FunctionDeclaration isProcessAlive)", "src/desktop/main.ts:122-123 (hunk)", "src/desktop/main.ts:124-137 (VariableDeclaration updater)", "src/desktop/main.ts:162-229 (ExpressionStatement)", "src/desktop/main.ts:17-30 (hunk)", "src/desktop/main.ts:33-43 (ImportDeclaration)", "src/desktop/main.ts:44-44 (ImportDeclaration)", "src/desktop/main.ts:51-51 (ImportDeclaration)", "src/desktop/main.ts:52-52 (ImportDeclaration)", "src/desktop/main.ts:58-58 (ImportDeclaration)", "src/desktop/main.ts:59-59 (ImportDeclaration)", "src/desktop/main.ts:64-64 (hunk)", "src/desktop/main.ts:65-65 (VariableDeclaration SERVER_CWD)", "src/desktop/main.ts:99-99 (VariableDeclaration tray)", "src/desktop/tray.spec.ts:165-219 (ExpressionStatement)", "src/desktop/tray.spec.ts:220-220 (hunk)", "src/desktop/tray.spec.ts:6-16 (ImportDeclaration)", "src/desktop/tray.spec.ts:81-99 (FunctionDeclaration setup)", "src/desktop/tray.ts:24-24 (VariableDeclaration RESTART_TO_UPDATE_LABEL)", "src/desktop/tray.ts:3-4 (hunk)", "src/desktop/tray.ts:44-52 (TSTypeAliasDeclaration TrayActions)", "src/desktop/tray.ts:54-60 (TSTypeAliasDeclaration TrayHandle)", "src/desktop/tray.ts:67-70 (hunk)", "src/desktop/tray.ts:71-91 (FunctionDeclaration trayMenuTemplate)", "src/desktop/tray.ts:94-122 (FunctionDeclaration createTray)", "src/desktop/updater-channel.spec.ts:1-6 (hunk)", "src/desktop/updater-channel.spec.ts:10-10 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:108-108 (hunk)", "src/desktop/updater-channel.spec.ts:109-123 (FunctionDeclaration latestYml)", "src/desktop/updater-channel.spec.ts:11-11 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:12-12 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:124-125 (hunk)", "src/desktop/updater-channel.spec.ts:126-151 (ClassDeclaration FeedUpdater)", "src/desktop/updater-channel.spec.ts:13-13 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:14-14 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:15-18 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:152-152 (hunk)", "src/desktop/updater-channel.spec.ts:153-166 (FunctionDeclaration fakeApp)", "src/desktop/updater-channel.spec.ts:167-167 (hunk)", "src/desktop/updater-channel.spec.ts:168-177 (TSTypeAliasDeclaration Outcome)", "src/desktop/updater-channel.spec.ts:178-178 (hunk)", "src/desktop/updater-channel.spec.ts:179-179 (VariableDeclaration cleanups)", "src/desktop/updater-channel.spec.ts:180-180 (hunk)", "src/desktop/updater-channel.spec.ts:181-183 (ExpressionStatement)", "src/desktop/updater-channel.spec.ts:184-184 (hunk)", "src/desktop/updater-channel.spec.ts:185-221 (FunctionDeclaration checkAgainstFeed)", "src/desktop/updater-channel.spec.ts:19-19 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:20-20 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:21-21 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:22-22 (hunk)", "src/desktop/updater-channel.spec.ts:222-222 (hunk)", "src/desktop/updater-channel.spec.ts:223-269 (ExpressionStatement)", "src/desktop/updater-channel.spec.ts:23-23 (VariableDeclaration OWNER)", "src/desktop/updater-channel.spec.ts:24-24 (VariableDeclaration REPO)", "src/desktop/updater-channel.spec.ts:25-25 (VariableDeclaration RC_CHANNEL_FILE)", "src/desktop/updater-channel.spec.ts:26-26 (VariableDeclaration LATEST_CHANNEL_FILE)", "src/desktop/updater-channel.spec.ts:27-27 (hunk)", "src/desktop/updater-channel.spec.ts:28-28 (VariableDeclaration)", "src/desktop/updater-channel.spec.ts:29-31 (hunk)", "src/desktop/updater-channel.spec.ts:32-34 (VariableDeclaration requireFromUpdater)", "src/desktop/updater-channel.spec.ts:35-35 (TSTypeAliasDeclaration HttpExecutorBase)", "src/desktop/updater-channel.spec.ts:36-38 (VariableDeclaration)", "src/desktop/updater-channel.spec.ts:39-40 (hunk)", "src/desktop/updater-channel.spec.ts:41-45 (ClassDeclaration NodeHttpExecutor)", "src/desktop/updater-channel.spec.ts:46-46 (hunk)", "src/desktop/updater-channel.spec.ts:47-47 (TSTypeAliasDeclaration Release)", "src/desktop/updater-channel.spec.ts:48-49 (hunk)", "src/desktop/updater-channel.spec.ts:50-89 (FunctionDeclaration startFeed)", "src/desktop/updater-channel.spec.ts:7-7 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:8-8 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:9-9 (ImportDeclaration)", "src/desktop/updater-channel.spec.ts:90-90 (hunk)", "src/desktop/updater-channel.spec.ts:91-107 (FunctionDeclaration atom)", "src/desktop/updater.spec.ts:1-1 (ImportDeclaration)", "src/desktop/updater.spec.ts:115-115 (hunk)", "src/desktop/updater.spec.ts:116-286 (ExpressionStatement)", "src/desktop/updater.spec.ts:14-14 (hunk)", "src/desktop/updater.spec.ts:15-15 (VariableDeclaration HOUR)", "src/desktop/updater.spec.ts:16-16 (VariableDeclaration realSetImmediate)", "src/desktop/updater.spec.ts:17-18 (hunk)", "src/desktop/updater.spec.ts:19-33 (ClassDeclaration FakeUpdater)", "src/desktop/updater.spec.ts:2-2 (ImportDeclaration)", "src/desktop/updater.spec.ts:287-287 (hunk)", "src/desktop/updater.spec.ts:288-389 (ExpressionStatement)", "src/desktop/updater.spec.ts:3-3 (ImportDeclaration)", "src/desktop/updater.spec.ts:34-34 (hunk)", "src/desktop/updater.spec.ts:35-35 (TSTypeAliasDeclaration Deferred)", "src/desktop/updater.spec.ts:36-36 (hunk)", "src/desktop/updater.spec.ts:37-45 (FunctionDeclaration deferred)", "src/desktop/updater.spec.ts:390-390 (hunk)", "src/desktop/updater.spec.ts:391-496 (ExpressionStatement)", "src/desktop/updater.spec.ts:4-4 (ImportDeclaration)", "src/desktop/updater.spec.ts:46-46 (hunk)", "src/desktop/updater.spec.ts:47-67 (FunctionDeclaration setup)", "src/desktop/updater.spec.ts:497-497 (hunk)", "src/desktop/updater.spec.ts:498-530 (ExpressionStatement)", "src/desktop/updater.spec.ts:5-5 (ImportDeclaration)", "src/desktop/updater.spec.ts:531-531 (hunk)", "src/desktop/updater.spec.ts:532-554 (ExpressionStatement)", "src/desktop/updater.spec.ts:6-13 (ImportDeclaration)", "src/desktop/updater.spec.ts:68-69 (hunk)", "src/desktop/updater.spec.ts:70-73 (FunctionDeclaration flush)", "src/desktop/updater.spec.ts:74-74 (hunk)", "src/desktop/updater.spec.ts:75-77 (ExpressionStatement)", "src/desktop/updater.spec.ts:78-78 (hunk)", "src/desktop/updater.spec.ts:79-82 (ExpressionStatement)", "src/desktop/updater.spec.ts:83-83 (hunk)", "src/desktop/updater.spec.ts:84-114 (ExpressionStatement)", "src/desktop/updater.ts:1-23 (hunk)", "src/desktop/updater.ts:104-104 (hunk)", "src/desktop/updater.ts:105-105 (VariableDeclaration UPDATE_NOTICE_TITLE)", "src/desktop/updater.ts:106-106 (hunk)", "src/desktop/updater.ts:107-113 (FunctionDeclaration updateNotice)", "src/desktop/updater.ts:114-114 (hunk)", "src/desktop/updater.ts:115-240 (FunctionDeclaration createUpdater)", "src/desktop/updater.ts:24-24 (ImportDeclaration)", "src/desktop/updater.ts:241-242 (hunk)", "src/desktop/updater.ts:243-245 (FunctionDeclaration publishUpdaterHandle)", "src/desktop/updater.ts:25-25 (ImportDeclaration)", "src/desktop/updater.ts:26-26 (hunk)", "src/desktop/updater.ts:27-27 (VariableDeclaration UPDATE_CHECK_INTERVAL_MS)", "src/desktop/updater.ts:28-28 (VariableDeclaration UPDATER_HANDLE_KEY)", "src/desktop/updater.ts:29-30 (hunk)", "src/desktop/updater.ts:31-47 (TSTypeAliasDeclaration AutoUpdater)", "src/desktop/updater.ts:48-48 (hunk)", "src/desktop/updater.ts:49-49 (TSTypeAliasDeclaration IntervalHandle)", "src/desktop/updater.ts:50-50 (hunk)", "src/desktop/updater.ts:51-54 (TSTypeAliasDeclaration UpdaterTimers)", "src/desktop/updater.ts:55-55 (hunk)", "src/desktop/updater.ts:56-59 (TSTypeAliasDeclaration UpdaterLog)", "src/desktop/updater.ts:60-60 (hunk)", "src/desktop/updater.ts:61-71 (TSTypeAliasDeclaration UpdaterInput)", "src/desktop/updater.ts:72-72 (hunk)", "src/desktop/updater.ts:73-73 (TSTypeAliasDeclaration UpdateState)", "src/desktop/updater.ts:74-74 (hunk)", "src/desktop/updater.ts:75-81 (TSTypeAliasDeclaration UpdaterStatus)", "src/desktop/updater.ts:82-83 (hunk)", "src/desktop/updater.ts:84-84 (TSTypeAliasDeclaration ExitMode)", "src/desktop/updater.ts:85-85 (hunk)", "src/desktop/updater.ts:86-96 (TSTypeAliasDeclaration UpdaterController)", "src/desktop/updater.ts:97-98 (hunk)", "src/desktop/updater.ts:99-103 (TSTypeAliasDeclaration UpdaterHandle)"]
+
+[[criterion]]
+  id = "c-1"
+  status = "weak"
+  tests = ["e2e/packaged/smoke.packaged.ts:test('empty')", "e2e/packaged/smoke.packaged.ts:test('libsql outside asar')", "e2e/packaged/smoke.packaged.ts:test('persists')", "scripts/verify-packaged.spec.ts:it('fails a libsql binary packed inside app.asar rather than unpacked')", "scripts/ci-packaged.spec.ts:describe('ci.yml runs the packaged steps in the test job on every OS (c-1)')", "scripts/release-workflow.spec.ts:it('Windows: silent install, then verify win, then the smoke on the installed app')"]
+  notes = "Breaks if a packaged build opens non-empty, loses a saved watch over relaunch, or loads libsql from inside app.asar, or CI stops running the smoke. Observed: packaged smoke passed on macOS, Windows and Linux in PR CI run 44136073549 at HEAD ce66faf. Release-artefact smoke is only pinned structurally by release-workflow.spec (no tag run yet). Downgraded: 75 survivors in scripts/packaged-app.ts and the verifyLayout/verifyAppFiles part of scripts/verify-packaged.ts, the code that locates and checks the build."
+
+[[criterion]]
+  id = "c-2"
+  status = "weak"
+  tests = ["scripts/verify-packaged.spec.ts:describe('verifyMac')", "scripts/verify-packaged.spec.ts:it('adds exactly codesign, spctl and stapler on the app when signed')", "scripts/verify-packaged.spec.ts:describe('runCli mac')", "scripts/ci-packaged.spec.ts:it('macOS checks the universal app and both libsql binaries, unsigned')", "scripts/release-workflow.spec.ts:it('signs only on macOS: --sign with the decoded .p8, then verify mac --signed before upload')", "scripts/build-desktop.spec.ts (both darwin libsql resolve with index.node)"]
+  notes = "Breaks if the app is not fat arm64+x86_64, a darwin libsql binary is missing, or a signing check is skipped or ignored. Observed: unsigned 'verify packaged' (lipo + both libsql) passed on macOS in run 44136073549. codesign/spctl/stapler only run against fakes; a real signed/notarised verify happens first on a tag. Downgraded: verifyMac/parseLipoArchs survivors in scripts/verify-packaged.ts (e.g. :54 lipo regex). Gatekeeper open is device UAT."
+
+[[criterion]]
+  id = "c-3"
+  status = "weak"
+  tests = ["scripts/verify-packaged.spec.ts:describe('verifyWin')", "scripts/verify-packaged.spec.ts:it('fails when only HKLM holds the product (no per-user entry)')", "scripts/verify-packaged.spec.ts:it.each(['requireAdministrator', 'highestAvailable'])", "scripts/verify-packaged.spec.ts:describe('aumidCommand')", "scripts/ci-packaged.spec.ts:it('Windows installs silently, then checks the per-user install and the AUMID')", "scripts/package-desktop.spec.ts (appId read from APP_ID)"]
+  notes = "Breaks if the installer needs elevation, installs per-machine, or the Start Menu AUMID differs from APP_ID. Observed: 'verify packaged' (verify win after silent install) passed on Windows in run 44136073549. Downgraded: verifyWin survivors in scripts/verify-packaged.ts (e.g. :223 HKCU prefix block, :139 AUMID PowerShell text). SmartScreen is device UAT."
+
+[[criterion]]
+  id = "c-4"
+  status = "weak"
+  tests = ["scripts/release-tag.spec.ts:describe('checkReleaseTag') refusal table", "scripts/release-tag.spec.ts:it('is false for a commit only on a side branch')", "scripts/release-tag.spec.ts:it('as a process: exit codes and output follow the check')", "scripts/release-workflow.spec.ts:it('publish needs exactly the tag and all three builds')", "scripts/release-workflow.spec.ts:it('no job or step runs regardless of failure')", "scripts/release-workflow.spec.ts:describe('publish script under a stub gh') (one release with every file, rc pre-release, refuses existing/draft release)", "scripts/package-desktop.spec.ts:it.each(refusals)('refuses --sign with %s, naming it and printing no value')"]
+  notes = "Breaks if a tag off main or not matching package.json, a missing Apple credential, a failed OS build or an existing release still publishes. Every clause has a failing test, but no real tag run has happened. Downgraded: 25 survivors in scripts/release-tag.ts, incl. 7 on the TAG regex (:20, e.g. [1-9]\\d* -> [1-9]\\D*, dropped ^ anchor) and the OBJECT_ID regex (:23): multi-digit versions and anchoring are untested."
+
+[[criterion]]
+  id = "c-5"
+  status = "weak"
+  tests = ["src/desktop/updater.spec.ts:it('checks at start, at exactly 6 h, and 4 times by 18 h')", "src/desktop/updater.spec.ts:it('notifies once per version and calls onReady once per version')", "src/desktop/updater.spec.ts:it('never restarts by itself: 48 h after a download, no quitAndInstall')", "src/desktop/updater.spec.ts:describe('createUpdater, installOnExit')", "src/desktop/updater-channel.spec.ts:it('rc takes final: 0.1.5-rc.1 updates to 0.1.5')", "src/desktop/updater-channel.spec.ts:it('final never takes rc: 0.1.5 ignores a newer 0.1.6-rc.1')", "src/desktop/tray.spec.ts:describe('Restart to update (05-release c-5)')", "src/desktop/lifecycle.spec.ts:describe('update install on quit (05-release c-5, c-6)')", "e2e/packaged/update.packaged.ts:test('check at launch'|'downloaded, never a forced restart'|'one notification per version'|'quit installs in place')"]
+  notes = "Breaks if checks stop at launch/6 h, a download notifies twice or force-restarts, Restart/Quit does not install, or channels cross. Unit layer covers each. CI is the stated proof and it is RED at HEAD: update.packaged.ts 'restart through the predecessor wait' times out on Linux (also in run 44129127185) and 'relaunch after exit' fails on Windows, so 'comes back as the new version with its watches intact' ('relaunch is B with its data') is not shown on either OS. Survivors: updater.ts:142 (settleIdle forced), :171 x2 (optional chaining on downloadPromise), :172 (check-failure catch)."
+
+[[criterion]]
+  id = "c-6"
+  status = "weak"
+  tests = ["src/desktop/lifecycle.spec.ts:describe('waiting for the version an update replaced (05-release c-6)')", "src/desktop/lifecycle.spec.ts:it('hands over with the key and DB URL gone from the env and this pid as predecessor')", "src/desktop/boundary.spec.ts:it('reads PRICE_CHECK_PREDECESSOR_PID before the loadAdapterHandler call')", "e2e/packaged/update.packaged.ts:test('relaunch after exit')", "e2e/packaged/update.packaged.ts:test('relaunch is B with its data')"]
+  notes = "Breaks if B starts before A exits or opens a locked/partial DB. Unit tests pin the predecessor wait and lock retry. The Windows proof is RED at HEAD: 'relaunch after exit' failed in run 44136073549 (no relaunch served from the installed exe within 180000ms), and 'relaunch is B with its data' did not pass on either OS. Survivor lifecycle.ts:252 (guard forced false: a null predecessor still polls and retries the lock; no test asserts a single lock request). main.ts isProcessAlive/parsePid are Electron-only (not mutated)."
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "PR CI run 44136073549 at HEAD ce66faf: 'packaged e2e' fails on Linux (update.packaged.ts 'restart through the predecessor wait' hits the 360 s test timeout; also failed in run 44129127185) and on Windows ('relaunch after exit': no relaunch served from the installed Price Check.exe within 180000ms). 'relaunch is B with its data' passed on neither OS, so c-5's restart-to-new-version and c-6 are not demonstrated."
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "410 in-hunk survivors left undispositioned after triage (real test gaps, not accepted): scripts/verify-packaged.ts 155, packaged-app.ts 75, process-probe.ts 64, update-feed.ts 61, package-desktop.ts 25, release-tag.ts 25, src/desktop/updater.ts 4, lifecycle.ts 1. Each is seeded as its own BLOCKING finding below."
+
+[[finding]]
+  severity = "FLAG"
+  text = "c-2/c-4 release-only legs (codesign/spctl/stapler on a signed app, notarisation, tag job, gh publish) have never run: they first execute on the v0.1.5-rc.1 tag. Only workflow-text specs and stubbed-command specs cover them."
+
+[[finding]]
+  severity = "FLAG"
+  text = "Solo-review FLAGs left open on c-6 paths: main.ts isProcessAlive reads any kill(pid,0) error but EPERM as 'gone' with no log; parsePid drops a malformed PRICE_CHECK_PREDECESSOR_PID silently; update.packaged.ts's 'database is locked' check only sees Playwright-launched output (t-10, t-12, t-18)."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Mutation: dross 71ed5404 still feeds test/e2e/config files to stryker --mutate (mutationCandidates filters only .dross/). Sidestep: `dross verify --skip-mutation`, native ranged Stryker on the 12 production files, then `--reuse-report`. Instrumented: scripts/{package-desktop,packaged-app,process-probe,release-tag,update-feed,verify-packaged,workflow-reader}.ts and src/desktop/updater.ts whole; scripts/workflow-policy.ts:20-27, src/desktop/app-paths.ts:32-42, lifecycle.ts:68-83,224-474, tray.ts:24,71-122. 2733 mutants, ~2m47s. The leg's `ranges` lists spec/e2e entries that were not instrumented."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Stryker ran with a scratch-only config (no repo change): ignorePatterns adds /dist-packaged (the local .app's framework symlinks make the sandbox copy fail with ENOTSUP) and the verify-03 chdir/cwd emulation setup file (vitest threads pool throws on process.chdir in server-env.spec)."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Excluded from mutation: src/desktop/main.ts (Electron wiring, e2e-only, as in verify 04), e2e/packaged/* helpers, playwright.packaged.config.ts. 93 survivors accepted this run with reasons (log wording, log-only catches, equivalent guards, unreachable default/regex branch, CLI isEntry blocks run only as child processes or CI steps)."
+
+[[finding]]
+  severity = "NOTE"
+  text = "Local `dross test` = vitest only: 91 files / 1929 tests passed. Playwright suites were not run locally; their evidence is PR CI run 44136073549 (web e2e 134 passed, desktop e2e 32 passed on Linux/Windows; all macOS steps green)."
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:308 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:309 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:312 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:138 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:151 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:150 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:146 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:160 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:207 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:250 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:253 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:257 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:264 (ArrayDeclaration)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:260 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:281 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:280 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:285 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:286 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:300 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:32 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:119 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:119 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:119 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:119 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/package-desktop.ts:122 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:70 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:80 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:89 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:196 (BooleanLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:53 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:54 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:54 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:54 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:55 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:54 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:54 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:54 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:54 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:62 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:62 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:63 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:70 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:70 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:80 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:83 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:88 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:90 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:89 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:90 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:95 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:97 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:96 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:115 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:115 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:116 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:116 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:116 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:116 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:119 (UnaryOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:119 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:121 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:122 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:121 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:121 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:123 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:123 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:134 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:125 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:137 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:137 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:148 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:166 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:166 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:166 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:166 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:173 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:179 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:179 (ArrowFunction)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:178 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:179 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:179 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:179 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:179 (BooleanLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:191 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:195 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:195 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:195 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:40 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/process-probe.ts:40 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:144 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:145 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:153 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:170 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:51 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:51 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:74 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:80 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:85 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:85 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:85 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:90 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:90 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:90 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:90 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:90 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:90 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:90 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:92 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:91 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:96 (ObjectLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:96 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:102 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:102 (ObjectLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:112 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:112 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:119 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:117 (ObjectLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:120 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:133 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:137 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:139 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:139 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:139 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:139 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:139 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:139 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:144 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:180 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:180 (ObjectLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:29 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:168 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:168 (BooleanLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (BooleanLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:187 (ObjectLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:169 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:187 (BooleanLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:188 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:185 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/update-feed.ts:187 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: src/desktop/lifecycle.ts:252 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: src/desktop/updater.ts:142 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: src/desktop/updater.ts:172 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: src/desktop/updater.ts:171 (OptionalChaining)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: src/desktop/updater.ts:171 (OptionalChaining)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:73 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:93 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:201 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:205 (ObjectLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:205 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:205 (ArithmeticOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:205 (ArithmeticOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:205 (BooleanLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:205 (ArithmeticOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:206 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:207 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:207 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:207 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:207 (ObjectLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:208 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:208 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:208 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:208 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:208 (UnaryOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:209 (ObjectLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:209 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:209 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:209 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:264 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:277 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:285 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:286 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:114 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:114 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:114 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:114 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:114 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:114 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:114 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:129 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:104 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:178 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:235 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:247 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:247 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:248 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:248 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:247 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:249 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:255 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:255 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:264 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:262 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:264 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:264 (OptionalChaining)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:279 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:277 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:277 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:277 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:285 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:318 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:318 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:326 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:341 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:342 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:342 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:32 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:32 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:32 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:32 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:32 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:32 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:73 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:92 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:200 (ArrowFunction)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:93 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:238 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:238 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:238 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/packaged-app.ts:315 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:81 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:108 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:43 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:43 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:81 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:77 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:81 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:95 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:95 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:95 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:95 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:95 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:108 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:112 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:20 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:20 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:20 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:20 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:20 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:20 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:20 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:23 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:23 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:23 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/release-tag.ts:23 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:85 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:223 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:224 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:277 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:288 (ArrayDeclaration)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:420 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:446 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:446 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:463 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:465 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:466 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:470 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:505 (ArrayDeclaration)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:516 (ArrayDeclaration)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:516 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:533 (ArrayDeclaration)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:533 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:544 (ArrayDeclaration)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:544 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:566 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:607 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:631 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:632 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:634 (BlockStatement)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:636 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:636 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:636 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:636 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:636 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:636 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:636 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:636 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:636 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:636 (BooleanLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:54 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:55 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:56 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:56 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:84 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:84 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:84 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:84 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:104 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:104 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:139 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:140 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:142 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:148 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:154 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:154 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:154 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:173 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:173 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:174 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:174 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:209 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:208 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:223 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:223 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:242 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:243 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:277 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:279 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:288 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:332 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:332 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:332 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:351 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:364 (ArrowFunction)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:365 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:366 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:369 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:375 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:391 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:392 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:392 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:392 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:392 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:392 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:392 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:392 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:392 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:392 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:395 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:393 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:395 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:395 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:395 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:395 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:395 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:395 (EqualityOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:395 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:395 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:407 (BooleanLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:408 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:408 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:409 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:409 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:409 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:409 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:409 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:409 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:409 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:410 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:410 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:412 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:417 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:417 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:416 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:417 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:417 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:417 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:418 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:419 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:447 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:447 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:447 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:447 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:447 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:436 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:463 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:466 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:466 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:566 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:502 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:581 (BooleanLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:585 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:516 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:585 (LogicalOperator)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:585 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:585 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:587 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:533 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:589 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:588 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:588 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:605 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:544 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:607 (ConditionalExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:625 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:303 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:265 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:303 (MethodExpression)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:304 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:304 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:310 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:310 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:318 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:318 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:319 (Regex)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:320 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:320 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:320 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:427 (StringLiteral)"
+
+[[finding]]
+  severity = "BLOCKING"
+  text = "stryker mutant survived: scripts/verify-packaged.ts:563 (StringLiteral)"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .github/environments/release.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .github/workflows/ci.yml: no mutation adapter for .yml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .github/workflows/release.yml: no mutation adapter for .yml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .gitignore: no mutation adapter for .gitignore"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .gitleaks.toml: no mutation adapter for .toml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped README.md: no mutation adapter for .md"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped package.json: no mutation adapter for .json"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped pnpm-lock.yaml: no mutation adapter for .yaml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped pnpm-workspace.yaml: no mutation adapter for .yaml"

@@ -54,6 +54,14 @@
   name = "notify-settle-guard"
   reason = "Equivalent: settle()'s re-entry guard. Resolving an already-settled Promise is ignored and clearTimeout on a cleared timer is a no-op, so dropping the guard or never setting settled changes no show() result (notifier.spec pins show/failed/settleMs outcomes and the zero-timer check)."
 
+[[category]]
+  name = "release-cli-entry"
+  reason = "CLI entry (isEntry guard and its block): vitest imports the module and calls its exports, so only `node scripts/<file>.ts` runs this, in a child process where Stryker's active mutant is never set. Exercised by release-tag.spec 'as a process' and by ci.yml's package/verify/locate steps, which passed on macOS, Windows and Linux in PR run 44136073549."
+
+[[category]]
+  name = "update-notice-log-only"
+  reason = "Only decides whether a failed or rejected update notification gets logged; the notice is still shown and onReady still runs (updater.spec 'notifies once per version and calls onReady once per version')."
+
 [[accepted]]
   key = "6d1a8890f4b5d82a"
   file = "scripts/workflow-policy.ts"
@@ -1592,3 +1600,660 @@
   line = 33
   accepted_in = "04-desktop-notify"
   reason = "Unreachable in practice and fails safe: every routed alert carries watchId (alerts.spec 'watch id' for success and failure) and test alerts return earlier; without the guard, watchExists(undefined) sits inside clickPathFor's try, so a throw or a miss still opens '/'."
+
+[[accepted]]
+  key = "3020c07401cd3427"
+  file = "scripts/package-desktop.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 319
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "78fd89a38a88d8ff"
+  file = "scripts/package-desktop.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 320
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "038f2b006bc779de"
+  file = "scripts/package-desktop.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 320
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6602b65c3e2dbba7"
+  file = "scripts/package-desktop.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 320
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "207f94e9a8160ab4"
+  file = "scripts/package-desktop.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 321
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5752b7008091992e"
+  file = "scripts/package-desktop.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 321
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9eeebe88a158c336"
+  file = "scripts/package-desktop.ts"
+  op = "MethodExpression"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 323
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "99bab898fb73bd13"
+  file = "scripts/package-desktop.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 323
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e97741eac699eaaf"
+  file = "scripts/package-desktop.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 330
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "a83deb7abf2f80a0"
+  file = "scripts/package-desktop.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 331
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f008585dfae6d6aa"
+  file = "scripts/packaged-app.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 356
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "b6a21d9d4da9b653"
+  file = "scripts/packaged-app.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 357
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "b409213c82b03117"
+  file = "scripts/packaged-app.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 357
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "c838f77cf6d322bb"
+  file = "scripts/packaged-app.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 357
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "4ae33fd068c31636"
+  file = "scripts/packaged-app.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 358
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f0977b70a9909fcb"
+  file = "scripts/packaged-app.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 358
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6aac1d8f63ab0ce2"
+  file = "scripts/packaged-app.ts"
+  op = "MethodExpression"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 359
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "a503f2c07552e6b0"
+  file = "scripts/packaged-app.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 359
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "8693eca682bfe8f6"
+  file = "scripts/packaged-app.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 362
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "d4e16c69980a78cf"
+  file = "scripts/packaged-app.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 363
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9e924f49f9798fe4"
+  file = "scripts/release-tag.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 122
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "dd78fd01f2ff2e49"
+  file = "scripts/release-tag.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 123
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9503e6435a1c6929"
+  file = "scripts/release-tag.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 123
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e024fb80159a6fa2"
+  file = "scripts/release-tag.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 123
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "c552066c7c626c02"
+  file = "scripts/release-tag.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 124
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "4517de04a0c218dc"
+  file = "scripts/release-tag.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 124
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "44d7983f40c7d13c"
+  file = "scripts/release-tag.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = runCli({"
+  line = 125
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f04e5f59c8c8c999"
+  file = "scripts/release-tag.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 128
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "de2be21f3c7f5d16"
+  file = "scripts/release-tag.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 129
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "2fe2f2489bc4152f"
+  file = "scripts/verify-packaged.ts"
+  op = "LogicalOperator"
+  text = "import.meta.main ??"
+  line = 643
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "ac3aeb1522d34456"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 644
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "7764ea0a431b7396"
+  file = "scripts/verify-packaged.ts"
+  op = "EqualityOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 644
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "c0d2c280c5f09c9d"
+  file = "scripts/verify-packaged.ts"
+  op = "LogicalOperator"
+  text = "(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));"
+  line = 644
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "1953d1fe3b93fbd1"
+  file = "scripts/verify-packaged.ts"
+  op = "BlockStatement"
+  text = "if (isEntry) {"
+  line = 645
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f522e9fd4949c286"
+  file = "scripts/verify-packaged.ts"
+  op = "ConditionalExpression"
+  text = "if (isEntry) {"
+  line = 645
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "90abbaa7a3839093"
+  file = "scripts/verify-packaged.ts"
+  op = "MethodExpression"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 646
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "0cbe4a00d4ca086d"
+  file = "scripts/verify-packaged.ts"
+  op = "ObjectLiteral"
+  text = "process.exitCode = await runCli(process.argv.slice(2), {"
+  line = 646
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "ea130c17c9e29e11"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrowFunction"
+  text = "readInstaller: (path) => readFileSync(path).toString('latin1'),"
+  line = 651
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "65079f17d7ea487e"
+  file = "scripts/verify-packaged.ts"
+  op = "StringLiteral"
+  text = "readInstaller: (path) => readFileSync(path).toString('latin1'),"
+  line = 651
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "9067b64fa26cc6d2"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrowFunction"
+  text = "stdout: (line) => console.log(line),"
+  line = 652
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "07bd0cb177b94a4f"
+  file = "scripts/verify-packaged.ts"
+  op = "ArrowFunction"
+  text = "stderr: (line) => console.error(line)"
+  line = 653
+  category = "release-cli-entry"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6c31c48cd96ff6b6"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop startup: checking the previous version failed', error);"
+  line = 238
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "ce404978c3fa8340"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error(`desktop startup: the previous version outlived ${PREDECESSOR_WAIT_MS}ms`);"
+  line = 243
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "dad370ab2b596bc2"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: the update was not handed to the installer');"
+  line = 271
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "08436fbd2d1d8e30"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 272
+  category = "notify-log-only-catch"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "dc78da0b5cf8fc16"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: installing the update failed', error);"
+  line = 273
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "58f8bc0dca09dbbf"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: Squirrel could not stage the update', error);"
+  line = 289
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e345b96f459bf187"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "console.error('desktop quit: listening for Squirrel failed', error);"
+  line = 293
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5606cc79854e9c0a"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 446
+  category = "notify-log-only-catch"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "6f671f00eda4836a"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "export const UPDATE_NOTICE_TITLE = 'Price Check update ready';"
+  line = 105
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5821440387f3d5b0"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('info', `update ${version} downloaded`);"
+  line = 152
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "a4e2dd26d1e3f8d3"
+  file = "src/desktop/updater.ts"
+  op = "BlockStatement"
+  text = "(result) => {"
+  line = 154
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "b6c7fc1958d39568"
+  file = "src/desktop/updater.ts"
+  op = "BooleanLiteral"
+  text = "if (!result.ok) safeLog('error', `update notification for ${version}: ${result.reason}`);"
+  line = 155
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "198b8abb5d6dbeca"
+  file = "src/desktop/updater.ts"
+  op = "ConditionalExpression"
+  text = "if (!result.ok) safeLog('error', `update notification for ${version}: ${result.reason}`);"
+  line = 155
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "4cc90b808d021297"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "if (!result.ok) safeLog('error', `update notification for ${version}: ${result.reason}`);"
+  line = 155
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "e99cb85ece73b239"
+  file = "src/desktop/updater.ts"
+  op = "ArrowFunction"
+  text = "(error: unknown) => safeLog('error', `update notification for ${version} failed`, error)"
+  line = 157
+  category = "update-notice-log-only"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "23e231c3eadba7f0"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "(error: unknown) => safeLog('error', `update notification for ${version} failed`, error)"
+  line = 157
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f2bb219805b94d27"
+  file = "src/desktop/updater.ts"
+  op = "BlockStatement"
+  text = "} catch (error) {"
+  line = 161
+  category = "notify-log-only-catch"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "f2037d76fd4f0856"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'update onReady failed', error);"
+  line = 162
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "5e87f541536175dc"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'update check failed', error);"
+  line = 174
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "fa0c52bd66d18e60"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'updater error', error);"
+  line = 199
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "8389334cc00bd311"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('info', `updates on for ${appVersion}`);"
+  line = 206
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "3af1746f7a0da081"
+  file = "src/desktop/updater.ts"
+  op = "StringLiteral"
+  text = "safeLog('error', 'handing the update to the installer failed', error);"
+  line = 235
+  category = "desk-message-text"
+  accepted_in = "05-release"
+
+[[accepted]]
+  key = "7cf32c1d99cabee0"
+  file = "src/desktop/app-paths.ts"
+  op = "Regex"
+  text = "return /(^|[\\\\/])app\\.asar$/.test(appRoot) ? `${appRoot}.unpacked` : appRoot;"
+  line = 41
+  accepted_in = "05-release"
+  reason = "Unreachable: appRoot is always absolute (main.ts APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')), so a bare 'app.asar' with no separator before it never occurs."
+
+[[accepted]]
+  key = "55994db13084d5ae"
+  file = "src/desktop/lifecycle.ts"
+  op = "BooleanLiteral"
+  text = "if (!updates) return false;"
+  line = 264
+  accepted_in = "05-release"
+  reason = "Equivalent: with updates undefined, watchSquirrel also returns null (it needs updates), so `installPending(...) && squirrel` is falsy either way and app.exit(0) runs next."
+
+[[accepted]]
+  key = "9d47e44fbab68433"
+  file = "src/desktop/lifecycle.ts"
+  op = "ConditionalExpression"
+  text = "if (!updates) return false;"
+  line = 264
+  accepted_in = "05-release"
+  reason = "Equivalent result: without the guard, updates.pending() on undefined throws inside installPending's try and the catch returns false, the same value; only a console line is added."
+
+[[accepted]]
+  key = "696fda7e1d4d7cdf"
+  file = "src/desktop/lifecycle.ts"
+  op = "StringLiteral"
+  text = "resolve('failed');"
+  line = 290
+  accepted_in = "05-release"
+  reason = "Equivalent: waitForSquirrel only branches on 'timeout' and 'staged'; an empty outcome takes the same no-wait path as 'failed'."
+
+[[accepted]]
+  key = "457f6b49f2a80665"
+  file = "src/desktop/lifecycle.ts"
+  op = "BlockStatement"
+  text = "}).catch((error: unknown) => {"
+  line = 292
+  accepted_in = "05-release"
+  reason = "Equivalent: the catch is reached only if nativeUpdater.on throws; emptied, it resolves undefined instead of 'failed', which waitForSquirrel treats like 'failed' (no wait)."
+
+[[accepted]]
+  key = "7ec379a189de2900"
+  file = "src/desktop/tray.ts"
+  op = "BooleanLiteral"
+  text = "updateReady = false"
+  line = 74
+  accepted_in = "05-release"
+  reason = "Unreachable default: the only production caller, createTray (tray.ts:101), always passes updateReady."
+
+[[accepted]]
+  key = "e59b80de5a784ea6"
+  file = "src/desktop/tray.ts"
+  op = "ConditionalExpression"
+  text = "if (ready === updateReady) return;"
+  line = 115
+  accepted_in = "05-release"
+  reason = "Equivalent: without the early return a same-value setUpdateReady rebuilds an identical menu from unchanged state (tray.spec 'a second setUpdateReady(true) adds no second item')."
+
+[[accepted]]
+  key = "a24ba4a7268369cd"
+  file = "src/desktop/updater.ts"
+  op = "BooleanLiteral"
+  text = "let installed = false;"
+  line = 130
+  accepted_in = "05-release"
+  reason = "Equivalent: onDownloaded sets installed=false before downloaded becomes non-null, and while downloaded is null pending() and installOnExit() return false whatever installed holds."
+
+[[accepted]]
+  key = "5697a3cb8ec5c514"
+  file = "src/desktop/updater.ts"
+  op = "ConditionalExpression"
+  text = "if (inFlight === check) inFlight = null;"
+  line = 183
+  accepted_in = "05-release"
+  reason = "Equivalent: runCheck sets inFlight only when it is null and only this check's finally clears it; that finally runs in a later microtask, after inFlight = check, so inFlight === check whenever it runs."
+
+[[accepted]]
+  key = "17d2fb733bacdd78"
+  file = "src/desktop/updater.ts"
+  op = "ConditionalExpression"
+  text = "if (interval !== undefined) timers.clearInterval(interval);"
+  line = 212
+  accepted_in = "05-release"
+  reason = "Equivalent: with the guard forced true, stop() calls clearInterval(undefined), a no-op in Node and in @sinonjs fake timers."
