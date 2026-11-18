@@ -18,7 +18,8 @@
 // app. The relaunch is found by install path (Get-Process) and its port
 // (Get-NetTCPConnection): it must have started after A's process exited (c-6) and
 // serve the seeded watch. Linux: Quit installs B over the AppImage at its own path
-// and does not relaunch; then a fresh copy of A takes 'Restart to update', and B,
+// and does not relaunch; then, once nothing runs from the AppImage's path, a fresh
+// copy of A is renamed over it and takes 'Restart to update', and B,
 // started by the updater while A is still exiting, must wait out its predecessor
 // and run. Both end with a Playwright relaunch that reports version B and lists the
 // watch, an intact DB (PRAGMA integrity_check) and no 'database is locked' in what
@@ -39,12 +40,13 @@
 // install path, port or none, and any update installer still running.
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { chmodSync, copyFileSync, existsSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import {
 	expectedArtefacts,
 	isPackagedPlatform,
+	replaceExecutable,
 	UPDATE_FILE,
 	type PackagedPlatform
 } from '../../scripts/packaged-app.ts';
@@ -68,6 +70,7 @@ import {
 	updaterCheckNow,
 	updaterRestart,
 	updaterStatus,
+	type AppInstance,
 	type PackagedApp,
 	type PackagedRun
 } from './launch-packaged.ts';
@@ -101,6 +104,8 @@ const EXIT_MS = 30_000;
 const WINDOWS_RELAUNCH_MS = 180_000;
 /** Linux: from A's exit until B, past its predecessor wait, serves on its port. */
 const LINUX_RELAUNCH_MS = 30_000;
+/** Linux: how long an instance from the previous test may take to be gone before A is placed. */
+const IDLE_MS = 30_000;
 /** How long the relaunch has to answer one request in full. */
 const RESPONSE_MS = 15_000;
 /**
@@ -274,10 +279,34 @@ test.describe.serial('packaged update', () => {
 		expect(exit, `quit:\n${app.output()}`).toEqual({ code: 0, signal: null });
 	};
 
-	/** A copy of build A at run.exe (Linux), executable, replacing whatever is there. */
+	/**
+	 * A copy of build A at run.exe (Linux), executable, replacing whatever is there by
+	 * rename: a process still executing the old file (the AppImage runtime can outlive
+	 * the app) would make an in-place copy fail with ETXTBSY.
+	 */
 	const placeBuildA = (source: string) => {
-		copyFileSync(source, run.exe);
-		chmodSync(run.exe, 0o755);
+		replaceExecutable(source, run.exe);
+	};
+
+	/**
+	 * Waits up to IDLE_MS until no instance runs from run.exe (Linux): one left over
+	 * would hold the single-instance lock the next A needs. Throws naming what still runs.
+	 */
+	const expectNoInstance = async () => {
+		let last: AppInstance[] = [];
+		const idle = await pollFor(async () => {
+			last = await appInstances('linux', run.exe);
+			return last.length === 0 ? true : null;
+		}, IDLE_MS);
+		if (idle === null) {
+			const running = describeInstances(
+				last.map((instance) => ({
+					...instance,
+					processes: instance.processes.map((holder) => withProcState(holder, procFile))
+				}))
+			);
+			throw new Error(`an instance still runs from ${run.exe} after ${IDLE_MS}ms:\n${running}`);
+		}
 	};
 
 	/** Waits for A to download B, as status() reports it. */
@@ -479,10 +508,11 @@ test.describe.serial('packaged update', () => {
 	test('restart through the predecessor wait', async () => {
 		test.skip(platform !== 'linux', 'the AppImage update is Linux only');
 		test.setTimeout(
-			DOWNLOAD_MS + EXIT_MS + LINUX_RELAUNCH_MS + RESPONSE_MS + DIAGNOSIS_MS + 120_000
+			IDLE_MS + DOWNLOAD_MS + EXIT_MS + LINUX_RELAUNCH_MS + RESPONSE_MS + DIAGNOSIS_MS + 120_000
 		);
 		if (!feedDir) throw new Error(`${UPDATE_FEED_DIR_ENV} is not set`);
 		const buildB = join(feedDir, expectedArtefacts('linux', versionB)[0]);
+		await expectNoInstance();
 		placeBuildA(packagedExe());
 
 		const app = await launch();

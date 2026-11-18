@@ -1,6 +1,19 @@
 // packaged-app.ts: artefact names, locating the packaged app, the userData dir a
-// packaged run uses, and the Windows silent install (spec c-1, c-3, c-4).
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+// packaged run uses, the Windows silent install (spec c-1, c-3, c-4) and replacing an
+// executable by rename (c-5).
+import {
+	chmodSync,
+	closeSync,
+	mkdirSync,
+	mkdtempSync,
+	openSync,
+	readdirSync,
+	readFileSync,
+	readSync,
+	rmSync,
+	statSync,
+	writeFileSync
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -14,6 +27,7 @@ import {
 	locate,
 	packagedUserDataDir,
 	parseRegQuery,
+	replaceExecutable,
 	runCli,
 	spawnRunner,
 	type Command,
@@ -245,6 +259,84 @@ describe('locate and executablePath', () => {
 
 	it('refuses a missing output dir', () => {
 		expect(() => locate(join(out, 'absent'), 'linux')).toThrow(/no output dir/);
+	});
+});
+
+describe('replaceExecutable', () => {
+	let dir: string;
+	let source: string;
+	let dest: string;
+	beforeEach(() => {
+		dir = mkdtempSync(join(tmpdir(), 'packaged-app-replace-'));
+		source = join(dir, 'build-a.AppImage');
+		dest = join(dir, 'price-check.AppImage');
+		writeFileSync(source, 'build A');
+		// Not executable, so only the helper's own chmod can make the result 0o755.
+		chmodSync(source, 0o644);
+		writeFileSync(dest, 'build B, the old one');
+		chmodSync(dest, 0o755);
+	});
+	afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+	it('renames a new file over the destination: the path gets a new inode', () => {
+		const before = statSync(dest).ino;
+		replaceExecutable(source, dest);
+		expect(statSync(dest).ino).not.toBe(before);
+	});
+
+	// win32 refuses to rename over a file another handle holds open; the helper serves linux.
+	it.skipIf(process.platform === 'win32')(
+		'leaves a process holding the old file open reading the old content',
+		() => {
+			const fd = openSync(dest, 'r');
+			try {
+				replaceExecutable(source, dest);
+				const old = Buffer.alloc(64);
+				const read = readSync(fd, old, 0, old.length, 0);
+				expect(old.subarray(0, read).toString()).toBe('build B, the old one');
+			} finally {
+				closeSync(fd);
+			}
+		}
+	);
+
+	it("leaves the source's content at the destination", () => {
+		replaceExecutable(source, dest);
+		expect(readFileSync(dest, 'utf8')).toBe('build A');
+	});
+
+	// win32 keeps no unix mode bits to check.
+	it.skipIf(process.platform === 'win32')('leaves the destination executable (0o755)', () => {
+		replaceExecutable(source, dest);
+		expect(statSync(dest).mode & 0o777).toBe(0o755);
+	});
+
+	it('creates the destination when there is none', () => {
+		rmSync(dest);
+		replaceExecutable(source, dest);
+		expect(readFileSync(dest, 'utf8')).toBe('build A');
+	});
+
+	it('leaves no temp file beside the destination', () => {
+		replaceExecutable(source, dest);
+		expect(readdirSync(dir).sort()).toEqual(['build-a.AppImage', 'price-check.AppImage']);
+	});
+
+	it('on a failed copy, throws and leaves the destination and the dir as they were', () => {
+		rmSync(source);
+		expect(() => replaceExecutable(source, dest)).toThrow(/ENOENT/);
+		expect(readFileSync(dest, 'utf8')).toBe('build B, the old one');
+		expect(readdirSync(dir)).toEqual(['price-check.AppImage']);
+	});
+
+	it('on a failed rename, throws and removes the temp copy', () => {
+		// A non-empty directory at the destination: the copy and chmod succeed, the rename cannot.
+		rmSync(dest);
+		mkdirSync(dest);
+		writeFileSync(join(dest, 'inside'), '');
+		expect(() => replaceExecutable(source, dest)).toThrow();
+		expect(readdirSync(dir).sort()).toEqual(['build-a.AppImage', 'price-check.AppImage']);
+		expect(readdirSync(dest)).toEqual(['inside']);
 	});
 });
 

@@ -11,6 +11,9 @@
 // run through an injected Runner (execFile, never a shell), so the spec drives every
 // path with fakes.
 //
+// replaceExecutable puts a new build at a path something may still execute (the
+// packaged update test's AppImage on linux, c-5): by rename, never by writing in place.
+//
 // Windows: electron-builder's one-click per-user NSIS writes its uninstall entry to
 // HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\<guid> with DisplayName
 // '<productName> <version>' and UninstallString '"<install dir>\Uninstall <productName>.exe"
@@ -18,8 +21,17 @@
 // key is the one the product is found by, so the install dir is its InstallLocation
 // value when it carries one, else the UninstallString's directory.
 import { execFile } from 'node:child_process';
-import { existsSync, readdirSync, statSync } from 'node:fs';
-import { join, posix, resolve, win32 } from 'node:path';
+import { randomBytes } from 'node:crypto';
+import {
+	chmodSync,
+	copyFileSync,
+	existsSync,
+	readdirSync,
+	renameSync,
+	rmSync,
+	statSync
+} from 'node:fs';
+import { basename, dirname, join, posix, resolve, win32 } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { APP_DIR_NAME } from '../src/desktop/app-paths.ts';
 import { ARTIFACT_NAME, PRODUCT_NAME } from './package-desktop.ts';
@@ -159,6 +171,25 @@ export function executablePath(located: Located, installLocation?: string): stri
 				throw new Error('the Windows app runs from its install dir: install it first');
 			}
 			return installedExecutable(installLocation);
+	}
+}
+
+/**
+ * Puts an executable copy of `source` at `dest` without ever writing into `dest`: the
+ * copy goes to a temp file beside it, is made 0o755, then is renamed over it. The path
+ * gets a new inode, and a process still running (or holding open) the old one keeps
+ * it: an in-place copy would fail with ETXTBSY on linux while anything executes it.
+ * On any failure the temp file is removed and `dest` is left as it was.
+ */
+export function replaceExecutable(source: string, dest: string): void {
+	const temp = join(dirname(dest), `.${basename(dest)}.${randomBytes(6).toString('hex')}.tmp`);
+	try {
+		copyFileSync(source, temp);
+		chmodSync(temp, 0o755);
+		renameSync(temp, dest);
+	} catch (error) {
+		rmSync(temp, { force: true });
+		throw error;
 	}
 }
 
