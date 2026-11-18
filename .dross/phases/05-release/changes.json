@@ -397,6 +397,26 @@
         }
       ]
     },
+    "t-30": {
+      "files": [
+        "src/desktop/main.ts",
+        "src/desktop/main.spec.ts",
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts",
+        "e2e/packaged/launch-packaged.ts",
+        "e2e/packaged/update.packaged.ts"
+      ],
+      "commit": "b35ec59",
+      "completed_at": "2026-11-18T13:21:46.628305Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "startOutputCapture",
+          "loc": "src/desktop/main.ts:119",
+          "what": "test-only env seam records the app's start, output, errors and exit to a file and hands the variable to the relaunched update"
+        }
+      ]
+    },
     "t-4": {
       "files": [
         "src/desktop/updater.ts",
@@ -1209,6 +1229,41 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The trailing-newline refusal relies on JS `$` without the m flag matching only at end of input. The TAG regex in scripts/release-tag.ts is not multiline, so 'v0.1.5\\n' is correctly refused, and the refusal table pins this.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-30": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "The task's file list names e2e/packaged/output-capture.cjs, but it was never created. That is right: the record allowed the main.ts seam (option 2) if packaged Electron ignores NODE_OPTIONS --require, and the main.ts header gives that reason.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The 'main.ts wiring of the capture' tests in src/desktop/main.spec.ts only search main.ts's source text with indexOf and a regex. Reformatting the file would break them, and they would still pass if the call order were wrong at runtime. The behavioural tests of takeOutputCaptureFile, startOutputCapture and withCaptureHandOver carry the real coverage.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "startOutputCapture (src/desktop/main.ts) records unhandled rejections only through uncaughtExceptionMonitor, so it depends on the runtime's default for unhandled rejections. If Electron only warns, the warning still reaches the capture through the hooked stderr write.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "captureRecord's JSON.parse catch (scripts/process-probe.ts) is not a quiet fallback. It returns an 'unreadable' record, and formatCaptureRecords prints those lines.",
           "resolution": "non-blocking, left"
         }
       ]
