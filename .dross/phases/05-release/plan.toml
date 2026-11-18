@@ -1,4 +1,4 @@
-task_seq = 29
+task_seq = 30
 [phase]
 id = "05-release"
 
@@ -396,3 +396,14 @@ covers = ["c-6"]
 test_contract = ["If the installer-tree helper drops a descendant process (e.g. a grandchild via ParentProcessId) or its name/pid, process-probe.spec fails", "If the installer-tree helper reports a still-running installer as exited (or omits the exit time once it has exited), process-probe.spec fails"]
 status = "done"
 depends_on = ["t-28"]
+
+[[task]]
+id = "t-30"
+wave = 13
+title = "Linux packaged update: capture the relaunched B's output and exit"
+files = ["e2e/packaged/update.packaged.ts", "e2e/packaged/launch-packaged.ts", "e2e/packaged/output-capture.cjs", "scripts/process-probe.ts", "scripts/process-probe.spec.ts", "src/desktop/main.ts", "src/desktop/main.spec.ts"]
+description = "CI 44289826311 (9790b1e): Windows and macOS green. Linux 'restart through the predecessor wait' still red: 'A (pid 10140) listened on 127.0.0.1 ports: 37257, 44125, 45413 / rawRequest: no complete response from 127.0.0.1:45413/ within 15000ms'. A process from the AppImage mount briefly held A's inherited socket 45413 (passing t-28's filter), nothing answered, and 15 s later only the FUSE daemon (ppid 1, wchan fuse_dev_do_read) remained. So B started, never served its own port, and exited. Why is unknown because electron-updater's AppImageUpdater spawns B with stdio 'ignore'. This task only makes B's fate visible; the fix comes after the next CI run. (1) Preferred, with no src/ change: the Linux update test launches A with NODE_OPTIONS='--require <abs path to e2e/packaged/output-capture.cjs>' plus a capture-dir env var. B inherits both through the env (lifecycle.ts only strips INHERITED_SECRETS). The .cjs appends per-pid records to <dir>/<pid>.log: start time, argv, ppid, every process.stdout/stderr write, uncaughtException/unhandledRejection, and 'exit' with code and time. First confirm from Electron's docs or source for the installed Electron version (use context7) that a packaged app with default fuses honours NODE_OPTIONS --require. (2) Only if it does not: add the minimal seam in src/desktop/main.ts instead. A test-only env var names a file, main appends its stdout/stderr and exit to it, the variable is deleted from process.env after it is read, as with PREDECESSOR_PID_ENV, and main.spec covers it. (3) On any failure in the Linux restart test, attach every capture file, newest pid last, and name which pid held each of A's ports. Put the pure parse/format of capture records in scripts/process-probe.ts with a spec. Do not touch the Windows or macOS paths, and keep CI behaviour unchanged when the test passes."
+covers = ["c-5"]
+test_contract = ["If the capture-record formatter drops a record's exit code, its argv, or any stderr line, process-probe.spec fails", "If the formatter orders pids other than oldest-first or loses a pid with no exit record (still running or killed), process-probe.spec fails"]
+status = "pending"
+depends_on = ["t-29"]
