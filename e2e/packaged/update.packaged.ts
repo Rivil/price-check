@@ -36,8 +36,12 @@
 // RESPONSE_MS (a server that accepts and never answers fails the step, not the test's
 // timeout), and the failure attaches A's output, which carries electron-updater's
 // Install/Executing lines, and what the OS shows while the relaunch still runs: on
-// Linux each holder's State, wchan and cmdline, on Windows every process of the
-// install path, port or none, and any update installer still running.
+// Linux each holder's State, wchan and cmdline, and every process of the AppImage
+// (runtime and FUSE daemon included), listening or not, with its exe, ppid, State and
+// wchan; on Windows every process of the install path, port or none, and any update
+// installer still running. On Linux the failure also names the 127.0.0.1 ports A
+// itself listened on just before 'Restart to update': a socket of A's that the
+// updater's spawn passed down stays listening with nothing to accept on it.
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -51,6 +55,7 @@ import {
 	type PackagedPlatform
 } from '../../scripts/packaged-app.ts';
 import {
+	describeHolders,
 	describeInstances,
 	parseProcesses,
 	servingInstance,
@@ -64,6 +69,8 @@ import {
 	createPackagedRun,
 	integrityCheck,
 	launchPackaged,
+	linuxAppImageProcesses,
+	linuxListenPorts,
 	packagedExe,
 	pollFor,
 	stopInstance,
@@ -229,7 +236,14 @@ async function osState(platform: 'win32' | 'linux', exe: string): Promise<string
 			}))
 		);
 	});
-	if (platform === 'linux') return instances;
+	if (platform === 'linux') {
+		const processes = probeSection(`processes of ${exe}`, deadline, async () => {
+			const found = linuxAppImageProcesses(exe);
+			if (found.length === 0) return 'none running';
+			return found.map((detail) => describeHolders([withProcState(detail, procFile)])).join('\n');
+		});
+		return (await Promise.all([instances, processes])).join('\n');
+	}
 	const installers = probeSection(
 		`update installers (${INSTALLER_PROCESS})`,
 		deadline,
@@ -339,12 +353,14 @@ test.describe.serial('packaged update', () => {
 
 	/**
 	 * Runs a relaunch step of A. On its failure, before anything stops the relaunch,
-	 * attaches A's output and the OS's state (see the header), then rethrows.
+	 * attaches A's output and the OS's state (see the header), then rethrows; with
+	 * `note`, as an error whose message starts with the note's line.
 	 */
 	const diagnosed = async (
 		app: PackagedApp,
 		os: 'win32' | 'linux',
-		step: () => Promise<void>
+		step: () => Promise<void>,
+		note?: () => string
 	): Promise<void> => {
 		try {
 			await step();
@@ -357,7 +373,9 @@ test.describe.serial('packaged update', () => {
 			// Settles within DIAGNOSIS_MS and never rejects (see osState).
 			const state = await osState(os, run.exe);
 			await info.attach('OS state', { body: state, contentType: 'text/plain' });
-			throw error;
+			if (note === undefined) throw error;
+			const message = error instanceof Error ? error.message : String(error);
+			throw new Error(`${note()}\n${message}`, { cause: error });
 		}
 	};
 
@@ -522,27 +540,39 @@ test.describe.serial('packaged update', () => {
 		await expectDownloaded(app);
 		const pidA = app.pid;
 		let relaunchedPid: number | undefined;
+		/** A's own 127.0.0.1 listen ports just before 'Restart to update' (see the header). */
+		let portsA: number[] | undefined;
+		const portsNote = () =>
+			portsA === undefined
+				? `A (pid ${pidA}) listen ports: not recorded`
+				: `A (pid ${pidA}) listened on 127.0.0.1 ports: ${portsA.length === 0 ? 'none' : portsA.join(', ')}`;
 		try {
-			await diagnosed(app, 'linux', async () => {
-				// B is started while A is still on its way out, so it first loses the lock.
-				const exitedAt = await restartToUpdate(app);
+			await diagnosed(
+				app,
+				'linux',
+				async () => {
+					portsA = await linuxListenPorts(pidA);
+					// B is started while A is still on its way out, so it first loses the lock.
+					const exitedAt = await restartToUpdate(app);
 
-				const relaunched = await pollFor(
-					async () => servingInstance(await appInstances('linux', run.exe)),
-					Math.max(exitedAt + LINUX_RELAUNCH_MS - Date.now(), 1)
-				);
-				if (relaunched === null || relaunched.port === null) {
-					throw new Error(
-						`no B process served from ${run.exe} within ${LINUX_RELAUNCH_MS}ms of A's exit (the relaunch lost the single-instance lock?)`
+					const relaunched = await pollFor(
+						async () => servingInstance(await appInstances('linux', run.exe)),
+						Math.max(exitedAt + LINUX_RELAUNCH_MS - Date.now(), 1)
 					);
-				}
-				relaunchedPid = relaunched.pid;
-				expect(relaunched.pid).not.toBe(pidA);
-				expect(sha256(run.exe), `the AppImage at ${run.exe} is not B`).toBe(sha256(buildB));
-				const response = await rawRequest(relaunched.port, { timeoutMs: RESPONSE_MS });
-				expect(response.status).toBe(200);
-				expect(response.body).toContain(WATCH.title);
-			});
+					if (relaunched === null || relaunched.port === null) {
+						throw new Error(
+							`no B process served from ${run.exe} within ${LINUX_RELAUNCH_MS}ms of A's exit (the relaunch lost the single-instance lock?)`
+						);
+					}
+					relaunchedPid = relaunched.pid;
+					expect(relaunched.pid).not.toBe(pidA);
+					expect(sha256(run.exe), `the AppImage at ${run.exe} is not B`).toBe(sha256(buildB));
+					const response = await rawRequest(relaunched.port, { timeoutMs: RESPONSE_MS });
+					expect(response.status).toBe(200);
+					expect(response.body).toContain(WATCH.title);
+				},
+				portsNote
+			);
 		} finally {
 			if (relaunchedPid !== undefined) await stopInstance('linux', relaunchedPid);
 		}

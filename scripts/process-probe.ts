@@ -21,9 +21,17 @@
 // /proc/<pid>/status and cmdline on linux). servingInstance throws only when more than
 // one distinct port is served, naming each holder's pid, ppid and cmdline.
 //
+// On linux a holder counts only as an app process (linuxAppHolder): one the AppImage
+// started (its APPIMAGE variable) whose /proc/<pid>/exe lies under the AppImage's mount
+// (its APPDIR variable). The AppImage runtime and its FUSE daemon run the AppImage file
+// itself and inherit APPIMAGE too, and can hold a listening socket the updater's spawn
+// passed down from the old instance that nothing accept()s on: a port held only by them
+// is no instance (CI 44283563089).
+//
 // When a step fails, the test records what the OS shows: on linux each holder's
-// State and wchan (withProcState), on win32 every instance row, one with no port
-// included (describeInstances).
+// State and wchan (withProcState) and every process of the AppImage, listening or not
+// (appImageProcesses), on win32 every instance row, one with no port included
+// (describeInstances).
 //
 // Node built-ins only.
 
@@ -170,6 +178,8 @@ export type ProcessDetail = {
 	state?: string | null;
 	/** Linux, as state: /proc/<pid>/wchan, the kernel function it waits in ('0': none). */
 	wchan?: string | null;
+	/** Linux: /proc/<pid>/exe's target (parseProcExe). Absent where nobody read it. */
+	exe?: string | null;
 };
 
 /** The PPid line of /proc/<pid>/status, or null when there is none. */
@@ -215,6 +225,99 @@ export function parseProcCmdline(raw: string): string[] {
 	return args;
 }
 
+/** What /proc shows of one linux process; a field is null where it had exited or the OS withheld it. */
+export type LinuxProc = {
+	pid: number;
+	/** /proc/<pid>/environ: NAME=value entries, NUL-separated. */
+	environ: string | null;
+	/** /proc/<pid>/exe's link target, as readlink gives it. */
+	exe: string | null;
+	/** /proc/<pid>/status. */
+	status: string | null;
+	/** /proc/<pid>/cmdline. */
+	cmdline: string | null;
+};
+
+/** The value of `name` in /proc/<pid>/environ, or null when the process has no such variable. */
+export function parseProcEnviron(environ: string, name: string): string | null {
+	const entry = environ.split('\0').find((line) => line.startsWith(`${name}=`));
+	return entry === undefined ? null : entry.slice(name.length + 1);
+}
+
+const DELETED = ' (deleted)';
+
+/**
+ * /proc/<pid>/exe's target without the ' (deleted)' the kernel appends once the file
+ * was replaced (a renamed-over AppImage); null when empty.
+ */
+export function parseProcExe(link: string): string | null {
+	const exe = link.endsWith(DELETED) ? link.slice(0, -DELETED.length) : link;
+	return exe === '' ? null : exe;
+}
+
+/** True when `path` lies inside directory `dir` (never `dir` itself). */
+function isUnder(path: string, dir: string): boolean {
+	const prefix = dir.endsWith('/') ? dir : `${dir}/`;
+	return prefix !== '/' && path.startsWith(prefix) && path.length > prefix.length;
+}
+
+/** `proc`'s executable and AppImage variables, null where /proc withheld them. */
+function appImageFacts(proc: LinuxProc) {
+	return {
+		exe: proc.exe === null ? null : parseProcExe(proc.exe),
+		appImage: proc.environ === null ? null : parseProcEnviron(proc.environ, 'APPIMAGE'),
+		appDir: proc.environ === null ? null : parseProcEnviron(proc.environ, 'APPDIR')
+	};
+}
+
+/** `proc` as a ProcessDetail: pid, ppid, cmdline and exe, null where /proc withheld them. */
+export function linuxProcDetail(proc: LinuxProc): ProcessDetail {
+	return {
+		pid: proc.pid,
+		ppid: proc.status === null ? null : parseProcStatusPpid(proc.status),
+		cmdline: proc.cmdline === null ? null : parseProcCmdline(proc.cmdline),
+		exe: proc.exe === null ? null : parseProcExe(proc.exe)
+	};
+}
+
+/**
+ * True when `proc` is a process of the app the AppImage at `appImage` started: its
+ * APPIMAGE variable names that file and its executable lies under the mount its
+ * APPDIR variable names (the Electron main and its helpers). The AppImage runtime and
+ * its FUSE daemon, whose executable is the AppImage file itself, never are; nor is a
+ * process whose executable /proc withheld.
+ */
+export function isAppImageApp(proc: LinuxProc, appImage: string): boolean {
+	const facts = appImageFacts(proc);
+	if (facts.appImage !== appImage || facts.exe === null || facts.exe === appImage) return false;
+	return facts.appDir !== null && isUnder(facts.exe, facts.appDir);
+}
+
+/** `proc`'s detail when it is a process of the app at `appImage` (isAppImageApp), else null. */
+export function linuxAppHolder(proc: LinuxProc, appImage: string): ProcessDetail | null {
+	return isAppImageApp(proc, appImage) ? linuxProcDetail(proc) : null;
+}
+
+/**
+ * For a failed step's diagnosis: every process the AppImage at `appImage` started (its
+ * APPIMAGE variable), runtime and FUSE daemon included, and every process whose
+ * executable lies under one of those processes' mounts (APPDIR), whether it listens or
+ * not; ascending by pid.
+ */
+export function appImageProcesses(procs: readonly LinuxProc[], appImage: string): ProcessDetail[] {
+	const read = procs.map((proc) => ({ proc, ...appImageFacts(proc) }));
+	const mounts = read
+		.filter((fact) => fact.appImage === appImage)
+		.flatMap(({ appDir }) => (appDir === null ? [] : [appDir]));
+	return read
+		.filter(
+			({ appImage: started, exe }) =>
+				started === appImage || (exe !== null && mounts.some((mount) => isUnder(exe, mount)))
+		)
+		.map(({ proc }) => linuxProcDetail(proc))
+		.sort((a, b) => a.pid - b.pid);
+}
+
 /** A Chromium helper (renderer, GPU, zygote, utility): its cmdline carries --type=. */
 function isHelper(detail: ProcessDetail): boolean {
 	return detail.cmdline?.some((arg) => arg.startsWith('--type=')) ?? false;
@@ -240,14 +343,34 @@ export function mainProcess(holders: readonly ProcessDetail[]): ProcessDetail {
 }
 
 /**
- * One entry per holder: pid, ppid, state and wait channel where they were read
- * (withProcState), and cmdline, for the error or diagnosis that names them.
+ * One instance per 127.0.0.1 port held by a process `detail` accepts (null: not the
+ * app's), its pid the main process among the port's accepted holders. A port held
+ * only by processes `detail` rejects is no instance.
+ */
+export function instancesByPort(
+	listeners: ListenMap,
+	detail: (pid: number) => ProcessDetail | null
+): { pid: number; port: number; processes: ProcessDetail[] }[] {
+	const instances: { pid: number; port: number; processes: ProcessDetail[] }[] = [];
+	for (const [listenPort, pids] of pidsByPort(listeners)) {
+		const processes = pids.map(detail).filter((holder) => holder !== null);
+		if (processes.length === 0) continue;
+		instances.push({ pid: mainProcess(processes).pid, port: listenPort, processes });
+	}
+	return instances;
+}
+
+/**
+ * One entry per holder: pid, ppid, executable, state and wait channel where they were
+ * read (linuxProcDetail, withProcState), and cmdline, for the error or diagnosis that
+ * names them.
  */
 export function describeHolders(holders: readonly ProcessDetail[]): string {
 	return holders
-		.map(({ pid, ppid, cmdline, state, wchan }) => {
+		.map(({ pid, ppid, cmdline, state, wchan, exe }) => {
 			const args = cmdline === null ? '<cmdline unknown>' : JSON.stringify(cmdline);
 			const proc = [
+				exe === undefined ? '' : ` exe ${exe ?? 'unknown'}`,
 				state === undefined ? '' : ` state ${state ?? 'unknown'}`,
 				wchan === undefined ? '' : ` wchan ${wchan ?? 'unknown'}`
 			].join('');

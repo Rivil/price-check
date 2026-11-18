@@ -31,7 +31,15 @@
 // process would keep the file locked (EPERM). On Windows app.process() is Playwright's
 // cmd wrapper, so a kill takes the whole tree.
 import { execFile, spawn, type ChildProcess } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	readlinkSync,
+	rmSync,
+	writeFileSync
+} from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -42,14 +50,13 @@ import {
 	type PackagedPlatform
 } from '../../scripts/packaged-app.ts';
 import {
-	mainProcess,
+	appImageProcesses,
+	instancesByPort,
+	linuxAppHolder,
 	parseNetTcpListeners,
-	parseProcCmdline,
 	parseProcesses,
-	parseProcStatusPpid,
 	parseSsListeners,
-	pidsByPort,
-	type ListenMap,
+	type LinuxProc,
 	type ProcessDetail
 } from '../../scripts/process-probe.ts';
 import { LOGIN_LAUNCH_ARG, MARKER_FILE_NAME } from '../../src/desktop/login-item.ts';
@@ -462,7 +469,8 @@ export async function spawnX64(run: PackagedRun): Promise<SpawnedApp> {
 //     listing carries the Idle process, pid 0, which no app process can be), and
 //     Get-NetTCPConnection for the 127.0.0.1 port its main process serves on;
 //   - linux: `ss -Hltnp` for 127.0.0.1 listeners, each tied to the AppImage by the
-//     APPIMAGE variable the AppImage runtime gave the process.
+//     APPIMAGE variable the AppImage runtime gave the process, and counted only when
+//     its executable lies under the AppImage's mount (not the runtime or FUSE daemon).
 // One listening port is one instance, however many of the app's processes hold its
 // socket; its pid is the main process among them (scripts/process-probe.ts parses the
 // output and picks it).
@@ -519,23 +527,6 @@ export type AppInstance = {
 	/** Every process of the app holding the port's socket (or the one process), for diagnosis. */
 	processes: ProcessDetail[];
 };
-
-/**
- * One instance per 127.0.0.1 port held by a process `detail` accepts (null: not the
- * app's), its pid the main process among the port's holders.
- */
-function instancesByPort(
-	listeners: ListenMap,
-	detail: (pid: number) => ProcessDetail | null
-): { pid: number; port: number; processes: ProcessDetail[] }[] {
-	const instances: { pid: number; port: number; processes: ProcessDetail[] }[] = [];
-	for (const [port, pids] of pidsByPort(listeners)) {
-		const processes = pids.map(detail).filter((holder) => holder !== null);
-		if (processes.length === 0) continue;
-		instances.push({ pid: mainProcess(processes).pid, port, processes });
-	}
-	return instances;
-}
 
 const PROBE_TIMEOUT_MS = 60_000;
 
@@ -631,48 +622,67 @@ export async function windowsAppInstances(exe: string): Promise<AppInstance[]> {
 }
 
 /**
- * /proc/<pid>/<file>, or null when the process has exited since `ss` listed it
+ * Runs `read` on a /proc entry; null when the process has exited since it was listed
  * (ENOENT, or ESRCH mid-read). Any other failure (EACCES) throws: read as 'not ours'
- * it would hide the very instance the test wants.
+ * it would hide the very instance the test wants. `tolerant` (a diagnosis, which reads
+ * what it can) reads every failure as null.
  */
-function readProc(pid: number, file: string): string | null {
+function procEntry(read: () => string, tolerant: boolean): string | null {
 	try {
-		return readFileSync(`/proc/${pid}/${file}`, 'utf8');
+		return read();
 	} catch (error) {
 		const code = (error as NodeJS.ErrnoException).code;
-		if (code === 'ENOENT' || code === 'ESRCH') return null;
+		if (tolerant || code === 'ENOENT' || code === 'ESRCH') return null;
 		throw error;
 	}
 }
 
-/** The APPIMAGE variable a linux process started with, or null when it has none or is gone. */
-function appImageOf(pid: number): string | null {
-	const environ = readProc(pid, 'environ');
-	if (environ === null) return null;
-	const entry = environ.split('\0').find((line) => line.startsWith('APPIMAGE='));
-	return entry === undefined ? null : entry.slice('APPIMAGE='.length);
-}
-
-/** A linux process's parent and arguments, null where it has exited since. */
-function procDetail(pid: number): ProcessDetail {
-	const status = readProc(pid, 'status');
-	const cmdline = readProc(pid, 'cmdline');
+/** What /proc shows of a linux process (see procEntry for `tolerant`). */
+function linuxProc(pid: number, tolerant = false): LinuxProc {
+	const file = (name: string) =>
+		procEntry(() => readFileSync(`/proc/${pid}/${name}`, 'utf8'), tolerant);
 	return {
 		pid,
-		ppid: status === null ? null : parseProcStatusPpid(status),
-		cmdline: cmdline === null ? null : parseProcCmdline(cmdline)
+		environ: file('environ'),
+		exe: procEntry(() => readlinkSync(`/proc/${pid}/exe`), tolerant),
+		status: file('status'),
+		cmdline: file('cmdline')
 	};
+}
+
+/** Every 127.0.0.1 listener on linux, by pid. */
+async function linuxListeners() {
+	return parseSsListeners(await runProbe('ss', ['-Hltnp']));
 }
 
 /**
  * Every instance serving on 127.0.0.1 that the AppImage at `appImage` started (linux):
- * one per port, since processes sharing a socket all show up in its `ss` entry.
+ * one per port, since processes sharing a socket all show up in its `ss` entry. Only
+ * the app's own processes count (linuxAppHolder): a port held only by the AppImage
+ * runtime or its FUSE daemon is no instance.
  */
 export async function linuxAppInstances(appImage: string): Promise<AppInstance[]> {
-	const listeners = parseSsListeners(await runProbe('ss', ['-Hltnp']));
-	return instancesByPort(listeners, (pid) =>
-		appImageOf(pid) === appImage ? procDetail(pid) : null
-	).map((instance) => ({ ...instance, startTime: null }));
+	const listeners = await linuxListeners();
+	return instancesByPort(listeners, (pid) => linuxAppHolder(linuxProc(pid), appImage)).map(
+		(instance) => ({ ...instance, startTime: null })
+	);
+}
+
+/** The 127.0.0.1 ports linux process `pid` listens on, ascending; [] for none. */
+export async function linuxListenPorts(pid: number): Promise<number[]> {
+	return (await linuxListeners()).get(pid) ?? [];
+}
+
+/**
+ * For a failed step's diagnosis (linux): every process of the AppImage at `appImage`,
+ * runtime and FUSE daemon included, listening or not (appImageProcesses), with its
+ * executable. Reads what /proc gives; a process it withholds is left out.
+ */
+export function linuxAppImageProcesses(appImage: string): ProcessDetail[] {
+	const procs = readdirSync('/proc')
+		.filter((entry) => /^\d+$/.test(entry))
+		.map((entry) => linuxProc(Number(entry), true));
+	return appImageProcesses(procs, appImage);
 }
 
 /** Instances of the packaged app at `exe`, found through the OS. */

@@ -5,15 +5,23 @@
 // socket held by several processes is one instance (PR #12's `ss` line, two pids on
 // port 35029), and only distinct ports make more than one. A failed step's diagnosis
 // names each linux holder's state, wait channel and cmdline, and every win32 row, one
-// with no port included.
+// with no port included. On linux only the app's own processes count: CI 44283563089's
+// FUSE daemon, running the AppImage file itself, held a port alone and was no instance.
 import { describe, expect, it } from 'vitest';
 import {
+	appImageProcesses,
 	describeHolders,
 	describeInstances,
+	instancesByPort,
+	isAppImageApp,
+	linuxAppHolder,
+	linuxProcDetail,
 	mainProcess,
 	parseNetTcpListeners,
 	parseProcCmdline,
+	parseProcEnviron,
 	parseProcesses,
+	parseProcExe,
 	parseProcStatusPpid,
 	parseProcStatusState,
 	parseProcWchan,
@@ -22,6 +30,7 @@ import {
 	pidsByPort,
 	servingInstance,
 	withProcState,
+	type LinuxProc,
 	type ProcessDetail
 } from './process-probe.ts';
 
@@ -518,5 +527,195 @@ describe('describeInstances', () => {
 
 	it('says so when there is no instance at all', () => {
 		expect(describeInstances([])).toBe('no instance');
+	});
+});
+
+/** B's mount, which its runtime named in APPDIR, and A's, which the FUSE daemon inherited. */
+const MOUNT = '/tmp/.mount_price-AbC123';
+const MOUNT_A = '/tmp/.mount_price-XyZ789';
+
+const environ = (vars: Record<string, string>) =>
+	Object.entries(vars)
+		.map(([name, value]) => `${name}=${value}\0`)
+		.join('');
+
+const proc = (
+	pid: number,
+	ppid: number,
+	exe: string | null,
+	vars: Record<string, string>,
+	args: string[]
+): LinuxProc => ({
+	pid,
+	environ: environ({ HOME: '/home/runner', ...vars }),
+	exe,
+	status: `Name:\tx\nState:\tS (sleeping)\nPid:\t${pid}\nPPid:\t${ppid}\n`,
+	cmdline: args.map((arg) => `${arg}\0`).join('')
+});
+
+const APP_VARS = { APPIMAGE, APPDIR: MOUNT };
+/** B's Electron main and its zygote, both run from the mount. */
+const MAIN_PROC = proc(9917, 9900, `${MOUNT}/price-check`, APP_VARS, [APPIMAGE]);
+const HELPER_PROC = proc(9920, 9917, `${MOUNT}/price-check`, APP_VARS, [
+	APPIMAGE,
+	'--type=zygote',
+	'--no-zygote-sandbox'
+]);
+/** CI 44283563089's pid 10253: the AppImage's FUSE daemon, ppid 1, holding A's port alone. */
+const DAEMON_PROC = proc(10253, 1, APPIMAGE, { APPIMAGE, APPDIR: MOUNT_A }, [APPIMAGE]);
+
+describe('/proc environ and exe readers', () => {
+	it('reads a variable from /proc/<pid>/environ, null when absent', () => {
+		const text = environ({ APPIMAGE, APPDIR: MOUNT, EMPTY: '' });
+		expect(parseProcEnviron(text, 'APPIMAGE')).toBe(APPIMAGE);
+		expect(parseProcEnviron(text, 'APPDIR')).toBe(MOUNT);
+		expect(parseProcEnviron(text, 'EMPTY')).toBe('');
+		expect(parseProcEnviron(text, 'APP')).toBeNull();
+		expect(parseProcEnviron('', 'APPIMAGE')).toBeNull();
+	});
+
+	it("reads /proc/<pid>/exe without the kernel's ' (deleted)', empty as null", () => {
+		expect(parseProcExe(`${MOUNT}/price-check`)).toBe(`${MOUNT}/price-check`);
+		expect(parseProcExe(`${APPIMAGE} (deleted)`)).toBe(APPIMAGE);
+		expect(parseProcExe('')).toBeNull();
+	});
+
+	it("reads a process's pid, ppid, cmdline and exe, null where /proc withheld them", () => {
+		expect(linuxProcDetail(DAEMON_PROC)).toEqual({
+			pid: 10253,
+			ppid: 1,
+			cmdline: [APPIMAGE],
+			exe: APPIMAGE
+		});
+		expect(
+			linuxProcDetail({ pid: 5, environ: null, exe: null, status: null, cmdline: null })
+		).toEqual({ pid: 5, ppid: null, cmdline: null, exe: null });
+	});
+});
+
+describe('isAppImageApp', () => {
+	it('keeps the Electron main and its helpers, run from the mount APPDIR names', () => {
+		expect(isAppImageApp(MAIN_PROC, APPIMAGE)).toBe(true);
+		expect(isAppImageApp(HELPER_PROC, APPIMAGE)).toBe(true);
+		expect(linuxAppHolder(MAIN_PROC, APPIMAGE)).toEqual({
+			pid: 9917,
+			ppid: 9900,
+			cmdline: [APPIMAGE],
+			exe: `${MOUNT}/price-check`
+		});
+	});
+
+	it('rejects the AppImage runtime or FUSE daemon, whose exe is the AppImage file', () => {
+		expect(isAppImageApp(DAEMON_PROC, APPIMAGE)).toBe(false);
+		expect(linuxAppHolder(DAEMON_PROC, APPIMAGE)).toBeNull();
+		// The same, its APPDIR its own mount, and once its file was renamed over.
+		const own = proc(10253, 1, APPIMAGE, APP_VARS, [APPIMAGE]);
+		expect(isAppImageApp(own, APPIMAGE)).toBe(false);
+		const replaced = proc(10253, 1, `${APPIMAGE} (deleted)`, APP_VARS, [APPIMAGE]);
+		expect(isAppImageApp(replaced, APPIMAGE)).toBe(false);
+	});
+
+	it('rejects an exe outside the mount, or a mount whose name only starts the same', () => {
+		expect(isAppImageApp(proc(1, 1, '/usr/bin/bash', APP_VARS, ['bash']), APPIMAGE)).toBe(false);
+		expect(isAppImageApp(proc(1, 1, `${MOUNT}9/price-check`, APP_VARS, []), APPIMAGE)).toBe(false);
+		expect(isAppImageApp(proc(1, 1, MOUNT, APP_VARS, []), APPIMAGE)).toBe(false);
+		expect(
+			isAppImageApp(
+				proc(1, 1, `${MOUNT}/price-check`, { APPIMAGE, APPDIR: `${MOUNT}/` }, []),
+				APPIMAGE
+			)
+		).toBe(true);
+	});
+
+	it("rejects another AppImage's process, and one with no APPDIR, exe or environ", () => {
+		const other = { APPIMAGE: '/opt/other.AppImage', APPDIR: MOUNT };
+		expect(isAppImageApp(proc(1, 1, `${MOUNT}/price-check`, other, []), APPIMAGE)).toBe(false);
+		expect(isAppImageApp(proc(1, 1, `${MOUNT}/price-check`, { APPIMAGE }, []), APPIMAGE)).toBe(
+			false
+		);
+		expect(isAppImageApp({ ...MAIN_PROC, exe: null }, APPIMAGE)).toBe(false);
+		expect(isAppImageApp({ ...MAIN_PROC, environ: null }, APPIMAGE)).toBe(false);
+	});
+});
+
+describe('instancesByPort (linux holders)', () => {
+	const procs = new Map([MAIN_PROC, HELPER_PROC, DAEMON_PROC].map((p) => [p.pid, p]));
+	const holder = (pid: number) => {
+		const found = procs.get(pid);
+		return found === undefined ? null : linuxAppHolder(found, APPIMAGE);
+	};
+
+	it("finds no instance on a port only the FUSE daemon holds (CI 44283563089's 41677)", () => {
+		const ss = 'LISTEN 0 10 127.0.0.1:41677 0.0.0.0:* users:(("price-check.App",pid=10253,fd=7))';
+		expect(instancesByPort(parseSsListeners(ss), holder)).toEqual([]);
+	});
+
+	it('finds the app on its own port beside the orphaned one, its holders the app only', () => {
+		const ss = [
+			'LISTEN 0 10 127.0.0.1:41677 0.0.0.0:* users:(("price-check.App",pid=10253,fd=7))',
+			'LISTEN 0 511 127.0.0.1:35029 0.0.0.0:* users:(("price-check",pid=9917,fd=40),("price-check",pid=9920,fd=40),("price-check.App",pid=10253,fd=40))'
+		].join('\n');
+		const main = linuxAppHolder(MAIN_PROC, APPIMAGE);
+		const helper = linuxAppHolder(HELPER_PROC, APPIMAGE);
+		expect(instancesByPort(parseSsListeners(ss), holder)).toEqual([
+			{ pid: 9917, port: 35029, processes: [main, helper] }
+		]);
+	});
+
+	it("skips a port no holder of which is the app's, and keeps distinct app ports apart", () => {
+		const ss = [
+			'LISTEN 0 10 127.0.0.1:5000 0.0.0.0:* users:(("other",pid=777,fd=3))',
+			'LISTEN 0 10 127.0.0.1:41000 0.0.0.0:* users:(("price-check",pid=9920,fd=9))',
+			SHARED_SOCKET
+		].join('\n');
+		expect(
+			instancesByPort(parseSsListeners(ss), holder).map(({ pid, port }) => ({ pid, port }))
+		).toEqual([
+			{ pid: 9917, port: 35029 },
+			{ pid: 9920, port: 41000 }
+		]);
+	});
+});
+
+describe('appImageProcesses', () => {
+	it('lists the runtime, FUSE daemon and app processes, listening or not, by pid', () => {
+		const stray = proc(40, 1, '/usr/bin/sleep', { HOME: '/root' }, ['sleep', '60']);
+		const otherImage = proc(
+			41,
+			1,
+			'/opt/o/AppRun',
+			{ APPIMAGE: '/opt/o.AppImage', APPDIR: '/opt/o' },
+			[]
+		);
+		// A helper whose environment no longer names the AppImage, run from its mount.
+		const cleared = proc(9930, 9917, `${MOUNT}/chrome_crashpad_handler`, {}, ['crashpad']);
+		const withheld: LinuxProc = { pid: 3, environ: null, exe: null, status: null, cmdline: null };
+		const found = appImageProcesses(
+			[DAEMON_PROC, cleared, stray, HELPER_PROC, withheld, otherImage, MAIN_PROC],
+			APPIMAGE
+		);
+		expect(found.map(({ pid }) => pid)).toEqual([9917, 9920, 9930, 10253]);
+		expect(found.at(-1)).toEqual(linuxProcDetail(DAEMON_PROC));
+	});
+
+	it("lists a process under the daemon's inherited mount too, and none when nothing runs", () => {
+		const fromA = proc(8000, 1, `${MOUNT_A}/price-check`, {}, []);
+		expect(appImageProcesses([fromA, DAEMON_PROC], APPIMAGE).map(({ pid }) => pid)).toEqual([
+			8000, 10253
+		]);
+		expect(appImageProcesses([], APPIMAGE)).toEqual([]);
+	});
+
+	it('names each with its exe, ppid, state and wait channel', () => {
+		const [daemon] = appImageProcesses([DAEMON_PROC], APPIMAGE);
+		const read = withProcState(daemon, (_pid, file) =>
+			file === 'status' ? 'State:\tS (sleeping)\n' : 'fuse_dev_do_read'
+		);
+		expect(describeHolders([read])).toBe(
+			`pid 10253 (ppid 1) exe ${APPIMAGE} state S (sleeping) wchan fuse_dev_do_read ["${APPIMAGE}"]`
+		);
+		expect(describeHolders([{ pid: 3, ppid: null, cmdline: null, exe: null }])).toBe(
+			'pid 3 (ppid unknown) exe unknown <cmdline unknown>'
+		);
 	});
 });
