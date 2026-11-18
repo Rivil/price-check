@@ -227,6 +227,21 @@
         }
       ]
     },
+    "t-21": {
+      "files": [
+        "scripts/packaged-app.spec.ts"
+      ],
+      "commit": "417a9be",
+      "completed_at": "2026-11-18T07:20:29.542016Z",
+      "landmarks": [
+        {
+          "feature": "packaged artefact verification",
+          "symbol": "locate",
+          "loc": "scripts/packaged-app.ts:121",
+          "what": "packaged-app locate/install/registry parsing pinned by exact-message tests"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "scripts/release-tag.ts",
@@ -762,6 +777,33 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "listAsar symlink test is skipped on win32 (it.skipIf), so the 'link' kind is only checked on POSIX runners",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-21": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "findUserInstall 'whatever the line endings' test cannot tell split(/\\r?\\n/) from split(/\\n/), because trim() plus taking only the last line hides the \\r. That mutant looks equivalent, so it should be listed in the writer report, not killed artificially.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "spawnRunner tests start real node child processes (process.execPath -e ...). They are hermetic and fast, but they are the only non-fake runner tests in the spec.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "This review cannot confirm the full count of 75 survivors killed or accepted. It needs the re-verify stryker run and the writer report's list of equivalent mutants.",
           "resolution": "non-blocking, left"
         }
       ]
