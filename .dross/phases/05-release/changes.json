@@ -211,6 +211,22 @@
         }
       ]
     },
+    "t-20": {
+      "files": [
+        "scripts/verify-packaged.ts",
+        "scripts/verify-packaged.spec.ts"
+      ],
+      "commit": "3d38a1b",
+      "completed_at": "2026-11-18T07:10:08.834669Z",
+      "landmarks": [
+        {
+          "feature": "packaged artefact verification",
+          "symbol": "verifyWin",
+          "loc": "scripts/verify-packaged.ts:190",
+          "what": "verify-packaged checks pinned by tests killing its mutation survivors; dead redundant branches removed"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "scripts/release-tag.ts",
@@ -726,6 +742,26 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The tests for refusing --sign also capture process.stdout/stderr and console output, so a leaked secret value would be caught on those paths as well as through the injected stdout/stderr.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-20": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Production edits in scripts/verify-packaged.ts (parseAumid BOM replace, isInside toLowerCase, AUMID code-gated parse, parseUpdateYaml blank/comment skip) remove redundant code without changing behaviour; each now has a comment saying why it is safe",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "listAsar symlink test is skipped on win32 (it.skipIf), so the 'link' kind is only checked on POSIX runners",
           "resolution": "non-blocking, left"
         }
       ]

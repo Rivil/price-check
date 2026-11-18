@@ -1,4 +1,4 @@
-task_seq = 25
+task_seq = 26
 [phase]
 id = "05-release"
 
@@ -301,7 +301,7 @@ files = ["scripts/verify-packaged.ts", "scripts/verify-packaged.spec.ts"]
 description = "Verify 05-release (fd35268) left these stryker survivors as real test gaps: see the \"stryker mutant survived: <file>:<line>\" BLOCKING findings in .dross/phases/05-release/verify.toml and the Surviving entries in tests.json. Write tests in the spec file that kill each one. Change production code only when a survivor shows a real bug or dead code; keep behaviour otherwise. A survivor that is truly equivalent (no observable behaviour change) is not killed artificially: list it with a one-line reason in the writer report, so it can be accepted at re-verify. Verify by hand-mutation spot checks (sed a copy, run the spec, restore and compare shasum) on a sample. Count at verify: 155 (scripts/verify-packaged.ts)."
 covers = ["c-1", "c-2", "c-3"]
 test_contract = ["If verifyMac/parseLipoArchs, verifyWin (HKCU prefix, AUMID command) or verifyLayout/verifyAppFiles weaken a check, verify-packaged.spec fails"]
-status = "pending"
+status = "done"
 
 [[task]]
 id = "t-21"
@@ -352,3 +352,14 @@ description = "Verify 05-release (fd35268) left these stryker survivors as real 
 covers = ["c-5", "c-6"]
 test_contract = ["If settleIdle is forced, the downloadPromise optional chaining or the check-failure catch changes behaviour, updater.spec fails", "If a null predecessor still polls and retries the lock, lifecycle.spec fails (one lock request asserted)"]
 status = "pending"
+
+[[task]]
+id = "t-26"
+wave = 9
+title = "Make packaged update e2e failures diagnosable"
+files = ["e2e/desktop/launch.ts", "e2e/desktop/harness.e2e.ts", "e2e/packaged/update.packaged.ts", "scripts/process-probe.ts", "scripts/process-probe.spec.ts", ".github/workflows/ci.yml", "scripts/ci-packaged.spec.ts"]
+description = "Verify 05-release BLOCKING: CI run 44136073549 'packaged e2e' fails on Linux ('restart through the predecessor wait' hits the 360 s timeout) and Windows ('relaunch after exit': no relaunch within 180 s). A read-only diagnosis (logs in the session scratchpad diag/) could not find the root cause because CI keeps almost no output. Linux: B relaunches and listens, but the unbounded rawRequest at update.packaged.ts:350 (launch.ts:511-540 sets no timeout) suggests B accepts the connection and never answers. Candidates: B inherits A's env and cwd inside A's AppImage mount, or a blocking startup error dialog (main.ts:215-227) under xvfb. Windows: the NSIS --force-run relaunch goes through Explorer, and the probe (update.packaged.ts:284) can't tell 'no process' from 'process with no port'. This task is test-side only, no src/ change: (1) rawRequest takes an optional timeoutMs (setTimeout, destroy with an error); pass about 15 s at update.packaged.ts:295 and :350. (2) On any relaunch-step failure, attach A's app.output() via testInfo.attach, which carries electron-updater's Install/Executing lines. (3) On failure, record OS state: on Linux each holder's /proc/<pid>/status State, wchan and cmdline (extend describeHolders in process-probe.ts); on Windows every windowsAppInstances row incl. those with no port, plus any running price-check-*-win-x64 installer. (4) ci.yml packaged e2e uses --reporter=list. Audit ci.yml against ~/.claude/memory/reference_ci_supply_chain_hardening.md (Universal + Node subset) and report findings. The failing tests stay failing: the follow-up fix task is written from the next CI run's output."
+covers = ["c-5", "c-6"]
+test_contract = ["If rawRequest with timeoutMs waits past the timeout on a server that accepts but never answers, harness.e2e fails", "If describeHolders drops a holder's process state, wait channel or cmdline on Linux, or a Windows instance row with no port, process-probe.spec fails", "If the packaged e2e step loses its list reporter, ci-packaged.spec fails"]
+status = "pending"
+depends_on = ["t-22"]
