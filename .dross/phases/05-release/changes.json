@@ -242,6 +242,21 @@
         }
       ]
     },
+    "t-22": {
+      "files": [
+        "scripts/process-probe.spec.ts"
+      ],
+      "commit": "60b7e83",
+      "completed_at": "2026-11-18T07:27:56.642397Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "mainProcess",
+          "loc": "scripts/process-probe.ts:186",
+          "what": "process-probe parsing and main-process ranking pinned by exact tests"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "scripts/release-tag.ts",
@@ -804,6 +819,26 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "This review cannot confirm the full count of 75 survivors killed or accepted. It needs the re-verify stryker run and the writer report's list of equivalent mutants.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-22": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "No production code changed; the new tests pin exact error messages, both ranking orders in mainProcess, anchoring in MS_DATE and the PPid regex, and the 65535/65536 port limits, which target the stryker survivors",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The diff cannot show which of the 64 survivors were judged equivalent; that list belongs to the writer report and should be checked at re-verify",
           "resolution": "non-blocking, left"
         }
       ]
