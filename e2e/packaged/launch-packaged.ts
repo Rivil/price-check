@@ -71,6 +71,13 @@ import {
 
 export const PACKAGED_EXE_ENV = 'PRICE_CHECK_PACKAGED_EXE';
 
+/**
+ * Test-only, read by src/desktop/main.ts (its OUTPUT_CAPTURE_ENV; main.spec pins the
+ * two together): an absolute file each app process appends its output records to, the
+ * version an update starts included (scripts/process-probe.ts parses them).
+ */
+export const OUTPUT_CAPTURE_ENV = 'PRICE_CHECK_E2E_OUTPUT_CAPTURE';
+
 /** Written as the login-item marker before the first launch: the app never registered. */
 export const MARKER_SEED = 'e2e: seeded, never registered\n';
 
@@ -222,6 +229,8 @@ export type LaunchPackagedOptions = {
 	fresh?: boolean;
 	/** Playwright's launcher; a spec may swap it to prove a refusal launches nothing. */
 	launch?: (typeof _electron)['launch'];
+	/** Added to run.env for this launch only (OUTPUT_CAPTURE_ENV). */
+	env?: Record<string, string>;
 };
 
 function collectOutput(child: ChildProcess): () => string {
@@ -280,7 +289,7 @@ function registeredLoginItem(run: PackagedRun): boolean {
 /** Launches the packaged app and waits for its first window on its own server. */
 export async function launchPackaged(
 	run: PackagedRun,
-	{ fresh = false, launch = _electron.launch.bind(_electron) }: LaunchPackagedOptions = {}
+	{ fresh = false, launch = _electron.launch.bind(_electron), env = {} }: LaunchPackagedOptions = {}
 ): Promise<PackagedApp> {
 	// Before anything starts: a refused launch must never reach the app.
 	if (fresh) claimUserData(run);
@@ -294,7 +303,7 @@ export async function launchPackaged(
 		app = await launch({
 			executablePath: run.exe,
 			args: run.args,
-			env: run.env,
+			env: { ...run.env, ...env },
 			cwd: run.home,
 			// Keep Chromium's sandbox on Linux too: Playwright would otherwise add --no-sandbox.
 			chromiumSandbox: true,
@@ -651,7 +660,7 @@ function linuxProc(pid: number, tolerant = false): LinuxProc {
 }
 
 /** Every 127.0.0.1 listener on linux, by pid. */
-async function linuxListeners() {
+export async function linuxListeners() {
 	return parseSsListeners(await runProbe('ss', ['-Hltnp']));
 }
 

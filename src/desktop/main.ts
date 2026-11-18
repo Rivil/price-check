@@ -30,6 +30,18 @@
 //
 // '[desktop] listening on http://127.0.0.1:<port>' is printed once the server is up:
 // the desktop e2e harness reads it to find the per-launch port.
+//
+// Test-only output capture (05-release t-30): electron-updater starts the updated
+// AppImage with stdio 'ignore', so the packaged update test cannot see what it printed
+// or why it exited. When PRICE_CHECK_E2E_OUTPUT_CAPTURE names an absolute file, this
+// process appends to it, as JSON lines, its start (ppid, argv), every stdout and
+// stderr write, any uncaught error and its exit code (startOutputCapture);
+// scripts/process-probe.ts reads them back. The variable is read and removed first
+// thing, so the server's env never carries it, and put back only for the hand-over to
+// the installer (withCaptureHandOver), so the version an update starts captures too.
+// A packaged Electron drops NODE_OPTIONS but --max-http-header-size and --http-parser
+// (Electron 45's environment-variables docs), so a --require preload cannot do this.
+// Unset (every real launch), nothing is hooked and the updater is passed as is.
 import {
 	app,
 	autoUpdater,
@@ -42,14 +54,20 @@ import {
 	Tray
 } from 'electron';
 import electronUpdater from 'electron-updater';
+import { appendFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readRuntime } from '#lib/server/runtime-bridge.ts';
 import { loadOrCreateAlertsKey } from './alerts-key.ts';
 import { appUserModelIdFor } from './app-id.ts';
 import { desktopPaths, resolveUserDataDir, serverCwdFor } from './app-paths.ts';
-import { PREDECESSOR_PID_ENV, runDesktop, STARTUP_ERROR_TITLE } from './lifecycle.ts';
+import {
+	PREDECESSOR_PID_ENV,
+	runDesktop,
+	STARTUP_ERROR_TITLE,
+	type LifecycleUpdates
+} from './lifecycle.ts';
 import { createLoginItem } from './login-item.ts';
 import { createNotifier } from './notifier.ts';
 import { notificationClassFor } from './notify-seam.ts';
@@ -67,6 +85,95 @@ const HANDLER_URL = new URL('../build/handler.js', import.meta.url).href;
 const ICON_DIR = join(APP_ROOT, 'src', 'desktop', 'assets');
 /** How long a notification may go unreported before it counts as delivered. */
 const NOTIFY_SETTLE_MS = 4_000;
+
+/** Test-only: names the output capture file (see the header). */
+export const OUTPUT_CAPTURE_ENV = 'PRICE_CHECK_E2E_OUTPUT_CAPTURE';
+
+/** The capture file OUTPUT_CAPTURE_ENV names, removed from `env`; null unless absolute. */
+export function takeOutputCaptureFile(env: NodeJS.ProcessEnv): string | null {
+	const file = env[OUTPUT_CAPTURE_ENV];
+	delete env[OUTPUT_CAPTURE_ENV];
+	return file !== undefined && isAbsolute(file) ? file : null;
+}
+
+/** A stream whose writes the capture records. */
+export type CaptureStream = { write(chunk: string | Uint8Array, ...rest: unknown[]): boolean };
+
+/** The slice of `process` startOutputCapture hooks. */
+export type CaptureProcess = {
+	pid: number;
+	ppid: number;
+	argv: readonly string[];
+	stdout: CaptureStream;
+	stderr: CaptureStream;
+	on(event: 'uncaughtExceptionMonitor', listener: (error: Error, origin: string) => void): unknown;
+	on(event: 'exit', listener: (code: number) => void): unknown;
+};
+
+/**
+ * Appends this process's start, then every stdout and stderr write (still written
+ * through), uncaught error and its exit, as one JSON line each, to `file`. Only
+ * observes: the monitor event leaves Node's own uncaught handling as it was, and a
+ * failed append is dropped (reporting it would print, and so append, again).
+ */
+export function startOutputCapture(
+	file: string,
+	proc: CaptureProcess,
+	append: (file: string, line: string) => void = appendFileSync,
+	now: () => Date = () => new Date()
+): void {
+	const record = (fields: Record<string, unknown>) => {
+		try {
+			append(file, `${JSON.stringify({ pid: proc.pid, at: now().toISOString(), ...fields })}\n`);
+		} catch {
+			// Never let a diagnostic aid fail the app.
+		}
+	};
+	record({ kind: 'start', ppid: proc.ppid, argv: proc.argv });
+	for (const kind of ['stdout', 'stderr'] as const) {
+		const stream = proc[kind];
+		const write = stream.write.bind(stream);
+		stream.write = (chunk, ...rest) => {
+			record({
+				kind,
+				text: typeof chunk === 'string' ? chunk : Buffer.from(chunk).toString('utf8')
+			});
+			return write(chunk, ...rest);
+		};
+	}
+	proc.on('uncaughtExceptionMonitor', (error, origin) => {
+		record({
+			kind: 'error',
+			origin,
+			text: error instanceof Error ? (error.stack ?? String(error)) : String(error)
+		});
+	});
+	proc.on('exit', (code) => record({ kind: 'exit', code }));
+}
+
+/**
+ * `updates` as is without a capture file; with one, each hand-over to the installer
+ * first puts OUTPUT_CAPTURE_ENV back into `env`, which the installer and the version
+ * it starts inherit.
+ */
+export function withCaptureHandOver(
+	updates: LifecycleUpdates,
+	file: string | null,
+	env: NodeJS.ProcessEnv
+): LifecycleUpdates {
+	if (file === null) return updates;
+	return {
+		pending: () => updates.pending(),
+		installOnExit(mode) {
+			env[OUTPUT_CAPTURE_ENV] = file;
+			return updates.installOnExit(mode);
+		}
+	};
+}
+
+/** Read and started before anything else here prints. */
+const outputCapture = takeOutputCaptureFile(process.env);
+if (outputCapture !== null) startOutputCapture(outputCapture, process);
 
 const paths = desktopPaths(
 	resolveUserDataDir({
@@ -195,7 +302,7 @@ runDesktop({
 	notifications,
 	loginItem,
 	platform: process.platform,
-	...(updater ? { updates: updater } : {}),
+	...(updater ? { updates: withCaptureHandOver(updater, outputCapture, process.env) } : {}),
 	nativeUpdater: autoUpdater,
 	predecessorPid,
 	isProcessAlive

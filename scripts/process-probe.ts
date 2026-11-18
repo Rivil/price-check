@@ -529,3 +529,198 @@ export function describeInstallerTree(
 	);
 	return [head, ...lines].join('\n');
 }
+
+// ---------------------------------------------------------------------------
+// The Linux restart test's output capture (t-30). electron-updater starts the updated
+// AppImage with stdio 'ignore', so what it printed and why it exited were never seen.
+// A test-only env var (main.ts's OUTPUT_CAPTURE_ENV) names one file; every process of
+// the app that finds it set (A, and through the hand-over B) appends JSON lines to it:
+//
+//   {"pid":N,"at":"<ISO>","kind":"start","ppid":N,"argv":[...]}
+//   {"pid":N,"at":"<ISO>","kind":"stdout"|"stderr","text":"<one write>"}
+//   {"pid":N,"at":"<ISO>","kind":"error","origin":"uncaughtException"|...,"text":"<stack>"}
+//   {"pid":N,"at":"<ISO>","kind":"exit","code":N}
+//
+// A failed test attaches them per pid, oldest first. A pid with no exit record is kept
+// and said to have none: still running, killed, or gone before Node's 'exit'.
+
+/** One line of the output capture, or a line that is no record (kept for the reader). */
+export type CaptureRecord =
+	| { pid: number; at: Date | null; kind: 'start'; ppid: number | null; argv: string[] | null }
+	| { pid: number; at: Date | null; kind: 'stdout' | 'stderr'; text: string }
+	| { pid: number; at: Date | null; kind: 'error'; origin: string; text: string }
+	| { pid: number; at: Date | null; kind: 'exit'; code: number | null }
+	| { kind: 'unreadable'; line: string };
+
+function captureDate(value: unknown): Date | null {
+	if (typeof value !== 'string') return null;
+	const date = new Date(value);
+	return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/** One capture line as a record; 'unreadable' for anything else. Never throws. */
+function captureRecord(line: string): CaptureRecord {
+	const unreadable: CaptureRecord = { kind: 'unreadable', line };
+	let value: unknown;
+	try {
+		value = JSON.parse(line);
+	} catch {
+		return unreadable;
+	}
+	if (value === null || typeof value !== 'object' || Array.isArray(value)) return unreadable;
+	const row = value as Row;
+	if (typeof row.pid !== 'number' || !Number.isInteger(row.pid) || row.pid <= 0) return unreadable;
+	const base = { pid: row.pid, at: captureDate(row.at) };
+	switch (row.kind) {
+		case 'start':
+			return {
+				...base,
+				kind: 'start',
+				ppid: typeof row.ppid === 'number' ? row.ppid : null,
+				argv:
+					Array.isArray(row.argv) && row.argv.every((arg) => typeof arg === 'string')
+						? (row.argv as string[])
+						: null
+			};
+		case 'stdout':
+		case 'stderr':
+			return typeof row.text === 'string'
+				? { ...base, kind: row.kind, text: row.text }
+				: unreadable;
+		case 'error':
+			return typeof row.text === 'string'
+				? {
+						...base,
+						kind: 'error',
+						origin: typeof row.origin === 'string' ? row.origin : 'unknown origin',
+						text: row.text
+					}
+				: unreadable;
+		case 'exit':
+			return { ...base, kind: 'exit', code: typeof row.code === 'number' ? row.code : null };
+		default:
+			return unreadable;
+	}
+}
+
+/**
+ * The capture file's lines as records, in file order. Blank lines are skipped; a torn
+ * or foreign line comes back 'unreadable' rather than fail the diagnosis.
+ */
+export function parseCaptureRecords(text: string): CaptureRecord[] {
+	return text
+		.split(/\r?\n/)
+		.filter((line) => line.trim() !== '')
+		.map(captureRecord);
+}
+
+const isoOrUnknown = (at: Date | null) => at?.toISOString() ?? '<time unknown>';
+
+/** The lines of one write, `prefix`ed; a trailing newline adds no empty line. */
+function prefixedLines(prefix: string, text: string): string[] {
+	const lines = text.split(/\r?\n/);
+	if (lines.length > 1 && lines.at(-1) === '') lines.pop();
+	return lines.map((line) => `${prefix}${line}`);
+}
+
+/**
+ * The capture for a failed test's attachment: one block per pid, oldest first (its
+ * start record's time, else its earliest record's; unknown times last, then by pid),
+ * so the newest process comes last. Each block opens with the pid's ppid, start and
+ * argv, lists every write and error in file order, and ends with its exit code or a
+ * line saying it has none. Unreadable lines follow, as they were.
+ */
+export function formatCaptureRecords(records: readonly CaptureRecord[]): string {
+	const byPid = new Map<number, Exclude<CaptureRecord, { kind: 'unreadable' }>[]>();
+	const unreadable: string[] = [];
+	for (const record of records) {
+		if (record.kind === 'unreadable') {
+			unreadable.push(record.line);
+			continue;
+		}
+		const list = byPid.get(record.pid) ?? [];
+		list.push(record);
+		byPid.set(record.pid, list);
+	}
+	const startOf = (list: readonly CaptureRecord[]): number | null => {
+		const start = list.find((record) => record.kind === 'start');
+		const times = (start !== undefined && start.at !== null ? [start] : list).flatMap((record) =>
+			'at' in record && record.at !== null ? [record.at.getTime()] : []
+		);
+		return times.length === 0 ? null : Math.min(...times);
+	};
+	const pids = [...byPid.keys()].sort((a, b) => {
+		const [ta, tb] = [startOf(byPid.get(a) ?? []), startOf(byPid.get(b) ?? [])];
+		if (ta !== tb) {
+			if (ta === null) return 1;
+			if (tb === null) return -1;
+			return ta - tb;
+		}
+		return a - b;
+	});
+
+	const blocks = pids.map((pid) => {
+		const list = byPid.get(pid) ?? [];
+		const lines: string[] = [];
+		if (!list.some((record) => record.kind === 'start')) lines.push(`pid ${pid}: no start record`);
+		for (const record of list) {
+			const at = isoOrUnknown(record.at);
+			switch (record.kind) {
+				case 'start':
+					lines.push(
+						`pid ${pid} (ppid ${record.ppid ?? 'unknown'}) started ${at} argv ${record.argv === null ? '<unknown>' : JSON.stringify(record.argv)}`
+					);
+					break;
+				case 'stdout':
+				case 'stderr':
+					lines.push(...prefixedLines(`  ${at} ${record.kind}| `, record.text));
+					break;
+				case 'error':
+					lines.push(...prefixedLines(`  ${at} ${record.origin}| `, record.text));
+					break;
+				case 'exit':
+					lines.push(`  ${at} exit code ${record.code ?? 'unknown'}`);
+					break;
+			}
+		}
+		if (!list.some((record) => record.kind === 'exit')) {
+			lines.push(`  no exit record: still running, killed, or gone before Node's 'exit'`);
+		}
+		return lines.join('\n');
+	});
+	if (unreadable.length > 0) {
+		blocks.push(['unreadable capture lines:', ...unreadable.map((line) => `  ${line}`)].join('\n'));
+	}
+	return blocks.length === 0 ? 'no capture record' : blocks.join('\n');
+}
+
+/**
+ * Adds to `seen` every pid `listeners` shows holding one of `ports` (the 127.0.0.1
+ * ports A listened on): read while the relaunch is awaited, it names a process that
+ * held A's inherited socket only briefly.
+ */
+export function addPortHolders(
+	seen: Map<number, Set<number>>,
+	ports: readonly number[],
+	listeners: ListenMap
+): void {
+	const byPort = pidsByPort(listeners);
+	for (const listenPort of ports) {
+		const holders = seen.get(listenPort) ?? new Set<number>();
+		for (const pid of byPort.get(listenPort) ?? []) holders.add(pid);
+		seen.set(listenPort, holders);
+	}
+}
+
+/** One entry per port of `ports`: the pids `seen` holding it (ascending), or none. */
+export function describePortHolders(
+	ports: readonly number[],
+	seen: ReadonlyMap<number, ReadonlySet<number>>
+): string {
+	return ports
+		.map((listenPort) => {
+			const pids = [...(seen.get(listenPort) ?? [])].sort((a, b) => a - b);
+			return `${listenPort} held by ${pids.length === 0 ? 'no pid seen' : `pid ${pids.join(', ')}`}`;
+		})
+		.join('; ');
+}

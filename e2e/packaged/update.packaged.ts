@@ -45,7 +45,15 @@
 // started (Win32_Process by ParentProcessId, grandchildren included). On Linux the
 // failure also names the 127.0.0.1 ports A itself listened on just before 'Restart to
 // update': a socket of A's that the updater's spawn passed down stays listening with
-// nothing to accept on it.
+// nothing to accept on it. Each of those ports names every pid seen holding it while
+// the relaunch was awaited.
+//
+// The Linux restart test also launches A with OUTPUT_CAPTURE_ENV naming a capture file
+// (src/desktop/main.ts): A, and B through the hand-over's env, append their start,
+// output, uncaught errors and exit to it. electron-updater starts B with stdio
+// 'ignore', so this is the only record of what B printed and how it ended (CI
+// 44289826311: B never served its own port). Any failure of that test attaches it,
+// one block per pid, oldest first, once B has been stopped. A passing run never reads it.
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -59,9 +67,13 @@ import {
 	type PackagedPlatform
 } from '../../scripts/packaged-app.ts';
 import {
+	addPortHolders,
 	describeHolders,
 	describeInstallerTree,
 	describeInstances,
+	describePortHolders,
+	formatCaptureRecords,
+	parseCaptureRecords,
 	parseProcesses,
 	parseWin32Processes,
 	servingInstance,
@@ -78,6 +90,8 @@ import {
 	launchPackaged,
 	linuxAppImageProcesses,
 	linuxListenPorts,
+	linuxListeners,
+	OUTPUT_CAPTURE_ENV,
 	packagedExe,
 	pollFor,
 	stopInstance,
@@ -358,8 +372,8 @@ test.describe.serial('packaged update', () => {
 	/** Windows: each update installer the relaunch wait saw, for a failure's diagnosis. */
 	const installersSeen = new Map<number, InstallerSeen>();
 
-	const launch = async (fresh = false) => {
-		current = await launchPackaged(run, { fresh });
+	const launch = async (fresh = false, env: Record<string, string> = {}) => {
+		current = await launchPackaged(run, { fresh, env });
 		outputs.push(current.output);
 		return current;
 	};
@@ -623,51 +637,74 @@ test.describe.serial('packaged update', () => {
 		);
 		if (!feedDir) throw new Error(`${UPDATE_FEED_DIR_ENV} is not set`);
 		const buildB = join(feedDir, expectedArtefacts('linux', versionB)[0]);
-		await expectNoInstance();
-		placeBuildA(packagedExe());
-
-		const app = await launch();
-		expect(await app.app.evaluate(({ app: electronApp }) => electronApp.getVersion())).toBe(
-			versionA
-		);
-		await expectDownloaded(app);
-		const pidA = app.pid;
-		let relaunchedPid: number | undefined;
-		/** A's own 127.0.0.1 listen ports just before 'Restart to update' (see the header). */
-		let portsA: number[] | undefined;
-		const portsNote = () =>
-			portsA === undefined
-				? `A (pid ${pidA}) listen ports: not recorded`
-				: `A (pid ${pidA}) listened on 127.0.0.1 ports: ${portsA.length === 0 ? 'none' : portsA.join(', ')}`;
+		const captureDir = makeTempDir('update-capture');
+		const captureFile = join(captureDir, 'output-capture.jsonl');
+		let pidA: number | undefined;
 		try {
-			await diagnosed(
-				app,
-				'linux',
-				async () => {
-					portsA = await linuxListenPorts(pidA);
-					// B is started while A is still on its way out, so it first loses the lock.
-					const exitedAt = await restartToUpdate(app);
+			await expectNoInstance();
+			placeBuildA(packagedExe());
 
-					const relaunched = await pollFor(
-						async () => servingInstance(await appInstances('linux', run.exe)),
-						Math.max(exitedAt + LINUX_RELAUNCH_MS - Date.now(), 1)
-					);
-					if (relaunched === null || relaunched.port === null) {
-						throw new Error(
-							`no B process served from ${run.exe} within ${LINUX_RELAUNCH_MS}ms of A's exit (the relaunch lost the single-instance lock?)`
-						);
-					}
-					relaunchedPid = relaunched.pid;
-					expect(relaunched.pid).not.toBe(pidA);
-					expect(sha256(run.exe), `the AppImage at ${run.exe} is not B`).toBe(sha256(buildB));
-					const response = await rawRequest(relaunched.port, { timeoutMs: RESPONSE_MS });
-					expect(response.status).toBe(200);
-					expect(response.body).toContain(WATCH.title);
-				},
-				portsNote
+			const app = await launch(false, { [OUTPUT_CAPTURE_ENV]: captureFile });
+			pidA = app.pid;
+			expect(await app.app.evaluate(({ app: electronApp }) => electronApp.getVersion())).toBe(
+				versionA
 			);
+			await expectDownloaded(app);
+			let relaunchedPid: number | undefined;
+			/** A's own 127.0.0.1 listen ports just before 'Restart to update' (see the header). */
+			let portsA: number[] | undefined;
+			/** Each of A's ports -> every pid seen holding it while the relaunch was awaited. */
+			const portHolders = new Map<number, Set<number>>();
+			const portsNote = () =>
+				portsA === undefined
+					? `A (pid ${app.pid}) listen ports: not recorded`
+					: `A (pid ${app.pid}) listened on 127.0.0.1 ports: ${portsA.length === 0 ? 'none' : `${portsA.join(', ')} (since 'Restart to update': ${describePortHolders(portsA, portHolders)})`}`;
+			try {
+				await diagnosed(
+					app,
+					'linux',
+					async () => {
+						const ports = await linuxListenPorts(app.pid);
+						portsA = ports;
+						// B is started while A is still on its way out, so it first loses the lock.
+						const exitedAt = await restartToUpdate(app);
+
+						const relaunched = await pollFor(
+							async () => {
+								addPortHolders(portHolders, ports, await linuxListeners());
+								return servingInstance(await appInstances('linux', run.exe));
+							},
+							Math.max(exitedAt + LINUX_RELAUNCH_MS - Date.now(), 1)
+						);
+						if (relaunched === null || relaunched.port === null) {
+							throw new Error(
+								`no B process served from ${run.exe} within ${LINUX_RELAUNCH_MS}ms of A's exit (the relaunch lost the single-instance lock?)`
+							);
+						}
+						relaunchedPid = relaunched.pid;
+						expect(relaunched.pid).not.toBe(app.pid);
+						expect(sha256(run.exe), `the AppImage at ${run.exe} is not B`).toBe(sha256(buildB));
+						const response = await rawRequest(relaunched.port, { timeoutMs: RESPONSE_MS });
+						expect(response.status).toBe(200);
+						expect(response.body).toContain(WATCH.title);
+					},
+					portsNote
+				);
+			} finally {
+				if (relaunchedPid !== undefined) await stopInstance('linux', relaunchedPid);
+			}
+		} catch (error) {
+			// Read once B has been stopped, so its exit is in the file when it had one.
+			const capture = existsSync(captureFile)
+				? formatCaptureRecords(parseCaptureRecords(readFileSync(captureFile, 'utf8')))
+				: `<no capture file: no process of the app read ${OUTPUT_CAPTURE_ENV}>`;
+			await test.info().attach('output capture (oldest pid first)', {
+				body: `A is pid ${pidA ?? 'unknown (not launched)'}\n${capture}`,
+				contentType: 'text/plain'
+			});
+			throw error;
 		} finally {
-			if (relaunchedPid !== undefined) await stopInstance('linux', relaunchedPid);
+			rmSync(captureDir, { recursive: true, force: true });
 		}
 	});
 

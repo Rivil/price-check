@@ -10,17 +10,25 @@
 // A failed Windows relaunch names each update installer, still running or when it was
 // seen gone, and every process it started: CI 44283563089's installer pid 7336 ran on
 // past the relaunch budget, and what it was waiting on was never recorded.
+// The Linux restart test's output capture (t-30): CI 44289826311's B started, never
+// served and exited unseen, so each pid's start, argv, every write, uncaught error and
+// exit code is read back and listed oldest pid first, a pid with no exit kept; and
+// each of A's ports names every pid seen holding it.
 import { describe, expect, it } from 'vitest';
 import {
+	addPortHolders,
 	appImageProcesses,
 	describeHolders,
 	describeInstallerTree,
 	describeInstances,
+	describePortHolders,
+	formatCaptureRecords,
 	instancesByPort,
 	isAppImageApp,
 	linuxAppHolder,
 	linuxProcDetail,
 	mainProcess,
+	parseCaptureRecords,
 	parseNetTcpListeners,
 	parseProcCmdline,
 	parseProcEnviron,
@@ -863,5 +871,146 @@ describe('describeInstallerTree', () => {
 		expect(describeInstallerTree(INSTALLER, null, [reused], READ_AT)).toMatch(
 			/: exited by 2026-11-17T10:26:51\.000Z\n/
 		);
+	});
+});
+
+/** One capture line as main.ts writes it. */
+const line = (fields: Record<string, unknown>) => JSON.stringify(fields);
+
+const A_PID = 10140;
+const B_PID = 10230;
+const B_ARGV = ['/tmp/.mount_price-abc/price-check'];
+/** A's records, then B's, interleaved in file order as two appending processes write them. */
+const CAPTURE = [
+	line({ pid: A_PID, at: '2026-11-18T09:00:00.000Z', kind: 'start', ppid: 9000, argv: ['/a'] }),
+	line({ pid: A_PID, at: '2026-11-18T09:00:01.000Z', kind: 'stdout', text: 'A up\n' }),
+	line({ pid: B_PID, at: '2026-11-18T09:03:00.000Z', kind: 'start', ppid: 10200, argv: B_ARGV }),
+	line({ pid: A_PID, at: '2026-11-18T09:03:00.500Z', kind: 'exit', code: 0 }),
+	line({
+		pid: B_PID,
+		at: '2026-11-18T09:03:01.000Z',
+		kind: 'stderr',
+		text: 'first line\nsecond line\n'
+	}),
+	line({
+		pid: B_PID,
+		at: '2026-11-18T09:03:02.000Z',
+		kind: 'error',
+		origin: 'uncaughtException',
+		text: 'Error: boom\n    at main.js:1'
+	}),
+	line({ pid: B_PID, at: '2026-11-18T09:03:03.000Z', kind: 'exit', code: 7 })
+].join('\n');
+
+describe('parseCaptureRecords', () => {
+	it('reads each kind of record with its pid and time', () => {
+		const records = parseCaptureRecords(`${CAPTURE}\n`);
+		expect(records).toHaveLength(7);
+		expect(records[2]).toEqual({
+			pid: B_PID,
+			at: new Date('2026-11-18T09:03:00.000Z'),
+			kind: 'start',
+			ppid: 10200,
+			argv: B_ARGV
+		});
+		expect(records[6]).toEqual({
+			pid: B_PID,
+			at: new Date('2026-11-18T09:03:03.000Z'),
+			kind: 'exit',
+			code: 7
+		});
+	});
+
+	it('keeps a torn or foreign line as unreadable, skips blank ones, and never throws', () => {
+		const text = ['{"pid":1,"kind":"std', '', 'plain text', line({ kind: 'exit', code: 1 })].join(
+			'\n'
+		);
+		expect(parseCaptureRecords(text)).toEqual([
+			{ kind: 'unreadable', line: '{"pid":1,"kind":"std' },
+			{ kind: 'unreadable', line: 'plain text' },
+			{ kind: 'unreadable', line: line({ kind: 'exit', code: 1 }) }
+		]);
+	});
+});
+
+describe('formatCaptureRecords', () => {
+	const format = (text: string) => formatCaptureRecords(parseCaptureRecords(text));
+
+	it("lists each pid's start, argv, every write line, error and exit code, oldest pid first", () => {
+		expect(format(CAPTURE)).toBe(
+			[
+				`pid ${A_PID} (ppid 9000) started 2026-11-18T09:00:00.000Z argv ["/a"]`,
+				'  2026-11-18T09:00:01.000Z stdout| A up',
+				'  2026-11-18T09:03:00.500Z exit code 0',
+				`pid ${B_PID} (ppid 10200) started 2026-11-18T09:03:00.000Z argv ${JSON.stringify(B_ARGV)}`,
+				'  2026-11-18T09:03:01.000Z stderr| first line',
+				'  2026-11-18T09:03:01.000Z stderr| second line',
+				'  2026-11-18T09:03:02.000Z uncaughtException| Error: boom',
+				'  2026-11-18T09:03:02.000Z uncaughtException|     at main.js:1',
+				'  2026-11-18T09:03:03.000Z exit code 7'
+			].join('\n')
+		);
+	});
+
+	it('orders pids by start time, not by pid or file order', () => {
+		const older = line({ pid: 900, at: '2026-11-18T08:00:00.000Z', kind: 'start', argv: [] });
+		const newer = line({ pid: 100, at: '2026-11-18T09:00:00.000Z', kind: 'start', argv: [] });
+		const pids = (text: string) => [...format(text).matchAll(/^pid (\d+)/gm)].map((m) => m[1]);
+		expect(pids([newer, older].join('\n'))).toEqual(['900', '100']);
+		// A pid with no start record is placed by its earliest record; an unknown time last.
+		const noStart = line({ pid: 50, at: '2026-11-18T08:30:00.000Z', kind: 'stderr', text: 'x' });
+		const noTime = line({ pid: 1, kind: 'stdout', text: 'y' });
+		expect(pids([noTime, newer, noStart, older].join('\n'))).toEqual(['900', '50', '100', '1']);
+	});
+
+	it('keeps a pid with no exit record, and says it has none', () => {
+		const text = format(
+			[
+				line({ pid: B_PID, at: '2026-11-18T09:03:00.000Z', kind: 'start', argv: B_ARGV }),
+				line({ pid: B_PID, at: '2026-11-18T09:03:01.000Z', kind: 'stderr', text: 'waiting' })
+			].join('\n')
+		);
+		expect(text).toMatch(new RegExp(`^pid ${B_PID} \\(ppid unknown\\) started`));
+		expect(text).toContain('stderr| waiting');
+		expect(text.split('\n').at(-1)).toMatch(/no exit record/);
+	});
+
+	it('names a pid with no start record, an exit with no code, and lists unreadable lines', () => {
+		const text = format(
+			[line({ pid: 7, at: '2026-11-18T09:00:00.000Z', kind: 'exit' }), 'garbage'].join('\n')
+		);
+		expect(text).toBe(
+			[
+				'pid 7: no start record',
+				'  2026-11-18T09:00:00.000Z exit code unknown',
+				'unreadable capture lines:',
+				'  garbage'
+			].join('\n')
+		);
+	});
+
+	it('says so when there is no record at all', () => {
+		expect(formatCaptureRecords([])).toBe('no capture record');
+	});
+});
+
+describe('port holders of A', () => {
+	it("collects every pid seen on each of A's ports across reads, and names them", () => {
+		const seen = new Map<number, Set<number>>();
+		const ports = [37257, 45413];
+		addPortHolders(seen, ports, new Map([[10140, [37257, 45413]]]));
+		addPortHolders(
+			seen,
+			ports,
+			new Map([
+				[10250, [45413]],
+				[10251, [45413]],
+				[777, [5000]]
+			])
+		);
+		expect(describePortHolders(ports, seen)).toBe(
+			'37257 held by pid 10140; 45413 held by pid 10140, 10250, 10251'
+		);
+		expect(describePortHolders([44125], seen)).toBe('44125 held by no pid seen');
 	});
 });
