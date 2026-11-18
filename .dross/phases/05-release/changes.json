@@ -290,6 +290,22 @@
         }
       ]
     },
+    "t-25": {
+      "files": [
+        "src/desktop/updater.spec.ts",
+        "src/desktop/lifecycle.spec.ts"
+      ],
+      "commit": "8264abc",
+      "completed_at": "2026-11-18T07:45:37.802787Z",
+      "landmarks": [
+        {
+          "feature": "auto-update",
+          "symbol": "createUpdater",
+          "loc": "src/desktop/updater.ts:115",
+          "what": "post-download state, check-failure handling and single lock request with no predecessor pinned by tests"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "scripts/release-tag.ts",
@@ -924,6 +940,26 @@
           "severity": "NOTE",
           "criterion": "c-4",
           "text": "scripts/release-tag.ts:81 dropping `?? ''` on run.stderr removes dead code (the utf8 encoding makes stderr a string after a successful spawn, and run.error is rethrown first); a comment explains it",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-25": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "No production change; each named survivor (updater.ts:142 both directions, :171 x2, :172; lifecycle.ts:252) has an assertion in the diff that the mutant would trip, per src/desktop/updater.spec.ts and src/desktop/lifecycle.spec.ts harness behaviour.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The added requestSingleInstanceLock-once assertion in the 'a lost lock touches no key...' test duplicates coverage the new it.each table already gives; harmless.",
           "resolution": "non-blocking, left"
         }
       ]
