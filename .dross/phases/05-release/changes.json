@@ -327,6 +327,23 @@
         }
       ]
     },
+    "t-27": {
+      "files": [
+        "e2e/packaged/update.packaged.ts",
+        "scripts/packaged-app.ts",
+        "scripts/packaged-app.spec.ts"
+      ],
+      "commit": "625324d",
+      "completed_at": "2026-11-18T10:14:34.152252Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "replaceExecutable",
+          "loc": "scripts/packaged-app.ts:184",
+          "what": "atomic temp-copy+rename of an executable so a running AppImage never blocks placing build A"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "scripts/release-tag.ts",
@@ -1038,6 +1055,27 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The ci.yml supply-chain audit in the description is a report, not code. It cannot be checked from this diff.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-27": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-5",
+          "text": "expectNoInstance relies on linuxAppInstances, which only counts processes listening on a 127.0.0.1 port (launch-packaged.ts:671). A lingering AppImage runtime or FUSE process that serves no port is not waited for. The rename in replaceExecutable is what fixes ETXTBSY; the wait only guards the single-instance lock, which matches the record's stated purpose.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "replaceExecutable tests cover the inode change, an open handle still reading the old content, the new content, mode 0o755, creating a missing destination, leaving no temp file, and cleanup after a failed copy and after a failed rename.",
           "resolution": "non-blocking, left"
         }
       ]
