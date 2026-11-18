@@ -77,9 +77,8 @@ export function isOnMain(sha: string, cwd: string): boolean {
 	if (run.error) throw run.error;
 	if (run.status === 0) return true;
 	if (run.status === 1) return false;
-	throw new Error(
-		`git merge-base --is-ancestor exited ${run.status}: ${(run.stderr ?? '').trim()}`
-	);
+	// encoding 'utf8': stderr is always a string once spawning succeeded.
+	throw new Error(`git merge-base --is-ancestor exited ${run.status}: ${run.stderr.trim()}`);
 }
 
 export type CliDeps = {

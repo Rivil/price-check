@@ -8,9 +8,10 @@
 // util/filter.js and fileMatcher.js): minimatch with dot:true, patterns applied in
 // order, a non-magic pattern without a dot also covers its subtree, and only the
 // negations apply to node_modules.
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { CliOptions, Configuration } from 'electron-builder';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { APP_ID } from '../src/desktop/app-id.ts';
@@ -18,6 +19,7 @@ import {
 	ARTIFACT_NAME,
 	builderConfig,
 	DEFAULT_OUT,
+	fileSize,
 	missingSigningVariables,
 	packageDesktop,
 	parseCliArgs,
@@ -404,6 +406,23 @@ describe('builderConfig: artefact names and update files', () => {
 		expect(() => builderConfig({ version: '0.1.5', sign: true, feedUrl: url })).toThrow();
 	});
 
+	it('takes an IPv6 loopback feed too', () => {
+		const url = 'http://[::1]:47811/';
+		expect(unsigned({ feedUrl: url }).publish).toEqual([{ provider: 'generic', url }]);
+	});
+
+	it('says why it refuses a feed URL', () => {
+		expect(() =>
+			builderConfig({ version: '0.1.5', sign: true, feedUrl: 'http://127.0.0.1/' })
+		).toThrow('a signed build publishes to GitHub Releases only: drop --feed-url');
+		expect(() => unsigned({ feedUrl: 'not a url' })).toThrow(
+			"--feed-url is not a URL: 'not a url'"
+		);
+		expect(() => unsigned({ feedUrl: 'http://localhost/' })).toThrow(
+			"--feed-url must be an http loopback URL (127.0.0.1 or [::1]), got 'http://localhost/'"
+		);
+	});
+
 	it('stamps the given version and refuses anything else', () => {
 		expect(unsigned({ version: '0.1.5' }).extraMetadata).toEqual({ version: '0.1.5' });
 		expect(unsigned({ version: '0.1.5-rc.1' }).extraMetadata).toEqual({ version: '0.1.5-rc.1' });
@@ -419,6 +438,15 @@ describe('builderConfig: artefact names and update files', () => {
 		]) {
 			expect(() => unsigned({ version: bad }), JSON.stringify(bad)).toThrow();
 		}
+		expect(() => unsigned({ version: '0.1' })).toThrow(
+			"version must be MAJOR.MINOR.PATCH or MAJOR.MINOR.PATCH-rc.N, got '0.1'"
+		);
+	});
+
+	// Nonzero and multi-digit parts: a VERSION that took only 0, one digit or two digits
+	// per part would refuse a real release.
+	it.each(['1.2.3', '10.20.30', '123.0.4567-rc.10'])('stamps %s', (version) => {
+		expect(unsigned({ version }).extraMetadata).toEqual({ version });
 	});
 });
 
@@ -435,7 +463,7 @@ describe('builderConfig: signing', () => {
 		expect(mac?.notarize).toBe(true);
 		expect(mac?.hardenedRuntime).toBe(true);
 		expect(mac).not.toHaveProperty('identity');
-		expect(signingEnv(true).CSC_IDENTITY_AUTO_DISCOVERY).not.toBe('false');
+		expect(signingEnv(true)).toEqual({ CSC_IDENTITY_AUTO_DISCOVERY: 'true' });
 	});
 
 	it('never configures Windows signing', () => {
@@ -502,9 +530,14 @@ describe('package:desktop CLI', () => {
 			expect(Object.keys(options).filter((k) => ['mac', 'win', 'linux'].includes(k))).toEqual([
 				key
 			]);
+			// No target names: the config's own targets for that OS.
+			expect(options[key]).toEqual([]);
 			expect(options.projectDir).toBe('/repo');
 			expect((options.config as Configuration).extraMetadata).toEqual({ version: '0.1.5' });
 			expect(env.CSC_IDENTITY_AUTO_DISCOVERY).toBe('false');
+			expect(h.out).toEqual([
+				'package:desktop: /repo/dist-packaged/price-check-0.1.5-mac-universal.dmg'
+			]);
 			expect(h.err).toEqual([]);
 		}
 	});
@@ -522,6 +555,23 @@ describe('package:desktop CLI', () => {
 		const h = harness({ platform: 'freebsd' });
 		expect(await runCli(['--version', '0.1.5'], h)).toBe(1);
 		expect(h.calls).toEqual([]);
+		expect(h.err).toEqual(['package:desktop: cannot package on freebsd']);
+	});
+
+	it('names every missing build input at once', async () => {
+		const h = harness({ exists: () => false });
+		expect(await runCli(['--version', '0.1.5'], h)).toBe(1);
+		expect(h.calls).toEqual([]);
+		expect(h.err).toEqual([
+			'package:desktop: missing build/handler.js, dist-desktop/main.js: run pnpm build && pnpm build:desktop first'
+		]);
+	});
+
+	it('refuses a run without --version, saying so', async () => {
+		const h = harness();
+		expect(await runCli(['--sign'], h)).toBe(1);
+		expect(h.calls).toEqual([]);
+		expect(h.err).toEqual(['package:desktop: --version <MAJOR.MINOR.PATCH[-rc.N]> is required']);
 	});
 
 	it.each(['build/handler.js', 'dist-desktop/main.js'])(
@@ -560,7 +610,14 @@ describe('package:desktop CLI', () => {
 		const config = h.calls[0].options.config as Configuration;
 		expect(config.publish).toEqual([{ provider: 'generic', url: 'http://127.0.0.1:47811/' }]);
 		expect(config.directories?.output).toBe('pkg-a');
-		expect(parseCliArgs(['--version', '0.1.5'])).toEqual({ version: '0.1.5', sign: false });
+		// Strict: an absent option leaves no undefined-valued key behind.
+		expect(parseCliArgs(['--version', '0.1.5'])).toStrictEqual({ version: '0.1.5', sign: false });
+		expect(parseCliArgs(argv)).toStrictEqual({
+			version: '0.1.5-rc.1',
+			sign: false,
+			feedUrl: 'http://127.0.0.1:47811/',
+			out: 'pkg-a'
+		});
 	});
 
 	it('signs on macOS with every credential present', async () => {
@@ -626,11 +683,26 @@ describe('package:desktop CLI', () => {
 		expect(missing).toEqual(['CSC_KEY_PASSWORD', 'APPLE_API_ISSUER']);
 	});
 
+	it('lists every missing signing variable in one refusal', async () => {
+		const env = signingEnvVars();
+		delete env.CSC_KEY_PASSWORD;
+		env.APPLE_API_ISSUER = '';
+		const h = harness({ env }, KEY_FILES);
+		expect(await runCli(['--version', '0.1.5', '--sign'], h)).toBe(1);
+		expect(h.calls).toEqual([]);
+		expect(h.err).toEqual([
+			'package:desktop: --sign needs CSC_KEY_PASSWORD, APPLE_API_ISSUER; nothing was built'
+		]);
+	});
+
 	it('refuses --sign off macOS: Windows and Linux are never signed', async () => {
 		for (const platform of ['win32', 'linux'] as const) {
 			const h = harness({ platform, env: signingEnvVars() }, KEY_FILES);
 			expect(await runCli(['--version', '0.1.5', '--sign'], h)).toBe(1);
 			expect(h.calls).toEqual([]);
+			expect(h.err).toEqual([
+				'package:desktop: --sign is macOS-only: Windows and Linux are never signed'
+			]);
 		}
 	});
 
@@ -644,7 +716,26 @@ describe('package:desktop CLI', () => {
 	});
 });
 
+describe('fileSize', () => {
+	it("is a regular file's byte size", () => {
+		const path = join(ROOT, 'package.json');
+		expect(fileSize(path)).toBe(statSync(path).size);
+		expect(fileSize(path)).toBeGreaterThan(0);
+	});
+
+	it('is null for a directory or a missing path', () => {
+		expect(fileSize(ROOT)).toBeNull();
+		expect(fileSize(join(ROOT, 'no-such-file.p8'))).toBeNull();
+	});
+});
+
 describe('repo wiring', () => {
+	it('roots the project at the repo, not at scripts/', () => {
+		expect(ROOT).toBe(fileURLToPath(new URL('..', import.meta.url)).replace(/[\\/]$/, ''));
+		expect(existsSync(join(ROOT, 'package.json'))).toBe(true);
+		expect(existsSync(join(ROOT, 'scripts/package-desktop.ts'))).toBe(true);
+	});
+
 	it('ignores /dist-packaged and runs the CLI from package:desktop', () => {
 		const ignore = readFileSync(join(ROOT, '.gitignore'), 'utf8').split(/\r?\n/);
 		expect(ignore).toContain('/dist-packaged');

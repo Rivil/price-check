@@ -25,6 +25,32 @@ describe('checkReleaseTag', () => {
 		).toEqual({ ok: true, version: '0.1.5-rc.2', prerelease: true });
 	});
 
+	// Nonzero and multi-digit parts: a TAG that took only 0, one digit or two digits
+	// per part would refuse a real release.
+	it.each([
+		['v1.2.3', '1.2.3', false],
+		['v10.20.30', '10.20.30', false],
+		['v123.0.4567-rc.10', '123.0.4567', true]
+	])('accepts %s', (tag, packageVersion, prerelease) => {
+		expect(checkReleaseTag({ ref: `refs/tags/${tag}`, packageVersion, onMain: true })).toEqual({
+			ok: true,
+			version: tag.slice(1),
+			prerelease
+		});
+	});
+
+	it.each([
+		// Same length as refs/tags/, so only the prefix check refuses it.
+		['a pull ref', 'refs/pull/v0.1.5', /is not a tag ref/],
+		['a branch ref', 'refs/heads/v0.1.5', /is not a tag ref/],
+		// TAG must be anchored at the start, not merely end in vX.Y.Z.
+		['a prefixed tag name', 'refs/tags/release-v0.1.5', /is not vMAJOR\.MINOR\.PATCH/],
+		['a doubled v', 'refs/tags/vv0.1.5', /is not vMAJOR\.MINOR\.PATCH/]
+	])('refuses %s for the right reason', (_case, ref, reason) => {
+		const result = checkReleaseTag({ ref, packageVersion: '0.1.5', onMain: true });
+		expect(result).toEqual({ ok: false, reason: expect.stringMatching(reason) });
+	});
+
 	it.each([
 		['v0.1.6 vs package 0.1.5', 'refs/tags/v0.1.6', true],
 		['a tag off main', 'refs/tags/v0.1.5', false],
@@ -125,6 +151,46 @@ describe('isOnMain', () => {
 		expect(() => isOnMain('--help', fx.dir)).toThrow(/not a full commit id/);
 		expect(() => isOnMain('origin/main', fx.dir)).toThrow(/not a full commit id/);
 	});
+
+	it("names git's exit status and its trimmed stderr when git refuses", () => {
+		let message = '';
+		try {
+			isOnMain('f'.repeat(40), fx.dir);
+		} catch (error) {
+			message = (error as Error).message;
+		}
+		expect(message).toMatch(/^git merge-base --is-ancestor exited [1-9]\d*: \S/);
+		expect(message).not.toMatch(/\s$/);
+	});
+
+	it('passes a 64-hex (SHA-256) id through to git', () => {
+		expect(() => isOnMain('a'.repeat(64), fx.dir)).toThrow(/exited/);
+	});
+
+	it('refuses anything but a whole 40- or 64-hex id before running git', () => {
+		const sha = fx.b;
+		for (const bad of [
+			'',
+			'a',
+			sha.slice(0, 7),
+			sha.slice(0, 39),
+			`${sha}a`,
+			`x${sha}`,
+			`${sha}x`,
+			`--${sha}`,
+			`${sha}\n`,
+			sha.toUpperCase(),
+			'g'.repeat(40),
+			'-'.repeat(64),
+			'a'.repeat(63)
+		]) {
+			expect(() => isOnMain(bad, fx.dir), JSON.stringify(bad)).toThrow(/not a full commit id/);
+		}
+	});
+
+	it('rethrows a failure to spawn git rather than reading its exit status', () => {
+		expect(() => isOnMain(fx.b, join(fx.dir, 'no-such-dir'))).toThrow(/ENOENT/);
+	});
 });
 
 describe('CLI', () => {
@@ -136,55 +202,113 @@ describe('CLI', () => {
 	});
 	afterAll(() => rmSync(fx.dir, { recursive: true, force: true }));
 
-	const cli = (env: Record<string, string>) => {
+	const cli = (env: Record<string, string>, root = fx.dir) => {
 		writeFileSync(output, '');
-		const lines: string[] = [];
+		const out: string[] = [];
+		const err: string[] = [];
 		const code = runCli({
 			env: { GITHUB_OUTPUT: output, ...env },
-			root: fx.dir,
-			stdout: (line) => lines.push(line),
-			stderr: (line) => lines.push(line)
+			root,
+			stdout: (line) => out.push(line),
+			stderr: (line) => err.push(line)
 		});
-		return { code, written: readFileSync(output, 'utf8'), lines };
+		return { code, written: readFileSync(output, 'utf8'), out, err };
 	};
 
 	it('writes version and prerelease for an accepted tag', () => {
-		expect(cli({ GITHUB_REF: 'refs/tags/v0.1.5', GITHUB_SHA: fx.a })).toMatchObject({
+		expect(cli({ GITHUB_REF: 'refs/tags/v0.1.5', GITHUB_SHA: fx.a })).toEqual({
 			code: 0,
-			written: 'version=0.1.5\nprerelease=false\n'
+			written: 'version=0.1.5\nprerelease=false\n',
+			out: ['release-tag: 0.1.5 (prerelease: false)'],
+			err: []
 		});
-		expect(cli({ GITHUB_REF: 'refs/tags/v0.1.5-rc.1', GITHUB_SHA: fx.b })).toMatchObject({
+		expect(cli({ GITHUB_REF: 'refs/tags/v0.1.5-rc.1', GITHUB_SHA: fx.b })).toEqual({
 			code: 0,
-			written: 'version=0.1.5-rc.1\nprerelease=true\n'
+			written: 'version=0.1.5-rc.1\nprerelease=true\n',
+			out: ['release-tag: 0.1.5-rc.1 (prerelease: true)'],
+			err: []
 		});
 	});
 
-	it.each<[string, { GITHUB_REF?: string; GITHUB_SHA?: 'b' | 'c' | 'unknown' }]>([
-		['a version mismatch', { GITHUB_REF: 'refs/tags/v0.1.6', GITHUB_SHA: 'b' }],
-		['a malformed tag', { GITHUB_REF: 'refs/tags/v0.1.5-beta.1', GITHUB_SHA: 'b' }],
-		['a commit off main', { GITHUB_REF: 'refs/tags/v0.1.5', GITHUB_SHA: 'c' }],
-		['a failed ancestor check', { GITHUB_REF: 'refs/tags/v0.1.5', GITHUB_SHA: 'unknown' }],
-		['a missing GITHUB_REF', { GITHUB_SHA: 'b' }],
-		['a missing GITHUB_SHA', { GITHUB_REF: 'refs/tags/v0.1.5' }]
-	])('exits 1 and writes nothing for %s', (_case, env) => {
-		const shas = { b: fx.b, c: fx.c, unknown: 'f'.repeat(40) };
+	it.each<[string, { GITHUB_REF?: string; GITHUB_SHA?: 'b' | 'c' | 'unknown' | '' }, RegExp]>([
+		[
+			'a version mismatch',
+			{ GITHUB_REF: 'refs/tags/v0.1.6', GITHUB_SHA: 'b' },
+			/^tag v0\.1\.6 is version 0\.1\.6 but package\.json's version is "0\.1\.5"$/
+		],
+		[
+			'a malformed tag',
+			{ GITHUB_REF: 'refs/tags/v0.1.5-beta.1', GITHUB_SHA: 'b' },
+			/^tag "v0\.1\.5-beta\.1" is not vMAJOR/
+		],
+		[
+			'a commit off main',
+			{ GITHUB_REF: 'refs/tags/v0.1.5', GITHUB_SHA: 'c' },
+			/^tag v0\.1\.5 points at a commit not reachable from origin\/main$/
+		],
+		[
+			'a failed ancestor check',
+			{ GITHUB_REF: 'refs/tags/v0.1.5', GITHUB_SHA: 'unknown' },
+			/^git merge-base --is-ancestor exited /
+		],
+		['a missing GITHUB_REF', { GITHUB_SHA: 'b' }, /^GITHUB_REF is not set$/],
+		['an empty GITHUB_REF', { GITHUB_REF: '', GITHUB_SHA: 'b' }, /^GITHUB_REF is not set$/],
+		['a missing GITHUB_SHA', { GITHUB_REF: 'refs/tags/v0.1.5' }, /^GITHUB_SHA is not set$/],
+		[
+			'an empty GITHUB_SHA',
+			{ GITHUB_REF: 'refs/tags/v0.1.5', GITHUB_SHA: '' },
+			/^GITHUB_SHA is not set$/
+		]
+	])('exits 1 and writes nothing for %s', (_case, env, reason) => {
+		const shas = { b: fx.b, c: fx.c, unknown: 'f'.repeat(40), '': '' };
 		const result = cli({
 			...(env.GITHUB_REF === undefined ? {} : { GITHUB_REF: env.GITHUB_REF }),
 			...(env.GITHUB_SHA === undefined ? {} : { GITHUB_SHA: shas[env.GITHUB_SHA] })
 		});
 		expect(result.code).toBe(1);
 		expect(result.written).toBe('');
-		expect(result.lines.join('\n')).toMatch(/^release-tag: ./);
+		expect(result.out).toEqual([]);
+		expect(result.err).toHaveLength(1);
+		expect(result.err[0].slice('release-tag: '.length)).toMatch(reason);
+		expect(result.err[0].startsWith('release-tag: ')).toBe(true);
 	});
 
-	it('exits 1 without GITHUB_OUTPUT', () => {
+	it.each([
+		['without', undefined],
+		['with an empty', '']
+	])('exits 1 %s GITHUB_OUTPUT', (_case, value) => {
+		const err: string[] = [];
 		const code = runCli({
-			env: { GITHUB_REF: 'refs/tags/v0.1.5', GITHUB_SHA: fx.b },
+			env: {
+				GITHUB_REF: 'refs/tags/v0.1.5',
+				GITHUB_SHA: fx.b,
+				...(value === undefined ? {} : { GITHUB_OUTPUT: value })
+			},
 			root: fx.dir,
 			stdout: () => {},
-			stderr: () => {}
+			stderr: (line) => err.push(line)
 		});
 		expect(code).toBe(1);
+		expect(err).toEqual(['release-tag: GITHUB_OUTPUT is not set']);
+	});
+
+	it.each([
+		['no version', {}],
+		['a non-string version', { version: 5 }]
+	])('exits 1 when package.json has %s', (_case, pkg) => {
+		const root = mkdtempSync(join(tmpdir(), 'release-tag-pkg-'));
+		try {
+			writeFileSync(join(root, 'package.json'), JSON.stringify(pkg));
+			const result = cli({ GITHUB_REF: 'refs/tags/v0.1.5', GITHUB_SHA: fx.b }, root);
+			expect(result).toEqual({
+				code: 1,
+				written: '',
+				out: [],
+				err: ['release-tag: package.json has no version']
+			});
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
 	});
 
 	it('as a process: exit codes and output follow the check', () => {
