@@ -3,7 +3,7 @@ phases = ["01-public-ci", "02-single-user", "03-desktop-shell", "04-desktop-noti
 [milestone]
   version = "v0.1"
   title = "Installable desktop app: signed, self-updating, native alerts"
-  status = "active"
+  status = "complete"
   started = "2026-11-11"
   base = "main"
 
