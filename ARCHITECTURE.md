@@ -95,6 +95,17 @@ A successful price at or below the watch's target shows in the ok colour, with a
 
 _introduced app-design · 2a203f3_
 
+### Auto-update
+
+A packaged install checks GitHub Releases at launch and every 6 hours, downloads in the background, then shows one notification per version and a tray 'Restart to update' item; Quit or Restart installs only after the database closes, never by force, an rc install takes the final release but a final never takes an rc, and the relaunched version waits for the old process to exit before opening the database.
+
+- createUpdater — src/desktop/updater.ts:115
+- installOnExit — src/desktop/updater.ts:221
+- installPending — src/desktop/lifecycle.ts:263
+- watchSquirrel — src/desktop/lifecycle.ts:283
+
+_introduced 05-release · 4a43cac · extended 05-release · 89db383_
+
 ### Check failure history
 
 Every failed check and failed first add stores its own check_failure row atomically, and migration 0006 backfills each watch's current failure; failureHistory reads them newest first.
@@ -106,11 +117,13 @@ _introduced price-chart · 042974d_
 
 ### Continuous integration
 
-Public CI runs tests, typecheck, lint, the web e2e suite and the Electron desktop e2e suite on Linux, macOS and Windows (Linux under xvfb with the AppArmor user-namespace restriction lifted), with the Electron download cached before install.
+Public CI runs tests, typecheck, lint, the web e2e suite and the Electron desktop e2e suite on Linux, macOS and Windows (Linux under xvfb with the AppArmor user-namespace restriction lifted), with the Electron download cached before install; every PR also packages an unsigned app per OS, verifies its layout, runs the packaged smoke and, on Windows and Linux, the update e2e, and specs pin the workflows through a no-YAML-library line reader.
 
 - desktop e2e — .github/workflows/ci.yml:137
+- package step — .github/workflows/ci.yml:165
+- readWorkflow — scripts/workflow-reader.ts:164
 
-_introduced 03-desktop-shell · 79bbc38_
+_introduced 03-desktop-shell · 79bbc38 · extended 05-release · 4152909_
 
 ### Design tokens
 
@@ -176,13 +189,24 @@ The desktop app shows price drops (and, when ticked, failed checks) as native no
 
 _introduced 04-desktop-notify · 3b59163 · extended 04-desktop-notify · 15c2572_
 
+### Desktop packaging
+
+electron-builder packages one universal macOS app (dmg and zip), a per-user Windows x64 NSIS installer and a Linux x64 AppImage, with libsql's native binaries (both darwin arches) unpacked outside app.asar and the server run from app.asar.unpacked; local and PR packaging never publishes and signs only through a --sign credential gate.
+
+- supportedArchitectures — pnpm-workspace.yaml:7
+- builderConfig — scripts/package-desktop.ts:167
+- serverCwdFor — src/desktop/app-paths.ts:40
+
+_introduced 05-release · bf9ebbc_
+
 ### Docs checks
 
-A spec pins the README's end-user-first shape and fails on auth-stack traces in the docs, package.json or src, and on multi-user leftovers in this document.
+A spec pins the README's end-user-first shape and per-OS install notes and fails on auth-stack traces in the docs, package.json or src, and on multi-user leftovers in this document.
 
 - staleArchitecture — scripts/readme.spec.ts:33
+- osPart — scripts/readme.spec.ts:77
 
-_introduced 01-public-ci · 19df497 · extended 02-single-user · 00118d3_
+_introduced 01-public-ci · 19df497 · extended 02-single-user · 00118d3 · extended 05-release · efe0cbc_
 
 ### E2E test harness
 
@@ -226,6 +250,31 @@ A public GET /health reads every schema table and answers 200 or 503 with no det
 
 _introduced health · 8bb016d_
 
+### Packaged app checks
+
+verify-packaged checks a packaged build's app.asar file set, unpacked per-OS libsql, stamped versions and latest*.yml files, the macOS universal slices and signing, and the Windows per-user install and AUMID; the packaged smoke launches the real app on a guarded temp home and checks the empty watchlist, libsql outside asar, a watch persisting across relaunch and the x64 slice.
+
+- verifyLayout — scripts/verify-packaged.ts:493
+- verifyWin — scripts/verify-packaged.ts:190
+- locate — scripts/packaged-app.ts:133
+- launchPackaged — e2e/packaged/launch-packaged.ts:290
+
+_introduced 05-release · 5367b21 · extended 05-release · b0f3189_
+
+### Packaged update tests
+
+On Windows and Linux an installed build A updates from a 127.0.0.1-only feed serving a newer build B, and the test proves the download, one notification, install on quit and B's relaunch after A exits with its data intact, finding B by its own serving port; a failed step attaches the app's captured output and per-OS process state.
+
+- packaged update — e2e/packaged/update.packaged.ts:370
+- startUpdateFeed — scripts/update-feed.ts:166
+- replaceExecutable — scripts/packaged-app.ts:184
+- servingPort — scripts/process-probe.ts:480
+- isAppImageApp — scripts/process-probe.ts:310
+- osState — e2e/packaged/update.packaged.ts:325
+- startOutputCapture — src/desktop/main.ts:119
+
+_introduced 05-release · be5d71a · extended 05-release · f3e92eb_
+
 ### Price chart
 
 The watch page draws price and failure marks on a true time axis with 30-day, 90-day and all-time ranges, roving-focus marks and a nearest-mark tooltip.
@@ -247,6 +296,15 @@ A check at or below target sends each drop once to every enabled drops channel, 
 - ntfy, resend and smtp — src/lib/server/alerts/alerts.spec.ts:711
 
 _introduced push-alerts · extended alert-fixes · extended alert-channels · 5a13e00 · extended resend-channel · 94d2351 · extended smtp-channel · a6450c5_
+
+### Release publishing
+
+Pushing a v* tag on a main commit whose version matches package.json builds and smoke-tests all three OSes, then one gh-only job holding the workflow's sole contents: write publishes a single GitHub Release (a pre-release for -rc.N) with every artefact at once, refusing an existing release; any failed build, wrong tag or missing Apple credential publishes nothing.
+
+- checkReleaseTag — scripts/release-tag.ts:38
+- WRITE_SCOPE_ALLOWLIST — scripts/workflow-policy.ts:25
+
+_introduced 05-release · 61c138b · extended 05-release · 0d932af_
 
 ### Responsive layout
 
