@@ -306,6 +306,27 @@
         }
       ]
     },
+    "t-26": {
+      "files": [
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/harness.e2e.ts",
+        "e2e/packaged/update.packaged.ts",
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts",
+        ".github/workflows/ci.yml",
+        "scripts/ci-packaged.spec.ts"
+      ],
+      "commit": "c91f58b",
+      "completed_at": "2026-11-18T07:54:53.956127Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "osState",
+          "loc": "e2e/packaged/update.packaged.ts:215",
+          "what": "failed relaunch steps attach app output and per-OS process state; requests time out"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "scripts/release-tag.ts",
@@ -960,6 +981,63 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The added requestSingleInstanceLock-once assertion in the 'a lost lock touches no key...' test duplicates coverage the new it.each table already gives; harmless.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-26": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-6",
+          "text": "e2e/packaged/update.packaged.ts:146 windowsInstallersJson runs Get-Process -Name 'price-check-*-win-x64' -ErrorAction SilentlyContinue with no comment saying why. A wildcard name gives no not-found error, so the switch only hides real Get-Process failures. The output is then empty, parseProcesses('') returns [], and osState reports 'no update installer running', a false diagnosis. Drop the switch, or catch only ObjectNotFound and report everything else, as NET_TCP_LISTENERS_SCRIPT in launch-packaged.ts does.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "On win32, osState can run three PowerShell probes: two in windowsAppInstances (60s each, PROBE_TIMEOUT_MS) and the installer probe (60s, DIAGNOSIS_MS), so up to about 180s. The 'relaunch after exit' setTimeout adds only DIAGNOSIS_MS (60s) plus 60s of slack, so a slow probe could hit the test timeout before the 'OS state' attachment is written.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The description's ci.yml audit against the supply-chain hardening reference is a report, not code, so nothing in the diff can show it was done; it is not judged here.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "On Linux the OS-state section comes from linuxAppInstances (e2e/packaged/launch-packaged.ts:671), which only lists processes holding a 127.0.0.1 port. If B relaunches but never listens, or hangs before it binds, the diagnosis says 'no instance' and gives no State or wchan for it. That is the exact case the 'no B process served' error reports.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The new wiring in e2e/packaged/update.packaged.ts (diagnosed, osState, probeSection, the INSTALLERS_SCRIPT probe) has no test. Only the pure helpers in scripts/process-probe.ts are pinned, so a mistake in the failure-only path shows up only when CI fails.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "procFile (e2e/packaged/update.packaged.ts) catches every error and returns null, unlike readProc in launch-packaged.ts:638, which rethrows EACCES. The comment says this is deliberate, and the null shows as 'unknown' in the diagnosis.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The ci.yml supply-chain audit in the description is a report, not code. It cannot be checked from this diff.",
           "resolution": "non-blocking, left"
         }
       ]
