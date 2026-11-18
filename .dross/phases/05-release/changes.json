@@ -273,6 +273,23 @@
         }
       ]
     },
+    "t-24": {
+      "files": [
+        "scripts/release-tag.ts",
+        "scripts/release-tag.spec.ts",
+        "scripts/package-desktop.spec.ts"
+      ],
+      "commit": "8921c2f",
+      "completed_at": "2026-11-18T07:40:32.677503Z",
+      "landmarks": [
+        {
+          "feature": "release tag gate",
+          "symbol": "checkReleaseTag",
+          "loc": "scripts/release-tag.ts:38",
+          "what": "tag regex anchoring, multi-digit versions, object ids and packaging refusals pinned by tests"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "scripts/release-tag.ts",
@@ -885,6 +902,28 @@
           "severity": "NOTE",
           "criterion": "c-5",
           "text": "Both production edits (parseRange start\u003e=size check, empty-file length special case) are equivalent dead-code removals, and each comment explains why",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-24": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-3",
+          "text": "scripts/package-desktop.spec.ts:538 asserts h.out equals the mac dmg path for win32 and linux too; it holds only because the harness build stub always returns that path, so it checks that stdout echoes the build result, not anything per platform",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-4",
+          "text": "scripts/release-tag.ts:81 dropping `?? ''` on run.stderr removes dead code (the utf8 encoding makes stderr a string after a successful spawn, and run.error is rethrown first); a comment explains it",
           "resolution": "non-blocking, left"
         }
       ]
