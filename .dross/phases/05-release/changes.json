@@ -432,6 +432,24 @@
         }
       ]
     },
+    "t-32": {
+      "files": [
+        "scripts/process-probe.ts",
+        "scripts/process-probe.spec.ts",
+        "e2e/packaged/launch-packaged.ts",
+        "e2e/packaged/update.packaged.ts"
+      ],
+      "commit": "f3e92eb",
+      "completed_at": "2026-11-18T14:55:08.526319Z",
+      "landmarks": [
+        {
+          "feature": "packaged update e2e",
+          "symbol": "servingPort",
+          "loc": "scripts/process-probe.ts:480",
+          "what": "picks the relaunched app's serving port with the predecessor's inherited ports excluded"
+        }
+      ]
+    },
     "t-4": {
       "files": [
         "src/desktop/updater.ts",
@@ -1320,6 +1338,35 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "The write failure caught in keepDiagnosis (e2e/packaged/update.packaged.ts:460-464) has a comment saying why and is reported in the stderr banner, so it is a surfaced best-effort write, not a swallowed error.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-32": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "linuxAppHolders' inherited path (scripts/process-probe.ts linuxAppHolders) does not check that the sharer's executable lies under an AppImage mount: any process that has no APPIMAGE variable, is not the AppImage file, and shares a socket with the runtime or daemon counts as an app holder. The comment says only the runtime's launch chain inherits such a socket, but the code does not enforce it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-5",
+          "text": "When servingPort throws inside the pollFor probe (two candidate ports A never held), relaunchedPid is never set, so the inner finally in update.packaged.ts does not stopInstance B. A null relaunch already behaves this way, so cleanup depends on whatever else stops B.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The outer catch in the Linux restart test now wraps every error in a new Error with the probed and announced ports prepended (original kept as cause). That changes the top-level error type and stack for Playwright expect failures too, including failures before B is involved, where the note reads 'none picked'.",
           "resolution": "non-blocking, left"
         }
       ]
