@@ -8,24 +8,31 @@
 // util/filter.js and fileMatcher.js): minimatch with dot:true, patterns applied in
 // order, a non-magic pattern without a dot also covers its subtree, and only the
 // negations apply to node_modules.
+import { spawnSync } from 'node:child_process';
+import { EventEmitter } from 'node:events';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { CliOptions, Configuration } from 'electron-builder';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { APP_ID } from '../src/desktop/app-id.ts';
 import {
 	ARTIFACT_NAME,
+	BUILD_RESOURCES,
 	builderConfig,
 	DEFAULT_OUT,
 	fileSize,
+	ICON_PNG,
+	ICON_SIZE,
+	ICON_SVG,
 	missingSigningVariables,
 	packageDesktop,
 	parseCliArgs,
 	PRODUCT_NAME,
 	ROOT,
 	runCli,
+	setExitCode,
 	SIGNING_VARIABLES,
 	signingEnv,
 	type BuilderConfigInput,
@@ -138,6 +145,39 @@ describe('builderConfig: identity and targets', () => {
 		const source = readFileSync(join(ROOT, 'scripts/package-desktop.ts'), 'utf8');
 		expect(source).not.toContain(APP_ID);
 		expect(source).toMatch(/from '\.\.\/src\/desktop\/app-id\.ts'/);
+	});
+
+	it('gives every OS the price-tag icon, never the default Electron one', () => {
+		const config = unsigned();
+		expect(config.icon).toBe(ICON_PNG);
+		expect(ICON_PNG).toBe(`${BUILD_RESOURCES}/icon.png`);
+		for (const os of ['mac', 'win', 'linux'] as const) {
+			expect(config[os] && 'icon' in config[os], os).toBe(false);
+		}
+		expect(config.nsis && 'installerIcon' in config.nsis).toBe(false);
+	});
+
+	it('ships a 1024px RGBA icon PNG rendered from the source SVG', () => {
+		const png = readFileSync(join(ROOT, ICON_PNG));
+		expect(png.subarray(0, 8)).toEqual(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+		expect(png.toString('latin1', 12, 16)).toBe('IHDR');
+		expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([ICON_SIZE, ICON_SIZE]);
+		expect(ICON_SIZE).toBe(1024);
+		expect([png[24], png[25]]).toEqual([8, 6]);
+		const svg = readFileSync(join(ROOT, ICON_SVG), 'utf8');
+		expect(svg).toMatch(/viewBox="0 0 1024 1024"/);
+		expect(readFileSync(join(ROOT, 'src/lib/assets/favicon.svg'), 'utf8')).toBe(svg);
+	});
+
+	it('names the app in package.json, with an author but no email', () => {
+		const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as {
+			description?: string;
+			author?: unknown;
+			scripts: Record<string, string>;
+		};
+		expect(pkg.description).toMatch(/^A desktop app that watches Amazon product prices/);
+		expect(pkg.author).toBe('Rivil');
+		expect(pkg.scripts['icon:render']).toBe('node scripts/render-icon.ts');
 	});
 
 	it('builds one universal mac app as dmg and zip', () => {
@@ -713,6 +753,83 @@ describe('package:desktop CLI', () => {
 		const source = readFileSync(join(ROOT, 'scripts/package-desktop.ts'), 'utf8');
 		expect(source).toMatch(/^import type \{[^}]*\} from 'electron-builder';$/m);
 		expect(source).not.toMatch(/^import (?!type)[^\n]*from 'electron-builder'/m);
+	});
+});
+
+type ExitProcess = Pick<NodeJS.Process, 'exitCode' | 'on'>;
+
+function fakeProcess(): ExitProcess & { emit(event: 'exit'): boolean } {
+	return Object.assign(new EventEmitter(), { exitCode: undefined }) as unknown as ExitProcess & {
+		emit(event: 'exit'): boolean;
+	};
+}
+
+/**
+ * Runs a child node that starts electron-builder's temp dir the way a build does
+ * (temp-file registers async-exit-hook, which calls process.exit(0) on beforeExit)
+ * and then reports a failure with `report`. Returns the child's exit status.
+ */
+function exitStatusAfterTempDir(report: string): number | null {
+	const script = [
+		"import { createRequire } from 'node:module';",
+		`const { TmpDir } = createRequire(${JSON.stringify(requireBuilder.resolve('app-builder-lib'))})('temp-file');`,
+		`const { setExitCode } = await import(${JSON.stringify(pathToFileURL(join(ROOT, 'scripts/package-desktop.ts')).href)});`,
+		"await new TmpDir('package-desktop-spec').getTempDir();",
+		report
+	].join('\n');
+	const env = { ...process.env };
+	delete env.TMP_DIR_MANAGER_ENSURE_REMOVED_ON_EXIT;
+	const child = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+		cwd: ROOT,
+		env,
+		encoding: 'utf8'
+	});
+	expect(child.stderr).not.toMatch(/Error/);
+	return child.status;
+}
+
+describe('package:desktop exit code', () => {
+	it('keeps a failure even after an exit hook calls process.exit(0)', () => {
+		const proc = fakeProcess();
+		setExitCode(1, proc);
+		expect(proc.exitCode).toBe(1);
+		proc.exitCode = 0;
+		proc.emit('exit');
+		expect(proc.exitCode).toBe(1);
+	});
+
+	it('never clears a failure something else reported', () => {
+		for (const code of [0, 1]) {
+			const proc = fakeProcess();
+			setExitCode(code, proc);
+			expect(proc.exitCode).toBe(code);
+			proc.exitCode = 7;
+			proc.emit('exit');
+			expect(proc.exitCode).toBe(7);
+		}
+	});
+
+	it('leaves a success alone: nothing listens for exit', () => {
+		const proc = fakeProcess();
+		setExitCode(0, proc);
+		expect(proc.exitCode).toBe(0);
+		expect((proc as unknown as EventEmitter).listenerCount('exit')).toBe(0);
+	});
+
+	it("survives electron-builder's temp-dir exit hook, which zeroes a plain exitCode", () => {
+		// The hazard, so the fix below is proven against the real hook, not a stand-in:
+		// this is how a failed notarisation exited 0.
+		expect(exitStatusAfterTempDir('process.exitCode = 1;')).toBe(0);
+		expect(exitStatusAfterTempDir('setExitCode(1);')).toBe(1);
+		expect(exitStatusAfterTempDir('setExitCode(0);')).toBe(0);
+	});
+
+	it('sets the CLI exit code through setExitCode only', () => {
+		const source = readFileSync(join(ROOT, 'scripts/package-desktop.ts'), 'utf8');
+		const entry = source.slice(source.indexOf('if (isEntry) {'));
+		expect(entry).toMatch(/const code = await runCli\(/);
+		expect(entry).toMatch(/\n\tsetExitCode\(code\);\n\}/);
+		expect(source).not.toMatch(/process\.exitCode\s*=(?!=)/);
 	});
 });
 

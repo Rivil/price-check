@@ -45,9 +45,22 @@ export const DEFAULT_OUT = 'dist-packaged';
 
 /**
  * electron-builder never packs its buildResources dir. Its default is 'build', which
- * is adapter-node's output, so it must live elsewhere (it need not exist).
+ * is adapter-node's output, so it must live elsewhere. It holds the app icon.
  */
 export const BUILD_RESOURCES = 'build-resources';
+
+/** The app icon's source; scripts/render-icon.ts rasterises it into ICON_PNG. */
+export const ICON_SVG = `${BUILD_RESOURCES}/icon.svg`;
+
+/**
+ * The one app icon electron-builder converts per OS (icns, ico, Linux sizes). Named
+ * from the repo root: the builder resolves it there after missing it under
+ * buildResources, and refuses to build if it is absent.
+ */
+export const ICON_PNG = `${BUILD_RESOURCES}/icon.png`;
+
+/** ICON_PNG's width and height: the largest size macOS asks for. */
+export const ICON_SIZE = 1024;
 
 /** Build outputs the packaged app runs; packaging refuses without them. */
 export const REQUIRED_INPUTS = ['build/handler.js', 'dist-desktop/main.js'] as const;
@@ -172,6 +185,7 @@ export function builderConfig({ version, feedUrl, sign, out }: BuilderConfigInpu
 		artifactName: ARTIFACT_NAME,
 		extraMetadata: { version: stamped },
 		directories: { output: out ?? DEFAULT_OUT, buildResources: BUILD_RESOURCES },
+		icon: ICON_PNG,
 		asar: true,
 		asarUnpack: [...ASAR_UNPACK],
 		npmRebuild: false,
@@ -305,6 +319,24 @@ export async function runCli(argv: string[], deps: CliDeps): Promise<number> {
 	}
 }
 
+/**
+ * Sets the process exit code so that no exit hook can turn a failure into success.
+ * electron-builder's temp-dir cleanup (temp-file, via async-exit-hook) listens for
+ * 'beforeExit' and then calls process.exit(0), which replaces an exitCode of 1: a
+ * failed notarisation exited 0. The 'exit' listener runs after that call and puts
+ * the failure back. It never clears a failure something else reported.
+ */
+export function setExitCode(
+	code: number,
+	proc: Pick<NodeJS.Process, 'exitCode' | 'on'> = process
+): void {
+	proc.exitCode = code;
+	if (code === 0) return;
+	proc.on('exit', () => {
+		if (!proc.exitCode) proc.exitCode = code;
+	});
+}
+
 export const fileSize: FileSize = (path) => {
 	try {
 		const stat = statSync(path);
@@ -320,7 +352,7 @@ const isEntry =
 	(process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url));
 if (isEntry) {
 	const { build } = await import('electron-builder');
-	process.exitCode = await runCli(process.argv.slice(2), {
+	const code = await runCli(process.argv.slice(2), {
 		build,
 		platform: process.platform,
 		env: process.env,
@@ -330,4 +362,5 @@ if (isEntry) {
 		stdout: (line) => console.log(line),
 		stderr: (line) => console.error(line)
 	});
+	setExitCode(code);
 }

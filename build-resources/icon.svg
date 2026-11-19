@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+	<title>Price Check</title>
+	<rect x="100" y="100" width="824" height="824" rx="185" fill="#2f855a" />
+	<g transform="translate(-36 -36) rotate(45 512 512)">
+		<path
+			d="M226 512 372 366h384v292H372Z"
+			fill="#fff"
+			stroke="#fff"
+			stroke-width="56"
+			stroke-linejoin="round"
+		/>
+		<circle cx="340" cy="512" r="42" fill="#2f855a" />
+	</g>
+	<path
+		d="m470 570 58 58 130-130"
+		fill="none"
+		stroke="#2f855a"
+		stroke-width="58"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+	/>
+</svg>
