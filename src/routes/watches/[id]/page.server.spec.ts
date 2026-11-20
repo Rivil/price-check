@@ -318,6 +318,37 @@ describe('watch page', () => {
 		expect(state.checkUrl).toHaveBeenCalledTimes(2);
 	});
 
+	it('check twice in parallel', async () => {
+		let release!: (result: CheckResult) => void;
+		state.checkUrl.mockImplementation(
+			() => new Promise<CheckResult>((resolve) => (release = resolve))
+		);
+
+		// Two POSTs before either fetch returns: the one that lost the claim settles
+		// first, with the existing cooldown refusal, while the winner's fetch is held.
+		const calls = [actions.check!(event('a1')), actions.check!(event('a1'))];
+		const refused = await Promise.race(calls);
+		expect(isActionFailure(refused)).toBe(true);
+		expect(refused).toMatchObject({
+			status: 429,
+			data: { checkMessage: 'Checked less than 15 minutes ago — try again later' }
+		});
+
+		release({
+			ok: true,
+			shop: 'amazon-uk',
+			productId: 'B0ALICE001',
+			canonicalUrl: 'https://www.amazon.co.uk/dp/B0ALICE001',
+			title: 'Rechecked',
+			pricePence: 1999,
+			imageUrl: null
+		});
+		const results = await Promise.all(calls);
+		expect(results.filter((r) => !isActionFailure(r))).toEqual([{ checked: true }]);
+		expect(results.filter((r) => isActionFailure(r))).toHaveLength(1);
+		expect(state.checkUrl).toHaveBeenCalledOnce();
+	});
+
 	it('check alerts', async () => {
 		// Global fetch is stubbed for ntfy; the shop check is the checkUrl stub.
 		const fetch = vi.fn(async () => new Response('{}', { status: 200 }));

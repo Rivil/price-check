@@ -1,7 +1,7 @@
 // Re-checking watches: applying a check's result, choosing which watches are due,
 // "Check now", and the price and failure history those checks build. Shop
 // access is injected (check), so nothing here can reach the network on its own (r-01).
-import { asc, desc, eq, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull, lte, or, sql } from 'drizzle-orm';
 import type { Db } from './db/client.ts';
 import { checkFailure, pricePoint, watch } from './db/schema.ts';
 import type { CheckFailure, CheckResult } from './shops/types.ts';
@@ -136,18 +136,30 @@ export type CheckNowResult =
 	| { kind: 'cooldown'; message: string }
 	| { kind: 'not_found' };
 
-/** "Check now" on one watch, refused within the cooldown. */
+/**
+ * "Check now" on one watch, refused within the cooldown. The watch is claimed
+ * with one conditional UPDATE before the fetch, setting last_checked_at to the
+ * attempt time, so parallel calls cannot both pass the cooldown and the
+ * scheduler does not see the watch as due while its fetch is in flight. The
+ * claim stands whatever the fetch does: a failure is recorded at the same time,
+ * and a check that throws still holds the cooldown.
+ */
 export async function checkNow(db: Db, watchId: string, deps: CheckDeps): Promise<CheckNowResult> {
-	const own = await getWatch(db, watchId);
-	if (own === null) return { kind: 'not_found' };
 	const now = (deps.now ?? (() => new Date()))();
-	if (
-		own.lastCheckedAt !== null &&
-		now.getTime() - own.lastCheckedAt.getTime() < CHECK_COOLDOWN_MS
-	) {
+	const claimable = or(
+		isNull(watch.lastCheckedAt),
+		lte(watch.lastCheckedAt, new Date(now.getTime() - CHECK_COOLDOWN_MS))
+	);
+	const [claimed] = await db
+		.update(watch)
+		.set({ lastCheckedAt: now })
+		.where(and(eq(watch.id, watchId), claimable))
+		.returning({ id: watch.id, canonicalUrl: watch.canonicalUrl });
+	if (claimed === undefined) {
+		if ((await getWatch(db, watchId)) === null) return { kind: 'not_found' };
 		return { kind: 'cooldown', message: COOLDOWN_MESSAGE };
 	}
-	const result = await checkWatch(db, own, { ...deps, now: () => now });
+	const result = await checkWatch(db, claimed, { ...deps, now: () => now });
 	return { kind: 'checked', result };
 }
 
