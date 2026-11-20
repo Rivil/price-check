@@ -1,7 +1,7 @@
 {
 	"name": "price-check-app",
 	"private": true,
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "A desktop app that watches Amazon product prices and sends a notification when one drops to your target price.",
 	"author": "Rivil",
 	"license": "AGPL-3.0-or-later",
