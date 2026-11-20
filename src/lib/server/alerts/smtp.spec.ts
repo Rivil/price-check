@@ -12,6 +12,7 @@ import { channelKinds } from './channels.ts';
 import {
 	HOST_MESSAGE,
 	IMPLICIT_TLS_PORT,
+	NEW_DESTINATION_PASSWORD_MESSAGE,
 	PASSWORD_MESSAGE,
 	PORT_MESSAGE,
 	RECIPIENT_MESSAGE,
@@ -601,6 +602,115 @@ describe('smtp config', () => {
 		});
 		expect(JSON.stringify(view)).not.toContain(PASS);
 		expect(smtpDriver.view({ ...CONFIG, password: '' })).toMatchObject({ passwordSet: false });
+	});
+
+	describe('saved password bound to its login', () => {
+		// Sentinels: neither may ever show up in a refusal.
+		const SAVED = 'saved-sentinel-pw-7f3a';
+		const TYPED = 'typed-sentinel-pw-9c2e';
+		const SAVED_A: SmtpConfig = {
+			host: 'smtp.a.example',
+			port: 587,
+			username: 'u',
+			password: SAVED,
+			from: 's@example.com',
+			to: 'r@example.com'
+		};
+		const formA = (fields: Record<string, string | undefined>) =>
+			form({ host: 'smtp.a.example', port: '587', username: 'u', password: '', ...fields });
+
+		function expectNoSecrets(result: unknown, label: string) {
+			for (const secret of [SAVED, TYPED]) {
+				expect(JSON.stringify(result), label).not.toContain(secret);
+			}
+		}
+
+		it('destination change needs the password', () => {
+			const moves: Record<string, string>[] = [
+				{ host: 'smtp.b.example' },
+				{ port: '465' },
+				{ username: 'U' },
+				{ host: 'smtp.b.example', port: '465', username: 'v' }
+			];
+			for (const move of moves) {
+				for (const password of ['', '   ', undefined]) {
+					const label = JSON.stringify({ ...move, password });
+					const result = smtpDriver.parseConfig(formA({ ...move, password }), SAVED_A);
+					expect(result, label).toEqual({ ok: false, message: NEW_DESTINATION_PASSWORD_MESSAGE });
+					expect(result, label).not.toHaveProperty('config');
+					expectNoSecrets(result, label);
+				}
+				// A password typed for the new login is taken as it is.
+				expect(
+					smtpDriver.parseConfig(formA({ ...move, password: TYPED }), SAVED_A),
+					JSON.stringify(move)
+				).toMatchObject({ ok: true, config: { password: TYPED } });
+			}
+			expect(NEW_DESTINATION_PASSWORD_MESSAGE).toContain('password');
+
+			// A refusal for a typed password on a moved login echoes neither secret.
+			for (const password of [`${TYPED}\r\nQUIT`, `${TYPED}\u0000`]) {
+				const result = smtpDriver.parseConfig(formA({ host: 'smtp.b.example', password }), SAVED_A);
+				expect(result).toEqual({ ok: false, message: PASSWORD_MESSAGE });
+				expectNoSecrets(result, JSON.stringify(password));
+			}
+			// An invalid field on a moved login is refused for that field, still without secrets.
+			const badSender = smtpDriver.parseConfig(
+				formA({ host: 'smtp.b.example', password: TYPED, from: 'x' }),
+				SAVED_A
+			);
+			expect(badSender).toEqual({ ok: false, message: SENDER_MESSAGE });
+			expectNoSecrets(badSender, 'bad sender');
+
+			// Nothing saved, nothing to carry over: blank is simply missing.
+			expect(
+				smtpDriver.parseConfig(formA({ host: 'smtp.b.example' }), { ...SAVED_A, password: '' })
+			).toEqual({ ok: false, message: PASSWORD_MESSAGE });
+		});
+
+		it('no over-refusal', () => {
+			const same: [Record<string, string>, Partial<SmtpConfig>][] = [
+				[{}, {}],
+				[{ host: 'SMTP.A.EXAMPLE' }, { host: 'SMTP.A.EXAMPLE' }],
+				[{ host: ' Smtp.A.Example ' }, { host: 'Smtp.A.Example' }],
+				[{ port: '587' }, {}],
+				[{ port: ' 587 ' }, {}],
+				[{ username: ' u ' }, {}],
+				// The sender and recipient are not part of the login.
+				[
+					{ from: 'other@example.com', to: 'else@example.com' },
+					{
+						from: 'other@example.com',
+						to: 'else@example.com'
+					}
+				]
+			];
+			for (const [fields, changed] of same) {
+				expect(smtpDriver.parseConfig(formA(fields), SAVED_A), JSON.stringify(fields)).toEqual({
+					ok: true,
+					config: { ...SAVED_A, ...changed }
+				});
+			}
+		});
+
+		it('blank re-save still authenticates', async () => {
+			// c-20: the same login re-saved with the password left blank, then Send test.
+			const resaved = smtpDriver.parseConfig(form({ password: '' }), CONFIG);
+			expect(resaved).toEqual({ ok: true, config: CONFIG });
+			if (!resaved.ok) return;
+
+			const s = await server();
+			expect(
+				await smtpDriver.send(resaved.config, TEST_ALERT, {
+					fetch: noFetch,
+					tlsCa: SMTP_TEST_CA,
+					connectPort: s.port,
+					timeoutMs: 5000
+				})
+			).toEqual({ ok: true });
+			expect(s.auths).toEqual([{ username: USER, password: PASS }]);
+			expect(s.messages.map((m) => m.auth)).toEqual([{ username: USER, password: PASS }]);
+		});
 	});
 
 	it('driver', () => {

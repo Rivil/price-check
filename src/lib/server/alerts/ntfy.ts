@@ -142,16 +142,50 @@ export async function sendNtfy(
 /** A saved ntfy channel: the topic link and, for a private server, an access token. */
 export type NtfyConfig = { url: string; token: string | null };
 
+// Neither refusal repeats the saved or the typed token.
+/** A blank token while the topic moved to another server (decision secret_on_destination_change). */
+export const NEW_ORIGIN_TOKEN_MESSAGE =
+	'You changed the ntfy server: enter the access token for the new server, or tick Remove access token.';
+export const CLEAR_TOKEN_CONFLICT_MESSAGE =
+	'Either enter a new access token or tick Remove access token, not both.';
+
+/**
+ * The scheme, host and port a topic link sends to, or null if it does not parse. URL
+ * lowercases the host and drops a default port, so https://NTFY.sh:443/a and
+ * https://ntfy.sh/b share one.
+ */
+function originOf(topicUrl: string): string | null {
+	try {
+		return new URL(topicUrl).origin;
+	} catch {
+		return null;
+	}
+}
+
 export const ntfyDriver: ChannelDriver<NtfyConfig> = {
 	kind: 'ntfy',
 	defaultKinds: ['price_drop', 'check_failed'],
 
+	/**
+	 * A typed token replaces the saved one. A blank token keeps it only while the topic
+	 * stays on the same origin, so it is never sent to another server; a move with a
+	 * token saved is refused. clear_token (a checkbox: present means ticked) saves no
+	 * token and keeps the channel.
+	 */
 	parseConfig(form, previous) {
 		const topic = parseTopicUrl(form.topic ?? '');
 		if (!topic.ok) return topic;
-		const token = parseToken(form.token ?? '');
+		const clear = (form.clear_token ?? '').trim() !== '';
+		const typed = (form.token ?? '').trim();
+		if (clear && typed !== '') return { ok: false, message: CLEAR_TOKEN_CONFLICT_MESSAGE };
+		const token = parseToken(typed);
 		if (!token.ok) return token;
-		return { ok: true, config: { url: topic.url, token: token.token ?? previous?.token ?? null } };
+		if (token.token !== null) return { ok: true, config: { url: topic.url, token: token.token } };
+		const saved = clear ? null : (previous?.token ?? null);
+		if (saved !== null && originOf(previous?.url ?? '') !== originOf(topic.url)) {
+			return { ok: false, message: NEW_ORIGIN_TOKEN_MESSAGE };
+		}
+		return { ok: true, config: { url: topic.url, token: saved } };
 	},
 
 	// The topic link is shown to its owner (decision topic_url_secrecy); the token never is.

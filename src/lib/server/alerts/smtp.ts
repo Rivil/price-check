@@ -58,6 +58,9 @@ export const HOST_MESSAGE =
 export const PORT_MESSAGE = 'Enter the SMTP port as a whole number from 1 to 65535, like 587.';
 export const USERNAME_MESSAGE = 'Enter the username you log in to the SMTP server with.';
 export const PASSWORD_MESSAGE = 'Enter the password you log in to the SMTP server with.';
+/** A blank password while the host, port or username moved (decision secret_on_destination_change). */
+export const NEW_DESTINATION_PASSWORD_MESSAGE =
+	'You changed the SMTP host, port or username: enter the password for the new login.';
 export const SENDER_MESSAGE =
 	'Enter the sender as a plain email address your SMTP server may send from, like alerts@your-domain.com.';
 export const RECIPIENT_MESSAGE =
@@ -90,6 +93,21 @@ function parsePort(value: string): number | null {
 	return isPort(port) ? port : null;
 }
 
+/**
+ * Whether a saved password may go with this login: the same server (host names are
+ * case-insensitive), port and username (exact, as the server may treat case apart).
+ */
+function sameDestination(
+	saved: SmtpConfig,
+	next: { host: string; port: number; username: string }
+): boolean {
+	return (
+		saved.host.toLowerCase() === next.host.toLowerCase() &&
+		saved.port === next.port &&
+		saved.username === next.username
+	);
+}
+
 function parse(
 	form: Readonly<Record<string, string | undefined>>,
 	previous: SmtpConfig | null
@@ -100,8 +118,18 @@ function parse(
 	if (port === null) return { ok: false, message: PORT_MESSAGE };
 	const username = (form.username ?? '').trim();
 	if (!isUsername(username)) return { ok: false, message: USERNAME_MESSAGE };
-	// Write-only: blank keeps the saved password; blank with none saved is missing.
+	// Write-only: blank keeps the saved password, but only for the login it was saved
+	// for, so it is never sent to another server or account. Blank with none saved is
+	// missing.
 	const typed = (form.password ?? '').trim();
+	if (
+		typed === '' &&
+		previous !== null &&
+		previous.password !== '' &&
+		!sameDestination(previous, { host, port, username })
+	) {
+		return { ok: false, message: NEW_DESTINATION_PASSWORD_MESSAGE };
+	}
 	const password = typed === '' ? (previous?.password ?? '') : typed;
 	if (!isPassword(password)) return { ok: false, message: PASSWORD_MESSAGE };
 	const from = (form.from ?? '').trim();

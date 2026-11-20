@@ -22,7 +22,8 @@ import {
 	type AnyDriver
 } from './channels.ts';
 import { channelAad, encryptSecret } from './crypto.ts';
-import { ntfyDriver, parseToken, parseTopicUrl } from './ntfy.ts';
+import { NEW_ORIGIN_TOKEN_MESSAGE, ntfyDriver, parseToken, parseTopicUrl } from './ntfy.ts';
+import { NEW_DESTINATION_PASSWORD_MESSAGE } from './smtp.ts';
 
 const KEY = randomBytes(32);
 const TOPIC = 'https://ntfy.sh/alice-own-secret-topic';
@@ -284,6 +285,57 @@ describe('saveChannel', () => {
 		await saveNtfy('not a url', TOKEN_2);
 		await saveNtfy('https://ntfy.sh/new-topic', 'tk_bad!');
 		expect(await rows()).toEqual([before]);
+	});
+
+	it('refused save writes nothing', async () => {
+		// A blank secret on a moved destination (decision secret_on_destination_change).
+		await saveNtfy();
+		await saveChannel(h.db, KEY, 'smtp', SMTP_FORM);
+		const before = await rows();
+		const ntfyBefore = await loadChannelConfig(h.db, KEY, 'ntfy');
+		const smtpBefore = await loadChannelConfig(h.db, KEY, 'smtp');
+
+		const refusals = [
+			await saveNtfy('https://ntfy.other-host.test/alice-own-secret-topic', ''),
+			await saveChannel(h.db, KEY, 'smtp', {
+				...SMTP_FORM,
+				host: 'smtp.other-mail.test',
+				password: ''
+			}),
+			await saveChannel(h.db, KEY, 'smtp', { ...SMTP_FORM, port: '465', password: '' }),
+			await saveChannel(h.db, KEY, 'smtp', { ...SMTP_FORM, username: 'bob', password: '' })
+		];
+		expect(refusals).toEqual([
+			{ ok: false, message: NEW_ORIGIN_TOKEN_MESSAGE },
+			{ ok: false, message: NEW_DESTINATION_PASSWORD_MESSAGE },
+			{ ok: false, message: NEW_DESTINATION_PASSWORD_MESSAGE },
+			{ ok: false, message: NEW_DESTINATION_PASSWORD_MESSAGE }
+		]);
+		for (const refusal of refusals) {
+			for (const secret of [TOKEN, SMTP_PASSWORD]) {
+				expect(JSON.stringify(refusal)).not.toContain(secret);
+			}
+		}
+		expect(await rows()).toEqual(before);
+		expect(await loadChannelConfig(h.db, KEY, 'ntfy')).toEqual(ntfyBefore);
+		expect(await loadChannelConfig(h.db, KEY, 'smtp')).toEqual(smtpBefore);
+
+		// The same destination re-saved blank keeps the secret (c-20).
+		expect(await saveChannel(h.db, KEY, 'smtp', { ...SMTP_FORM, password: '' })).toEqual({
+			ok: true
+		});
+		expect(await loadChannelConfig(h.db, KEY, 'smtp')).toEqual(smtpBefore);
+	});
+
+	it('clear token keeps the channel', async () => {
+		await saveNtfy(TOPIC, TOKEN, { priceDrops: true, checkFailures: false });
+		expect(
+			await saveChannel(h.db, KEY, 'ntfy', { topic: TOPIC, token: '', clear_token: 'on' })
+		).toEqual({ ok: true });
+		expect(await loadChannelConfig(h.db, KEY, 'ntfy')).toEqual({ url: TOPIC, token: null });
+		expect(await rows()).toMatchObject([
+			{ kind: 'ntfy', enabled: true, priceDrops: true, checkFailures: false }
+		]);
 	});
 
 	it('unknown kind', async () => {
