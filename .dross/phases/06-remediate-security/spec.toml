@@ -1,3 +1,5 @@
+new = [".dross/security/x/report.md", "e2e-control.ts", "sign-mac.ts", "repo-settings.yml", "release-tags.json", "audit-shipped.ts"]
+
 [phase]
   id = "06-remediate-security"
   title = "Remediate security findings"
