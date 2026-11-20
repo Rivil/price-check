@@ -1,0 +1,169 @@
+[phase]
+  id = "06-remediate-security"
+  title = "Remediate security findings"
+  milestone = "v0.2"
+
+[[criteria]]
+  id = "c-1"
+  text = "SEC-01: a saved SMTP password or ntfy token is never sent to a destination other than the one it was saved for (SMTP host, port or username; ntfy origin)."
+
+[[criteria]]
+  id = "c-2"
+  text = "SEC-01: the ntfy token can be cleared without removing the channel."
+
+[[criteria]]
+  id = "c-3"
+  text = "SEC-02: the local server returns 403 to any request other than GET /health that lacks the per-launch secret, including GET /account/alerts/__data.json and every form action. The app's own window works unchanged."
+
+[[criteria]]
+  id = "c-4"
+  text = "SEC-14: when several Check-now requests for one watch arrive at once, only one fetch starts per cooldown window. The rest are refused like any request inside the cooldown."
+
+[[criteria]]
+  id = "c-5"
+  text = "SEC-04: a cross-origin POST to any form action gets 403 under pnpm dev as well as in the built app."
+
+[[criteria]]
+  id = "c-6"
+  text = "SEC-05: every page response carries Content-Security-Policy frame-ancestors 'none' and X-Frame-Options: DENY, so no other origin can frame the app."
+
+[[criteria]]
+  id = "c-7"
+  text = "SEC-06: a recorded product page with a bot-wall phrase injected into a review or feature bullet classifies ok. Every recorded wall and captcha fixture still classifies blocked."
+
+[[criteria]]
+  id = "c-8"
+  text = "SEC-03: in the released app, a test reading the fuse wire finds RunAsNode, NodeOptions, CLI inspect and file-protocol privileges off, and asar integrity and OnlyLoadAppFromAsar on. The macOS entitlements omit disable-library-validation."
+
+[[criteria]]
+  id = "c-9"
+  text = "SEC-07: only a repo admin can create a v* tag (tag ruleset). A policy check in CI fails if that ruleset or the release environment's protection is missing from the live repo settings."
+
+[[criteria]]
+  id = "c-10"
+  text = "SEC-08: releases are published as immutable, so a published release's assets cannot be replaced. The c-9 policy check fails if immutable releases are off."
+
+[[criteria]]
+  id = "c-11"
+  text = "SEC-10: the CI dependency audit fails on a high advisory in any dependency that ships in the app, including the electron, @sveltejs/kit, svelte and adapter-node devDependencies. Dependabot alerts are on and the policy check verifies it."
+
+[[criteria]]
+  id = "c-12"
+  text = "SEC-10: the lockfile resolves @sveltejs/kit >= 3.1.1 and @sveltejs/adapter-node >= 6.0.1."
+
+[[criteria]]
+  id = "c-13"
+  text = "SEC-11: after the desktop server starts, ALERTS_ENCRYPTION_KEY is absent from the main process's process.env, so the renderer and spawned processes never inherit it. The server still decrypts alert channels."
+
+[[criteria]]
+  id = "c-14"
+  text = "SEC-13: an http:// amzn.to or amzn.eu short link is resolved over https. No request for it goes out in plaintext."
+
+[[criteria]]
+  id = "c-15"
+  text = "SEC-16: in release.yml the decoded AuthKey.p8 is removed from RUNNER_TEMP when the step that wrote it exits, whether it passed or failed. The workflow policy check asserts the cleanup is present."
+
+[[criteria]]
+  id = "c-16"
+  text = "SEC-17: nav.ts normalise() strips trailing slashes in linear time. '/a' + 16k slashes + 'x' normalises on plain Node in under 10 ms, and ordinary paths give the same output as today."
+
+[[criteria]]
+  id = "c-17"
+  text = ".dross/security/ is listed in .gitignore, so raw audit findings cannot be committed to the public repo."
+
+[[criteria]]
+  id = "c-18"
+  text = "A fresh /dross-secure run on the phase branch reports no new medium-or-higher findings. Each of SEC-01..17 is marked resolved or dismissed in .dross/security/state.toml."
+
+[[criteria]]
+  id = "c-19"
+  text = "Must-not: pnpm test:e2e:packaged passes, and pnpm dev opened in a browser still works, with c-3 and c-8 in place."
+
+[[criteria]]
+  id = "c-20"
+  text = "Must-not: re-saving an SMTP or ntfy channel with the same destination and a blank secret field keeps the saved secret, and Send test still authenticates."
+
+[[criteria]]
+  id = "c-21"
+  text = "If a Check-now fetch fails, the watch's cooldown starts from that attempt as for a success, and a later Check-now after the cooldown runs."
+
+[[criteria]]
+  id = "c-22"
+  text = "SEC-03: pnpm test:e2e:packaged launches the release artefacts without --inspect or --inspect-brk and passes on macOS, Windows and Linux."
+
+[[criteria]]
+  id = "c-23"
+  text = "SEC-05: every page response carries a Content-Security-Policy with script-src limited to 'self' plus Kit's per-response hashes or nonces (no 'unsafe-inline', no remote script origins) and img-src limited to 'self' and Amazon's image CDN. The desktop e2e suite records zero CSP violations."
+
+[[criteria]]
+  id = "c-24"
+  text = "SEC-15: where Electron safeStorage has a real OS backend (macOS Keychain, Windows DPAPI, Linux libsecret or kwallet), alerts.key on disk holds the safeStorage-encrypted key, not raw key bytes. On Linux's basic_text fallback the raw 0600 file is kept."
+
+[[criteria]]
+  id = "c-25"
+  text = "SEC-15: on first launch of v0.2, an existing raw alerts.key from v0.1.5 is rewritten in wrapped form where c-24 applies, and every saved alert channel still decrypts and sends. If wrapping fails, the raw key stays in place and channels keep working."
+
+[[criteria]]
+  id = "c-26"
+  text = "SEC-09: the release.yml job holding CSC_LINK, CSC_KEY_PASSWORD and the App Store Connect key installs only the pinned signing toolchain (electron-builder and its tree). It signs and notarises a prepackaged app built by an earlier secret-free job and runs no project install, build or test step. The workflow policy check asserts it."
+
+[[criteria]]
+  id = "c-27"
+  text = "Must-not: the main-process test hook that replaces the inspector (c-22) is inactive unless a PRICE_CHECK_E2E_* env var is set at launch, and it never opens a network listener."
+
+[[decisions]]
+  key = "session_secret"
+  choice = "Main generates a random secret per launch and sets it as an HttpOnly, SameSite=Strict cookie on the window's session before loadURL. The server returns 403 without it. GET /health is exempt. pnpm dev runs without the gate; c-5's Origin check protects it from browsers."
+  why = "A cookie rides every request from the window, including downloads and form posts, with no per-request plumbing. A URL token would leak into history and logs. Dev has no Electron main to set the cookie."
+  locked = true
+
+[[decisions]]
+  key = "cli_inspect_fuse"
+  choice = "The shipped app has the CLI inspect fuse off. The packaged e2e harness is reworked to run without the Node inspector (c-22): CDP to the renderer, plus an env-gated, non-network main-process hook (c-27)."
+  why = "Leaving --inspect on keeps the same run-JS-under-the-signed-identity path that turning RunAsNode off closes. The user chose the full fix over accepting it."
+  locked = true
+
+[[decisions]]
+  key = "secret_on_destination_change"
+  choice = "A save that changes the SMTP host, port or username, or the ntfy origin, with a blank secret field is refused with an inline form error asking for the secret for the new destination. Nothing is saved."
+  why = "Silently dropping the secret leaves a non-technical user with a channel that fails at Send test for no visible reason. Refusing keeps the old secret tied to the old destination."
+  locked = true
+
+[[decisions]]
+  key = "release_env_reviewer"
+  choice = "The release environment gets no required reviewer. The admin-only v* tag ruleset (c-9) is the gate."
+  why = "Releases stay hands-off for the coordinator. A sole-admin approval adds little, because the same admin token can approve its own deployment."
+  locked = true
+
+[[decisions]]
+  key = "signing_job_split"
+  choice = "Amends 05-release release_pipeline and release_secrets: macOS packages unsigned in a secret-free job, and a separate job holding the five release secrets signs and notarises the prepackaged app (c-26). Smoke and verify of the signed artefact run in a later job without secrets."
+  why = "This keeps the project's dependency tree and test code out of any process that can read the Developer ID certificate or notary key, which are usable outside this app until revoked (SEC-09)."
+  locked = true
+
+[[decisions]]
+  key = "sec14_queue_cap"
+  choice = "Accept SEC-14's uncapped shop fetch queue. No cap is added."
+  why = "With c-3 and c-4 in place, only the app itself enqueues, and the scheduler already bounds it. A cap would be untestable insurance."
+  locked = true
+
+[[decisions]]
+  key = "sec12_output_capture_seam"
+  choice = "Accept SEC-12: PRICE_CHECK_E2E_OUTPUT_CAPTURE stays honoured in packaged builds."
+  why = "The packaged update e2e tests drive the real release artefacts and need it. Setting a session env var already requires same-user control, and the captured stream is key-redacted JSON lines."
+  locked = true
+
+[[edges]]
+  class = "adjacency"
+  outcome = "covered"
+  criteria = ["c-19"]
+
+[[edges]]
+  class = "idempotency"
+  outcome = "covered"
+  criteria = ["c-20"]
+
+[[edges]]
+  class = "concurrency"
+  outcome = "covered"
+  criteria = ["c-4", "c-21"]
