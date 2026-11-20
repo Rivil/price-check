@@ -11,9 +11,31 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter()
+			adapter: adapter(),
+			// SEC-05/SEC-15: a strict CSP. 'auto' puts a per-response nonce on SSR pages
+			// (a hash on prerendered ones) for Kit's own inline scripts, so script-src
+			// needs no 'unsafe-inline'. Svelte transitions and app.html's
+			// style="display: contents" need inline styles. Product images come from
+			// Amazon's CDN only. frame-ancestors 'none' pairs with the hook's
+			// X-Frame-Options: DENY.
+			csp: {
+				mode: 'auto',
+				directives: {
+					'default-src': ['self'],
+					'script-src': ['self'],
+					'style-src': ['self', 'unsafe-inline'],
+					'img-src': ['self', 'https://m.media-amazon.com'],
+					'frame-ancestors': ['none'],
+					'object-src': ['none'],
+					'base-uri': ['self'],
+					'form-action': ['self']
+				}
+			}
 		})
 	],
+	// Never inline assets as data: URIs: img-src does not allow data:, so an inlined
+	// favicon would be blocked.
+	build: { assetsInlineLimit: 0 },
 	test: {
 		expect: { requireAssertions: true },
 		// Windows CI disk I/O is slow: tests that migrate a fresh SQLite file took ~6s on
