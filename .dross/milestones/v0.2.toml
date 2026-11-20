@@ -1,0 +1,12 @@
+phases = ["06-remediate-security", "07-error-reporting", "08-browser-fallback", "09-captcha-solving", "10-release-v0-2"]
+
+[milestone]
+  version = "v0.2"
+  title = "Hardened and dependable: security fixes, reliable checks, proven auto-update"
+  status = "active"
+  started = "2026-11-20"
+  base = "main"
+
+[scope]
+  success_criteria = ["Each of the 17 findings from the 2026-11-20 security audit is either fixed, with a test that fails on the old behaviour, or accepted with a recorded reason. A fresh /dross-secure run reports no new medium or higher findings.", "When a plain fetch gets one of Amazon's bot walls, the check retries in the app's bundled browser. If that hits a captcha, the app first solves it on-device. If that fails, it notifies the user and opens the captcha in an app window, and checks resume once it is solved. A watch shows 'blocked' only while a captcha is waiting for the user. This is tested against recorded wall and captcha fixtures.", "An installed v0.1.5 on macOS, Windows and Linux (AppImage) updates itself to the v0.2 release with no user download. Watches, price history and settings survive the update, and the result is recorded per OS in a hands-on checklist.", "On first launch the app asks whether to send error reports, and Settings can change that later. With consent, uncaught errors and failed checks reach the maintainer's Sentry with the failure kind, adapter stage, ASIN, app version and OS, and never with cookies, page bodies, IP addresses or other personal data. Without consent nothing is sent. Either way, a user can save the same diagnostics to a file."]
+  non_goals = ["No arm64 Windows/Linux builds and no .deb/.rpm packages in v0.2.", "No automated cross-version update test in CI. Update proof is the per-OS hands-on checklist.", "No usage analytics: Sentry gets errors and failed checks only, with no periodic counts, no session tracking and no install census."]
