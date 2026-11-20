@@ -68,6 +68,7 @@ paths = [
   '''^\.dross/phases/03-desktop-shell/tests\.json$''',
   '''^\.dross/phases/04-desktop-notify/tests\.json$''',
   '''^\.dross/phases/05-release/tests\.json$''',
+  '''^\.dross/phases/06-remediate-security/tests\.json$''',
 ]
 regexTarget = "line"
 regexes = ['''^\s*"Key": "[0-9a-f]{16}",?$''']
