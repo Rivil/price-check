@@ -106,10 +106,66 @@ export async function startNodeServer({
 	if (!existsSync(script)) {
 		throw new Error(`node-server: ${entry} is missing; run pnpm build first`);
 	}
-
-	const child = spawn(process.execPath, [script], {
-		cwd: REPO_ROOT,
+	return launch({
+		args: [script],
 		env: nodeServerEnv({ port, dbFile, env }),
+		port,
+		label: entry,
+		timeoutMs
+	});
+}
+
+/** Vite's own CLI script, run with this node: no shell, no .bin shim (Windows). */
+const VITE_BIN = 'node_modules/vite/bin/vite.js';
+
+export type DevServerOptions = Omit<NodeServerOptions, 'entry'>;
+
+/**
+ * Starts `vite dev` on 127.0.0.1:<port> (strictPort, so a taken port fails rather
+ * than moving) with the same allowlisted env as `node build` — its own database,
+ * the scheduler off (r-01) — and waits until GET /health answers 200. The first
+ * request compiles the app, so the default wait is longer than startNodeServer's.
+ */
+export async function startDevServer({
+	port,
+	dbFile,
+	env,
+	timeoutMs = 90_000
+}: DevServerOptions): Promise<NodeServer> {
+	return launch({
+		args: [
+			resolve(REPO_ROOT, VITE_BIN),
+			'dev',
+			'--host',
+			'127.0.0.1',
+			'--port',
+			String(port),
+			'--strictPort'
+		],
+		env: nodeServerEnv({ port, dbFile, env }),
+		port,
+		label: 'vite dev',
+		timeoutMs
+	});
+}
+
+/** Spawns `node <args>` and resolves once GET /health answers 200 (see startNodeServer). */
+async function launch({
+	args,
+	env,
+	port,
+	label,
+	timeoutMs
+}: {
+	args: string[];
+	env: Record<string, string>;
+	port: number;
+	label: string;
+	timeoutMs: number;
+}): Promise<NodeServer> {
+	const child = spawn(process.execPath, args, {
+		cwd: REPO_ROOT,
+		env,
 		stdio: ['ignore', 'pipe', 'pipe']
 	});
 	let output = '';
@@ -161,10 +217,10 @@ export async function startNodeServer({
 		}
 		if (Date.now() > deadline) {
 			await stop();
-			throw new Error(`node-server: /health not ready after ${timeoutMs}ms\n${output}`);
+			throw new Error(`node-server: ${label} /health not ready after ${timeoutMs}ms\n${output}`);
 		}
 		await new Promise((done) => setTimeout(done, 100));
 	}
 	await exit;
-	throw new Error(`node-server: ${entry} exited before /health answered\n${output}`);
+	throw new Error(`node-server: ${label} exited before /health answered\n${output}`);
 }
