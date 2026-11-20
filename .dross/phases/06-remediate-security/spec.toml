@@ -127,7 +127,7 @@ new = [".dross/security/x/report.md", "e2e-control.ts", "sign-mac.ts", "repo-set
 
 [[decisions]]
   key = "secret_on_destination_change"
-  choice = "A save that changes the SMTP host, port or username, or the ntfy origin, with a blank secret field is refused with an inline form error asking for the secret for the new destination. Nothing is saved."
+  choice = "A save that changes the SMTP host, port or username, or the ntfy origin, with a blank secret field is refused with an inline form error asking for the secret for the new destination. Nothing is saved. This applies only when a secret is saved: with none saved there is nothing to carry over, so the save goes through."
   why = "Silently dropping the secret leaves a non-technical user with a channel that fails at Send test for no visible reason. Refusing keeps the old secret tied to the old destination."
   locked = true
 
