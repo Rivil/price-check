@@ -241,6 +241,85 @@ describe('desktop import boundary', () => {
 	});
 });
 
+// 06-remediate-security c-27: the e2e control channel replaces the Node inspector in
+// the packaged suites, so it must never become one: no network, no code evaluation.
+const E2E_CONTROL = join(DESKTOP, 'e2e-control.ts');
+const E2E_CONTROL_FORBIDDEN = [
+	'net',
+	'http',
+	'https',
+	'http2',
+	'dgram',
+	'tls',
+	'inspector',
+	'inspector/promises',
+	'vm',
+	'child_process',
+	'worker_threads'
+];
+
+/** Why `specifier` is off limits to e2e-control.ts, or null. */
+function controlViolation(specifier: string): string | null {
+	if (isElectron(specifier)) return 'imports electron';
+	const bare = specifier.replace(/^node:/, '');
+	return E2E_CONTROL_FORBIDDEN.includes(bare) ? `imports ${specifier}` : null;
+}
+
+/** Calls that evaluate code: eval(), new Function(), import(...) of anything. */
+function evaluators(source: string): string[] {
+	const sf = ts.createSourceFile('x.ts', source, ts.ScriptTarget.Latest, true);
+	const found: string[] = [];
+	const visit = (node: ts.Node): void => {
+		if (ts.isCallExpression(node)) {
+			if (ts.isIdentifier(node.expression) && node.expression.text === 'eval') found.push('eval(');
+			if (node.expression.kind === ts.SyntaxKind.ImportKeyword) found.push('import(');
+		}
+		if (
+			(ts.isNewExpression(node) || ts.isCallExpression(node)) &&
+			ts.isIdentifier(node.expression) &&
+			node.expression.text === 'Function'
+		) {
+			found.push('Function(');
+		}
+		ts.forEachChild(node, visit);
+	};
+	visit(sf);
+	return found;
+}
+
+describe('e2e control channel', () => {
+	it('flags network, inspector, vm, child_process and electron imports', () => {
+		for (const bad of ['node:net', 'http', 'node:https', 'dgram', 'node:tls', 'node:inspector']) {
+			expect(controlViolation(bad), bad).not.toBeNull();
+		}
+		for (const bad of ['node:vm', 'child_process', 'electron', 'electron/main']) {
+			expect(controlViolation(bad), bad).not.toBeNull();
+		}
+		for (const ok of ['node:fs/promises', 'node:path', '#lib/server/x.ts']) {
+			expect(controlViolation(ok), ok).toBeNull();
+		}
+		expect(evaluators("eval('1'); new Function('x'); Function('y'); await import('z');")).toEqual([
+			'eval(',
+			'Function(',
+			'Function(',
+			'import('
+		]);
+	});
+
+	it('e2e-control.ts imports no network, inspector, vm or electron module', () => {
+		expect(desktopSources).toContain(E2E_CONTROL);
+		const violations = refsOf(E2E_CONTROL).flatMap((r) => {
+			const why = controlViolation(r.specifier);
+			return why ? [why] : [];
+		});
+		expect(violations).toEqual([]);
+	});
+
+	it('e2e-control.ts never evaluates code', () => {
+		expect(evaluators(readFileSync(E2E_CONTROL, 'utf8'))).toEqual([]);
+	});
+});
+
 // 05-release c-1, c-5, c-6: main.ts is the only module that loads electron-updater,
 // builds and publishes the updater only when packaged, and reads the predecessor PID
 // before loadAdapterHandler replaces process.env.
