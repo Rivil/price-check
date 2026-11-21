@@ -326,6 +326,22 @@
         }
       ]
     },
+    "t-27": {
+      "files": [
+        "e2e/dev-guard.e2e.ts",
+        "scripts/sign-mac.spec.ts"
+      ],
+      "commit": "610cbe5",
+      "completed_at": "2026-11-21T13:28:06.870604Z",
+      "landmarks": [
+        {
+          "feature": "content security policy",
+          "symbol": "dev runs under the CSP",
+          "loc": "e2e/dev-guard.e2e.ts:166",
+          "what": "dev-under-CSP proof waits for the client to load before enhanced posts; sign-mac import-chain check is OS-independent"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "src/lib/server/checks.ts",
@@ -1233,6 +1249,34 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "No new test in the diff: the existing scripts/gitleaks-config.spec.ts runs its checks over every [[allowlists]] entry and the generic-api-key subset, so this entry is covered without a new test.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-27": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-19",
+          "text": "e2e/dev-guard.e2e.ts:184,203 treats waitForLoadState('networkidle') as proof of hydration. It is only a heuristic: no HTTP requests for 500ms, and Playwright discourages it. If one module loads late or hydration runs slowly after the last fetch, the click can still go out as a native post. Waiting for a DOM signal of hydration, such as a body attribute or element that only exists once mounted, would be deterministic.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The first test_contract line (PR CI green on linux, macos and windows) can only be observed in CI before t-25 closes. This diff cannot show it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "In scripts/sign-mac.spec.ts, repoPath uses relative(ROOT, file), which also replaces the old fragile slice(ROOT.length + 1) in the violation messages.",
           "resolution": "non-blocking, left"
         }
       ]

@@ -1,4 +1,4 @@
-task_seq = 26
+task_seq = 27
 [phase]
 id = "06-remediate-security"
 
@@ -432,9 +432,20 @@ status = "done"
 depends_on = ["t-24"]
 
 [[task]]
+id = "t-27"
+wave = 7
+title = "Fix 3-OS CI: dev-guard hydration wait, posix paths in sign-mac.spec"
+files = ["e2e/dev-guard.e2e.ts", "scripts/sign-mac.spec.ts"]
+description = "PR #16 CI: on macOS and Linux dev-guard 'dev runs under the CSP' clicks before vite dev hydrates, so the post is native (x-sveltekit-action null); on Windows sign-mac.spec's import-chain test compares backslash paths. dev-guard waits for hydration (networkidle) before each enhanced click; sign-mac.spec normalises seen paths to '/'. User-approved 2026-11-21."
+covers = ["c-19", "c-26"]
+test_contract = ["PR CI 'test' green on linux, macos and windows (dev-guard and sign-mac.spec included), observed before t-25 closes", "if sign-mac.ts's static import chain grows, sign-mac.spec still fails on every OS (paths compared '/'-separated)"]
+status = "done"
+depends_on = ["t-26"]
+
+[[task]]
 id            = "t-25"
 wave          = 7
-depends_on    = ["t-1", "t-2", "t-3", "t-4", "t-5", "t-6", "t-7", "t-8", "t-9", "t-10", "t-11", "t-12", "t-13", "t-14", "t-15", "t-16", "t-17", "t-18", "t-19", "t-20", "t-21", "t-22", "t-23", "t-24", "t-26"]
+depends_on    = ["t-1", "t-2", "t-3", "t-4", "t-5", "t-6", "t-7", "t-8", "t-9", "t-10", "t-11", "t-12", "t-13", "t-14", "t-15", "t-16", "t-17", "t-18", "t-19", "t-20", "t-21", "t-22", "t-23", "t-24", "t-26", "t-27"]
 title         = "Re-audit and close SEC-01..17"
 files         = [".dross/security/state.toml"]
 description   = '''
