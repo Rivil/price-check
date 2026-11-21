@@ -1,6 +1,13 @@
 # Dependency advisory scan (supply-chain checklist N3). Advisory only: not a
 # required check, because a new upstream advisory must not block unrelated PRs.
 # Runs when dependencies change, and weekly to catch new advisories.
+#
+# Audits what ships (c-11): the full tree, not --prod, since electron, SvelteKit,
+# svelte and adapter-node are devDependencies whose code is in the release, and the
+# signing/ tree the release signing job installs. scripts/audit-shipped.ts fails on a
+# high or critical advisory that ships and only reports dev-only ones. pnpm audit
+# reads the lockfiles: no install runs. Its own exit code is ignored (it is non-zero
+# on any advisory); audit-shipped.ts fails closed on output it cannot read.
 name: audit
 
 on:
@@ -30,5 +37,8 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
-      - name: audit production dependencies
-        run: pnpm audit --audit-level=high --prod
+      - name: audit the shipped dependency trees
+        run: |
+          pnpm audit --json > "$RUNNER_TEMP/audit-root.json" || true
+          pnpm --dir signing audit --ignore-workspace --json > "$RUNNER_TEMP/audit-signing.json" || true
+          node scripts/audit-shipped.ts "$RUNNER_TEMP/audit-root.json" "$RUNNER_TEMP/audit-signing.json"
