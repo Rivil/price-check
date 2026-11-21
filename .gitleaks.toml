@@ -51,6 +51,14 @@ regexTarget = "match"
 regexes = ['''tk_zyxwvutsrqponmlkjihgfedcba987''']
 
 [[allowlists]]
+description = "Test-only ALERTS_ENCRYPTION_KEY in the desktop server tests: the base64 of the literal 'key-for-test', never a real key (06-remediate-security t-9)."
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''^src/desktop/server\.spec\.ts$''']
+regexTarget = "match"
+regexes = ['''a2V5LWZvci10ZXN0''']
+
+[[allowlists]]
 description = "Self-signed TEST ONLY TLS keys for the SMTP driver tests (see that folder's README). Exact files only; any other key in the folder is still reported."
 targetRules = ["private-key"]
 paths = [
