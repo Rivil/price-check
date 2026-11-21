@@ -126,8 +126,17 @@ vi.mock('./server.ts', async (importOriginal) => ({
 	}
 }));
 
-const { OUTPUT_CAPTURE_ENV, startOutputCapture, takeOutputCaptureFile, withCaptureHandOver } =
-	await import('./main.ts');
+const {
+	OUTPUT_CAPTURE_ENV,
+	startOutputCapture,
+	takeOutputCaptureFile,
+	withCaptureHandOver,
+	withControlHandOver
+} = await import('./main.ts');
+
+/** The control channel's variable (e2e-control.ts E2E_CONTROL_ENV), as the harness sets it. */
+const CONTROL_ENV = 'PRICE_CHECK_E2E_CONTROL_DIR';
+const CONTROL_DIR = '/tmp/control/launch-1';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -280,6 +289,31 @@ describe('withCaptureHandOver', () => {
 		expect(wrapped.installOnExit('restart')).toBe(false);
 		expect(installOnExit).toHaveBeenCalledWith('restart');
 		expect(seen).toEqual([FILE]);
+	});
+});
+
+describe('withControlHandOver', () => {
+	it('passes the updater as is when there is no control dir', () => {
+		const given: LifecycleUpdates = { pending: () => true, installOnExit: () => true };
+		const env: NodeJS.ProcessEnv = {};
+		expect(withControlHandOver(given, null, env)).toBe(given);
+		expect(env).toEqual({});
+	});
+
+	it('puts the variable back into the env before handing over to the installer', () => {
+		const env: NodeJS.ProcessEnv = {};
+		/** The variable as the installer's spawn would read it, at each hand-over. */
+		const seen: (string | undefined)[] = [];
+		const installOnExit = vi.fn<LifecycleUpdates['installOnExit']>(() => {
+			seen.push(env[CONTROL_ENV]);
+			return true;
+		});
+		const wrapped = withControlHandOver({ pending: () => false, installOnExit }, CONTROL_DIR, env);
+		expect(wrapped.pending()).toBe(false);
+		expect(env[CONTROL_ENV]).toBeUndefined();
+		expect(wrapped.installOnExit('quit')).toBe(true);
+		expect(installOnExit).toHaveBeenCalledWith('quit');
+		expect(seen).toEqual([CONTROL_DIR]);
 	});
 });
 
@@ -456,8 +490,13 @@ describe('main.ts wiring of the session gate', () => {
 			.split('\n')
 			.filter((line) => line.includes('sessionSecret'))
 			.map((line) => line.trim());
+		// Also the e2e control channel (06-remediate-security c-22): its appGet needs the
+		// cookie, and it scrubs the secret from every reply. Started only when the test
+		// variable is set.
 		expect(uses).toEqual([
 			'const sessionSecret = createSessionSecret();',
+			'sessionSecret: () => secret',
+			'startE2eControl(e2eControlDir, controlHandlers(sessionSecret), { pid: process.pid });',
 			'const server = await startDesktopServer({ handler, secret: sessionSecret });',
 			'await session.defaultSession.cookies.set(cookieDetails(server.origin, sessionSecret));'
 		]);

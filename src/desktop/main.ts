@@ -55,6 +55,16 @@
 // A packaged Electron drops NODE_OPTIONS but --max-http-header-size and --http-parser
 // (Electron 45's environment-variables docs), so a --require preload cannot do this.
 // Unset (every real launch), nothing is hooked and the updater is passed as is.
+//
+// Test-only control channel (06-remediate-security c-22, c-27; decision
+// cli_inspect_fuse): the shipped app has the Node inspector fuse off, so the packaged
+// e2e suites drive main through e2e-control.ts instead. PRICE_CHECK_E2E_CONTROL_DIR is
+// read and removed with the capture variable, before loadAdapterHandler swaps
+// process.env for the server's; set, the channel starts answering from this launch's
+// objects (controlHandlers), and the variable is put back only for the hand-over to the
+// installer (withControlHandOver), so the version an update starts answers too. Its
+// appGet reaches this launch's server with the session cookie, so the secret never
+// leaves this process. Unset (every real launch), no channel starts at all.
 import {
 	app,
 	autoUpdater,
@@ -70,6 +80,7 @@ import {
 } from 'electron';
 import electronUpdater from 'electron-updater';
 import { appendFileSync } from 'node:fs';
+import { request as httpRequest } from 'node:http';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -77,6 +88,13 @@ import { readRuntime } from '#lib/server/runtime-bridge.ts';
 import { loadOrCreateAlertsKey } from './alerts-key.ts';
 import { appUserModelIdFor } from './app-id.ts';
 import { desktopPaths, resolveUserDataDir, serverCwdFor } from './app-paths.ts';
+import {
+	E2E_CONTROL_ENV,
+	startE2eControl,
+	takeE2eControlDir,
+	type AppGetResult,
+	type E2eControlHandlers
+} from './e2e-control.ts';
 import {
 	PREDECESSOR_PID_ENV,
 	runDesktop,
@@ -88,9 +106,14 @@ import { createNotifier } from './notifier.ts';
 import { notificationClassFor } from './notify-seam.ts';
 import { serverEnv } from './server-env.ts';
 import { loadAdapterHandler, startDesktopServer } from './server.ts';
-import { cookieDetails, createSessionSecret } from './session-gate.ts';
+import { cookieDetails, createSessionSecret, SESSION_COOKIE } from './session-gate.ts';
 import { createTray, type TrayHandle } from './tray.ts';
-import { createUpdater, publishUpdaterHandle, type UpdaterController } from './updater.ts';
+import {
+	createUpdater,
+	publishUpdaterHandle,
+	type ExitMode,
+	type UpdaterController
+} from './updater.ts';
 import { createWindowState, showWindow, type WindowState } from './window.ts';
 
 /** dist-desktop/main.js -> the repo (or packaged app) root. */
@@ -187,9 +210,56 @@ export function withCaptureHandOver(
 	};
 }
 
+/**
+ * `updates` as is without a control dir; with one, each hand-over to the installer
+ * first puts E2E_CONTROL_ENV back into `env`, which the installer and the version it
+ * starts inherit, so that version answers on the same channel.
+ */
+export function withControlHandOver<T extends LifecycleUpdates>(
+	updates: T,
+	dir: string | null,
+	env: NodeJS.ProcessEnv
+): T {
+	if (dir === null) return updates;
+	return {
+		...updates,
+		installOnExit(mode: ExitMode) {
+			env[E2E_CONTROL_ENV] = dir;
+			return updates.installOnExit(mode);
+		}
+	};
+}
+
+/** How long appGet waits for main's own server to answer in full. */
+const APP_GET_TIMEOUT_MS = 30_000;
+
+/** One GET of `origin` + `path` carrying the session cookie: status and body only. */
+function appGet(origin: string, path: string, secret: string): Promise<AppGetResult> {
+	return new Promise((done, fail) => {
+		const outgoing = httpRequest(
+			`${origin}${path}`,
+			{ headers: { cookie: `${SESSION_COOKIE}=${secret}` }, agent: false },
+			(res) => {
+				const chunks: Buffer[] = [];
+				res.on('data', (chunk: Buffer) => chunks.push(chunk));
+				res.on('end', () =>
+					done({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString('utf8') })
+				);
+				res.on('error', fail);
+			}
+		);
+		outgoing.setTimeout(APP_GET_TIMEOUT_MS, () => outgoing.destroy(new Error('appGet timed out')));
+		outgoing.on('error', fail);
+		outgoing.end();
+	});
+}
+
 /** Read and started before anything else here prints. */
 const outputCapture = takeOutputCaptureFile(process.env);
 if (outputCapture !== null) startOutputCapture(outputCapture, process);
+
+/** Test-only: the control channel's directory (see the header); null on every real launch. */
+const e2eControlDir = takeE2eControlDir(process.env);
 
 /** This launch's session secret (see the header): in memory only. */
 const sessionSecret = createSessionSecret();
@@ -225,6 +295,8 @@ let windowState: WindowState | null = null;
 let tray: TrayHandle<Menu> | null = null;
 /** The tray's 'Restart to update' action, as runDesktop handed it to createTray. */
 let restartToUpdate: (() => void) | null = null;
+/** The server's origin once it is up and the cookie set; null before. */
+let serverOrigin: string | null = null;
 
 /** The process an update replaced, read before the server's env replaces process.env. */
 const predecessorPid = parsePid(process.env[PREDECESSOR_PID_ENV]);
@@ -248,19 +320,71 @@ function isProcessAlive(pid: number): boolean {
 
 /** Packaged only: reading electronUpdater.autoUpdater builds the platform updater. */
 const updater: UpdaterController | null = app.isPackaged
-	? createUpdater({
-			autoUpdater: electronUpdater.autoUpdater,
-			isPackaged: app.isPackaged,
-			appVersion: app.getVersion(),
-			notifier: notifications.notifier,
-			onReady: () => tray?.setUpdateReady(true),
-			timers: { setInterval, clearInterval },
-			log: {
-				info: (message) => console.log(`[updater] ${message}`),
-				error: (message, error) => console.error(`[updater] ${message}`, error ?? '')
-			}
-		})
+	? withControlHandOver(
+			createUpdater({
+				autoUpdater: electronUpdater.autoUpdater,
+				isPackaged: app.isPackaged,
+				appVersion: app.getVersion(),
+				notifier: notifications.notifier,
+				onReady: () => tray?.setUpdateReady(true),
+				timers: { setInterval, clearInterval },
+				log: {
+					info: (message) => console.log(`[updater] ${message}`),
+					error: (message, error) => console.error(`[updater] ${message}`, error ?? '')
+				}
+			}),
+			e2eControlDir,
+			process.env
+		)
 	: null;
+
+/** The updater, for a control command; throws when this launch built none. */
+function requireUpdater(): UpdaterController {
+	if (updater === null) throw new Error('no updater');
+	return updater;
+}
+
+/** The control channel's commands (e2e-control.ts) over this launch's objects. */
+function controlHandlers(secret: string): E2eControlHandlers {
+	return {
+		pid: () => process.pid,
+		info: () => ({
+			version: app.getVersion(),
+			isPackaged: app.isPackaged,
+			userData: app.getPath('userData'),
+			platform: process.platform,
+			arch: process.arch,
+			origin: serverOrigin ?? '',
+			argv: [...process.argv],
+			execArgv: [...process.execArgv]
+		}),
+		quit: () => app.quit(),
+		loginItemOff: () => loginItem.setEnabled(false),
+		updaterStatus: () => requireUpdater().status(),
+		async updaterCheckNow() {
+			const checked = requireUpdater();
+			await checked.checkNow();
+			return checked.status();
+		},
+		updaterRestart() {
+			if (restartToUpdate === null) throw new Error('no tray restart action');
+			restartToUpdate();
+		},
+		keyBackend: () => ({
+			available: safeStorage.isEncryptionAvailable(),
+			backend: process.platform === 'linux' ? safeStorage.getSelectedStorageBackend() : null
+		}),
+		appGet(path) {
+			if (serverOrigin === null) return Promise.reject(new Error('the server is not up'));
+			return appGet(serverOrigin, path, secret);
+		},
+		sessionSecret: () => secret
+	};
+}
+
+if (e2eControlDir !== null) {
+	startE2eControl(e2eControlDir, controlHandlers(sessionSecret), { pid: process.pid });
+}
 
 /** macOS: the app menu carries Quit (Cmd+Q), and Edit keeps copy and paste working in forms. */
 function installAppMenu(): void {
@@ -307,6 +431,7 @@ runDesktop({
 			});
 			throw error;
 		}
+		serverOrigin = server.origin;
 		console.log(`[desktop] listening on ${server.origin}`);
 		return server;
 	},
