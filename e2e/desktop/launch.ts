@@ -144,6 +144,19 @@ export async function ageLastChecks(userData: string, ids: string[], at: Date): 
 	await runSeedChild(['age', userData, JSON.stringify({ ids, at: at.getTime() })]);
 }
 
+/**
+ * A v0.1.5 install in `userData`, written by a child process: a migrated DB with an
+ * SMTP channel sealed under `key` (32 bytes), and alerts.key holding `key` as raw
+ * base64, the form v0.1.5 wrote before keys were wrapped with safeStorage.
+ */
+export async function seedV015(
+	userData: string,
+	key: Buffer,
+	smtp: Record<string, string>
+): Promise<void> {
+	await runSeedChild(['v015', userData, JSON.stringify({ key: key.toString('base64'), smtp })]);
+}
+
 /** Stored rows as JSON (dates as ISO strings, channel config still encrypted). */
 export type DbSnapshot = {
 	watches: Record<string, unknown>[];
@@ -188,6 +201,11 @@ export type DesktopEnvInput = {
 	scheduler?: SchedulerMode;
 	/** Unset by default: the app uses Electron's real Notification class. */
 	notify?: NotifyMode;
+	/**
+	 * A PEM file the app's Node trusts on top of the system CAs (NODE_EXTRA_CA_CERTS),
+	 * so a test SMTP server signed by the test CA verifies. Unset by default.
+	 */
+	caFile?: string;
 };
 
 /** The launched app's whole environment: the allowlist plus the harness's own settings. */
@@ -195,7 +213,8 @@ export function desktopEnv({
 	userData,
 	configHome,
 	scheduler = 'disabled',
-	notify
+	notify,
+	caFile
 }: DesktopEnvInput): Record<string, string> {
 	const env: Record<string, string> = {};
 	for (const name of INHERITED_ENV) {
@@ -207,6 +226,7 @@ export function desktopEnv({
 	// A launched app must never check a real shop (r-01).
 	if (scheduler !== 'unsupported-only') env.SCHEDULER_DISABLED = '1';
 	if (notify !== undefined) env[E2E_NOTIFY_ENV] = notify;
+	if (caFile !== undefined) env.NODE_EXTRA_CA_CERTS = caFile;
 	return env;
 }
 
@@ -237,6 +257,8 @@ export type LaunchOptions = {
 	notify?: NotifyMode;
 	/** How long to wait for the listening line. */
 	timeoutMs?: number;
+	/** Extra CA PEM file for the app's TLS (see DesktopEnvInput.caFile). */
+	caFile?: string;
 };
 
 export type DesktopApp = {
@@ -358,7 +380,13 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 		const configHome = own('xdg-config');
 		// Before anything starts: a refused launch must never reach Electron.
 		if (scheduler === 'unsupported-only') await assertOnlyUnsupportedWatches(userData);
-		const env = desktopEnv({ userData, configHome, scheduler, notify: options.notify });
+		const env = desktopEnv({
+			userData,
+			configHome,
+			scheduler,
+			notify: options.notify,
+			caFile: options.caFile
+		});
 		const args = electronArgs(options.args);
 
 		app = await _electron.launch({
