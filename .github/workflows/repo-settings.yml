@@ -1,0 +1,40 @@
+# Checks the live repository's security settings (c-9, c-10, c-11): the v* tag
+# ruleset, the release environment, immutable releases and vulnerability alerts. Those
+# live in GitHub, not in this repo, so drift only shows against the API. Not a
+# required check: a settings drift must not block unrelated merges, but it fails here.
+#
+# No install: scripts/repo-settings.ts uses Node built-ins only. The token
+# (REPO_SETTINGS_TOKEN: a fine-grained token with read-only Administration access to
+# this repo) reaches the check step alone.
+name: repo-settings
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '41 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  repo-settings:
+    name: repo-settings
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - name: check repository security settings
+        env:
+          GH_TOKEN: ${{ secrets.REPO_SETTINGS_TOKEN }}
+        run: node scripts/repo-settings.ts --repo "$GITHUB_REPOSITORY"
