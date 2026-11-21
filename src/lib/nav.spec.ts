@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { navItems } from './nav.ts';
+import { navItems, normalise } from './nav.ts';
 
 const links = (items: ReturnType<typeof navItems>) => items.map(({ label, href }) => [label, href]);
 const currentOf = (pathname: string) =>
@@ -65,5 +65,43 @@ describe('current link', () => {
 		for (const pathname of ['/', '//', '/account/alerts', '/x']) {
 			expect(currentOf(pathname).length, pathname).toBeLessThanOrEqual(1);
 		}
+	});
+});
+
+describe('normalise', () => {
+	it('same output', () => {
+		// Computed once from the old pathname.replace(/\/+$/, '') || '/'.
+		const table: [string, string][] = [
+			['', '/'],
+			['/', '/'],
+			['//', '/'],
+			['///', '/'],
+			['/a', '/a'],
+			['/a/', '/a'],
+			['/a//', '/a'],
+			['/account/alerts', '/account/alerts'],
+			['/account/alerts/', '/account/alerts'],
+			['/account/alerts///', '/account/alerts'],
+			['/account//alerts/', '/account//alerts'],
+			['/a//b/', '/a//b'],
+			['a/', 'a']
+		];
+		for (const [input, output] of table)
+			expect(normalise(input), JSON.stringify(input)).toBe(output);
+	});
+
+	it('linear on slash runs', () => {
+		const run = '/'.repeat(16384);
+		for (const input of ['/a' + run + 'x', run]) {
+			let best = Infinity;
+			for (let i = 0; i < 5; i++) {
+				const start = performance.now();
+				normalise(input);
+				best = Math.min(best, performance.now() - start);
+			}
+			expect(best, `${input.length} chars`).toBeLessThan(10);
+		}
+		expect(normalise('/a' + run + 'x')).toBe('/a' + run + 'x');
+		expect(normalise(run)).toBe('/');
 	});
 });

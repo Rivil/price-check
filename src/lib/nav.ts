@@ -17,9 +17,15 @@ const ITEMS: { label: string; href: NavHref }[] = [
 	{ label: 'Alerts', href: '/account/alerts' }
 ];
 
-/** Drop trailing slashes so '/account/alerts/' marks the same link; '/' stays '/'. */
-function normalise(pathname: string): string {
-	return pathname.replace(/\/+$/, '') || '/';
+/**
+ * Drop trailing slashes so '/account/alerts/' marks the same link; '/' stays '/'.
+ * A backward scan, not /\/+$/: that regex retries from every slash of a long run,
+ * so a path of many slashes costs quadratic time (SEC-16).
+ */
+export function normalise(pathname: string): string {
+	let end = pathname.length;
+	while (end > 0 && pathname.charCodeAt(end - 1) === 47 /* '/' */) end--;
+	return end === 0 ? '/' : pathname.slice(0, end);
 }
 
 /**

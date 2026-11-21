@@ -3,6 +3,7 @@
 //   node scripts/verify-packaged.ts layout <outDir> --version <v> --mode ci|release
 //   node scripts/verify-packaged.ts mac <app> [--signed]
 //   node scripts/verify-packaged.ts win <outDir>          (after packaged-app.ts install)
+//   node scripts/verify-packaged.ts fuses <exe>           (a .app on macOS)
 //
 // Every check runs and every violation is listed; any violation exits 1.
 //
@@ -18,13 +19,21 @@
 //   test feed baked in (package:desktop --feed-url), which must never reach a release.
 // mac <app>: lipo shows arm64 and x86_64 for the executable and both darwin libsql
 //   binaries are unpacked; --signed adds codesign --verify --deep --strict, spctl
-//   --assess --type execute and xcrun stapler validate (release builds only).
+//   --assess --type execute and xcrun stapler validate (release builds only), and
+//   refuses disable-library-validation in the entitlements of the app or any helper
+//   app in Contents/Frameworks (SEC-03, c-8).
+// fuses <exe>: every slice of the Electron fuse wire has RunAsNode, NODE_OPTIONS, CLI
+//   inspect and file-protocol privileges off and asar integrity and OnlyLoadAppFromAsar
+//   on (SEC-03, c-8). On macOS the wire is in the bundle's Electron Framework.
 // win <outDir>: the installer's manifest asks for asInvoker (no UAC), the product's
 //   uninstall entry is under HKCU only with its install dir inside %LOCALAPPDATA%, and
 //   the Start Menu shortcut's System.AppUserModel.ID is APP_ID.
 //
 // Commands come from pure builders and run through an injected Runner.
 import { getRawHeader, extractFile } from '@electron/asar';
+import { FuseV1Options, FuseVersion } from '@electron/fuses';
+// Not re-exported from the package root; the version is pinned exactly (t-1).
+import { FuseState, SENTINEL } from '@electron/fuses/dist/constants.js';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve, win32 } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -78,7 +87,12 @@ export function macCommands({ app, signed }: { app: string; signed: boolean }): 
 	return commands;
 }
 
-export type MacDeps = { run: Runner; exists: (path: string) => boolean };
+export type MacDeps = {
+	run: Runner;
+	exists: (path: string) => boolean;
+	/** A directory's entry names (signed only: Contents/Frameworks, for the helper apps). */
+	listDir: (dir: string) => string[];
+};
 
 function failure(command: Command, code: number, output: string): string {
 	const detail = output.trim().split(/\r?\n/).slice(-3).join(' | ');
@@ -122,11 +136,189 @@ export async function verifyMac(
 			violations.push(failure(command, result.code, result.stderr || result.stdout));
 		}
 	}
+	if (signed) violations.push(...(await verifyEntitlements(app, deps)));
 	return violations;
+}
+
+/**
+ * Violations of the signed entitlements of the app and of every helper app inside it:
+ * electron-builder signs the helpers with their own (inherited) entitlements, and
+ * the renderers run there. A signed Electron app always has helpers, so an unreadable
+ * or empty Frameworks dir is a violation too, never a skipped check.
+ */
+async function verifyEntitlements(app: string, deps: MacDeps): Promise<string[]> {
+	const violations: string[] = [];
+	const frameworks = join(app, 'Contents', 'Frameworks');
+	let helpers: string[] = [];
+	try {
+		helpers = helperApps(app, deps.listDir(frameworks));
+		if (helpers.length === 0) violations.push(`no helper apps in ${frameworks}`);
+	} catch (error) {
+		const reason = error instanceof Error ? error.message : String(error);
+		violations.push(`cannot list the helper apps in ${frameworks}: ${reason}`);
+	}
+	for (const bundle of [app, ...helpers]) {
+		const command = entitlementsCommand(bundle);
+		const result = await deps.run(command);
+		if (result.code !== 0) {
+			violations.push(failure(command, result.code, result.stderr || result.stdout));
+			continue;
+		}
+		for (const name of forbiddenEntitlements(`${result.stdout}\n${result.stderr}`)) {
+			violations.push(`${bundle} is signed with the entitlement ${name}`);
+		}
+	}
+	return violations;
+}
+
+/** The helper app bundles among Contents/Frameworks' entry names, as paths, sorted. */
+export function helperApps(app: string, names: readonly string[]): string[] {
+	return names
+		.filter((name) => name.endsWith('.app'))
+		.sort()
+		.map((name) => join(app, 'Contents', 'Frameworks', name));
+}
+
+/** Prints the entitlements a bundle is signed with, as a plist, to stdout. */
+export function entitlementsCommand(app: string): Command {
+	return { file: 'codesign', args: ['-d', '--entitlements', '-', '--xml', app] };
+}
+
+/**
+ * Entitlements the signed app must not carry: disable-library-validation lets the
+ * hardened runtime load code signed by anyone into the app (SEC-03).
+ */
+export const FORBIDDEN_ENTITLEMENTS = ['com.apple.security.cs.disable-library-validation'] as const;
+
+/**
+ * The forbidden entitlements named anywhere in codesign's output. A mention is enough,
+ * whatever the value or the output's format: there is no reason to sign one at all.
+ */
+export function forbiddenEntitlements(output: string): string[] {
+	return FORBIDDEN_ENTITLEMENTS.filter((name) => output.includes(name));
 }
 
 function resourcesOf(app: string): string {
 	return join(app, 'Contents', 'Resources');
+}
+
+// ---------------------------------------------------------------- fuses
+
+/** One slice's fuse wire: its version byte and each fuse's state byte, by FuseV1Options. */
+export type FuseWire = { version: number; states: number[] };
+
+/** The fuses SEC-03 pins, and whether each must be on (c-8). */
+export const REQUIRED_FUSES: ReadonlyArray<readonly [FuseV1Options, boolean]> = [
+	[FuseV1Options.RunAsNode, false],
+	[FuseV1Options.EnableNodeOptionsEnvironmentVariable, false],
+	[FuseV1Options.EnableNodeCliInspectArguments, false],
+	[FuseV1Options.GrantFileProtocolExtraPrivileges, false],
+	[FuseV1Options.EnableEmbeddedAsarIntegrityValidation, true],
+	[FuseV1Options.OnlyLoadAppFromAsar, true]
+];
+
+/**
+ * The file holding the fuse wire. On macOS that is the bundle's Electron Framework,
+ * not the launcher: `exe` is the .app or any path inside it, and the outermost .app
+ * wins (the helper apps sit inside Frameworks). Elsewhere it is the executable.
+ */
+export function fuseBinaryPath(exe: string, platform: NodeJS.Platform): string {
+	if (platform !== 'darwin') return exe;
+	// Either separator: the spec drives this on every host.
+	const bundle = /^(.*?\.app)(?:[\\/]|$)/.exec(exe)?.[1];
+	if (bundle === undefined) {
+		throw new Error(`fuses on macOS needs a .app bundle or a path inside one, not ${exe}`);
+	}
+	return join(
+		bundle,
+		'Contents',
+		'Frameworks',
+		'Electron Framework.framework',
+		'Electron Framework'
+	);
+}
+
+/**
+ * Every fuse wire in a binary, one per sentinel. @electron/fuses' getCurrentFuseWire
+ * reads only the first, while a universal binary holds one per slice, so every
+ * sentinel is read here. Throws, never guessing, on no sentinel, a wire running past
+ * the end of the file or a wire version other than V1.
+ */
+export function parseFuseWires(bytes: Buffer): FuseWire[] {
+	const wires: FuseWire[] = [];
+	for (let at = bytes.indexOf(SENTINEL); at !== -1; at = bytes.indexOf(SENTINEL, at + 1)) {
+		const start = at + SENTINEL.length;
+		if (start + 2 > bytes.length) throw new Error(`fuse wire ${wires.length + 1} is truncated`);
+		const version = bytes[start];
+		if (version !== Number(FuseVersion.V1)) {
+			throw new Error(`fuse wire ${wires.length + 1} has unknown version ${version}`);
+		}
+		const length = bytes[start + 1];
+		if (start + 2 + length > bytes.length) {
+			throw new Error(`fuse wire ${wires.length + 1} is truncated`);
+		}
+		wires.push({ version, states: [...bytes.subarray(start + 2, start + 2 + length)] });
+	}
+	if (wires.length === 0) {
+		throw new Error('no fuse wire sentinel: not an Electron binary with fuses');
+	}
+	return wires;
+}
+
+/** The fuse wires of the file at `binary` (the path fuseBinaryPath gives). */
+export function readFuseWires(binary: string): FuseWire[] {
+	return parseFuseWires(readFileSync(binary));
+}
+
+function fuseState(state: number | undefined): string {
+	if (state === FuseState.ENABLE) return 'on';
+	if (state === FuseState.DISABLE) return 'off';
+	if (state === FuseState.REMOVED) return 'removed';
+	return `byte ${String(state)}`;
+}
+
+export type FuseDeps = { readWires: (binary: string) => FuseWire[] | Promise<FuseWire[]> };
+
+/**
+ * Every violation of REQUIRED_FUSES in every slice, plus slices that disagree. Fails
+ * closed: an unreadable wire, no wire, or a fuse missing from or removed in a wire is
+ * a violation, never "all off".
+ */
+export async function verifyFuses(binary: string, deps: FuseDeps): Promise<string[]> {
+	let wires: FuseWire[];
+	try {
+		wires = await deps.readWires(binary);
+	} catch (error) {
+		return [`${binary}: ${error instanceof Error ? error.message : String(error)}`];
+	}
+	if (wires.length === 0) return [`${binary}: no fuse wire`];
+
+	const violations: string[] = [];
+	const show = (wire: FuseWire) => `v${wire.version} [${wire.states.map(fuseState).join(' ')}]`;
+	wires.forEach((wire, i) => {
+		const slice = wires.length > 1 ? ` (slice ${i + 1} of ${wires.length})` : '';
+		if (i > 0 && show(wire) !== show(wires[0])) {
+			violations.push(
+				`${binary}: fuse wire slices disagree: slice 1 is ${show(wires[0])}, slice ${i + 1} is ${show(wire)}`
+			);
+		}
+		if (wire.version !== Number(FuseVersion.V1)) {
+			violations.push(`${binary}: unknown fuse wire version ${wire.version}${slice}`);
+			return;
+		}
+		for (const [fuse, on] of REQUIRED_FUSES) {
+			const name = FuseV1Options[fuse];
+			const want = on ? FuseState.ENABLE : FuseState.DISABLE;
+			if (fuse >= wire.states.length) {
+				violations.push(`${binary}: fuse ${name} is missing from the wire${slice}`);
+			} else if (wire.states[fuse] !== want) {
+				violations.push(
+					`${binary}: fuse ${name} is ${fuseState(wire.states[fuse])}, must be ${on ? 'on' : 'off'}${slice}`
+				);
+			}
+		}
+	});
+	return violations;
 }
 
 // ---------------------------------------------------------------- win
@@ -516,19 +708,31 @@ export function verifyLayout({ outDir, version, mode, platform }: LayoutInput): 
 
 	const resources = resourcesDir(outDir, platform);
 	const asarPath = join(resources, 'app.asar');
+	const hasAsar = existsSync(asarPath);
 	attempt(() => {
-		if (!existsSync(asarPath)) return [`no app.asar at ${asarPath}`];
-		const unpackedDir = join(resources, 'app.asar.unpacked');
-		const checks = verifyAppFiles(listAsar(asarPath), listTree(unpackedDir), platform);
-		const manifest = JSON.parse(extractFile(asarPath, 'package.json').toString('utf8')) as {
-			version?: unknown;
-		};
-		if (manifest.version !== version) {
-			checks.push(
-				`packaged package.json version is '${String(manifest.version)}', stamped ${version}`
-			);
+		if (!hasAsar) return [`no app.asar at ${asarPath}`];
+		return verifyAppFiles(
+			listAsar(asarPath),
+			listTree(join(resources, 'app.asar.unpacked')),
+			platform
+		);
+	});
+	// Its own attempt: a package.json that does not parse is one violation, and never
+	// hides the file-set violations above.
+	attempt(() => {
+		if (!hasAsar) return [];
+		const text = extractFile(asarPath, 'package.json').toString('utf8');
+		let manifest: { version?: unknown };
+		try {
+			manifest = JSON.parse(text) as { version?: unknown };
+		} catch (error) {
+			return [
+				`packaged package.json in ${asarPath} is not JSON: ${error instanceof Error ? error.message : String(error)}`
+			];
 		}
-		return checks;
+		return manifest.version === version
+			? []
+			: [`packaged package.json version is '${String(manifest.version)}', stamped ${version}`];
 	});
 
 	attempt(() => {
@@ -558,13 +762,15 @@ export type CliDeps = {
 	env: NodeJS.ProcessEnv;
 	run: Runner;
 	exists: (path: string) => boolean;
+	listDir: MacDeps['listDir'];
 	readInstaller: (path: string) => string;
+	readWires: FuseDeps['readWires'];
 	stdout: (line: string) => void;
 	stderr: (line: string) => void;
 };
 
 const USAGE =
-	'usage: verify-packaged.ts layout <outDir> --version <v> --mode ci|release | mac <app> [--signed] | win <outDir>';
+	'usage: verify-packaged.ts layout <outDir> --version <v> --mode ci|release | mac <app> [--signed] | win <outDir> | fuses <exe>';
 
 function hostPlatform(platform: NodeJS.Platform): PackagedPlatform {
 	if (!isPackagedPlatform(platform)) throw new Error(`no packaged app for ${platform}`);
@@ -611,6 +817,10 @@ async function violationsFor(
 		if (located.platform !== 'win32') throw new Error('win needs a Windows output dir');
 		return { command, violations: await verifyWin(located.installer, deps) };
 	}
+	if (command === 'fuses') {
+		const binary = fuseBinaryPath(resolve(target), deps.platform);
+		return { command, violations: await verifyFuses(binary, deps) };
+	}
 	throw new Error(USAGE);
 }
 
@@ -652,7 +862,9 @@ if (isEntry) {
 		env: process.env,
 		run: spawnRunner,
 		exists: isFile,
+		listDir: (dir) => readdirSync(dir),
 		readInstaller: (path) => readFileSync(path).toString('latin1'),
+		readWires: readFuseWires,
 		stdout: (line) => console.log(line),
 		stderr: (line) => console.error(line)
 	});

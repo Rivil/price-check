@@ -108,10 +108,30 @@ test('launcher env', async () => {
 		const env = await mainEnv(desktop);
 		expect(env.SCHEDULER_DISABLED).toBe('1');
 		expect(env.DATABASE_URL).toBe(databaseUrl(join(userData, DB_FILE_NAME)));
-		expect(env.ALERTS_ENCRYPTION_KEY).toBeDefined();
-		expect(env.ALERTS_ENCRYPTION_KEY).not.toBe(PARENT_ENV.ALERTS_ENCRYPTION_KEY);
-		expect(Buffer.from(env.ALERTS_ENCRYPTION_KEY ?? '', 'base64')).toHaveLength(32);
+		// The server took the alerts key at startup; main dropped it from its env after
+		// (SEC-11), so neither the launcher's key nor the server's is left in main.
+		expect(Object.keys(env)).not.toContain('ALERTS_ENCRYPTION_KEY');
 		expect(Object.keys(env).filter((name) => name.toUpperCase() === 'ORIGIN')).toEqual([]);
+
+		// The server still holds the key: an SMTP channel saved through the window's own
+		// form reads back with its host, not as unreadable. Host is .invalid and saving
+		// connects nowhere (r-01).
+		const page = await desktop.app.firstWindow({ timeout: 30_000 });
+		await expect(page).toHaveURL(`${desktop.origin}/`, { timeout: 30_000 });
+		await page.goto(`${desktop.origin}/account/alerts`);
+		const smtp = page.getByTestId('channel-smtp');
+		await smtp.getByLabel('SMTP server host').fill('smtp.harness.invalid');
+		await smtp.getByLabel('Port').fill('587');
+		await smtp.getByLabel('Username').fill('e2e-harness');
+		await smtp.getByLabel('Password').fill('e2e-harness-not-a-secret');
+		await smtp.getByLabel('Sender address').fill('alerts@harness.invalid');
+		await smtp.getByLabel('Recipient address').fill('me@harness.invalid');
+		await smtp.getByRole('button', { name: 'Save SMTP settings' }).click();
+		await expect(smtp.getByRole('status')).toHaveText('Saved.');
+		await page.reload();
+		await expect(smtp.getByTestId('current-smtp')).toContainText('smtp.harness.invalid');
+		await expect(smtp.getByTestId('current-smtp')).not.toContainText('could not be read');
+		await expect(smtp.getByTestId('password-state')).toHaveText('Password: set.');
 
 		// Electron's own userData is the temp dir, and the app's files landed there.
 		expect(await desktop.app.evaluate(({ app }) => app.getPath('userData'))).toBe(userData);

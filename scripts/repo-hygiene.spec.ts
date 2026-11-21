@@ -1,5 +1,6 @@
 // Pins spec c-7: the container/server deployment artefacts are gone and nothing
-// tracked still points at them.
+// tracked still points at them. Also pins 06 c-17: raw /dross-secure findings under
+// .dross/security/ are ignored and never tracked in this public repo.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
@@ -8,19 +9,21 @@ import { describe, expect, it } from 'vitest';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-/** Repo root as git sees it; falls back to this spec's parent (Stryker sandbox). */
-function repoRoot(): string {
+/** Repo root as git sees it; undefined outside a git work tree (Stryker sandbox). */
+function gitRoot(): string | undefined {
 	try {
 		return execFileSync('git', ['rev-parse', '--show-toplevel'], {
 			cwd: here,
 			encoding: 'utf8'
 		}).trim();
 	} catch {
-		return join(here, '..');
+		return undefined;
 	}
 }
 
-const root = repoRoot();
+const git = gitRoot();
+/** Repo root; falls back to this spec's parent when git can't say. */
+const root = git ?? join(here, '..');
 
 /** Tracked files via git; a plain walk when git lists nothing (gitignored sandbox). */
 function trackedFiles(): string[] {
@@ -92,5 +95,28 @@ describe('repo hygiene', () => {
 			});
 		}
 		expect(hits).toEqual([]);
+	});
+});
+
+describe('audit findings', () => {
+	// A made-up path inside the folder: check-ignore needs no file on disk.
+	const probe = '.dross/security/x/report.md';
+
+	it('audit findings ignored: .gitignore lists .dross/security/ and git honours it', () => {
+		const lines = readFileSync(join(root, '.gitignore'), 'utf8').split('\n');
+		expect(lines).toContain('.dross/security/');
+		// In git, the rule must also win: no later !-negation may re-include the folder.
+		// check-ignore exits 0 when ignored, 1 when not; execFileSync throws on non-zero.
+		if (git)
+			expect(() => execFileSync('git', ['-C', git, 'check-ignore', '-q', probe])).not.toThrow();
+	});
+
+	it.skipIf(!git)('nothing under .dross/security/ is tracked', () => {
+		const tracked = execFileSync('git', ['-C', git!, 'ls-files', '--', '.dross/security/'], {
+			encoding: 'utf8'
+		})
+			.split('\n')
+			.filter(Boolean);
+		expect(tracked).toEqual([]);
 	});
 });

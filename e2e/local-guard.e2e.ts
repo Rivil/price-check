@@ -18,7 +18,9 @@ import { freePort, startNodeServer } from './node-server.ts';
 
 // The whole access control of a local install (decision local_request_guard).
 // CSRF rows (c-6) run on the preview webServer: a build, so Kit's origin check is
-// compiled in (dev compiles it out). Host rows (c-7) run on `node build` with raw
+// compiled in and answers forged form posts before the server hook does (dev
+// compiles it out; e2e/dev-guard.e2e.ts covers dev, where only the hook's Origin
+// check stands). Host rows (c-7) run on `node build` with raw
 // node:http requests: fetch cannot set Host, and preview.allowedHosts would 403 a
 // foreign Host with no hook involved. Static /_app/immutable/* assets are served
 // before hooks and are out of scope (deferred to 03-desktop-shell).
@@ -203,6 +205,38 @@ test.describe('Host guard, node build with ORIGIN', () => {
 		}
 	});
 
+	// Control: the page's own Origin passes Kit's check and the hook's, and the action
+	// refuses the URL itself.
+	test('an http://<Host> Origin reaches the action', async () => {
+		const host = `127.0.0.1:${server!.port}`;
+		const res = await rawRequest(server!.port, {
+			method: 'POST',
+			path: '/?/add',
+			headers: {
+				host,
+				origin: `http://${host}`,
+				'content-type': 'application/x-www-form-urlencoded'
+			},
+			body: new URLSearchParams({ url: FIELDS.url, target: '' }).toString()
+		});
+		expect(res.status).toBe(400);
+		expect(res.body).not.toContain(KIT_CSRF);
+		expect(res.body).not.toBe('Forbidden');
+	});
+
+	// Kit checks form content types only; the hook refuses a foreign-Origin JSON post.
+	test('a foreign-Origin JSON post is refused by the hook', async () => {
+		const host = `127.0.0.1:${server!.port}`;
+		const res = await rawRequest(server!.port, {
+			method: 'POST',
+			path: '/?/add',
+			headers: { host, origin: 'https://evil.example', 'content-type': 'application/json' },
+			body: JSON.stringify({ url: FIELDS.url, target: '' })
+		});
+		expect(res.status).toBe(403);
+		expect(res.body).toBe('Forbidden');
+	});
+
 	test('a loopback Host on any port is served', async () => {
 		for (const host of [`127.0.0.1:${server!.port}`, 'localhost:9']) {
 			for (const path of GUARDED_PATHS) {
@@ -246,12 +280,13 @@ test.describe('Host guard, node build without ORIGIN', () => {
 			body: new URLSearchParams({ url: FIELDS.url, target: '' }).toString()
 		});
 
-	// Control: with ORIGIN unset adapter-node derives https://<Host>, so a matching
-	// Origin passes Kit's CSRF check and the action refuses the URL itself.
-	test('a matching derived Origin passes the CSRF check', async () => {
+	// With ORIGIN unset adapter-node derives https://<Host>, so a matching Origin
+	// passes Kit's CSRF check; the hook still refuses it, since the app is only ever
+	// served over http and its own pages send http://<Host>.
+	test('a derived https Origin passes Kit but not the hook', async () => {
 		const res = await forgedAdd(`127.0.0.1:${server!.port}`);
-		expect(res.status).toBe(400);
-		expect(res.body).not.toContain(KIT_CSRF);
+		expect(res.status).toBe(403);
+		expect(res.body).toBe('Forbidden');
 	});
 
 	test('only the Host guard refuses a rebinding post', async () => {

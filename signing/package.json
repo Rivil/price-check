@@ -1,0 +1,9 @@
+{
+	"name": "price-check-signing",
+	"private": true,
+	"description": "The release signing job's only toolchain: electron-builder, pinned to the root devDependency, installed with its own frozen lockfile and no scripts.",
+	"packageManager": "pnpm@10.33.4",
+	"dependencies": {
+		"electron-builder": "26.18.0"
+	}
+}

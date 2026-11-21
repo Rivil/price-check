@@ -12,11 +12,19 @@
 // CSRF check accepts the window's own form POSTs. A client-sent value is never
 // trusted: there is no proxy in front of a local install.
 //
+// After the Host check, the session gate (session-gate.ts; decision session_secret,
+// SEC-02): a request without this launch's secret in its cookie gets the same 403
+// 'Forbidden' the Host check gives, so a refusal tells the caller nothing about which
+// check failed, and adapter-node (sirv included) never sees it. Exact GET /health is
+// the only exemption. The secret is required: a missing or empty one refuses to
+// start, so the gate cannot be left open by accident.
+//
 // Runs in the Electron main bundle: no $app/* imports, no electron import.
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { isLoopbackHost } from '#lib/server/local-request.ts';
 import { publishNotifier, type DesktopNotifier } from '#lib/server/notify-bridge.ts';
+import { isAuthorized } from './session-gate.ts';
 
 export const LOOPBACK_ADDRESS = '127.0.0.1';
 export const PROTOCOL_HEADER = 'x-forwarded-proto';
@@ -73,12 +81,33 @@ function failRequest(res: ServerResponse, error: unknown): void {
 	else sendText(res, 500, 'Internal Server Error');
 }
 
-/** Listens on 127.0.0.1, port 0, and hands loopback-addressed requests to `handler`. */
-export function startDesktopServer({ handler }: { handler: NodeHandler }): Promise<DesktopServer> {
+export type DesktopServerOptions = {
+	handler: NodeHandler;
+	/** This launch's session secret (session-gate.ts createSessionSecret). */
+	secret: string;
+};
+
+/**
+ * Listens on 127.0.0.1, port 0, and hands loopback-addressed requests that carry
+ * `secret` in the session cookie (or are GET /health) to `handler`. Rejects without
+ * listening when `secret` is missing or empty.
+ */
+export function startDesktopServer({
+	handler,
+	secret
+}: DesktopServerOptions): Promise<DesktopServer> {
+	if (typeof secret !== 'string' || secret.length === 0) {
+		return Promise.reject(new Error('startDesktopServer: a session secret is required'));
+	}
 	// Node answers an HTTP/1.1 request with no Host with its own 400; turning that off
 	// sends it through the Host check like any other non-loopback request.
 	const server = createServer({ requireHostHeader: false }, (req, res) => {
 		if (!isLoopbackHost(req.headers.host ?? null)) {
+			sendText(res, 403, 'Forbidden');
+			return;
+		}
+		const gate = { method: req.method, url: req.url, cookieHeader: req.headers.cookie };
+		if (!isAuthorized(gate, secret)) {
 			sendText(res, 403, 'Forbidden');
 			return;
 		}
@@ -119,6 +148,9 @@ export type ServerBridges = {
 	notifier: DesktopNotifier;
 };
 
+/** The server's alerts key variable: main drops it once the handler has loaded. */
+const ALERTS_KEY_ENV = 'ALERTS_ENCRYPTION_KEY';
+
 /**
  * Imports adapter-node's handler module (build/handler.js) under the server's own
  * environment. adapter-node reads PROTOCOL_HEADER and friends at module load, and
@@ -129,6 +161,11 @@ export type ServerBridges = {
  * The notifier is published before the import too (decision notify_bridge): the
  * server's startup decides whether to register the desktop driver by whether one is
  * there, so one published after the import would never be seen.
+ *
+ * Once the import settles, whether it resolved or threw, ALERTS_ENCRYPTION_KEY is
+ * deleted from process.env (SEC-11): Kit's init hook has taken the key by then, and
+ * main has no further use for it, so nothing later in main (a child process, a crash
+ * report, an inherited env) can carry it.
  */
 export async function loadAdapterHandler(
 	env: Record<string, string>,
@@ -142,7 +179,12 @@ export async function loadAdapterHandler(
 	Object.assign(process.env, env);
 	process.chdir(appRoot);
 	publishNotifier(notifier);
-	const mod = (await import(/* @vite-ignore */ moduleUrl)) as { handler?: unknown };
+	let mod: { handler?: unknown };
+	try {
+		mod = (await import(/* @vite-ignore */ moduleUrl)) as { handler?: unknown };
+	} finally {
+		delete process.env[ALERTS_KEY_ENV];
+	}
 	if (typeof mod.handler !== 'function') {
 		throw new Error(`${moduleUrl} does not export a handler function`);
 	}

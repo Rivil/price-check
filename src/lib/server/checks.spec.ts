@@ -407,6 +407,107 @@ describe('checkNow', () => {
 		expect(check).toHaveBeenCalledOnce();
 		expect(await failures('w1')).toHaveLength(1);
 	});
+
+	it('one fetch per cooldown window', async () => {
+		await addWatchRow('never');
+		let release!: (result: CheckResult) => void;
+		const held = new Promise<CheckResult>((resolve) => (release = resolve));
+		const check = vi.fn<CheckDeps['check']>(() => held);
+		const deps: CheckDeps = { check, now: () => NOW, newId };
+
+		const calls = Array.from({ length: 5 }, () => checkNow(h.db, 'never', deps));
+		// Four of the five are refused while the one claimed fetch is still held.
+		const settled = await Promise.race([
+			Promise.all(calls),
+			new Promise<'pending'>((resolve) => setTimeout(() => resolve('pending'), 200))
+		]);
+		expect(settled).toBe('pending');
+		expect(check).toHaveBeenCalledOnce();
+
+		release(ok(1234));
+		const results = await Promise.all(calls);
+		expect(results.filter((r) => r.kind === 'checked')).toEqual([
+			{ kind: 'checked', result: ok(1234) }
+		]);
+		expect(results.filter((r) => r.kind !== 'checked')).toEqual(
+			Array.from({ length: 4 }, () => ({ kind: 'cooldown', message: COOLDOWN_MESSAGE }))
+		);
+		expect(check).toHaveBeenCalledOnce();
+		expect(await points('never')).toHaveLength(1);
+	});
+
+	it('failure starts the cooldown', async () => {
+		await addWatchRow('w1', { lastCheckedAt: ago(HOUR) });
+		const check = vi.fn<CheckDeps['check']>(async () => failure('blocked', 'captcha'));
+		const at = (ms: number): CheckDeps => ({
+			check,
+			now: () => new Date(NOW.getTime() + ms),
+			newId
+		});
+
+		expect(await checkNow(h.db, 'w1', at(0))).toMatchObject({ kind: 'checked' });
+		expect((await stored('w1')).lastCheckedAt).toEqual(NOW);
+		expect(check).toHaveBeenCalledOnce();
+
+		expect(await checkNow(h.db, 'w1', at(CHECK_COOLDOWN_MS - 1))).toEqual({
+			kind: 'cooldown',
+			message: COOLDOWN_MESSAGE
+		});
+		expect(check).toHaveBeenCalledOnce();
+		expect((await stored('w1')).lastCheckedAt).toEqual(NOW);
+
+		expect(await checkNow(h.db, 'w1', at(CHECK_COOLDOWN_MS))).toMatchObject({
+			kind: 'checked'
+		});
+		expect(check).toHaveBeenCalledTimes(2);
+		expect((await stored('w1')).lastCheckedAt).toEqual(new Date(NOW.getTime() + CHECK_COOLDOWN_MS));
+	});
+
+	it('a thrown check still holds the cooldown', async () => {
+		await addWatchRow('w1');
+		const check = vi.fn<CheckDeps['check']>(async () => {
+			throw new Error('socket hang up');
+		});
+		const deps: CheckDeps = { check, now: () => NOW, newId };
+
+		await expect(checkNow(h.db, 'w1', deps)).rejects.toThrow('socket hang up');
+		expect((await stored('w1')).lastCheckedAt).toEqual(NOW);
+		expect(await checkNow(h.db, 'w1', deps)).toEqual({
+			kind: 'cooldown',
+			message: COOLDOWN_MESSAGE
+		});
+		expect(check).toHaveBeenCalledOnce();
+	});
+
+	it('an unknown id writes nothing', async () => {
+		await addWatchRow('w1', { lastCheckedAt: ago(HOUR) });
+		const before = await h.db.select().from(watch);
+		const check = vi.fn<CheckDeps['check']>(async () => ok());
+
+		expect(await checkNow(h.db, 'missing', { check, now: () => NOW, newId })).toEqual({
+			kind: 'not_found'
+		});
+		expect(check).not.toHaveBeenCalled();
+		expect(await h.db.select().from(watch)).toEqual(before);
+		expect(await h.db.select().from(pricePoint)).toEqual([]);
+		expect(await h.db.select().from(checkFailure)).toEqual([]);
+	});
+
+	it('a watch is not due while its Check-now fetch is in flight', async () => {
+		await addWatchRow('w1', { lastCheckedAt: ago(7 * HOUR) });
+		await addWatchRow('w2', { lastCheckedAt: ago(7 * HOUR) });
+		let release!: (result: CheckResult) => void;
+		const check = vi.fn<CheckDeps['check']>(
+			() => new Promise<CheckResult>((resolve) => (release = resolve))
+		);
+		const pending = checkNow(h.db, 'w1', { check, now: () => NOW, newId });
+		await vi.waitFor(() => expect(check).toHaveBeenCalledOnce());
+
+		expect((await dueWatches(h.db, NOW, 6 * HOUR)).map((d) => d.id)).toEqual(['w2']);
+
+		release(ok());
+		expect(await pending).toMatchObject({ kind: 'checked' });
+	});
 });
 
 describe('priceHistory', () => {

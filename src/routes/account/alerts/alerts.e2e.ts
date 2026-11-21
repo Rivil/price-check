@@ -169,6 +169,62 @@ test('credential', async ({ page }) => {
 	await expect(ntfyCard(page).getByTestId('token-state')).toHaveText('Access token: set.');
 });
 
+test('clear token keeps channel', async ({ page }) => {
+	// The seeded channel has a token: ticking Remove access token drops only that.
+	await openAlerts(page);
+	const card = ntfyCard(page);
+	await expect(card.getByTestId('token-state')).toHaveText('Access token: set.');
+	await card.getByLabel('Remove access token').check();
+	await card.getByRole('button', { name: 'Save topic' }).click();
+	await expect(card.getByRole('status')).toHaveText('Saved.');
+	await expect(card.getByTestId('token-state')).toHaveText('Access token: none.');
+	await expect(card.getByLabel('Remove access token')).toHaveCount(0);
+
+	await page.reload();
+	await expect(card.getByTestId('token-state')).toHaveText('Access token: none.');
+	await expect(card.locator('code').first()).toHaveText(SEEDED_DESIGN_TOPIC_URL);
+	await expect(card.getByTestId('channel-state')).toContainText('Enabled');
+	await expect(card.getByRole('button', { name: 'Send test' })).toBeVisible();
+	await expect(card.getByLabel('Remove access token')).toHaveCount(0);
+});
+
+test('refused destination change', async ({ page }) => {
+	// A saved secret never follows a channel to a new destination (c-1): the save is
+	// refused inside that card and the saved destination is kept.
+	await openAlerts(page);
+	const ntfy = ntfyCard(page);
+	await expect(ntfy.getByTestId('token-state')).toHaveText('Access token: set.');
+	await ntfy.getByLabel('ntfy topic link').fill(REFUSED_TOPIC);
+	await ntfy.getByRole('button', { name: 'Save topic' }).click();
+	await expect(ntfy.getByRole('alert')).toContainText('access token');
+	await expect(smtpCard(page).getByRole('alert')).toHaveCount(0);
+	await page.reload();
+	await expect(ntfy.locator('code').first()).toHaveText(SEEDED_DESIGN_TOPIC_URL);
+	await expect(ntfy.getByLabel('ntfy topic link')).toHaveValue(SEEDED_DESIGN_TOPIC_URL);
+	await expect(ntfy.getByTestId('token-state')).toHaveText('Access token: set.');
+
+	const smtp = smtpCard(page);
+	await smtp.getByLabel('SMTP server host').fill('127.0.0.1');
+	await smtp.getByLabel('Port').fill('1');
+	await smtp.getByLabel('Username').fill('e2e-alerts');
+	await smtp.getByLabel('Password').fill('e2e-smtp-moved-password-4321'); // test-only
+	await smtp.getByLabel('Sender address').fill('alerts@e2e.invalid');
+	await smtp.getByLabel('Recipient address').fill(RECIPIENT);
+	await smtp.getByRole('button', { name: 'Save SMTP settings' }).click();
+	await expect(smtp.getByRole('status')).toHaveText('Saved.');
+	await page.reload();
+
+	// A new host with the password left blank.
+	await smtp.getByLabel('SMTP server host').fill('smtp.e2e.invalid');
+	await smtp.getByRole('button', { name: 'Save SMTP settings' }).click();
+	await expect(smtp.getByRole('alert')).toContainText('password');
+	await expect(ntfy.getByRole('alert')).toHaveCount(0);
+	await page.reload();
+	await expect(smtp.getByLabel('SMTP server host')).toHaveValue('127.0.0.1');
+	await expect(smtp.getByTestId('current-smtp')).toContainText('127.0.0.1');
+	await expect(smtp.getByTestId('password-state')).toHaveText('Password: set.');
+});
+
 test('remove', async ({ page }) => {
 	await withNoChannels(page);
 	await saveTopic(page, 'https://ntfy.e2e.invalid/e2e-alerts-remove');

@@ -65,8 +65,11 @@ export const init: ServerInit = async () => {
 /**
  * The whole access control of a single-user local install (decision
  * local_request_guard): every request, /health included, must be addressed to a
- * loopback Host or it gets a 403 before any route runs. Kit's CSRF origin check
- * covers cross-origin form POSTs. There is no login and no session.
+ * loopback Host or it gets a 403 before any route runs, and every POST, PUT,
+ * PATCH or DELETE must carry Origin http://<Host> or it gets the same 403. Kit's
+ * own CSRF check does not cover this: it is compiled out of `vite dev` and
+ * checks form content types only (in a build it still answers a forged form post
+ * first). Every response also denies framing. There is no login and no session.
  */
 export const handle: Handle = createLocalRequestHandle();
 

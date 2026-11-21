@@ -1,0 +1,1544 @@
+{
+  "phase": "06-remediate-security",
+  "base": "milestone/v0.2",
+  "base_commit": "06f2482edb16f523a14819f6d210a327b935c58c",
+  "tasks": {
+    "t-1": {
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml",
+        ".gitleaks.toml",
+        ".gitignore",
+        "scripts/lockfile.spec.ts",
+        "scripts/repo-hygiene.spec.ts"
+      ],
+      "commit": "fc19cd1",
+      "completed_at": "2026-11-20T13:51:12.800635Z",
+      "landmarks": [
+        {
+          "feature": "dependency hygiene",
+          "symbol": "lockfile.spec",
+          "loc": "scripts/lockfile.spec.ts:81",
+          "what": "pins Kit/adapter-node above the advisory floors in the lockfile and keeps .dross/security/ audit output untracked"
+        }
+      ]
+    },
+    "t-10": {
+      "files": [
+        "src/desktop/alerts-key.ts",
+        "src/desktop/alerts-key.spec.ts",
+        "src/desktop/main.ts",
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/first-run.e2e.ts"
+      ],
+      "commit": "cdbce85",
+      "completed_at": "2026-11-21T09:18:20.713393Z",
+      "landmarks": [
+        {
+          "feature": "alerts key storage",
+          "symbol": "loadOrCreateAlertsKey",
+          "loc": "src/desktop/alerts-key.ts:280",
+          "what": "wraps the alerts key with the OS keychain via safeStorage and migrates raw v0.1.5 keys safely"
+        }
+      ]
+    },
+    "t-11": {
+      "files": [
+        "src/desktop/e2e-control.ts",
+        "src/desktop/e2e-control.spec.ts",
+        "src/desktop/boundary.spec.ts"
+      ],
+      "commit": "2d1ba4a",
+      "completed_at": "2026-11-21T09:23:27.157205Z",
+      "landmarks": [
+        {
+          "feature": "packaged e2e control",
+          "symbol": "startE2eControl",
+          "loc": "src/desktop/e2e-control.ts:190",
+          "what": "env-gated file-based command channel for the packaged e2e harness with no network listener and no eval"
+        }
+      ]
+    },
+    "t-12": {
+      "files": [
+        "scripts/verify-packaged.ts",
+        "scripts/verify-packaged.spec.ts"
+      ],
+      "commit": "a2cf2fb",
+      "completed_at": "2026-11-21T09:34:50.125448Z",
+      "landmarks": [
+        {
+          "feature": "packaged build verification",
+          "symbol": "verifyFuses",
+          "loc": "scripts/verify-packaged.ts:287",
+          "what": "fails closed unless every slice's fuse wire has RunAsNode/NodeOptions/inspect off and asar integrity on; --signed refuses disable-library-validation on app and helpers"
+        }
+      ]
+    },
+    "t-13": {
+      "files": [
+        "signing/package.json",
+        "signing/pnpm-lock.yaml",
+        "scripts/sign-mac.ts",
+        "scripts/sign-mac.spec.ts"
+      ],
+      "commit": "eedb340",
+      "completed_at": "2026-11-21T09:46:05.783472Z",
+      "landmarks": [
+        {
+          "feature": "release signing",
+          "symbol": "signingPackagerFactory",
+          "loc": "scripts/sign-mac.ts:70",
+          "what": "signs and notarises a prepackaged macOS app with a separately pinned electron-builder before wrapping dmg/zip/latest-mac.yml"
+        }
+      ]
+    },
+    "t-14": {
+      "files": [
+        "scripts/repo-settings.ts",
+        "scripts/repo-settings.spec.ts",
+        ".github/workflows/repo-settings.yml"
+      ],
+      "commit": "2303c71",
+      "completed_at": "2026-11-21T09:51:18.444197Z",
+      "landmarks": [
+        {
+          "feature": "repository settings drift check",
+          "symbol": "evaluate",
+          "loc": "scripts/repo-settings.ts:92",
+          "what": "fails closed unless the live v* tag ruleset, release environment, immutable releases and vulnerability alerts match policy"
+        }
+      ]
+    },
+    "t-15": {
+      "files": [
+        "src/routes/account/alerts/+page.svelte",
+        "src/routes/account/alerts/page.svelte.spec.ts",
+        "src/routes/account/alerts/page.server.spec.ts",
+        "src/routes/account/alerts/alerts.e2e.ts",
+        "src/routes/contrast.e2e.ts"
+      ],
+      "commit": "39f8e36",
+      "completed_at": "2026-11-21T09:56:32.395975Z",
+      "landmarks": [
+        {
+          "feature": "alert channel secrets",
+          "symbol": "clear_token checkbox",
+          "loc": "src/routes/account/alerts/+page.svelte:197",
+          "what": "ntfy card offers Remove access token while one is saved; refused destination moves show inline in the card"
+        }
+      ]
+    },
+    "t-16": {
+      "files": [
+        "src/desktop/server.ts",
+        "src/desktop/server.spec.ts",
+        "src/desktop/main.ts",
+        "src/desktop/main.spec.ts",
+        "e2e/desktop/guard.e2e.ts",
+        "e2e/desktop/background.e2e.ts"
+      ],
+      "commit": "bd18b99",
+      "completed_at": "2026-11-21T10:04:43.774749Z",
+      "landmarks": [
+        {
+          "feature": "desktop session gate",
+          "symbol": "startDesktopServer",
+          "loc": "src/desktop/server.ts:110",
+          "what": "every request but GET /health needs the per-launch session cookie main sets on the window's session before it opens"
+        }
+      ]
+    },
+    "t-17": {
+      "files": [
+        "e2e/desktop/first-run.e2e.ts",
+        "e2e/desktop/seed-child.ts",
+        "e2e/desktop/launch.ts"
+      ],
+      "commit": "f4ca301",
+      "completed_at": "2026-11-21T10:10:37.50046Z",
+      "landmarks": [
+        {
+          "feature": "alerts key storage",
+          "symbol": "v0.1.5 key migrates",
+          "loc": "e2e/desktop/first-run.e2e.ts:144",
+          "what": "real-Electron proof that a raw v0.1.5 key migrates to the OS keychain and its SMTP channel still authenticates"
+        }
+      ]
+    },
+    "t-18": {
+      "files": [
+        "e2e/desktop/launch.ts",
+        "e2e/desktop/csp.e2e.ts",
+        "e2e/dev-guard.e2e.ts"
+      ],
+      "commit": "8e083a7",
+      "completed_at": "2026-11-21T10:15:55.944178Z",
+      "landmarks": [
+        {
+          "feature": "content security policy",
+          "symbol": "recordCsp",
+          "loc": "e2e/desktop/launch.ts:393",
+          "what": "every desktop e2e window gates on zero CSP violations; vite dev proven to run under the CSP"
+        }
+      ]
+    },
+    "t-19": {
+      "files": [
+        ".github/workflows/release.yml",
+        "scripts/release-workflow.spec.ts",
+        "scripts/workflow-policy.ts",
+        "scripts/workflow-policy.spec.ts"
+      ],
+      "commit": "d6b3a56",
+      "completed_at": "2026-11-21T10:39:28.862797Z",
+      "landmarks": [
+        {
+          "feature": "release signing",
+          "symbol": "sign-macos job",
+          "loc": ".github/workflows/release.yml:111",
+          "what": "the only job holding signing secrets installs just signing/ and runs sign-mac.ts; ci:policy enforces its allowlist and the p8 trap"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "src/lib/server/alerts/smtp.ts",
+        "src/lib/server/alerts/smtp.spec.ts",
+        "src/lib/server/alerts/ntfy.ts",
+        "src/lib/server/alerts/ntfy.spec.ts",
+        "src/lib/server/alerts/channels.spec.ts"
+      ],
+      "commit": "57bf5b7",
+      "completed_at": "2026-11-20T13:55:39.378727Z",
+      "landmarks": [
+        {
+          "feature": "alert channel secrets",
+          "symbol": "parseConfig (smtp/ntfy)",
+          "loc": "src/lib/server/alerts/smtp.ts:131",
+          "what": "a blank saved secret is reused only for the same SMTP host/port/user or ntfy origin; clear_token removes the ntfy token"
+        }
+      ]
+    },
+    "t-20": {
+      "files": [
+        ".github/rulesets/release-tags.json",
+        "scripts/rulesets.spec.ts"
+      ],
+      "commit": "d367cad",
+      "completed_at": "2026-11-21T12:07:42.914486Z",
+      "notes": "live apply observed: repo-settings.ts exit 1 (3 violations) before, exit 0 after; ruleset id 27792675; workflow_dispatch run pending merge + REPO_SETTINGS_TOKEN",
+      "landmarks": [
+        {
+          "feature": "repository settings drift check",
+          "symbol": "release tags ruleset",
+          "loc": ".github/rulesets/release-tags.json:1",
+          "what": "only the admin role can create, move or delete v* tags; applied live with immutable releases and vulnerability alerts"
+        }
+      ]
+    },
+    "t-21": {
+      "files": [
+        "scripts/audit-shipped.ts",
+        "scripts/audit-shipped.spec.ts",
+        ".github/workflows/audit.yml"
+      ],
+      "commit": "188b9f2",
+      "completed_at": "2026-11-21T12:10:49.785619Z",
+      "notes": "observed: audit step exits 0 on the bumped tree",
+      "landmarks": [
+        {
+          "feature": "dependency hygiene",
+          "symbol": "classify",
+          "loc": "scripts/audit-shipped.ts:85",
+          "what": "fails CI on high/critical advisories in shipped dependencies (prod, electron/Kit/svelte/adapter-node, signing tree), fail-closed on unreadable audit output"
+        }
+      ]
+    },
+    "t-22": {
+      "files": [
+        "src/desktop/main.ts",
+        "src/desktop/main.spec.ts",
+        "e2e/packaged/launch-packaged.ts",
+        "e2e/packaged/smoke.packaged.ts",
+        "e2e/packaged/update.packaged.ts"
+      ],
+      "commit": "d17e706",
+      "completed_at": "2026-11-21T12:36:59.683973Z",
+      "notes": "covers c-22, c-27, c-3, c-24, c-25 (commit trailer lists only c-22, c-27); t-11 FLAG accepted: a failed rm of a consumed control request is retried unreported",
+      "landmarks": [
+        {
+          "feature": "packaged e2e control",
+          "symbol": "startE2eControl wiring",
+          "loc": "src/desktop/main.ts:386",
+          "what": "packaged suites drive the release app over CDP plus the env-gated control channel, with no Node inspector"
+        }
+      ]
+    },
+    "t-23": {
+      "files": [
+        "scripts/package-desktop.ts",
+        "scripts/package-desktop.spec.ts",
+        "build-resources/entitlements.mac.plist",
+        "e2e/packaged/smoke.packaged.ts"
+      ],
+      "commit": "6ae574e",
+      "completed_at": "2026-11-21T12:48:05.578871Z",
+      "notes": "observed: fresh package + verify-packaged fuses/mac/layout exit 0; packaged e2e green on the fused build (macOS)",
+      "landmarks": [
+        {
+          "feature": "packaged build hardening",
+          "symbol": "builderConfig electronFuses",
+          "loc": "scripts/package-desktop.ts:89",
+          "what": "release builds ship with RunAsNode/NODE_OPTIONS/inspect off, asar integrity on, and allow-jit-only entitlements"
+        }
+      ]
+    },
+    "t-24": {
+      "files": [
+        ".github/workflows/ci.yml",
+        "scripts/ci-packaged.spec.ts"
+      ],
+      "commit": "697f21e",
+      "completed_at": "2026-11-21T12:51:08.797683Z",
+      "notes": "PENDING: 3-OS PR CI observation (linux, macos, windows) not yet run; INSPECT_ANY_PORT exemption intended",
+      "landmarks": [
+        {
+          "feature": "packaged build hardening",
+          "symbol": "verify fuses step",
+          "loc": ".github/workflows/ci.yml:221",
+          "what": "every PR checks the packaged binary's fuse wire on linux, macos and windows before the packaged suites run"
+        }
+      ]
+    },
+    "t-26": {
+      "files": [
+        ".gitleaks.toml"
+      ],
+      "commit": "f59e7e3",
+      "completed_at": "2026-11-21T13:07:13.074884Z",
+      "landmarks": [
+        {
+          "feature": "dependency hygiene",
+          "symbol": "gitleaks allowlist",
+          "loc": ".gitleaks.toml:54",
+          "what": "narrow allowlist for the test-only alerts key so the history scan stays a hard CI gate"
+        }
+      ]
+    },
+    "t-27": {
+      "files": [
+        "e2e/dev-guard.e2e.ts",
+        "scripts/sign-mac.spec.ts"
+      ],
+      "commit": "610cbe5",
+      "completed_at": "2026-11-21T13:28:06.870604Z",
+      "landmarks": [
+        {
+          "feature": "content security policy",
+          "symbol": "dev runs under the CSP",
+          "loc": "e2e/dev-guard.e2e.ts:166",
+          "what": "dev-under-CSP proof waits for the client to load before enhanced posts; sign-mac import-chain check is OS-independent"
+        }
+      ]
+    },
+    "t-28": {
+      "files": [
+        ".github/workflows/release.yml",
+        "scripts/workflow-policy.ts",
+        "scripts/workflow-policy.spec.ts",
+        "scripts/release-workflow.spec.ts"
+      ],
+      "commit": "86ae77a",
+      "completed_at": "2026-11-21T13:57:04.730645Z",
+      "landmarks": [
+        {
+          "feature": "release signing",
+          "symbol": "sign-macos verified download",
+          "loc": ".github/workflows/release.yml:144",
+          "what": "signing job unpacks only a single sha256-verified tar from RUNNER_TEMP; ci:policy requires secret-job downloads under runner.temp"
+        }
+      ]
+    },
+    "t-29": {
+      "files": [
+        "scripts/verify-packaged.ts",
+        "scripts/verify-packaged.spec.ts",
+        "e2e/packaged/update.packaged.ts",
+        "e2e/packaged/launch-packaged.ts",
+        "src/desktop/main.ts"
+      ],
+      "commit": "4419e92",
+      "completed_at": "2026-11-21T14:06:07.940517Z",
+      "landmarks": [
+        {
+          "feature": "packaged build verification",
+          "symbol": "packAsar",
+          "loc": "scripts/verify-packaged.spec.ts:1027",
+          "what": "layout tests wait for the asar write to finish; verifyLayout reports a bad manifest beside file-set violations; Windows relaunch checks skip the control channel"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "src/lib/server/checks.ts",
+        "src/lib/server/checks.spec.ts",
+        "src/routes/watches/[id]/page.server.spec.ts"
+      ],
+      "commit": "54fbae1",
+      "completed_at": "2026-11-20T13:58:33.615171Z",
+      "landmarks": [
+        {
+          "feature": "manual check now",
+          "symbol": "checkNow",
+          "loc": "src/lib/server/checks.ts:147",
+          "what": "claims the watch with one conditional UPDATE RETURNING so parallel Check-now calls make one fetch per 15-minute cooldown"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "src/lib/server/local-request.ts",
+        "src/lib/server/local-request.spec.ts",
+        "src/hooks.server.ts",
+        "e2e/node-server.ts",
+        "e2e/dev-guard.e2e.ts",
+        "e2e/local-guard.e2e.ts"
+      ],
+      "commit": "dfd33a7",
+      "completed_at": "2026-11-20T14:10:40.105798Z",
+      "landmarks": [
+        {
+          "feature": "local request guard",
+          "symbol": "createLocalRequestHandle",
+          "loc": "src/lib/server/local-request.ts:56",
+          "what": "refuses unsafe methods unless Origin is exactly http://\u003cHost\u003e in every mode and denies framing on every response"
+        }
+      ]
+    },
+    "t-5": {
+      "files": [
+        "vite.config.ts",
+        "e2e/security-headers.e2e.ts"
+      ],
+      "commit": "4d61003",
+      "completed_at": "2026-11-20T19:58:26.502936Z",
+      "landmarks": [
+        {
+          "feature": "content security policy",
+          "symbol": "kit.csp",
+          "loc": "vite.config.ts:21",
+          "what": "strict nonce-based CSP with frame-ancestors none and img-src limited to self and Amazon's CDN"
+        }
+      ]
+    },
+    "t-6": {
+      "files": [
+        "src/lib/server/shops/amazon/classify.ts",
+        "src/lib/server/shops/amazon/classify.spec.ts"
+      ],
+      "commit": "032feef",
+      "completed_at": "2026-11-21T09:00:58.23907Z",
+      "landmarks": [
+        {
+          "feature": "amazon page classification",
+          "symbol": "isBotWallPage",
+          "loc": "src/lib/server/shops/amazon/classify.ts:40",
+          "what": "robot-check phrases mark a wall only on pages with no #productTitle; a validateCaptcha form always does"
+        }
+      ]
+    },
+    "t-7": {
+      "files": [
+        "src/lib/server/shops/amazon/url.ts",
+        "src/lib/server/shops/amazon/url.spec.ts",
+        "src/lib/server/shops/amazon/short-link.spec.ts",
+        "src/lib/nav.ts",
+        "src/lib/nav.spec.ts"
+      ],
+      "commit": "0abb5b6",
+      "completed_at": "2026-11-21T09:02:50.345006Z",
+      "landmarks": [
+        {
+          "feature": "amazon short links",
+          "symbol": "normaliseAmazonUrl",
+          "loc": "src/lib/server/shops/amazon/url.ts:70",
+          "what": "short links and every redirect hop are requested over https only; nav path normalise is a linear scan"
+        }
+      ]
+    },
+    "t-8": {
+      "files": [
+        "src/desktop/session-gate.ts",
+        "src/desktop/session-gate.spec.ts"
+      ],
+      "commit": "8d068fd",
+      "completed_at": "2026-11-21T09:04:46.886998Z",
+      "landmarks": [
+        {
+          "feature": "desktop session gate",
+          "symbol": "isAuthorized",
+          "loc": "src/desktop/session-gate.ts:89",
+          "what": "per-launch HttpOnly SameSite=Strict cookie secret gates every request but exact GET /health"
+        }
+      ]
+    },
+    "t-9": {
+      "files": [
+        "src/desktop/server.ts",
+        "src/desktop/server.spec.ts",
+        "e2e/desktop/harness.e2e.ts"
+      ],
+      "commit": "e732351",
+      "completed_at": "2026-11-21T09:08:43.282092Z",
+      "landmarks": [
+        {
+          "feature": "desktop server startup",
+          "symbol": "loadAdapterHandler",
+          "loc": "src/desktop/server.ts:157",
+          "what": "drops ALERTS_ENCRYPTION_KEY from main's env once Kit's init has taken it"
+        }
+      ]
+    }
+  },
+  "reviews": {
+    "t-1": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-12",
+          "text": "scripts/lockfile.spec.ts 'no unpatched copy' rejects only the exact keys @sveltejs/kit@3.1.0 and @sveltejs/adapter-node@6.0.0, as the test_contract asks. An older second copy, such as kit 3.0.x pulled in by a peer, would still pass; an atLeast check on every packages/snapshots key would catch it too.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-17",
+          "text": "In scripts/repo-hygiene.spec.ts, a Stryker sandbox nested in a gitignored folder of the real repo still finds a git root (the outer repo), so the check-ignore and ls-files tests run against the outer repo rather than being skipped. That is harmless because the outer repo carries the same .gitignore rule.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-12",
+          "text": "scripts/gitleaks-config.spec.ts 'every phase allowlisted' (line 57) requires the exact anchored tests.json path for each phase with a spec.toml, and the new .gitleaks.toml row matches that string.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-10": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-24",
+          "text": "src/desktop/alerts-key.ts:81 wrappingStorage has `catch { return null; }`. If isEncryptionAvailable() or getSelectedStorageBackend() throws, it quietly falls back to 'no backend', so the key is written or kept raw. Nothing is logged and no comment explains the discard. Either log a fixed message with no error text, as freshKeyContents does, or add a comment saying why this fallback is meant to be silent.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-25",
+          "text": "src/desktop/alerts-key.ts:245 migrateToWrapped discards the error from `rm(temp, { force: true }).catch(() =\u003e undefined)` with no comment. If the cleanup fails, a '.tmp-' file holding the wrapped key is left in userData and nothing reports it. The test_contract says no temp file may remain. Log the failure, or comment why it is safe to ignore (the syncDir discard on line 250 has a comment; this one does not).",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-25",
+          "text": "The 'migrates v0.1.5 raw key' test calls decryptSecret with channelAad, not crypto.ts openConfig as the test_contract says. openConfig does not exist in crypto.ts; it is a private function in channels.ts (line 67) that makes the same decryptSecret call, so the check is equivalent.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "With no safeStorage passed, a wrapped file is now refused as undecryptable. That is new behaviour, but it only affects files that did not exist before this task, so the existing no-safeStorage rows are unchanged.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The fake Linux backend tests cover every backend value Electron reports (basic_text, unknown, gnome_libsecret, kwallet, kwallet5, kwallet6). LINUX_KEYRING_BACKEND sends each one to the expected branch.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-25",
+          "text": "test_contract names crypto.ts openConfig for the channel-still-opens check, but openConfig is a private helper in src/lib/server/alerts/channels.ts:67; the migration test uses decryptSecret from crypto.ts instead, which still fails if the returned key differs from the raw key",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-25",
+          "text": "createKeyFile's EEXIST path (alerts-key.ts createKeyFile) returns a competitor's raw key without migrating it; it is wrapped on the next launch, which matches the stated retry-next-launch behaviour",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the leak test drives every failure point (fresh-key encrypt, migration encrypt/verify/rename, wrapped decrypt) and checks thrown and logged text against the key, the ciphertext and the sentinel",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-11": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-27",
+          "text": "/Users/rivil/Development/price-check-app/src/desktop/e2e-control.ts:206 `await run(parsed, handlers);` in the ENDS_PROCESS branch throws away run()'s {ok:false, error:'\u003ccmd\u003e failed'} result. If quit or updaterRestart throws, the error is lost: the harness has already been told ok:true, nothing is logged or surfaced, and no comment next to the line gives a reason (the ENDS_PROCESS set comment explains the ordering, not why the error is dropped). Log the failure, or add a comment saying why it can be dropped.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "/Users/rivil/Development/price-check-app/src/desktop/e2e-control.ts:223 the per-request catch says it handles a request that 'vanished or could not be read', but it also catches failures after the request file has been removed: sessionSecret() throwing, JSON.stringify throwing on a handler result it cannot serialise (BigInt or circular), and writeFile or rename failing. In those cases the request is gone and no res file is ever written, so the harness just times out with no clue why.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Redaction only removes the secret's literal text from the JSON. If a secret ever contains characters that JSON escapes, or appGet returns the secret in another encoding (URL-encoded, HTML entities), it would not be redacted. This is fine for a hex or base64url secret.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The description says main hands PRICE_CHECK_E2E_CONTROL_DIR back to the installer on update. That is main.ts wiring, which this task leaves to t-22, so no code for it here is expected.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The 'refuses anything outside the fixed set' test covers eval with and without code, prototype names, sessionSecret as a command, extra fields, non-object JSON, and absolute or protocol-relative appGet paths.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-27",
+          "text": "src/desktop/e2e-control.ts answer(): if readFile succeeds but rm of the request fails, answer() throws before respond(). The pollOnce catch (commented) swallows it, so the same request is re-read every poll, never answered and never reported on stderr. The harness can only time out.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The request is read without any check that the harness finished writing it. A harness that writes req-\u003cn\u003e.json in place rather than via temp + rename can get 'unknown command' for a half-written request, which is then consumed. Worth stating the harness-side rule when t-22 wires the harness.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The description says main hands PRICE_CHECK_E2E_CONTROL_DIR back to the installer on update, like withCaptureHandOver in src/desktop/main.ts. main.ts is not in this task's files and no test_contract line covers it, so it is read as part of the t-22 main wiring.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-12": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-8",
+          "text": "scripts/verify-packaged.spec.ts:534-540 (stockBinary IIFE): `try { return fuseBinaryPath(STOCK_ELECTRON, process.platform); } catch { return ''; }` swallows the error with no comment and returns '' instead, which silently skips the stock-Electron control. fuseBinaryPath cannot throw for these inputs (Electron.app on darwin, a bare executable elsewhere), so either drop the try/catch or add a comment saying why a throw should mean skip.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-8",
+          "text": "verifyMac --signed reads only the outer .app's entitlements (codesign -d on the bundle). Helper apps under Contents/Frameworks, signed with electron-builder's entitlementsInherit, could still carry disable-library-validation without being caught. The task record only asks for the bundle check, so this is not a spec gap.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "fuseState renders FuseState.INHERIT (144) and any other byte as `byte N`. This only affects display: the comparison against ENABLE/DISABLE still raises a violation, so the check is not a silent fallback.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "parseFuseWires walks every sentinel, where @electron/fuses' getCurrentFuseWire reads only the first. A cross-check test against getCurrentFuseWire and the stock-binary control together show the reader sees real wires.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-8",
+          "text": "fuseState (scripts/verify-packaged.ts) has no branch for FuseState.INHERIT (144), so it shows as 'byte 144'. This only affects the message: verifyFuses compares the byte strictly to ENABLE/DISABLE, so an INHERIT byte is still reported as a violation.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-8",
+          "text": "The code deep-imports @electron/fuses/dist/constants.js. That works because the package has no exports map and the version is pinned at exactly 1.8.0, as the comment says; upgrading the package could break it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "On darwin, fuseBinaryPath takes the first path segment ending in .app. If a parent directory's name ended in .app, it would pick the wrong bundle. That is unlikely for out/ build paths.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-8",
+          "text": "I could not confirm that node_modules/electron/dist is present here. If it is absent, the stock-Electron control test is skipped, as the test_contract allows.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-13": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-26",
+          "text": "The test that sign-mac never calls packageDesktop is a regex over the source text (/\\bpackageDesktop\\b/, /\\bimport\\s*\\(/). It meets the contract but is easy to get around, for example through an alias or a re-export.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-26",
+          "text": "loadBuilderFrom (createRequire rooted at signing/package.json) is only exercised through the injected loadBuilder fake. No test checks that the real resolver ignores the project's node_modules. This is in line with the contract's 'injected resolver' wording.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-26",
+          "text": "The description says the executor watched an unsigned local prepackaged run produce the release files. The diff has no way to confirm that. Also, under the approved design change, sign-mac.ts itself throws 'signed nothing' on an unsigned run, so that run must have bypassed the signing packager factory.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Checked against signing/node_modules app-builder-lib 26.18.0: MacPackager.sign(appPath, options, arch, isMas=false) matches the sign(prepackaged, null, arch) call, pack() reaches the overridden packMacTargets through the instance, and createHelper honours options.platformPackagerFactory.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-14": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-9",
+          "text": "scripts/repo-settings.ts evaluate(): a ruleset only has to list refs/tags/v* in conditions.ref_name.include to count. The exclude list is never read, so a ruleset that includes and also excludes refs/tags/v* (or excludes a broader pattern covering it) would pass while protecting nothing.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-9",
+          "text": "scripts/repo-settings.ts tagRulesetGaps(): the single bypass actor's bypass_mode is never checked. Only actor_type and actor_id are compared, so the check accepts RepositoryRole 5 with any bypass mode.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The ruleset list and the deployment-branch-policies list read one page each (per_page=100) and do not paginate. That fails closed for rulesets (a missed ruleset means a violation, not a pass), and both counts are far below 100 in practice.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "policyKey treats a missing policy type as 'branch'. That matches the API's default, and with it a missing type cannot pass as the required tag policy.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/repo-settings.ts collect(): the final catch-all returns 'the settings check failed unexpectedly' and drops the error entirely. It fails closed and is commented, but a malformed API body (e.g. deployment_branch_policy missing, branch_policies absent, ruleset list not an array) gives an operator no hint which endpoint or field broke. Logging the error name or the last path read would help without risking the token.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "scripts/repo-settings.ts evaluate(): only one compliant covering ruleset is needed for the rules, enforcement and bypass checks, yet the exclude check flags every covering ruleset. A non-compliant draft ruleset that excludes refs/tags/* would fail the check even when another active ruleset holds. This errs toward failing, but it is inconsistent with the 'a second, compliant tag ruleset is enough' test.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The rulesets and deployment-branch-policies lists are read with per_page=100 and no pagination. That is fine at this repo's scale, and anything past page one only makes the check fail.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-15": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The 'Either enter a new access token or tick Remove access token, not both' refusal (CLEAR_TOKEN_CONFLICT_MESSAGE) has no test at the page-action or browser level in this diff. This task's record does not claim it, and the driver-level specs cover it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The page.server.spec 'clear token keeps channel' test runs with the channel both enabled and disabled, so it pins that clearing the token leaves the enabled flag as it was.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-16": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "windowCookie (e2e/desktop/guard.e2e.ts) and sessionCookie (e2e/desktop/background.e2e.ts) are the same helper written twice; launch.ts would be the natural shared home, but it is not among this task's files",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the main.spec ?raw check bans every process.env/argv write in main.ts, not only ones carrying the secret; the runtime test that checks process.env, argv and the handler env is the sharper check",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "e2e/packaged/smoke.packaged.ts still sends a cookieless raw request to GET /, which now gets 403; the task record accepts this as a known red window until t-22",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-17": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-24",
+          "text": "first-run.e2e.ts keyFileState: on darwin/win32 realBackend is just safeStorage.isEncryptionAvailable(). If the mock keychain or DPAPI ever reports unavailable, 'v0.1.5 key migrates' quietly takes the 'raw kept' branch and passes, so the macOS/Windows wrapped-form check the description promises can drop out unnoticed. Consider asserting realBackend is true when process.platform is not linux.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "seed-child v015 builds the DB with today's migrations, not a v0.1.5 schema. Only the key file's form and the channel sealed under the old key are v0.1.5-shaped. That is enough for the key migration this task proves.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The second-launch check judges 'same channel' by the SMTP host showing and no 'could not be read' text, which is enough to show it still decrypts under the migrated key.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-25",
+          "text": "first-run.e2e.ts 'v0.1.5 key migrates': startSmtpServer and the two makeTempDir calls run before the try block, so a throw from seedV015 (or writeFileSync of the CA) leaves the SMTP server listening and the temp dirs behind; move the seeding inside the try or start the try earlier",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-25",
+          "text": "launch.ts desktopEnv: nothing pins that NODE_EXTRA_CA_CERTS is absent without caFile (the 'for that launch only' half of the caFile contract line); harness.e2e.ts's launcher-env assertions cover notify but not caFile",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The test cannot pass vacuously on macOS/Windows: it asserts realBackend there before taking the wrapped branch, and it compares the key by sha256 so the key is never printed",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-18": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-23",
+          "text": "e2e/desktop/launch.ts:469 recordCsp is attached only after _electron.launch resolves; if the first window's document loads and logs a violation before the console handler and the page.evaluate install land, that violation is lost. The init script only covers later documents. In practice the window waits for the server, but the claim 'from the first page on' depends on that ordering.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-23",
+          "text": "e2e/desktop/launch.ts:485 close() now throws on CSP violations; specs that call close() in a finally after a failed assertion will have the original failure masked by the CSP error when both happen.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-19",
+          "text": "dev-guard proves hydration through the x-sveltekit-action header on enhanced posts (/?/add and /account/alerts?/save) rather than a separate client-only element; this is equivalent evidence that JS ran on both pages.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "dev-guard's beforeAll nulls every seeded imageUrl because the shared seed's .invalid images are rightly blocked by img-src; web specs that render the shared seed would see those img-src violations if they ever gate on CSP.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-19": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-26",
+          "text": "scripts/workflow-policy.ts allowedInSecretJob drops leading VAR=x assignments and PLAIN_SHELL admits export/echo, and step-level env: keys are not checked. So `NODE_OPTIONS=--import=./x.ts node scripts/sign-mac.ts`, `export NODE_OPTIONS=...`, or `echo \"NODE_OPTIONS=...\" \u003e\u003e \"$GITHUB_ENV\"` (likewise PATH/BASH_ENV) passes the secret-job allowlist and can load arbitrary project code beside the signing secrets. This weakens the fail-closed claim even though no test_contract line covers it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "verify-macos unpacks the whole signed dist-packaged tree (tar -C dist-packaged .) and runs layout --mode release on it. Whether sign-mac.ts's output matches the layout the old package:desktop --sign produced can only be confirmed on a real tag run.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "release-workflow.spec pins job order, needs, environment confinement, tar hand-off, fuses-before-upload per release path and the trap-before-decode order. The policy spec covers each forbidden command both as its own step and inside the sign step.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-26",
+          "text": "The secret-job allowlist in scripts/workflow-policy.ts (PLAIN_SHELL plus the tar rule in allowedInSecretJob) lets a job overwrite the code it then runs. Allowed commands can redirect to any file, e.g. `echo ... \u003e scripts/sign-mac.ts` or `base64 --decode \u003e signing/package.json`, and `tar -xf x.tar` with no -C extracts into the checkout. A later allowed `node scripts/sign-mac.ts` or signing install then runs whatever was written. The shipped release.yml does neither, but ci:policy would not catch a workflow edit that did. Consider refusing redirections and tar extraction into scripts/, signing/ or the workspace root.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-15",
+          "text": "checkP8Cleanup only inspects `run:` keys under a block-style step (`- run:`). A .p8 write in a flow-style step (`- { run: ... }`) in a job without secrets is not checked. In a secret-bearing job the same step is already refused as unclassifiable.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-8",
+          "text": "The Linux fuses target dist-packaged/linux-unpacked/price-check-app assumes electron-builder's default executable name (from package.json `name`; builderConfig sets no executableName). I could not confirm this locally. If the name is wrong, the step fails loudly rather than passing.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-2": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "originOf in src/lib/server/alerts/ntfy.ts returns null when the URL will not parse. Its doc comment says so, and the null fails safe: a saved URL that will not parse never matches, so the save is refused. The ntfy.spec 'not a url' case covers this.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "This predates the diff: in src/lib/server/alerts/channels.ts:190-191, if a saved config cannot be decrypted, previous becomes null. ntfy then saves a blank token as null, and SMTP asks for the password. Neither leaks a secret, and the task does not change this.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The refusal messages tell the user to tick 'Remove access token'. That checkbox is UI that sits outside this task's files; the parser accepts any non-blank clear_token value as ticked.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-20": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-9",
+          "text": "test_contract line 4 (live: `node scripts/repo-settings.ts` observed exiting 1 then 0, and a green workflow_dispatch run of repo-settings.yml) and the described `gh api` apply plus PUT immutable-releases / PUT vulnerability-alerts are operational steps with no evidence in this context; the record itself marks them BLOCKER on REPO_SETTINGS_TOKEN and an admin gh identity. Make sure the task log records them before c-9/c-10/c-11 are called done.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the 'is not one of the branch rulesets' test pins the `rulesets` map keys to exactly ['main','milestone'], so wiring release-tags.json into the ci.yml check comparison fails it, as the contract asks",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "release-tags.json passes every tagRulesetGaps/evaluate condition in scripts/repo-settings.ts (target tag, include refs/tags/v*, empty exclude, all four rules, sole RepositoryRole:5 bypass), so once applied the live check should hold",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-21": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-11",
+          "text": ".github/workflows/audit.yml pull_request paths trigger is still only [pnpm-lock.yaml, package.json]: a PR that changes signing/pnpm-lock.yaml, signing/package.json or scripts/audit-shipped.ts does not run the audit, so a new signing-tree advisory is only caught by the weekly schedule",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "in classify (scripts/audit-shipped.ts), the FATAL.has(severity) check is redundant next to !['low','moderate','info'].includes(severity); behaviour is correct, since unknown severities on shipped paths fail closed",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "the 'runs no install' spec only greps for the word install; it passes today and catches the obvious regression",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-22": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "BLOCKING",
+          "criterion": "c-22",
+          "text": "Swallowed error with no comment: e2e/packaged/launch-packaged.ts:608 `await browser?.close().catch(() =\u003e undefined);` in launchPackaged's catch block throws away any close failure without saying why. The same discard in quit() at line 585 has a reason comment; this one needs one too, or should report the failure.",
+          "resolution": "fixed in the fix round"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-27",
+          "text": "linuxProcessTree (e2e/packaged/launch-packaged.ts:894) calls procEntry(..., true). procEntry's doc comment reserves that tolerant mode for diagnosis and warns that treating EACCES as null 'would hide the very instance the test wants'. Here an unreadable descendant would quietly drop out of the tree, and its listener would escape the c-27 'no extra listener' check. tolerant=false (ENOENT/ESRCH only) matches the helper's contract.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "withControlHandOver (src/desktop/main.ts) has no unit test. Its twin withCaptureHandOver has two in main.spec.ts (pass-through when the dir is null; the variable is put back before installOnExit). Only the packaged update e2e covers it, and that runs only on win32 and linux.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The t-11 review FLAG (a request whose rm fails is retried every poll with nothing reported) is not handled in this diff. e2e-control.ts is untouched, which is allowed, but per the test_contract it has to be recorded as accepted in the task bookkeeping.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "When the server is not up yet, info reports origin as '' (serverOrigin ?? ''). The smoke test's expect(info.origin).toBe(app.origin) would catch it, so this is not a silent fallback in practice.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The test_contract line 'pnpm test:e2e:packaged observed green locally on macOS' cannot be checked from the diff; it rests on the author's run.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-22",
+          "text": "test_contract asks t-22 to either report a failed rm of a consumed request once on stderr, or note that case as accepted. t-22 does not touch e2e-control.ts, and no acceptance note appears anywhere in the diff; make sure it is recorded somewhere.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "watchStart (e2e/packaged/launch-packaged.ts) attaches a single child.once('error') listener, and spawnX64 dropped its old persistent error handler. A later 'error' event on the ChildProcess, such as a failed kill signal, would have no listener and throw in the test runner. This is a rare path.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-22",
+          "text": "'pnpm test:e2e:packaged observed green locally on macOS, default fuses' is a process claim the diff cannot show; it is taken on the author's word.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The harness now turns off the login item with loginItem.setEnabled(false) instead of app.setLoginItemSettings. On Linux this also removes the autostart entry, which the old call never did. On Windows it keeps the --login-launch args through loginArgs.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "linuxTreeListenPorts reads ss -Hltnp on every address, not just 127.0.0.1, and covers main and all its descendants, so the c-27 check would also catch a listener on 0.0.0.0 or [::].",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-23": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-8",
+          "text": "The 'inspector refused' smoke test only launches the native slice; on macOS the x86_64 slice relies on verify-packaged's fuse check, not a run-time refusal",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "On macOS and Windows, mainListenPorts checks only the main process, not its helpers. That is enough because Node's inspector would listen in main",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-8",
+          "text": "The fuses spec cross-checks the config against verify-packaged's REQUIRED_FUSES through the FuseV1Options names, so the build config and the binary check cannot drift apart",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-24": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-22",
+          "text": "INSPECT_ALLOWED in scripts/ci-packaged.spec.ts:439-444 allows the line `const INSPECT_ANY_PORT = '--inspect=0';` itself, not where it is used. Any other launch or spawn in e2e/packaged that passed INSPECT_ANY_PORT in its args would not make the spec fail, which test_contract line 2 says must happen. Consider also asserting that INSPECT_ANY_PORT is used only inside the 'inspector refused' test.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The guard's /\\b_electron\\b/ does not match smoke.packaged.ts:177 (`/\\b_electron\\b/` in source) only because the 'b' before the underscore removes the word boundary. The check holds today, but it is fragile.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-8",
+          "text": "The test 'checks the fuses after the exe is located and before the packaged e2e' repeats what the STEP_NAMES order test already asserts. It is harmless.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-22",
+          "text": "test_contract line 3 (green on linux, macos and windows with fuses on) can only be met by watching the PR's CI. The diff cannot show it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-22",
+          "text": "The test_contract says the spec fails if any launch or spawn args in e2e/packaged contain --inspect, but INSPECT_ALLOWED in scripts/ci-packaged.spec.ts:439 deliberately exempts smoke's INSPECT_ANY_PORT ('--inspect=0'), which the 'inspector refused' probe appends to spawn args. The exemption is narrow (the constant may only be used inside that one test, and no other file may name it) and it backs c-8's fuse evidence, but it departs from the literal contract and should be recorded as intended.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "FLAG",
+          "text": "The --inspect/_electron guard checks literal lines only. A switch built by concatenation or passed through a variable would get past it, as would code that follows '//' or '*' at the start of a line, since those lines are dropped as comments.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-22",
+          "text": "The test_contract line requiring CI to be observed green on linux, macos and windows, with the fuses step passing and the packaged e2e running without the inspector, can only be checked from the PR's CI run after push. Nothing in the diff can show it, and per the record it must not be claimed before then.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-26": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The task covers c-12 (SvelteKit/adapter-node lockfile versions), but the change is a gitleaks allowlist fix that keeps the PR's 3-OS matrix running. The criterion is only linked indirectly; the record says what the task claims, and the entry delivers it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "No new test in the diff: the existing scripts/gitleaks-config.spec.ts runs its checks over every [[allowlists]] entry and the generic-api-key subset, so this entry is covered without a new test.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-27": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-19",
+          "text": "e2e/dev-guard.e2e.ts:184,203 treats waitForLoadState('networkidle') as proof of hydration. It is only a heuristic: no HTTP requests for 500ms, and Playwright discourages it. If one module loads late or hydration runs slowly after the last fetch, the click can still go out as a native post. Waiting for a DOM signal of hydration, such as a body attribute or element that only exists once mounted, would be deterministic.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The first test_contract line (PR CI green on linux, macos and windows) can only be observed in CI before t-25 closes. This diff cannot show it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "In scripts/sign-mac.spec.ts, repoPath uses relative(ROOT, file), which also replaces the old fragile slice(ROOT.length + 1) in the violation messages.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-28": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-26",
+          "text": "RUNNER_TEMP_PATH (scripts/workflow-policy.ts) accepts any named subdir of runner.temp, so 'fresh' is not enforced: two downloads in one secret-bearing job could share a dir, or a path could name ${{ runner.temp }}/AuthKey.p8. Neither happens in the shipped release.yml.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "LOADER_VARIABLES gains PERL5OPT/PERL5LIB/PERLLIB because shasum is a perl script; other perl env hooks (e.g. PERL5DB, which needs -d) are left out, which seems reasonable since shasum is never run with -d.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The bash-driven tests in release-workflow.spec run the actual check step from release.yml against planted, renamed, symlinked and wrong-sha downloads, so a weaker check would make them fail.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-29": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-22",
+          "text": "Both test_contract lines (PR CI 'test' green on linux/macos/windows; 20 consecutive local runs of verify-packaged.spec) are observed outcomes, not tests a reviewer can check in the diff; they depend on the CI and local runs actually having been observed.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "No test exercises the asar flush race that packAsar fixes; only the run-20-times observation covers it. The new 'lists the file-set violations beside a packaged package.json that is not JSON' case covers the verifyLayout split well, and the switch to toContainEqual(expect.stringMatching(...)) makes failures print the violations.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "e2e/packaged/update.packaged.ts header lines 22-24 have an odd re-wrap ('a fresh' alone on a line before '// copy of A ...'); cosmetic only.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-3": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-21",
+          "text": "While a Check-now fetch is in flight, or after a check() that throws, last_checked_at shows the attempt time but last_check_reason/message and the price still come from the previous check. A thrown check also writes no check_failure row, so the page can show a fresh 'last checked' time with no recorded outcome. src/lib/server/checks.ts:153-162",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "If the watch is deleted between the claim and recordCheck, the price_point/check_failure insert runs against a missing watch. The old code had the same window, so this is not new.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-4": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "createLocalRequestHandle calls response.headers.set('x-frame-options', ...) on whatever resolve returns; a response with immutable headers (a proxied fetch() result or Response.redirect() from a +server.ts) would throw. The only endpoint today, src/routes/health/+server.ts, builds its own Response, so nothing hits this now.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/lib/server/local-request.spec.ts covers every test_contract line: six refused Origins times four body types, the unsafe-method set, same-origin and safe-method controls, framing on 200/404/500 and on a refusal, and the comment-stripped ?raw source check.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-5": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "FLAG",
+          "criterion": "c-23",
+          "text": "The task says to check that e2e seed image URLs are on m.media-amazon.com or null, but e2e/accounts.ts:44, :68 and :144 still use https://images.e2e.invalid/... (pageDetail, which this spec loads, is one of them). The new img-src blocks these, so every browser e2e page that renders them now logs CSP violations. The diff neither changes nor explains this. Note that e2e/harness.e2e.ts:138 requires seed image hosts to end in .invalid, so null is the compatible fix.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "img-src is checked both as a set and by length, so a duplicate or extra source fails. script-src fails when the directive is missing because the nonce/hash check runs on an empty list.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-6": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Both blocked fixtures carry a form[action*=validateCaptcha], so the new #productTitle short-circuit cannot unblock them; adapter.ts:113 also calls isBotWall and picks up the narrowed rule, which is the intended shared behaviour.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "plainWith asserts the selector matches and the phrase survives serialisation, so the review/bullet tests cannot pass by injecting nowhere.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-7": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "In short-link.spec 'no plaintext request' the second hop's Location is an http amazon.co.uk product URL; resolveShortLink stops on it without requesting it, so the test proves no plaintext request for the short-link hops and the product redirect",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "normalise is now exported from src/lib/nav.ts only so the spec can test it directly; nothing else imports it",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-8": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "session-gate.spec.ts source check strips comments with /\\/\\/.*$/gm, which would also cut any string literal containing '//' (e.g. a URL) if one is later added to session-gate.ts; harmless today since the module has none",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "every gated request is also asserted to pass with the cookie, so the 'only GET /health is exempt' test fails if the module is simply hardwired to deny",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-9": {
+      "outcome": "pass",
+      "rounds": 2,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-13",
+          "text": "Comments in src/desktop/server.ts (loadAdapterHandler doc) and e2e/desktop/harness.e2e.ts:112 cite SEC-12 for the key scrub; c-13 is SEC-11 (SEC-12 is the output-capture seam per locked decision sec12_output_capture_seam)",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "src/desktop/lifecycle.spec.ts:741 comment 'What loadAdapterHandler leaves in the main process's env' (setting ALERTS_ENCRYPTION_KEY) is now stale since loadAdapterHandler removes the key; tests still pass because loadServer is faked there",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "Extra test 'key gone after a module without a handler export' covers the post-import throw path too; finally placement means the key is scrubbed before the handler-shape check",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-13",
+          "text": "src/desktop/lifecycle.spec.ts:741 still says the key is 'What loadAdapterHandler leaves in the main process's env', which is no longer true after SEC-11. It is harmless because that suite fakes startup, but the comment is now stale. lifecycle.ts INHERITED_SECRETS deleting ALERTS_ENCRYPTION_KEY on update install is now redundant but still fine as a safeguard.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 2,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-13",
+          "text": "server.spec covers all three exits of loadAdapterHandler (resolved, import throws, no handler export) and checks that only the key is removed: PATH survives.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    }
+  }
+}

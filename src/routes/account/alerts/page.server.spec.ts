@@ -16,10 +16,11 @@ import {
 } from '#lib/server/alerts/channels.ts';
 import { setAlertsKey } from '#lib/server/alerts/crypto.ts';
 import { installDesktop } from '#lib/server/alerts/desktop.ts';
-import { SEND_TIMEOUT_MS } from '#lib/server/alerts/ntfy.ts';
+import { NEW_ORIGIN_TOKEN_MESSAGE, SEND_TIMEOUT_MS } from '#lib/server/alerts/ntfy.ts';
 import { API_KEY_MESSAGE, RECIPIENT_MESSAGE, SENDER_MESSAGE } from '#lib/server/alerts/resend.ts';
 import {
 	HOST_MESSAGE,
+	NEW_DESTINATION_PASSWORD_MESSAGE,
 	PASSWORD_MESSAGE,
 	PORT_MESSAGE,
 	RECIPIENT_MESSAGE as SMTP_RECIPIENT_MESSAGE,
@@ -410,6 +411,60 @@ describe('account alerts page', () => {
 		});
 	});
 
+	it('clear token keeps channel', async () => {
+		// Enabled or not, ticking Remove access token drops the token and nothing else.
+		for (const enabled of [true, false]) {
+			await save('https://ntfy.sh/alice-own', TOKEN);
+			await setEnabled(db(), 'ntfy', enabled);
+			const result = await actions.save!(
+				event(ntfyForm({ topic: 'https://ntfy.sh/alice-own', token: '', clear_token: 'on' }))
+			);
+			expect(result, `enabled ${enabled}`).toEqual({ saved: 'ntfy' });
+			expect(await load(event()), `enabled ${enabled}`).toEqual(
+				page({
+					ntfy: {
+						topic: 'https://ntfy.sh/alice-own',
+						tokenSet: false,
+						enabled,
+						priceDrops: true,
+						checkFailures: true
+					},
+					resend: null,
+					smtp: null
+				})
+			);
+			expect(await loadChannelConfig(db(), KEY, 'ntfy')).toEqual({
+				url: 'https://ntfy.sh/alice-own',
+				token: null
+			});
+		}
+	});
+
+	it('new origin refused', async () => {
+		// A saved token never follows the topic to another server (c-1): the save is
+		// refused in the ntfy card and the stored row is left byte for byte.
+		await save('https://ntfy.sh/alice-own', TOKEN);
+		const before = await db().select().from(notifyChannel);
+		expect(NEW_ORIGIN_TOKEN_MESSAGE).toContain('access token');
+		for (const topic of [
+			'https://ntfy.example.test/alice-own',
+			'https://ntfy.sh:8443/alice-own',
+			'https://127.0.0.1:1/alice-own'
+		]) {
+			const result = await actions.save!(event(ntfyForm({ topic, token: '' })));
+			expect(failure(result), topic).toEqual({
+				status: 400,
+				data: { kind: 'ntfy', message: NEW_ORIGIN_TOKEN_MESSAGE }
+			});
+			expect(JSON.stringify(result), topic).not.toContain(TOKEN);
+		}
+		expect(await db().select().from(notifyChannel)).toEqual(before);
+		expect(await loadChannelConfig(db(), KEY, 'ntfy')).toEqual({
+			url: 'https://ntfy.sh/alice-own',
+			token: TOKEN
+		});
+	});
+
 	it('unreadable', async () => {
 		await save('https://ntfy.sh/alice-own', TOKEN);
 		// The server now runs with another key: the saved settings cannot be opened.
@@ -726,6 +781,39 @@ describe('smtp card', () => {
 			expect(JSON.stringify(result), label).not.toContain(SMTP_PASS);
 		}
 		expect(await db().select().from(notifyChannel)).toEqual([]);
+	});
+
+	it('new destination refused', async () => {
+		// A saved password never follows the login to another host, port or username
+		// (c-1): refused in the SMTP card, and the stored row is left byte for byte.
+		expect(await actions.save!(event(smtpForm()))).toEqual({ saved: 'smtp' });
+		const before = await db().select().from(notifyChannel);
+		expect(NEW_DESTINATION_PASSWORD_MESSAGE).toContain('password');
+		const moves: Record<string, string>[] = [
+			{ host: 'smtp.other.example.test' },
+			{ port: '465' },
+			{ username: 'bob-login' }
+		];
+		for (const fields of moves) {
+			const label = JSON.stringify(fields);
+			const result = await actions.save!(event(smtpForm({ ...fields, password: '' })));
+			expect(failure(result), label).toEqual({
+				status: 400,
+				data: { kind: 'smtp', message: NEW_DESTINATION_PASSWORD_MESSAGE }
+			});
+			expect(JSON.stringify(result), label).not.toContain(SMTP_PASS);
+		}
+		expect(await db().select().from(notifyChannel)).toEqual(before);
+
+		// The same destination with a blank password still saves, keeping the password.
+		expect(
+			await actions.save!(event(smtpForm({ password: '', to: 'other@example.test' })))
+		).toEqual({ saved: 'smtp' });
+		expect(await loadChannelConfig(db(), KEY, 'smtp')).toMatchObject({
+			host: 'smtp.example.test',
+			password: SMTP_PASS,
+			to: 'other@example.test'
+		});
 	});
 
 	it('smtp test', async () => {

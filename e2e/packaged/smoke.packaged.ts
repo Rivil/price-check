@@ -10,17 +10,44 @@
 // watch page; launch 3 shows the new target. On darwin the universal app's x86_64
 // slice then serves the same watch under Rosetta.
 //
+// 06-remediate-security, on launch 1 and after: the app runs without the Node
+// inspector (c-22), driven through the window's CDP and main's control channel only;
+// on Linux that channel adds no listener (c-27); the alerts key is wrapped where
+// safeStorage has a real OS backend (c-24). Launch 3 and the x86_64 slice refuse a
+// request without the session cookie, and serve the watch to main's own appGet (c-3).
+// A fourth launch passes --inspect=0, which the CLI inspect fuse makes the app ignore:
+// Node never says its debugger is listening and main listens on no port beyond the
+// server's and Chromium's remote debugging (c-8).
+//
 // The tests share one run and run in order: each picks up where the previous left.
-import { existsSync, mkdirSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { join, sep } from 'node:path';
+import { execFile, spawn } from 'node:child_process';
+import {
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	realpathSync,
+	rmSync,
+	statSync,
+	writeFileSync
+} from 'node:fs';
+import { dirname, join, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 import { expect, test } from '@playwright/test';
-import type { UpdaterHandle } from '../../src/desktop/updater.ts';
-import { insertWatches, rawRequest } from '../desktop/launch.ts';
+import { WRAPPED_PREFIX } from '../../src/desktop/alerts-key.ts';
+import { insertWatches, KEY_FILE_NAME, rawRequest } from '../desktop/launch.ts';
 import {
 	createPackagedRun,
 	launchPackaged,
+	linuxTreeListenPorts,
+	loadedNativeModules,
 	spawnX64,
+	updaterCheckNow,
+	updaterStatus,
 	X64_LAUNCH_TIMEOUT_MS,
+	type ControlClient,
+	type LaunchPackagedOptions,
 	type PackagedApp,
 	type PackagedRun
 } from './launch-packaged.ts';
@@ -37,7 +64,62 @@ const WATCH = {
 /** How long the app must survive its launch-time update check. */
 const OFFLINE_WINDOW_MS = 15_000;
 
-const UPDATER_HANDLE_KEY = 'price-check.updater';
+/** A Node inspector switch: --inspect, --inspect-brk, --inspect-port, ... */
+const INSPECT = /^--inspect/;
+
+/** The switch that, with the CLI inspect fuse on, starts main's inspector on any port. */
+const INSPECT_ANY_PORT = '--inspect=0';
+
+/** What Node prints once its inspector listens. */
+const DEBUGGER_LISTENING = /Debugger listening/;
+
+const LAUNCHER = join(dirname(fileURLToPath(import.meta.url)), 'launch-packaged.ts');
+
+/**
+ * The session gate on a running app (c-3): without the cookie, the page and the
+ * alerts data are refused; main's appGet, which carries it, gets the seeded watch.
+ */
+async function expectSessionGate(port: number, control: ControlClient, output: () => string) {
+	for (const path of ['/', '/account/alerts/__data.json']) {
+		const refused = await rawRequest(port, { path });
+		expect(refused.status, `GET ${path} without the session cookie`).toBe(403);
+	}
+	const served = await control.appGet('/');
+	expect(served.status, output()).toBe(200);
+	expect(served.body).toContain(WATCH.title);
+}
+
+/**
+ * Every TCP port the app's main process `pid` listens on, on any address, ascending:
+ * on linux its whole tree (linuxTreeListenPorts), elsewhere main alone, which is where
+ * Node's inspector would listen.
+ */
+async function mainListenPorts(platform: PackagedRun['platform'], pid: number): Promise<number[]> {
+	if (platform === 'linux') return linuxTreeListenPorts(pid);
+	const [file, args]: [string, string[]] =
+		platform === 'darwin'
+			? ['lsof', ['-a', '-p', String(pid), '-iTCP', '-sTCP:LISTEN', '-P', '-n', '-F', 'n']]
+			: [
+					'powershell.exe',
+					[
+						'-NoProfile',
+						'-NonInteractive',
+						'-Command',
+						`Get-NetTCPConnection -State Listen -OwningProcess ${pid} -ErrorAction Stop | ForEach-Object { $_.LocalPort }`
+					]
+				];
+	const { stdout } = await promisify(execFile)(file, args, { encoding: 'utf8', windowsHide: true });
+	// lsof -F n: one 'n<address>:<port>' line per socket; PowerShell: one port per line.
+	const ports = stdout
+		.split(/\r?\n/)
+		.map((line) => {
+			if (platform !== 'darwin') return line.trim();
+			return line.startsWith('n') ? line.slice(line.lastIndexOf(':') + 1) : '';
+		})
+		.filter((port) => /^\d+$/.test(port))
+		.map(Number);
+	return [...new Set(ports)].sort((a, b) => a - b);
+}
 
 test.describe.serial('packaged app', () => {
 	let run: PackagedRun;
@@ -56,9 +138,14 @@ test.describe.serial('packaged app', () => {
 		}
 	});
 
-	const launch = async (fresh = false) => {
-		current = await launchPackaged(run, { fresh });
+	const launch = async (fresh = false, options: LaunchPackagedOptions = {}) => {
+		current = await launchPackaged(run, { ...options, fresh });
 		current.page.on('pageerror', (error) => pageErrors.push(error.message));
+		return current;
+	};
+
+	const running = () => {
+		if (!current) throw new Error('launch 1 is not running');
 		return current;
 	};
 
@@ -76,35 +163,71 @@ test.describe.serial('packaged app', () => {
 		expect(app.page.url()).toBe(`${app.origin}/`);
 		await expect(app.page.getByText('Nothing on your watchlist yet.')).toBeVisible();
 
-		const { isPackaged, userData } = await app.app.evaluate(({ app: electronApp }) => ({
-			isPackaged: electronApp.isPackaged,
-			userData: electronApp.getPath('userData')
-		}));
-		expect(isPackaged).toBe(true);
+		const info = await app.control.info();
+		expect(info.isPackaged).toBe(true);
+		expect(info.origin).toBe(app.origin);
 		// The dir the guard checked and dispose() removes is the one the app uses. Compared
 		// resolved: macOS reports the temp home as /var/..., its real path is /private/var/...
-		expect(realpathSync(userData)).toBe(realpathSync(run.userData));
+		expect(realpathSync(info.userData)).toBe(realpathSync(run.userData));
+	});
+
+	test('no inspector', async () => {
+		const app = running();
+		// The harness reaches main only through the control channel (c-22).
+		expect(readFileSync(LAUNCHER, 'utf8')).not.toMatch(/\b_electron\b/);
+		expect(app.args.filter((arg) => INSPECT.test(arg))).toEqual([]);
+		// What the app itself was started with, Node's own switches included.
+		const { argv, execArgv } = await app.control.info();
+		for (const [name, args] of [
+			['argv', argv],
+			['execArgv', execArgv]
+		] as const) {
+			const inspect = args.filter((arg) => INSPECT.test(arg));
+			expect(inspect, `${name}: ${args.join(' ')}`).toEqual([]);
+		}
+	});
+
+	test('no extra listener', async () => {
+		test.skip(run.platform !== 'linux', 'ss and /proc show every listener of the app on Linux');
+		const app = running();
+		// The server and Chromium's remote debugging only: the control channel adds none (c-27).
+		const expected = [Number(new URL(app.origin).port), app.devtoolsPort].sort((a, b) => a - b);
+		expect(await linuxTreeListenPorts(app.pid)).toEqual(expected);
+	});
+
+	test('key wrapped', async () => {
+		const app = running();
+		const keyFile = join(run.userData, KEY_FILE_NAME);
+		const text = readFileSync(keyFile, 'utf8').trim();
+		const raw = /^[A-Za-z0-9+/]{43}=$/.test(text) && Buffer.from(text, 'base64').length === 32;
+		const { available, backend } = (await app.control.send({ cmd: 'keyBackend' })) as {
+			available: boolean;
+			backend: string | null;
+		};
+		if (run.platform !== 'linux') {
+			// The macOS mock keychain and Windows DPAPI are real backends (c-24).
+			expect(available).toBe(true);
+			expect(raw, 'the key file holds the raw key').toBe(false);
+			expect(text.startsWith(WRAPPED_PREFIX)).toBe(true);
+			return;
+		}
+		if (available && backend !== null && /^(gnome_libsecret|kwallet\d*)$/.test(backend)) {
+			expect(text.startsWith(WRAPPED_PREFIX), `wrapped on ${backend}`).toBe(true);
+			return;
+		}
+		// basic_text (or no encryption): wrapping would protect nothing, so the key stays raw.
+		expect(raw, `raw on ${backend}`).toBe(true);
+		expect(statSync(keyFile).mode & 0o777).toBe(0o600);
 	});
 
 	test('libsql outside asar', async () => {
-		const app = current;
-		if (!app) throw new Error('launch 1 is not running');
-		const { sharedObjects, platform, arch } = await app.app.evaluate(() => {
-			const report: unknown = process.report.getReport();
-			const parsed = (typeof report === 'string' ? JSON.parse(report) : report) as {
-				sharedObjects?: string[];
-			};
-			return {
-				sharedObjects: parsed.sharedObjects ?? [],
-				platform: process.platform,
-				arch: process.arch
-			};
-		});
-		const nativeModules = sharedObjects.filter((path) => path.endsWith('.node'));
+		const app = running();
+		const { platform, arch } = await app.control.info();
+		const nativeModules = await loadedNativeModules(run.platform, app.pid);
 		const libsql = nativeModules.filter((path) => /[\\/]@libsql[\\/]/.test(path));
 		const unpacked = `${sep}app.asar.unpacked${sep}node_modules${sep}@libsql${sep}`;
 		const own = libsql.filter((path) => path.includes(`${unpacked}${platform}-${arch}`));
-		expect(own, `libsql shared objects: ${JSON.stringify(libsql)}`).not.toHaveLength(0);
+		expect(own, `libsql native modules: ${JSON.stringify(libsql)}`).not.toHaveLength(0);
 		// Nothing native comes out of the archive itself (Electron's temp-copy route).
 		for (const path of nativeModules) {
 			expect(path, 'a native module loaded from outside app.asar.unpacked').not.toMatch(
@@ -115,22 +238,12 @@ test.describe.serial('packaged app', () => {
 	});
 
 	test('offline update check', async () => {
-		const app = current;
-		if (!app) throw new Error('launch 1 is not running');
-		const published = await app.app.evaluate(
-			(_electron, key) => (globalThis as Record<symbol, unknown>)[Symbol.for(key)] !== undefined,
-			UPDATER_HANDLE_KEY
-		);
-		// main.ts publishes the handle right after updater.start(), so updates are on.
-		// Its '[updater] updates on for' line is printed during startup, before
-		// launchPackaged attaches to stdout (see PackagedApp.output), so it is not read.
-		expect(published, 'the packaged app published no updater').toBe(true);
+		const app = running();
+		// main.ts builds the updater only when packaged, and starts it once startup is done.
+		await updaterStatus(app.control);
+		expect(app.output()).toContain('[updater] updates on for');
 		// checkNow joins the launch check, or runs one, and waits until it has settled.
-		const state = await app.app.evaluate(async (_electron, key) => {
-			const updater = (globalThis as Record<symbol, UpdaterHandle | undefined>)[Symbol.for(key)];
-			await updater?.checkNow();
-			return updater?.status().state;
-		}, UPDATER_HANDLE_KEY);
+		const { state } = await updaterCheckNow(app.control);
 		expect(state, `updater:\n${app.output()}`).toBe('idle');
 
 		const wait = app.launchedAt + OFFLINE_WINDOW_MS - Date.now();
@@ -160,19 +273,34 @@ test.describe.serial('packaged app', () => {
 		const relaunched = third.page.locator(`li[data-watch-id="${WATCH.id}"]`);
 		await expect(relaunched).toContainText(WATCH.title);
 		await expect(relaunched.locator('p.target')).toHaveText('Target £12.34');
+		await expectSessionGate(Number(new URL(third.origin).port), third.control, third.output);
+		expect(pageErrors).toEqual([]);
+		await quitCleanly();
+	});
+
+	test('inspector refused', async () => {
+		// The switch reaches the app on top of the harness's own arguments.
+		const app = await launch(false, {
+			spawn: (file, args, options) => spawn(file, [...args, INSPECT_ANY_PORT], options)
+		});
+		const { argv } = await app.control.info();
+		expect(argv, 'the app was not started with the switch').toContain(INSPECT_ANY_PORT);
+		await expect(app.page.locator(`li[data-watch-id="${WATCH.id}"]`)).toContainText(WATCH.title);
+		// The CLI inspect fuse is off (c-8): no inspector started, and none listens.
+		expect(app.output()).not.toMatch(DEBUGGER_LISTENING);
+		const expected = [Number(new URL(app.origin).port), app.devtoolsPort].sort((a, b) => a - b);
+		expect(await mainListenPorts(run.platform, app.pid), app.output()).toEqual(expected);
 		expect(pageErrors).toEqual([]);
 		await quitCleanly();
 	});
 
 	test('x64 slice', async () => {
 		test.skip(run.platform !== 'darwin', 'the universal app is macOS only');
-		// A cold Rosetta start, then the request and a graceful exit.
+		// A cold Rosetta start, then the requests and a graceful exit.
 		test.setTimeout(X64_LAUNCH_TIMEOUT_MS + 60_000);
 		const x64 = await spawnX64(run);
 		try {
-			const response = await rawRequest(x64.port);
-			expect(response.status, x64.output()).toBe(200);
-			expect(response.body).toContain(WATCH.title);
+			await expectSessionGate(x64.port, x64.control, x64.output);
 		} finally {
 			await x64.kill();
 		}
@@ -194,9 +322,9 @@ test('refuses existing data', async () => {
 		await expect(
 			launchPackaged(run, {
 				fresh: true,
-				launch: () => {
+				spawn: () => {
 					launches += 1;
-					return Promise.reject(new Error('the guard let a launch through'));
+					throw new Error('the guard let a launch through');
 				}
 			})
 		).rejects.toThrow(/refused, .* already exists/);

@@ -29,6 +29,19 @@ function clientError(kind: 'timeout' | 'network') {
 }
 
 describe('resolveShortLink', () => {
+	it('no plaintext request', async () => {
+		const { client, urls } = fakeClient({
+			'https://amzn.to/abc': { status: 302, location: 'http://amzn.eu/d/xyz' },
+			'https://amzn.eu/d/xyz': { status: 301, location: `http://www.amazon.co.uk/dp/${ASIN}` }
+		});
+
+		const result = await resolveShortLink('http://amzn.to/abc', client);
+
+		expect(result).toEqual({ ok: true, asin: ASIN, canonicalUrl: CANONICAL });
+		expect(urls()).toEqual(['https://amzn.to/abc', 'https://amzn.eu/d/xyz']);
+		for (const url of urls()) expect(new URL(url).protocol, url).toBe('https:');
+	});
+
 	it('single hop', async () => {
 		const { client, request, urls } = fakeClient({
 			'https://amzn.eu/d/x': {

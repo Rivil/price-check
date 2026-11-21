@@ -1,8 +1,23 @@
 // Launches the packaged desktop app for the packaged e2e specs (05-release c-1, c-2,
 // and the update test's c-5, c-6, whose OS probes close this file):
 // the executable PRICE_CHECK_PACKAGED_EXE names (`node scripts/packaged-app.ts exe
-// dist-packaged` prints it), through Playwright's _electron with the Chromium sandbox
-// kept on. Run it with `pnpm test:e2e:packaged` after `pnpm package:desktop`.
+// dist-packaged` prints it), spawned directly with the Chromium sandbox kept on. Run it
+// with `pnpm test:e2e:packaged` after `pnpm package:desktop`.
+//
+// No Node inspector (06-remediate-security c-22; decision cli_inspect_fuse): the
+// shipped app has the CLI inspect fuse off, so no launch here passes --inspect and
+// nothing evaluates code in main. Two channels take its place:
+//   - the window: every launch adds --remote-debugging-port=0, Chromium writes the port
+//     it picked to DevToolsActivePort in userData, and Playwright's
+//     chromium.connectOverCDP attaches to the app's window through it;
+//   - main: PRICE_CHECK_E2E_CONTROL_DIR names a fresh dir per launch, where main's
+//     test-only control channel (src/desktop/e2e-control.ts) answers a fixed set of
+//     commands dropped as files (ControlClient). A launch finds the app through it: it
+//     waits for the <pid> dir main's channel creates and for main's reply to 'pid'. An
+//     app whose main never wires the channel fails every launch there.
+// On Linux a version an update starts inherits the variable at the hand-over (main.ts
+// withControlHandOver), so it answers in the dir of the launch it replaced. On Windows
+// it does not: the NSIS installer starts the app through Explorer, whose env it gets.
 //
 // A packaged app never reads PRICE_CHECK_USER_DATA (src/desktop/app-paths.ts), so a
 // run's data lives where a real install keeps it: packagedUserDataDir() of the OS's
@@ -24,26 +39,29 @@
 // The env is the desktop harness's allowlist (e2e/desktop/launch.ts), never a
 // process.env spread, plus the home overrides and SCHEDULER_DISABLED=1: a packaged
 // launch must never check a shop (r-01). macOS also gets --use-mock-keychain, so
-// Chromium's cookie key never lands in the real login keychain.
+// Chromium's cookie key and the wrapped alerts key never land in the real login
+// keychain.
 //
 // The DB is only ever opened by e2e/desktop/seed-child.ts (insertWatches), a process
 // that has exited before anything is removed: on Windows a libsql handle in this
-// process would keep the file locked (EPERM). On Windows app.process() is Playwright's
-// cmd wrapper, so a kill takes the whole tree.
-import { execFile, spawn, type ChildProcess } from 'node:child_process';
+// process would keep the file locked (EPERM). A kill takes the app's whole tree on
+// Windows (taskkill /T), where Chromium's helpers would otherwise outlive it.
+import { execFile, spawn, type ChildProcess, type SpawnOptions } from 'node:child_process';
 import {
 	existsSync,
 	mkdirSync,
+	mkdtempSync,
 	readdirSync,
 	readFileSync,
 	readlinkSync,
+	renameSync,
 	rmSync,
 	writeFileSync
 } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { _electron, type ElectronApplication, type Page } from '@playwright/test';
+import { chromium, type Browser, type Page } from '@playwright/test';
 import {
 	packagedUserDataDir,
 	isPackagedPlatform,
@@ -55,12 +73,14 @@ import {
 	linuxAppHolders,
 	parseNetTcpListeners,
 	parseProcesses,
+	parseProcStatusPpid,
 	parseSsListeners,
 	type LinuxProc,
 	type ProcessDetail
 } from '../../scripts/process-probe.ts';
-import { LOGIN_LAUNCH_ARG, MARKER_FILE_NAME } from '../../src/desktop/login-item.ts';
-import type { UpdaterHandle, UpdaterStatus } from '../../src/desktop/updater.ts';
+import { E2E_CONTROL_ENV, type AppGetResult, type E2eInfo } from '../../src/desktop/e2e-control.ts';
+import { MARKER_FILE_NAME } from '../../src/desktop/login-item.ts';
+import type { UpdaterStatus } from '../../src/desktop/updater.ts';
 import {
 	DB_FILE_NAME,
 	INHERITED_ENV,
@@ -83,6 +103,12 @@ export const MARKER_SEED = 'e2e: seeded, never registered\n';
 
 /** Printed by src/desktop/main.ts once its server is up. */
 export const LISTENING = /^\[desktop\] listening on (http:\/\/127\.0\.0\.1:(\d+))\s*$/m;
+
+/** Every launchPackaged launch's renderer debugging switch: Chromium picks the port. */
+export const REMOTE_DEBUGGING_ARG = '--remote-debugging-port=0';
+
+/** Where Chromium writes the port REMOTE_DEBUGGING_ARG picked, in userData. */
+const DEVTOOLS_PORT_FILE = 'DevToolsActivePort';
 
 /** The first window's page, once it shows the app's own server. */
 const APP_URL = /^http:\/\/127\.0\.0\.1:\d+\//;
@@ -127,9 +153,11 @@ export type PackagedRun = {
 	args: string[];
 	/** packagedUserDataDir(platform, env, home): where the app keeps its data. */
 	userData: string;
+	/** A temp dir holding each launch's control dir (E2E_CONTROL_ENV). */
+	controlRoot: string;
 	/** True once the first launch created userData: only then may dispose() remove it. */
 	ownsUserData: boolean;
-	/** Removes userData if this run created it, and the temp home if it made one. */
+	/** Removes userData if this run created it, the control dirs, and any temp home. */
 	dispose(): void;
 };
 
@@ -157,6 +185,7 @@ export function packagedEnv(
 export function createPackagedRun(exe: string = packagedExe()): PackagedRun {
 	const platform = hostPlatform();
 	const tempHome = platform === 'win32' ? null : makeTempDir('packaged-home');
+	const controlRoot = makeTempDir('packaged-control');
 	const env = packagedEnv(platform, tempHome);
 	const home = tempHome ?? homedir();
 	const run: PackagedRun = {
@@ -166,10 +195,12 @@ export function createPackagedRun(exe: string = packagedExe()): PackagedRun {
 		env,
 		args: platform === 'darwin' ? ['--use-mock-keychain'] : [],
 		userData: packagedUserDataDir(platform, env, home),
+		controlRoot,
 		ownsUserData: false,
 		dispose() {
 			if (run.ownsUserData) rmSync(run.userData, { recursive: true, force: true });
 			run.ownsUserData = false;
+			rmSync(controlRoot, { recursive: true, force: true });
 			if (tempHome !== null) rmSync(tempHome, { recursive: true, force: true });
 		}
 	};
@@ -191,24 +222,112 @@ export function claimUserData(run: PackagedRun): void {
 	writeFileSync(join(run.userData, MARKER_FILE_NAME), MARKER_SEED, 'utf8');
 }
 
+// ---------------------------------------------------------------------------
+// The control channel's client side (src/desktop/e2e-control.ts holds the layout).
+
+/** A command main's control channel answers, with exactly its fields. */
+export type ControlRequest =
+	| {
+			cmd:
+				| 'pid'
+				| 'info'
+				| 'quit'
+				| 'loginItemOff'
+				| 'updaterStatus'
+				| 'updaterCheckNow'
+				| 'updaterRestart'
+				| 'keyBackend';
+	  }
+	| { cmd: 'appGet'; path: string };
+
+/** How long a command may go unanswered, unless the call says otherwise. */
+const CONTROL_REPLY_MS = 30_000;
+/** How often a reply, a launch's <pid> dir or DevToolsActivePort is looked for. */
+const LAUNCH_POLL_MS = 50;
+
+export type ControlClient = {
+	/** The main process answering: its <pid> dir's name, confirmed by its own reply. */
+	readonly pid: number;
+	/** Sends `request`; resolves with its result, rejects on an error reply or none in time. */
+	send(request: ControlRequest, timeoutMs?: number): Promise<unknown>;
+	info(): Promise<E2eInfo>;
+	/** A GET of the app's own server with its session cookie, which never leaves main. */
+	appGet(path: string, timeoutMs?: number): Promise<AppGetResult>;
+};
+
+const sleep = (ms: number) => new Promise((done) => setTimeout(done, ms));
+
+/**
+ * A client for main process `pid`'s channel under `dir`. Main reads a request as soon
+ * as it appears, so each one is written to a temp name main ignores, then renamed to
+ * req-<n>.json; main's res-<n>.json arrives the same way, and is read and removed.
+ */
+export function controlClient(dir: string, pid: number): ControlClient {
+	const own = join(dir, String(pid));
+	let sent = 0;
+	const send = async (request: ControlRequest, timeoutMs = CONTROL_REPLY_MS) => {
+		sent += 1;
+		const n = sent;
+		mkdirSync(own, { recursive: true });
+		const temp = join(own, `.req-${n}.json.tmp`);
+		writeFileSync(temp, JSON.stringify(request));
+		renameSync(temp, join(own, `req-${n}.json`));
+		const reply = join(own, `res-${n}.json`);
+		const deadline = Date.now() + timeoutMs;
+		while (!existsSync(reply)) {
+			if (Date.now() >= deadline) {
+				throw new Error(
+					`control ${request.cmd}: no reply from pid ${pid} within ${timeoutMs}ms (${own})`
+				);
+			}
+			await sleep(LAUNCH_POLL_MS);
+		}
+		const text = readFileSync(reply, 'utf8');
+		rmSync(reply, { force: true });
+		const response = JSON.parse(text) as
+			{ ok: true; result: unknown } | { ok: false; error: string };
+		if (!response.ok) throw new Error(`control ${request.cmd}: ${response.error}`);
+		return response.result;
+	};
+	return {
+		pid,
+		send,
+		info: async () => (await send({ cmd: 'info' })) as E2eInfo,
+		appGet: async (path, timeoutMs) =>
+			(await send({ cmd: 'appGet', path }, timeoutMs)) as AppGetResult
+	};
+}
+
+/** The <pid> dirs main processes have opened under a control dir. */
+export function controlPids(dir: string): string[] {
+	return existsSync(dir) ? readdirSync(dir).filter((name) => /^\d+$/.test(name)) : [];
+}
+
+// ---------------------------------------------------------------------------
+// Launching.
+
 export type ExitStatus = { code: number | null; signal: NodeJS.Signals | null };
 
 export type PackagedApp = {
-	app: ElectronApplication;
+	/** Main's control channel (see the header). */
+	control: ControlClient;
+	/** This launch's control dir: a version an update starts answers in it too. */
+	controlDir: string;
+	/** The CDP connection to the app's renderer. */
+	browser: Browser;
 	/** The first window, on the app's own server. */
 	page: Page;
 	/** http://127.0.0.1:<port>, from the first window's URL. */
 	origin: string;
+	/** The port Chromium's remote debugging listens on (DevToolsActivePort). */
+	devtoolsPort: number;
+	/** The command-line arguments the app was spawned with. */
+	args: readonly string[];
 	/** Date.now() just before the launch. */
 	launchedAt: number;
-	/** The Electron main process's pid (on win32 not app.process(), the cmd wrapper's). */
+	/** The Electron main process's pid, as main itself reports it. */
 	pid: number;
-	/**
-	 * What the app wrote to stdout and stderr since launchPackaged attached, once
-	 * Playwright's launch returned. An executablePath launch has no Playwright loader
-	 * holding back Electron's 'ready', so the app's startup lines are usually gone by
-	 * then: never assert on a line printed during startup.
-	 */
+	/** Everything the app wrote to stdout and stderr since it was spawned. */
 	output(): string;
 	/** Whether the app's process is still running. */
 	running(): boolean;
@@ -224,11 +343,14 @@ export type PackagedApp = {
 	quit(): Promise<ExitStatus>;
 };
 
+/** How a launch starts its process: node's spawn, or a spec's stand-in. */
+export type SpawnApp = (file: string, args: string[], options: SpawnOptions) => ChildProcess;
+
 export type LaunchPackagedOptions = {
 	/** The first launch of the run: claims userData (see claimUserData). */
 	fresh?: boolean;
-	/** Playwright's launcher; a spec may swap it to prove a refusal launches nothing. */
-	launch?: (typeof _electron)['launch'];
+	/** Starts the process; a spec may swap it to prove a refusal launches nothing. */
+	spawn?: SpawnApp;
 	/** Added to run.env for this launch only (OUTPUT_CAPTURE_ENV). */
 	env?: Record<string, string>;
 };
@@ -256,7 +378,8 @@ function exitOf(child: ChildProcess): Promise<ExitStatus> {
 
 /** Kills `child` and everything it started (see treeKillCommand), then waits for its exit. */
 async function killTree(child: ChildProcess): Promise<void> {
-	if (!isRunning(child)) return;
+	// A process that never started (spawn's 'error') has nothing to kill, and no exit.
+	if (child.pid === undefined || !isRunning(child)) return;
 	const tree = treeKillCommand(child.pid);
 	if (tree) {
 		await new Promise<void>((done) => {
@@ -286,10 +409,102 @@ function registeredLoginItem(run: PackagedRun): boolean {
 	return !existsSync(marker) || readFileSync(marker, 'utf8') !== MARKER_SEED;
 }
 
-/** Launches the packaged app and waits for its first window on its own server. */
+/** A spawned app process, watched for a failed start or an early exit. */
+type Started = {
+	output(): string;
+	/** Why waiting on the process is pointless (it failed to start, or exited); else null. */
+	ended(): Error | null;
+};
+
+function watchStart(child: ChildProcess, output: () => string): Started {
+	let spawnError: Error | null = null;
+	child.once('error', (error) => {
+		spawnError = error;
+	});
+	return {
+		output,
+		ended() {
+			if (spawnError !== null) return spawnError;
+			if (isRunning(child)) return null;
+			return new Error(
+				`the app exited (code ${child.exitCode}, signal ${child.signalCode}):\n${tail(output())}`
+			);
+		}
+	};
+}
+
+/**
+ * Polls `probe` every LAUNCH_POLL_MS until it gives a value; rejects, naming `what`,
+ * past `deadline` (a Date.now() time) or as soon as the started process has ended.
+ */
+async function untilStarted<T>(
+	started: Started,
+	what: () => string,
+	deadline: number,
+	probe: () => T | null
+): Promise<T> {
+	for (;;) {
+		const value = probe();
+		if (value !== null) return value;
+		const ended = started.ended();
+		if (ended) throw new Error(`${what()}: ${ended.message}`, { cause: ended });
+		if (Date.now() >= deadline) {
+			throw new Error(`${what()}: not within the launch timeout:\n${tail(started.output())}`);
+		}
+		await sleep(LAUNCH_POLL_MS);
+	}
+}
+
+/**
+ * The control channel of the app started with the fresh control dir `dir`: the one
+ * <pid> dir its main creates, once main has answered 'pid' with that pid.
+ */
+async function awaitControl(
+	started: Started,
+	dir: string,
+	deadline: number
+): Promise<ControlClient> {
+	const pid = await untilStarted(
+		started,
+		() => `no control channel opened in ${dir}`,
+		deadline,
+		() => {
+			const pids = controlPids(dir);
+			if (pids.length > 1) throw new Error(`several processes opened ${dir}: ${pids.join(', ')}`);
+			return pids.length === 1 ? Number(pids[0]) : null;
+		}
+	);
+	const control = controlClient(dir, pid);
+	const reply = await control.send({ cmd: 'pid' }, Math.max(deadline - Date.now(), 1));
+	if (reply !== pid) throw new Error(`control: pid dir ${pid} answered pid ${String(reply)}`);
+	return control;
+}
+
+/** The port in userData's DevToolsActivePort once Chromium has written it whole; else null. */
+function devtoolsPortIn(userData: string): number | null {
+	const file = join(userData, DEVTOOLS_PORT_FILE);
+	if (!existsSync(file)) return null;
+	// Line 1 is the port, line 2 the browser target: both there means the write is done.
+	const [port = '', target = ''] = readFileSync(file, 'utf8').split(/\r?\n/);
+	if (!/^\d+$/.test(port.trim()) || !target.startsWith('/devtools/browser/')) return null;
+	return Number(port.trim());
+}
+
+/** The app's window, once it shows the app's own server. */
+function appWindow(started: Started, browser: Browser, deadline: number): Promise<Page> {
+	const pages = () => browser.contexts().flatMap((context) => context.pages());
+	return untilStarted(
+		started,
+		() => `no window on the app's server (pages: ${JSON.stringify(pages().map((p) => p.url()))})`,
+		deadline,
+		() => pages().find((page) => APP_URL.test(page.url())) ?? null
+	);
+}
+
+/** Launches the packaged app and waits for its control channel and its first window. */
 export async function launchPackaged(
 	run: PackagedRun,
-	{ fresh = false, launch = _electron.launch.bind(_electron), env = {} }: LaunchPackagedOptions = {}
+	{ fresh = false, spawn: spawnApp = spawn, env = {} }: LaunchPackagedOptions = {}
 ): Promise<PackagedApp> {
 	// Before anything starts: a refused launch must never reach the app.
 	if (fresh) claimUserData(run);
@@ -297,72 +512,92 @@ export async function launchPackaged(
 		throw new Error('launchPackaged: relaunch refused, this run has not claimed userData');
 	}
 
+	const controlDir = mkdtempSync(join(run.controlRoot, 'launch-'));
+	const args = [...run.args, REMOTE_DEBUGGING_ARG];
+	// One left by the previous launch would name a port nothing listens on any more.
+	rmSync(join(run.userData, DEVTOOLS_PORT_FILE), { force: true });
 	const launchedAt = Date.now();
-	let app: ElectronApplication | undefined;
+	const deadline = launchedAt + LAUNCH_TIMEOUT_MS;
+	const child = spawnApp(run.exe, args, {
+		cwd: run.home,
+		env: { ...run.env, ...env, [E2E_CONTROL_ENV]: controlDir },
+		stdio: ['ignore', 'pipe', 'pipe']
+	});
+	const output = collectOutput(child);
+	const started = watchStart(child, output);
+	let exitedAt: number | null = null;
+	child.once('exit', () => {
+		exitedAt = Date.now();
+	});
+	let browser: Browser | undefined;
 	try {
-		app = await launch({
-			executablePath: run.exe,
-			args: run.args,
-			env: { ...run.env, ...env },
-			cwd: run.home,
-			// Keep Chromium's sandbox on Linux too: Playwright would otherwise add --no-sandbox.
-			chromiumSandbox: true,
-			timeout: LAUNCH_TIMEOUT_MS
+		const control = await awaitControl(started, controlDir, deadline);
+		const devtoolsPort = await untilStarted(
+			started,
+			() => `no ${DEVTOOLS_PORT_FILE} in ${run.userData}`,
+			deadline,
+			() => devtoolsPortIn(run.userData)
+		);
+		browser = await chromium.connectOverCDP(`http://127.0.0.1:${devtoolsPort}`, {
+			timeout: Math.max(deadline - Date.now(), 1),
+			// The app's own session as it is: no download or emulation overrides on it.
+			noDefaults: true
 		});
-		const child = app.process();
-		const output = collectOutput(child);
-		let exitedAt: number | null = null;
-		child.once('exit', () => {
-			exitedAt = Date.now();
-		});
-		const page = await app.firstWindow({ timeout: LAUNCH_TIMEOUT_MS });
-		await page.waitForURL(APP_URL, { timeout: LAUNCH_TIMEOUT_MS });
+		const connected = browser;
+		const page = await appWindow(started, connected, deadline);
 		const origin = new URL(page.url()).origin;
-		const pid = await app.evaluate(() => process.pid);
 
-		const launched = app;
 		let quitting: Promise<ExitStatus> | undefined;
 		const quit = () => {
 			quitting ??= (async () => {
-				if (!isRunning(child)) return exitOf(child);
-				if (registeredLoginItem(run)) {
-					await launched.evaluate(
-						({ app: electronApp }, args) => {
-							electronApp.setLoginItemSettings({ openAtLogin: false, args });
-						},
-						run.platform === 'win32' ? [LOGIN_LAUNCH_ARG] : []
-					);
-				}
-				const exit = exitOf(child);
-				// The quit is asynchronous (before-quit runs the shutdown), so this usually returns
-				// first. It can also reject because the exiting app drops Playwright's connection
-				// mid-call, so a rejection is not a failure by itself: the exit decides, and a
-				// missed exit reports the rejection with it.
-				let quitError: unknown;
-				await launched
-					.evaluate(({ app: electronApp }) => electronApp.quit())
-					.catch((error: unknown) => {
+				try {
+					if (!isRunning(child)) return await exitOf(child);
+					let loginItemError: unknown;
+					if (registeredLoginItem(run)) {
+						await control.send({ cmd: 'loginItemOff' }).catch((error: unknown) => {
+							loginItemError = error;
+						});
+					}
+					const exit = exitOf(child);
+					// Main writes the reply before it starts quitting, so a rejection means the
+					// channel is gone, not a failure by itself: the exit decides, and a missed exit
+					// reports the rejection with it.
+					let quitError: unknown;
+					await control.send({ cmd: 'quit' }, QUIT_TIMEOUT_MS).catch((error: unknown) => {
 						quitError = error;
 					});
-				const outcome = await withDeadline(exit, QUIT_TIMEOUT_MS);
-				if (outcome === 'timeout') {
-					await killTree(child);
-					const cause =
-						quitError === undefined ? '' : ` (app.quit() call failed: ${String(quitError)})`;
-					throw new Error(
-						`launchPackaged: the app did not quit within ${QUIT_TIMEOUT_MS}ms${cause}:\n${tail(output())}`
-					);
+					const outcome = await withDeadline(exit, QUIT_TIMEOUT_MS);
+					if (outcome === 'timeout') {
+						await killTree(child);
+						const cause =
+							quitError === undefined ? '' : ` (quit command failed: ${String(quitError)})`;
+						throw new Error(
+							`launchPackaged: the app did not quit within ${QUIT_TIMEOUT_MS}ms${cause}:\n${tail(output())}`
+						);
+					}
+					if (loginItemError !== undefined) {
+						throw new Error(
+							`launchPackaged: the app registered a login item, and turning it off failed: ${String(loginItemError)}`
+						);
+					}
+					return outcome;
+				} finally {
+					// The app has exited by now: this only drops Playwright's end of the connection.
+					await connected.close().catch(() => undefined);
 				}
-				return outcome;
 			})();
 			return quitting;
 		};
 		return {
-			app: launched,
+			control,
+			controlDir,
+			browser: connected,
 			page,
 			origin,
+			devtoolsPort,
+			args,
 			launchedAt,
-			pid,
+			pid: control.pid,
 			output,
 			running: () => isRunning(child),
 			exited: () => exitOf(child),
@@ -370,13 +605,18 @@ export async function launchPackaged(
 			quit
 		};
 	} catch (error) {
-		if (app) await killTree(app.process());
+		await killTree(child);
+		// The app is gone, so this only drops Playwright's end of the connection; a failure
+		// here says nothing the launch error rethrown below does not.
+		await browser?.close().catch(() => undefined);
 		throw error;
 	}
 }
 
 export type SpawnedApp = {
 	child: ChildProcess;
+	/** Main's control channel (see the header). */
+	control: ControlClient;
 	/** http://127.0.0.1:<port>, from the listening line. */
 	origin: string;
 	port: number;
@@ -387,20 +627,22 @@ export type SpawnedApp = {
 
 /**
  * darwin: starts the universal app's x86_64 slice under Rosetta with
- * `/usr/bin/arch -x86_64 <exe>`, outside Playwright (which puts --inspect before user
- * arguments, and arch rejects that), and waits for main.ts's listening line. The run
- * must already own its userData; the app runs in its own process group.
+ * `/usr/bin/arch -x86_64 <exe>`, with main's control channel and no window
+ * connection, and waits for main.ts's listening line and main's reply to 'pid'. The
+ * run must already own its userData; the app runs in its own process group.
  */
 export async function spawnX64(run: PackagedRun): Promise<SpawnedApp> {
 	if (run.platform !== 'darwin') throw new Error('spawnX64: darwin only');
 	if (!run.ownsUserData) throw new Error('spawnX64: refused, this run has not claimed userData');
+	const controlDir = mkdtempSync(join(run.controlRoot, 'x64-'));
 	const child = spawn('/usr/bin/arch', ['-x86_64', run.exe, ...run.args], {
 		cwd: run.home,
-		env: run.env,
+		env: { ...run.env, [E2E_CONTROL_ENV]: controlDir },
 		stdio: ['ignore', 'pipe', 'pipe'],
 		detached: true
 	});
 	const output = collectOutput(child);
+	const started = watchStart(child, output);
 	const group = child.pid;
 
 	let killing: Promise<ExitStatus> | undefined;
@@ -424,56 +666,55 @@ export async function spawnX64(run: PackagedRun): Promise<SpawnedApp> {
 	};
 
 	try {
-		const { origin, port } = await new Promise<{ origin: string; port: number }>((done, fail) => {
-			const check = () => {
-				const match = LISTENING.exec(output());
-				if (!match) return;
-				cleanup();
-				done({ origin: match[1], port: Number(match[2]) });
-			};
-			const onExit = (code: number | null, signal: NodeJS.Signals | null) => {
-				cleanup();
-				fail(
-					new Error(
-						`spawnX64: the app exited (code ${code}, signal ${signal}) before listening:\n${tail(output())}`
-					)
-				);
-			};
-			const onError = (error: Error) => {
-				cleanup();
-				fail(error);
-			};
-			const timer = setTimeout(() => {
-				cleanup();
-				fail(
-					new Error(
-						`spawnX64: no listening line after ${X64_LAUNCH_TIMEOUT_MS}ms:\n${tail(output())}`
-					)
-				);
-			}, X64_LAUNCH_TIMEOUT_MS);
-			const cleanup = () => {
-				clearTimeout(timer);
-				child.stdout?.off('data', check);
-				child.stderr?.off('data', check);
-				child.off('exit', onExit);
-				child.off('error', onError);
-			};
-			child.stdout?.on('data', check);
-			child.stderr?.on('data', check);
-			child.once('exit', onExit);
-			child.once('error', onError);
-			check();
-		});
-		return { child, origin, port, output, kill };
+		const listening = await untilStarted(
+			started,
+			() => 'spawnX64: no listening line',
+			Date.now() + X64_LAUNCH_TIMEOUT_MS,
+			() => LISTENING.exec(output())
+		);
+		const control = await awaitControl(started, controlDir, Date.now() + CONTROL_REPLY_MS);
+		return { child, control, origin: listening[1], port: Number(listening[2]), output, kill };
 	} catch (error) {
-		await kill();
+		// A process that never started has no group to signal and no exit to wait for.
+		if (group !== undefined) await kill();
 		throw error;
 	}
 }
 
 // ---------------------------------------------------------------------------
+// Main's updater, through the control channel (src/desktop/updater.ts).
+
+/** The packaged app's updater status; throws when the app built no updater. */
+export async function updaterStatus(control: ControlClient): Promise<UpdaterStatus> {
+	return (await control.send({ cmd: 'updaterStatus' })) as UpdaterStatus;
+}
+
+/** How long a forced update check may take to settle. */
+const CHECK_NOW_MS = 120_000;
+
+/**
+ * Forces an update check (or joins the one in flight), waits for it to settle and
+ * resolves with the status after it; throws when the app built no updater.
+ */
+export async function updaterCheckNow(control: ControlClient): Promise<UpdaterStatus> {
+	return (await control.send({ cmd: 'updaterCheckNow' }, CHECK_NOW_MS)) as UpdaterStatus;
+}
+
+/**
+ * The tray's 'Restart to update'. Main answers before it starts quitting and reports
+ * a failure after that on stderr, so a rejected call is not a failure by itself: the
+ * caller judges by the process's exit.
+ */
+export async function updaterRestart(control: ControlClient): Promise<unknown> {
+	return control.send({ cmd: 'updaterRestart' }).then(
+		() => undefined,
+		(error: unknown) => error
+	);
+}
+
+// ---------------------------------------------------------------------------
 // The packaged update test's probes (05-release c-5, c-6). An update's relaunch is
-// started by the installer, not Playwright, so the test finds it through the OS:
+// started by the installer, not this harness, so the test finds it through the OS:
 //   - win32: Get-Process filtered to the install path inside PowerShell (an unfiltered
 //     listing carries the Idle process, pid 0, which no app process can be), and
 //     Get-NetTCPConnection for the 127.0.0.1 port its main process serves on;
@@ -485,48 +726,6 @@ export async function spawnX64(run: PackagedRun): Promise<SpawnedApp> {
 // One listening port is one instance, however many of the app's processes hold its
 // socket; its pid is the main process among them (scripts/process-probe.ts parses the
 // output and picks it).
-
-/** The updater handle main.ts publishes for a packaged app (src/desktop/updater.ts). */
-const UPDATER_HANDLE_KEY = 'price-check.updater';
-
-/** The packaged app's updater status; throws when the app published no updater. */
-export async function updaterStatus(app: ElectronApplication): Promise<UpdaterStatus> {
-	const status = await app.evaluate(
-		(_electron, key) =>
-			(globalThis as Record<symbol, UpdaterHandle | undefined>)[Symbol.for(key)]?.status(),
-		UPDATER_HANDLE_KEY
-	);
-	if (status === undefined) throw new Error('the packaged app published no updater');
-	return status;
-}
-
-/** Forces an update check (or joins the one in flight) and waits for it to settle. */
-export async function updaterCheckNow(app: ElectronApplication): Promise<void> {
-	const published = await app.evaluate(async (_electron, key) => {
-		const updater = (globalThis as Record<symbol, UpdaterHandle | undefined>)[Symbol.for(key)];
-		await updater?.checkNow();
-		return updater !== undefined;
-	}, UPDATER_HANDLE_KEY);
-	if (!published) throw new Error('the packaged app published no updater');
-}
-
-/**
- * The tray's 'Restart to update'. The app starts quitting at once and may drop
- * Playwright's connection mid-call, so a rejected call is not a failure by itself:
- * the caller judges by the process's exit.
- */
-export async function updaterRestart(app: ElectronApplication): Promise<unknown> {
-	return app
-		.evaluate((_electron, key) => {
-			const updater = (globalThis as Record<symbol, UpdaterHandle | undefined>)[Symbol.for(key)];
-			if (updater === undefined) throw new Error('the packaged app published no updater');
-			updater.restart();
-		}, UPDATER_HANDLE_KEY)
-		.then(
-			() => undefined,
-			(error: unknown) => error
-		);
-}
 
 /** One running instance of the packaged app found through the OS. */
 export type AppInstance = {
@@ -578,6 +777,8 @@ function powershell(script: string, env?: Record<string, string>): Promise<strin
 
 /** Read by the PowerShell filter: the path never goes through command-line quoting. */
 const PROBE_EXE_ENV = 'PRICE_CHECK_PROBE_EXE';
+/** Read by the PowerShell module listing: the pid it lists. */
+const PROBE_PID_ENV = 'PRICE_CHECK_PROBE_PID';
 
 /**
  * Every 127.0.0.1 listener as JSON (empty output when there is none). Get-NetTCPConnection
@@ -689,6 +890,79 @@ export async function linuxListenPorts(pid: number): Promise<number[]> {
 }
 
 /**
+ * Linux process `root` and every process descended from it, by /proc's PPid. Only a
+ * process gone since the listing is skipped: an unreadable one throws (procEntry), as
+ * a descendant dropped from the tree would hide its listeners.
+ */
+function linuxProcessTree(root: number): Set<number> {
+	const children = new Map<number, number[]>();
+	for (const entry of readdirSync('/proc')) {
+		if (!/^\d+$/.test(entry)) continue;
+		const status = procEntry(() => readFileSync(`/proc/${entry}/status`, 'utf8'), false);
+		const ppid = status === null ? null : parseProcStatusPpid(status);
+		if (ppid !== null) children.set(ppid, [...(children.get(ppid) ?? []), Number(entry)]);
+	}
+	const tree = new Set([root]);
+	for (const pid of tree) for (const child of children.get(pid) ?? []) tree.add(child);
+	return tree;
+}
+
+/**
+ * Every TCP port linux process `root` or a process descended from it listens on, on any
+ * address, ascending (06-remediate-security c-27). Read from `ss -Hltnp` directly:
+ * linuxListeners keeps 127.0.0.1 only, and would miss a listener on 0.0.0.0 or [::].
+ */
+export async function linuxTreeListenPorts(root: number): Promise<number[]> {
+	const tree = linuxProcessTree(root);
+	const ports = new Set<number>();
+	for (const line of (await runProbe('ss', ['-Hltnp'])).split(/\r?\n/)) {
+		const fields = line.trim().split(/\s+/);
+		if (fields.length < 6 || fields[0] !== 'LISTEN') continue;
+		const users = fields.slice(5).join(' ');
+		const pids = [...users.matchAll(/\bpid=(\d+)\b/g)].map((match) => Number(match[1]));
+		if (!pids.some((pid) => tree.has(pid))) continue;
+		const local = fields[3];
+		const port = local.slice(local.lastIndexOf(':') + 1);
+		if (/^\d+$/.test(port)) ports.add(Number(port));
+	}
+	return [...ports].sort((a, b) => a - b);
+}
+
+/**
+ * The native modules (.node files) process `pid` has loaded, as the OS lists them:
+ * linux /proc/<pid>/maps, darwin `lsof -p` (mapped libraries are among its files),
+ * win32 the process's Modules. The inspector that once read process.report is gone.
+ */
+export async function loadedNativeModules(
+	platform: PackagedPlatform,
+	pid: number
+): Promise<string[]> {
+	let paths: string[];
+	if (platform === 'linux') {
+		paths = readFileSync(`/proc/${pid}/maps`, 'utf8')
+			.split('\n')
+			.map((line) => (line.includes('/') ? line.slice(line.indexOf('/')) : ''))
+			.map((path) => path.replace(/ \(deleted\)$/, ''));
+	} else if (platform === 'darwin') {
+		// -F n: one 'n<path>' line per open file.
+		paths = (await runProbe('lsof', ['-p', String(pid), '-F', 'n']))
+			.split('\n')
+			.filter((line) => line.startsWith('n'))
+			.map((line) => line.slice(1));
+	} else {
+		const json = await powershell(
+			`(Get-Process -Id $env:${PROBE_PID_ENV}).Modules | ForEach-Object { $_.FileName } | ConvertTo-Json -Compress`,
+			{ [PROBE_PID_ENV]: String(pid) }
+		);
+		const parsed: unknown = json.trim() === '' ? [] : JSON.parse(json);
+		paths = (Array.isArray(parsed) ? parsed : [parsed]).filter(
+			(path): path is string => typeof path === 'string'
+		);
+	}
+	return [...new Set(paths.filter((path) => path.endsWith('.node')))];
+}
+
+/**
  * For a failed step's diagnosis (linux): every process of the AppImage at `appImage`,
  * runtime and FUSE daemon included, listening or not (appImageProcesses), with its
  * executable. Reads what /proc gives; a process it withholds is left out.
@@ -747,7 +1021,7 @@ function signal(pid: number, name: NodeJS.Signals): boolean {
 }
 
 /**
- * Ends an app instance the installer started (no Playwright handle to quit it):
+ * Ends an app instance the installer started (no launch handle to quit it):
  * win32 kills the process tree, linux sends SIGTERM (Electron quits on it); SIGKILL
  * follows past half the deadline. Resolves once it is gone; throws if it outlives
  * that, with taskkill's own failure when it had one.

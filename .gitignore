@@ -15,6 +15,10 @@
 # ~/.claude, and a snapshot is a copy of private memory.
 .dross/memory/
 
+# dross-secure audit output — raw findings, which may describe unfixed holes in
+# this public repo. Machine-local; only the fixes are committed.
+.dross/security/
+
 # mutation reports dross verify's tools write into the work tree (gremlins).
 # Not ignored, a report would count as a change to the tree a verdict
 # measured, and every pass would read stale at ship.

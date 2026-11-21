@@ -29,7 +29,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { _electron, type ElectronApplication } from '@playwright/test';
+import { _electron, type ElectronApplication, type Page } from '@playwright/test';
 import { defaultRegistry } from '../../src/lib/server/shops/index.ts';
 import { DB_FILE_NAME, KEY_FILE_NAME } from '../../src/desktop/app-paths.ts';
 import {
@@ -65,6 +65,16 @@ export const INHERITED_ENV = [
 /** The command line Electron gets: the app path, then any extra arguments. */
 export function electronArgs(extra: string[] = []): string[] {
 	return [REPO_ROOT, ...extra];
+}
+
+/**
+ * Chromium switches every launch and relaunch adds after electronArgs. On macOS,
+ * --use-mock-keychain gives safeStorage a test keychain (06-remediate-security
+ * c-24): the alerts key is still wrapped, but the login keychain is never touched
+ * and no access prompt can hang a run.
+ */
+export function platformSwitches(platform: NodeJS.Platform = process.platform): string[] {
+	return platform === 'darwin' ? ['--use-mock-keychain'] : [];
 }
 
 /**
@@ -134,6 +144,19 @@ export async function ageLastChecks(userData: string, ids: string[], at: Date): 
 	await runSeedChild(['age', userData, JSON.stringify({ ids, at: at.getTime() })]);
 }
 
+/**
+ * A v0.1.5 install in `userData`, written by a child process: a migrated DB with an
+ * SMTP channel sealed under `key` (32 bytes), and alerts.key holding `key` as raw
+ * base64, the form v0.1.5 wrote before keys were wrapped with safeStorage.
+ */
+export async function seedV015(
+	userData: string,
+	key: Buffer,
+	smtp: Record<string, string>
+): Promise<void> {
+	await runSeedChild(['v015', userData, JSON.stringify({ key: key.toString('base64'), smtp })]);
+}
+
 /** Stored rows as JSON (dates as ISO strings, channel config still encrypted). */
 export type DbSnapshot = {
 	watches: Record<string, unknown>[];
@@ -178,6 +201,11 @@ export type DesktopEnvInput = {
 	scheduler?: SchedulerMode;
 	/** Unset by default: the app uses Electron's real Notification class. */
 	notify?: NotifyMode;
+	/**
+	 * A PEM file the app's Node trusts on top of the system CAs (NODE_EXTRA_CA_CERTS),
+	 * so a test SMTP server signed by the test CA verifies. Unset by default.
+	 */
+	caFile?: string;
 };
 
 /** The launched app's whole environment: the allowlist plus the harness's own settings. */
@@ -185,7 +213,8 @@ export function desktopEnv({
 	userData,
 	configHome,
 	scheduler = 'disabled',
-	notify
+	notify,
+	caFile
 }: DesktopEnvInput): Record<string, string> {
 	const env: Record<string, string> = {};
 	for (const name of INHERITED_ENV) {
@@ -197,6 +226,7 @@ export function desktopEnv({
 	// A launched app must never check a real shop (r-01).
 	if (scheduler !== 'unsupported-only') env.SCHEDULER_DISABLED = '1';
 	if (notify !== undefined) env[E2E_NOTIFY_ENV] = notify;
+	if (caFile !== undefined) env.NODE_EXTRA_CA_CERTS = caFile;
 	return env;
 }
 
@@ -227,6 +257,8 @@ export type LaunchOptions = {
 	notify?: NotifyMode;
 	/** How long to wait for the listening line. */
 	timeoutMs?: number;
+	/** Extra CA PEM file for the app's TLS (see DesktopEnvInput.caFile). */
+	caFile?: string;
 };
 
 export type DesktopApp = {
@@ -238,14 +270,20 @@ export type DesktopApp = {
 	port: number;
 	/** The environment the app was launched with. */
 	env: Record<string, string>;
-	/** The arguments handed to electron.launch. */
+	/** The arguments handed to electron.launch, before platformSwitches. */
 	args: string[];
 	/** Everything the app wrote to stdout and stderr so far. */
 	output(): string;
+	/** CSP violations every window has reported so far, as '<directive> <blocked URI>'. */
+	cspViolations(): string[];
+	/** Forgets the violations seen so far: for a spec that causes them on purpose. */
+	clearCspViolations(): void;
 	/**
 	 * Quits through the app (Playwright's close calls app.quit()), waits for the
 	 * process to exit and removes the temp dirs this launch created. Kills the
-	 * process and throws if it outlives the deadline. Safe to call twice.
+	 * process and throws if it outlives the deadline. Then throws if any window
+	 * reported a CSP violation, so every desktop test gates on zero (c-23). Safe to
+	 * call twice.
 	 */
 	close(): Promise<void>;
 };
@@ -327,6 +365,67 @@ function assertBuilt(): void {
 	}
 }
 
+/** What a window's CSP listener logs: this marker, the directive and the blocked URI. */
+export const CSP_VIOLATION_MARKER = '[e2e-csp-violation]';
+/** Chromium's own console line for a CSP violation. */
+const NATIVE_CSP = /Content Security Policy|Refused to (?:load|execute|apply|connect|frame|run)/;
+
+/**
+ * Logs every securitypolicyviolation in the document through the console, once per
+ * document however often it is installed (the init script and the live-window
+ * install below can both reach the first page).
+ */
+export const CSP_LISTENER = `(() => {
+	if (window.__e2eCspListener) return;
+	window.__e2eCspListener = true;
+	document.addEventListener('securitypolicyviolation', (event) => {
+		console.warn(${JSON.stringify(CSP_VIOLATION_MARKER)} + ' ' + event.effectiveDirective + ' ' + event.blockedURI);
+	}, true);
+})();`;
+
+export type CspRecord = { violations: string[]; native: string[] };
+
+/**
+ * Records CSP violations from every window, from the first page on: an init script
+ * for each new document, the listener added to any window already open, and a
+ * console matcher for Chromium's own violation lines in case a listener missed one.
+ */
+async function recordCsp(app: ElectronApplication): Promise<CspRecord> {
+	const record: CspRecord = { violations: [], native: [] };
+	await app.context().addInitScript({ content: CSP_LISTENER });
+	const attach = (page: Page) => {
+		recordCspConsole(page, record);
+		// A window that loaded before the init script was registered.
+		page.evaluate(CSP_LISTENER).catch(() => {
+			// The page closed or navigated mid-install: its next document gets the init script.
+		});
+	};
+	app.on('window', attach);
+	for (const page of app.windows()) attach(page);
+	return record;
+}
+
+/** Adds `page`'s CSP console lines (the listener's and Chromium's own) to `record`. */
+export function recordCspConsole(page: Page, record: CspRecord): void {
+	page.on('console', (message) => {
+		const text = message.text();
+		if (text.startsWith(CSP_VIOLATION_MARKER)) {
+			record.violations.push(text.slice(CSP_VIOLATION_MARKER.length).trim());
+		} else if (NATIVE_CSP.test(text)) {
+			record.native.push(text);
+		}
+	});
+}
+
+/** Throws naming every CSP violation a launch recorded. */
+function assertNoCspViolations(record: CspRecord): void {
+	// A native line with no listener record means the listener missed it: still a failure.
+	const seen = record.violations.length > 0 ? record.violations : record.native;
+	if (seen.length > 0) {
+		throw new Error(`launchDesktop: CSP violation(s) in the app's windows:\n${seen.join('\n')}`);
+	}
+}
+
 /** Launches the app and waits until its server is listening. */
 export async function launchDesktop(options: LaunchOptions = {}): Promise<DesktopApp> {
 	assertBuilt();
@@ -348,11 +447,17 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 		const configHome = own('xdg-config');
 		// Before anything starts: a refused launch must never reach Electron.
 		if (scheduler === 'unsupported-only') await assertOnlyUnsupportedWatches(userData);
-		const env = desktopEnv({ userData, configHome, scheduler, notify: options.notify });
+		const env = desktopEnv({
+			userData,
+			configHome,
+			scheduler,
+			notify: options.notify,
+			caFile: options.caFile
+		});
 		const args = electronArgs(options.args);
 
 		app = await _electron.launch({
-			args,
+			args: [...args, ...platformSwitches()],
 			cwd,
 			env,
 			// Keep Chromium's sandbox on Linux too: Playwright would otherwise add --no-sandbox.
@@ -361,6 +466,7 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 		});
 		const child = app.process();
 		const output = collectOutput(child);
+		const csp = await recordCsp(app);
 		const { origin, port } = await waitForListening(
 			child,
 			output,
@@ -376,10 +482,26 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 				} finally {
 					removeOwned();
 				}
+				assertNoCspViolations(csp);
 			})();
 			return closing;
 		};
-		return { app: launched, userData, cwd, origin, port, env, args, output, close };
+		return {
+			app: launched,
+			userData,
+			cwd,
+			origin,
+			port,
+			env,
+			args,
+			output,
+			close,
+			cspViolations: () => [...csp.violations],
+			clearCspViolations: () => {
+				csp.violations.length = 0;
+				csp.native.length = 0;
+			}
+		};
 	} catch (error) {
 		if (app) await killTree(app.process());
 		removeOwned();
@@ -470,7 +592,7 @@ export type SecondInstance = {
 export function spawnSecondInstance(first: DesktopApp, args: string[] = []): SecondInstance {
 	assertBuilt();
 	const binary = createRequire(import.meta.url)('electron') as string;
-	const child = spawn(binary, electronArgs(args), {
+	const child = spawn(binary, [...electronArgs(args), ...platformSwitches()], {
 		cwd: first.cwd,
 		env: first.env,
 		stdio: ['ignore', 'pipe', 'pipe']

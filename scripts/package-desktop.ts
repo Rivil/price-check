@@ -19,6 +19,13 @@
 // refuses unless the five release_secrets variables are set, naming only the missing
 // ones: electron-builder would otherwise skip notarisation with just a warning.
 //
+// Hardening (06-remediate-security c-8, SEC-03): every build flips the Electron fuses
+// ELECTRON_FUSES names, signed or not, so the app CI tests is the app users get;
+// `verify-packaged.ts fuses` reads them back from each slice. resetAdHocDarwinSignature
+// re-signs ad hoc after the flip, which an unsigned arm64 slice needs to launch at all.
+// The app and every helper are signed with ENTITLEMENTS_PLIST (allow-jit only), never
+// electron-builder's default, which grants disable-library-validation.
+//
 // The builder is a type-only import here; the CLI loads it at run time, so the spec
 // can drive packageDesktop() with a fake build().
 import type { CliOptions, Configuration } from 'electron-builder';
@@ -61,6 +68,25 @@ export const ICON_PNG = `${BUILD_RESOURCES}/icon.png`;
 
 /** ICON_PNG's width and height: the largest size macOS asks for. */
 export const ICON_SIZE = 1024;
+
+/**
+ * The macOS entitlements the app and every helper are signed with: allow-jit only, which
+ * V8 needs under the hardened runtime. Left unset, either falls back to
+ * electron-builder's own template, which also grants disable-library-validation and
+ * allow-unsigned-executable-memory. Never packed: the builder skips buildResources.
+ */
+export const ENTITLEMENTS_PLIST = `${BUILD_RESOURCES}/entitlements.mac.plist`;
+
+/** The Electron fuses every build flips before signing (c-8, SEC-03). */
+export const ELECTRON_FUSES = {
+	runAsNode: false,
+	enableNodeOptionsEnvironmentVariable: false,
+	enableNodeCliInspectArguments: false,
+	grantFileProtocolExtraPrivileges: false,
+	enableEmbeddedAsarIntegrityValidation: true,
+	onlyLoadAppFromAsar: true,
+	resetAdHocDarwinSignature: true
+} as const satisfies NonNullable<Configuration['electronFuses']>;
 
 /** Build outputs the packaged app runs; packaging refuses without them. */
 export const REQUIRED_INPUTS = ['build/handler.js', 'dist-desktop/main.js'] as const;
@@ -192,6 +218,7 @@ export function builderConfig({ version, feedUrl, sign, out }: BuilderConfigInpu
 		// An rc version would otherwise write rc*.yml, not the latest*.yml c-4 publishes.
 		detectUpdateChannel: false,
 		publish: publishTo(feedUrl, sign),
+		electronFuses: { ...ELECTRON_FUSES },
 		mac: {
 			target: [
 				{ target: 'dmg', arch: ['universal'] },
@@ -200,6 +227,9 @@ export function builderConfig({ version, feedUrl, sign, out }: BuilderConfigInpu
 			x64ArchFiles: X64_ARCH_FILES,
 			files: [...PLATFORM_FILES.mac],
 			hardenedRuntime: true,
+			// Absolute: electron-builder hands both paths to codesign as given, against the cwd.
+			entitlements: resolve(ROOT, ENTITLEMENTS_PLIST),
+			entitlementsInherit: resolve(ROOT, ENTITLEMENTS_PLIST),
 			notarize: sign,
 			// null skips signing; unset lets CSC_LINK pick the Developer ID identity.
 			...(sign ? {} : { identity: null })

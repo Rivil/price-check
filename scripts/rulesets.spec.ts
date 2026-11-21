@@ -93,6 +93,41 @@ describe('rulesets', () => {
 	});
 });
 
+// 06-remediate-security c-9: a v* tag can be created, moved or deleted by the admin
+// role alone, so no one else can push a tag that starts a release. Applied with
+// `gh api repos/{owner}/{repo}/rulesets --input .github/rulesets/release-tags.json`;
+// scripts/repo-settings.ts checks the live copy. A tag ruleset gates no CI checks, so
+// it stays out of `rulesets` above, which compares branch checks with ci.yml.
+describe('tag ruleset', () => {
+	const tags = JSON.parse(read('.github/rulesets/release-tags.json')) as Ruleset & {
+		target: string;
+	};
+
+	it('protects exactly the v* tags, actively', () => {
+		expect(tags.target).toBe('tag');
+		expect(tags.enforcement).toBe('active');
+		expect(tags.conditions.ref_name.include).toEqual(['refs/tags/v*']);
+		expect((tags.conditions.ref_name as { exclude?: string[] }).exclude ?? []).toEqual([]);
+	});
+
+	it('blocks creating, moving and deleting a v* tag', () => {
+		expect(tags.rules.map((rule) => rule.type).sort()).toEqual(
+			['creation', 'deletion', 'non_fast_forward', 'update'].sort()
+		);
+	});
+
+	it('only the admin role bypasses it', () => {
+		expect(tags.bypass_actors).toEqual([
+			{ actor_type: 'RepositoryRole', actor_id: 5, bypass_mode: 'always' }
+		]);
+	});
+
+	it('is not one of the branch rulesets compared with ci.yml checks', () => {
+		expect(Object.keys(rulesets).sort()).toEqual(['main', 'milestone']);
+		expect(Object.values(rulesets).every((r) => r.name !== tags.name)).toBe(true);
+	});
+});
+
 // c-1: the gate checks only mean something if their jobs run the right commands.
 describe('ci.yml steps', () => {
 	const yaml = read('.github/workflows/ci.yml');

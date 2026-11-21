@@ -2,10 +2,15 @@
 // per-user Windows install and its shortcut AUMID (c-3), and the packaged layout:
 // app.asar's file set, the per-OS libsql binaries, the stamped version and the
 // update files (c-1, c-4). Layout fixtures are real asars built with @electron/asar.
+// 06's c-8: the fuse wire of every slice and the signed entitlements (SEC-03); fuse
+// fixtures are synthetic wires, with the stock Electron binary as the control.
 import { createPackageWithOptions } from '@electron/asar';
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { FuseV1Options, getCurrentFuseWire } from '@electron/fuses';
+import { SENTINEL } from '@electron/fuses/dist/constants.js';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { finished } from 'node:stream/promises';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { APP_ID } from '../src/desktop/app-id.ts';
 import { GITHUB_RELEASES, PRODUCT_NAME } from './package-desktop.ts';
@@ -21,26 +26,36 @@ import {
 import {
 	aumidCommand,
 	devFileReason,
+	entitlementsCommand,
 	EXPECTED_LIBSQL,
+	FORBIDDEN_ENTITLEMENTS,
+	fuseBinaryPath,
+	helperApps,
 	isFile,
 	listAsar,
 	listTree,
 	macCommands,
 	parseAumid,
 	parseExecutionLevels,
+	parseFuseWires,
 	parseLipoArchs,
 	parseUpdateYaml,
+	readFuseWires,
+	REQUIRED_FUSES,
 	runCli,
 	startMenuShortcut,
 	verifyAppFiles,
 	verifyFeed,
+	verifyFuses,
 	verifyLayout,
 	verifyMac,
 	verifyUpdateFile,
 	verifyWin,
 	type AppEntry,
 	type CliDeps,
+	type FuseWire,
 	type LayoutMode,
+	type MacDeps,
 	type WinDeps
 } from './verify-packaged.ts';
 
@@ -70,6 +85,22 @@ afterEach(() => {
 
 const APP = join('/out', 'mac-universal', `${PRODUCT_NAME}.app`);
 const EXE = join(APP, 'Contents', 'MacOS', PRODUCT_NAME);
+const FRAMEWORKS = join(APP, 'Contents', 'Frameworks');
+/** Contents/Frameworks of an electron-builder app: four helper apps among the frameworks. */
+const FRAMEWORK_NAMES = [
+	'Electron Framework.framework',
+	'Mantle.framework',
+	`${PRODUCT_NAME} Helper.app`,
+	`${PRODUCT_NAME} Helper (GPU).app`,
+	`${PRODUCT_NAME} Helper (Plugin).app`,
+	`${PRODUCT_NAME} Helper (Renderer).app`,
+	'ReactiveObjC.framework',
+	'Squirrel.framework'
+];
+/** listDir for an unsigned run, which must never list anything. */
+const noListing = (): string[] => {
+	throw new Error('an unsigned verifyMac listed a directory');
+};
 const FAT = `Architectures in the fat file: ${EXE} are: x86_64 arm64 \n`;
 const THIN = `Non-fat file: ${EXE} is architecture: arm64\n`;
 const libsqlBinary = (name: string) =>
@@ -126,28 +157,28 @@ describe('macCommands', () => {
 
 describe('verifyMac', () => {
 	const allExist = () => true;
+	/** Unsigned runs only: listing a directory fails the test. */
+	const macDeps = (run: Runner, exists: MacDeps['exists'] = allExist): MacDeps => ({
+		run,
+		exists,
+		listDir: noListing
+	});
 	const lipo = (stdout: string) =>
 		fakeRunner((command) => (command.file === 'lipo' ? { code: 0, stdout, stderr: '' } : OK));
 
 	it('passes a universal executable with both darwin libsql binaries unpacked', async () => {
-		expect(await verifyMac(APP, { signed: false }, { run: lipo(FAT), exists: allExist })).toEqual(
-			[]
-		);
+		expect(await verifyMac(APP, { signed: false }, macDeps(lipo(FAT)))).toEqual([]);
 	});
 
 	it('fails a non-fat arm64 executable', async () => {
-		const violations = await verifyMac(
-			APP,
-			{ signed: false },
-			{ run: lipo(THIN), exists: allExist }
-		);
+		const violations = await verifyMac(APP, { signed: false }, macDeps(lipo(THIN)));
 		expect(violations).toHaveLength(1);
 		expect(violations[0]).toMatch(/not universal.*missing x86_64/);
 	});
 
 	it('fails when lipo itself fails', async () => {
 		const run = fakeRunner(() => ({ code: 1, stdout: '', stderr: "can't open input file" }));
-		const violations = await verifyMac(APP, { signed: false }, { run, exists: allExist });
+		const violations = await verifyMac(APP, { signed: false }, macDeps(run));
 		expect(violations).toEqual([expect.stringMatching(/^lipo -info .* exited 1: can't open/)]);
 	});
 
@@ -155,18 +186,18 @@ describe('verifyMac', () => {
 		const lipoCommand = formatCommand({ file: 'lipo', args: ['-info', EXE] });
 		const failing = (stderr: string) => fakeRunner(() => ({ code: 1, stdout: '', stderr }));
 		const noisy = failing('\nline1\nline2\r\nline3\nline4\n');
-		expect(await verifyMac(APP, { signed: false }, { run: noisy, exists: allExist })).toEqual([
+		expect(await verifyMac(APP, { signed: false }, macDeps(noisy))).toEqual([
 			`${lipoCommand} exited 1: line2 | line3 | line4`
 		]);
 		const silent = failing('');
-		expect(await verifyMac(APP, { signed: false }, { run: silent, exists: allExist })).toEqual([
+		expect(await verifyMac(APP, { signed: false }, macDeps(silent))).toEqual([
 			`${lipoCommand} exited 1`
 		]);
 	});
 
 	it('names the architectures lipo shows and the ones missing', async () => {
 		const run = lipo(`Architectures in the fat file: ${EXE} are: i386 ppc\n`);
-		expect(await verifyMac(APP, { signed: false }, { run, exists: allExist })).toEqual([
+		expect(await verifyMac(APP, { signed: false }, macDeps(run))).toEqual([
 			`${EXE} is not universal: lipo shows [i386, ppc], missing arm64, x86_64`
 		]);
 	});
@@ -175,14 +206,14 @@ describe('verifyMac', () => {
 		'fails when the unpacked %s index.node is missing',
 		async (name) => {
 			const exists = (path: string) => path !== libsqlBinary(name);
-			const violations = await verifyMac(APP, { signed: false }, { run: lipo(FAT), exists });
+			const violations = await verifyMac(APP, { signed: false }, macDeps(lipo(FAT), exists));
 			expect(violations).toEqual([`missing unpacked libsql binary ${libsqlBinary(name)}`]);
 		}
 	);
 
 	it('runs no signing check unless signed', async () => {
 		const run = lipo(FAT);
-		await verifyMac(APP, { signed: false }, { run, exists: allExist });
+		await verifyMac(APP, { signed: false }, macDeps(run));
 		expect(run.calls.map((c) => c.file)).toEqual(['lipo']);
 	});
 });
@@ -197,7 +228,9 @@ describe('runCli mac', () => {
 		env: {},
 		run,
 		exists: () => true,
+		listDir: () => FRAMEWORK_NAMES,
 		readInstaller: () => '',
+		readWires: () => [],
 		stdout: (line) => lines.push(`out ${line}`),
 		stderr: (line) => lines.push(`err ${line}`)
 	});
@@ -207,7 +240,16 @@ describe('runCli mac', () => {
 			command.file === 'lipo' ? { code: 0, stdout: FAT, stderr: '' } : OK
 		);
 		expect(await runCli(['mac', APP, '--signed'], deps(run))).toBe(0);
-		expect(run.calls.map((c) => c.file)).toEqual(['lipo', 'codesign', 'spctl', 'xcrun']);
+		expect(run.calls.slice(0, 4).map((c) => c.file)).toEqual([
+			'lipo',
+			'codesign',
+			'spctl',
+			'xcrun'
+		]);
+		const app = resolve(APP);
+		const bundles = [app, ...helperApps(app, FRAMEWORK_NAMES)];
+		expect(bundles).toHaveLength(5);
+		expect(run.calls.slice(4)).toEqual(bundles.map(entitlementsCommand));
 	});
 
 	it.each(['codesign', 'spctl', 'xcrun'])('exits 1 when %s exits 1', async (failing) => {
@@ -228,7 +270,8 @@ describe('runCli mac', () => {
 				: { code: 1, stdout: '', stderr: 'no' }
 		);
 		expect(await runCli(['mac', APP, '--signed'], deps(run))).toBe(1);
-		expect(lines).toContain('err verify-packaged: mac: 4 violation(s)');
+		// Not universal, three signing checks, and the app's and four helpers' entitlements.
+		expect(lines).toContain('err verify-packaged: mac: 9 violation(s)');
 	});
 
 	it('names the subcommand even when an option comes first', async () => {
@@ -258,6 +301,384 @@ describe('runCli mac', () => {
 			expect(run.calls).toEqual([]);
 		}
 	);
+});
+
+// ---------------------------------------------------------------- entitlements
+
+const plist = (keys: string[]) =>
+	'<?xml version="1.0" encoding="UTF-8"?>\n' +
+	'<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n' +
+	`<plist version="1.0"><dict>${keys.map((k) => `<key>${k}</key><true/>`).join('')}</dict></plist>`;
+const ALLOW_JIT = 'com.apple.security.cs.allow-jit';
+const DLV = 'com.apple.security.cs.disable-library-validation';
+
+describe('helperApps', () => {
+	it('keeps only the .app bundles, sorted, as paths in Contents/Frameworks', () => {
+		expect(helperApps(APP, FRAMEWORK_NAMES)).toEqual([
+			join(FRAMEWORKS, `${PRODUCT_NAME} Helper (GPU).app`),
+			join(FRAMEWORKS, `${PRODUCT_NAME} Helper (Plugin).app`),
+			join(FRAMEWORKS, `${PRODUCT_NAME} Helper (Renderer).app`),
+			join(FRAMEWORKS, `${PRODUCT_NAME} Helper.app`)
+		]);
+		expect(helperApps(APP, ['Electron Framework.framework', 'x.application'])).toEqual([]);
+	});
+});
+
+describe('verifyMac entitlements', () => {
+	const HELPERS = helperApps(APP, FRAMEWORK_NAMES);
+	const JIT_ONLY: RunResult = { code: 0, stdout: plist([ALLOW_JIT]), stderr: '' };
+	const isEntitlements = (command: Command) =>
+		command.file === 'codesign' && command.args.includes('--entitlements');
+	/** codesign -d answers per bundle (its last argument); every other check passes. */
+	const signedRun = (entitlements: (bundle: string) => RunResult) =>
+		fakeRunner((command) => {
+			if (command.file === 'lipo') return { code: 0, stdout: FAT, stderr: '' };
+			return isEntitlements(command) ? entitlements(command.args[command.args.length - 1]) : OK;
+		});
+	const only = (bundle: string, result: RunResult) =>
+		signedRun((b) => (b === bundle ? result : JIT_ONLY));
+	const verify = (run: Runner, listDir: (dir: string) => string[] = () => FRAMEWORK_NAMES) =>
+		verifyMac(APP, { signed: true }, { run, exists: () => true, listDir });
+
+	it('reads the entitlements as XML on stdout, from a bundle', () => {
+		expect(entitlementsCommand(APP)).toEqual({
+			file: 'codesign',
+			args: ['-d', '--entitlements', '-', '--xml', APP]
+		});
+		expect(FORBIDDEN_ENTITLEMENTS).toEqual([DLV]);
+	});
+
+	it('passes the app and every helper holding only allow-jit', async () => {
+		const run = signedRun(() => JIT_ONLY);
+		const listed: string[] = [];
+		const listDir = (dir: string) => {
+			listed.push(dir);
+			return FRAMEWORK_NAMES;
+		};
+		expect(await verify(run, listDir)).toEqual([]);
+		expect(listed).toEqual([FRAMEWORKS]);
+		expect(run.calls.filter(isEntitlements)).toEqual([APP, ...HELPERS].map(entitlementsCommand));
+	});
+
+	it('refuses disable-library-validation on the app, alone or beside allow-jit, on stdout or stderr', async () => {
+		const want = [`${APP} is signed with the entitlement ${DLV}`];
+		for (const result of [
+			{ code: 0, stdout: plist([DLV]), stderr: '' },
+			{ code: 0, stdout: plist([ALLOW_JIT, DLV]), stderr: '' },
+			{ code: 0, stdout: '', stderr: `Executable=${EXE}\n${plist([DLV])}` }
+		]) {
+			expect(await verify(only(APP, result))).toEqual(want);
+		}
+	});
+
+	it.each(HELPERS)('refuses disable-library-validation on the helper %s alone', async (helper) => {
+		const run = only(helper, { code: 0, stdout: plist([ALLOW_JIT, DLV]), stderr: '' });
+		expect(await verify(run)).toEqual([`${helper} is signed with the entitlement ${DLV}`]);
+	});
+
+	it('refuses disable-library-validation even when set false', async () => {
+		const xml = plist([]).replace('<dict>', `<dict><key>${DLV}</key><false/>`);
+		expect(await verify(only(APP, { code: 0, stdout: xml, stderr: '' }))).toHaveLength(1);
+	});
+
+	it("fails when the app's or a helper's entitlements cannot be read", async () => {
+		const unsigned: RunResult = { code: 1, stdout: '', stderr: 'code object is not signed at all' };
+		for (const bundle of [APP, HELPERS[2]]) {
+			expect(await verify(only(bundle, unsigned))).toEqual([
+				`${formatCommand(entitlementsCommand(bundle))} exited 1: code object is not signed at all`
+			]);
+		}
+	});
+
+	it('fails closed when Contents/Frameworks holds no helper or cannot be listed', async () => {
+		const run = signedRun(() => JIT_ONLY);
+		expect(await verify(run, () => ['Electron Framework.framework'])).toEqual([
+			`no helper apps in ${FRAMEWORKS}`
+		]);
+		const missing = () => {
+			throw new Error('ENOENT: no such file or directory');
+		};
+		expect(await verify(run, missing)).toEqual([
+			`cannot list the helper apps in ${FRAMEWORKS}: ENOENT: no such file or directory`
+		]);
+		// The app's own entitlements are still read when the helpers cannot be.
+		expect(await verify(only(APP, { code: 0, stdout: plist([DLV]), stderr: '' }), missing)).toEqual(
+			[
+				`cannot list the helper apps in ${FRAMEWORKS}: ENOENT: no such file or directory`,
+				`${APP} is signed with the entitlement ${DLV}`
+			]
+		);
+	});
+
+	it('never reads entitlements or lists helpers for an unsigned app', async () => {
+		const run = signedRun(() => ({ code: 0, stdout: plist([DLV]), stderr: '' }));
+		expect(
+			await verifyMac(APP, { signed: false }, { run, exists: () => true, listDir: noListing })
+		).toEqual([]);
+		expect(run.calls.filter(isEntitlements)).toEqual([]);
+		expect(run.calls.map((c) => c.file)).toEqual(['lipo']);
+	});
+});
+
+// ---------------------------------------------------------------- fuses
+
+const ON = 49; // '1'
+const OFF = 48; // '0'
+const REMOVED = 114; // 'r'
+
+/** A V1 wire with all six c-8 fuses right; indices 1, 6 and 8 are fuses c-8 leaves alone. */
+const GOOD_STATES = [OFF, ON, OFF, OFF, ON, ON, OFF, OFF, ON];
+const wire = (states = GOOD_STATES, version = 1): FuseWire => ({ version, states: [...states] });
+const flipped = (index: number, state: number) =>
+	wire(GOOD_STATES.map((s, i) => (i === index ? state : s)));
+const readerOf = (...wires: FuseWire[]) => ({ readWires: () => wires });
+
+/** The six fuses c-8 pins, written out here so an entry dropped from REQUIRED_FUSES fails. */
+const C8_FUSES: [string, boolean][] = [
+	['RunAsNode', false],
+	['EnableNodeOptionsEnvironmentVariable', false],
+	['EnableNodeCliInspectArguments', false],
+	['GrantFileProtocolExtraPrivileges', false],
+	['EnableEmbeddedAsarIntegrityValidation', true],
+	['OnlyLoadAppFromAsar', true]
+];
+const indexOf = (name: string) => FuseV1Options[name as keyof typeof FuseV1Options];
+
+/** Bytes of a binary: filler, then each wire after a sentinel, as Electron lays it out. */
+function binaryWith(...wires: number[][]): Buffer {
+	const parts: Buffer[] = [Buffer.from('\u0000ÏMach-O filler')];
+	for (const bytes of wires) {
+		parts.push(Buffer.from(SENTINEL), Buffer.from(bytes), Buffer.from('more filler'));
+	}
+	return Buffer.concat(parts);
+}
+const v1 = (states = GOOD_STATES) => [1, states.length, ...states];
+const BIN = '/out/linux-unpacked/price-check';
+
+describe('verifyFuses', () => {
+	it('pins exactly the six c-8 fuses', () => {
+		expect(REQUIRED_FUSES.map(([fuse, on]) => [FuseV1Options[fuse], on])).toEqual(C8_FUSES);
+	});
+
+	it('passes an all-correct wire, in one slice or two', async () => {
+		expect(await verifyFuses(BIN, readerOf(wire()))).toEqual([]);
+		expect(await verifyFuses(BIN, readerOf(wire(), wire()))).toEqual([]);
+	});
+
+	it.each(C8_FUSES)('fails %s flipped the wrong way, naming it', async (name, on) => {
+		const violations = await verifyFuses(BIN, readerOf(flipped(indexOf(name), on ? OFF : ON)));
+		expect(violations).toEqual([
+			`${BIN}: fuse ${name} is ${on ? 'off' : 'on'}, must be ${on ? 'on' : 'off'}`
+		]);
+	});
+
+	it.each(C8_FUSES)('fails %s removed from the wire', async (name) => {
+		const violations = await verifyFuses(BIN, readerOf(flipped(indexOf(name), REMOVED)));
+		expect(violations).toEqual([expect.stringContaining(`fuse ${name} is removed`)]);
+	});
+
+	it('fails a fuse the wire is too short to hold', async () => {
+		const violations = await verifyFuses(BIN, readerOf(wire(GOOD_STATES.slice(0, 5))));
+		expect(violations).toEqual([
+			`${BIN}: fuse GrantFileProtocolExtraPrivileges is missing from the wire`,
+			`${BIN}: fuse OnlyLoadAppFromAsar is missing from the wire`
+		]);
+		expect(await verifyFuses(BIN, readerOf(wire([])))).toHaveLength(6);
+	});
+
+	it('fails a bad fuse in the second slice only, naming the slice', async () => {
+		const bad = flipped(FuseV1Options.RunAsNode, ON);
+		const violations = await verifyFuses(BIN, readerOf(wire(), bad));
+		expect(violations).toContain(`${BIN}: fuse RunAsNode is on, must be off (slice 2 of 2)`);
+		expect(violations.some((v) => v.includes('slices disagree'))).toBe(true);
+	});
+
+	it('fails two slices that disagree only on a fuse c-8 leaves alone', async () => {
+		const other = flipped(FuseV1Options.EnableCookieEncryption, OFF);
+		expect(await verifyFuses(BIN, readerOf(wire(), other))).toEqual([
+			expect.stringMatching(/fuse wire slices disagree: slice 1 is v1 \[.*\], slice 2 is v1/)
+		]);
+	});
+
+	it('fails closed on no wire, an unknown version or a reader that throws', async () => {
+		expect(await verifyFuses(BIN, readerOf())).toEqual([`${BIN}: no fuse wire`]);
+		expect(await verifyFuses(BIN, readerOf(wire(GOOD_STATES, 2)))).toEqual([
+			`${BIN}: unknown fuse wire version 2`
+		]);
+		const throwing = {
+			readWires: () => {
+				throw new Error('ENOENT');
+			}
+		};
+		expect(await verifyFuses(BIN, throwing)).toEqual([`${BIN}: ENOENT`]);
+		const rejecting = { readWires: () => Promise.reject(new Error('EACCES')) };
+		expect(await verifyFuses(BIN, rejecting)).toEqual([`${BIN}: EACCES`]);
+	});
+});
+
+describe('parseFuseWires', () => {
+	const fromBytes = (bytes: Buffer) => ({ readWires: () => parseFuseWires(bytes) });
+
+	it('reads one wire per sentinel, every slice of a universal binary', () => {
+		const wrong = GOOD_STATES.map((s, i) => (i === 0 ? ON : s));
+		expect(parseFuseWires(binaryWith(v1()))).toEqual([wire()]);
+		expect(parseFuseWires(binaryWith(v1(), v1(wrong), v1()))).toEqual([
+			wire(),
+			wire(wrong),
+			wire()
+		]);
+	});
+
+	it('reads what @electron/fuses reads for the first slice', async () => {
+		const path = join(tempDir('fuses-'), 'electron');
+		writeFileSync(path, binaryWith(v1(), v1()));
+		const library = await getCurrentFuseWire(path);
+		const ours = parseFuseWires(binaryWith(v1(), v1()))[0];
+		expect(library.version).toBe(String(ours.version));
+		const states = library as unknown as Record<number, number>;
+		expect(ours.states.map((_, i) => states[i])).toEqual(ours.states);
+	});
+
+	it.each([
+		['no sentinel', Buffer.from('a binary with no fuses at all'), /no fuse wire sentinel/],
+		['a sentinel at the end of the file', binaryWith([]).subarray(0, -11), /truncated/],
+		[
+			'a version and no length',
+			Buffer.concat([Buffer.from(SENTINEL), Buffer.from([1])]),
+			/truncated/
+		],
+		[
+			'fewer states than the length says',
+			Buffer.concat([Buffer.from(SENTINEL), Buffer.from([1, 9, OFF, OFF, OFF])]),
+			/truncated/
+		],
+		['an unknown version', binaryWith([2, 9, ...GOOD_STATES]), /unknown version 2/]
+	])('fails closed on %s, through verifyFuses', async (_case, bytes, reason) => {
+		expect(() => parseFuseWires(bytes)).toThrow(reason);
+		const violations = await verifyFuses(BIN, fromBytes(bytes));
+		expect(violations).toEqual([expect.stringMatching(reason)]);
+	});
+
+	it('fails two byte slices that disagree, through verifyFuses', async () => {
+		const other = GOOD_STATES.map((s, i) => (i === 1 ? OFF : s));
+		const violations = await verifyFuses(BIN, fromBytes(binaryWith(v1(), v1(other))));
+		expect(violations).toEqual([expect.stringContaining('slices disagree')]);
+	});
+});
+
+describe('fuseBinaryPath', () => {
+	const FRAMEWORK = join(APP, 'Contents', 'Frameworks', 'Electron Framework.framework');
+
+	it.each([
+		['the .app', APP],
+		['its launcher', EXE],
+		['a helper app inside it', join(FRAMEWORK, '..', `${PRODUCT_NAME} Helper.app`, 'Contents')]
+	])('reads the Electron Framework on darwin, from %s', (_case, exe) => {
+		const path = fuseBinaryPath(exe, 'darwin');
+		expect(path).toBe(join(FRAMEWORK, 'Electron Framework'));
+		expect(path.split(/[\\/]/).slice(-4)).toEqual([
+			'Contents',
+			'Frameworks',
+			'Electron Framework.framework',
+			'Electron Framework'
+		]);
+	});
+
+	it('refuses a darwin path outside any .app', () => {
+		expect(() => fuseBinaryPath('/out/Price Check.application/x', 'darwin')).toThrow(
+			/needs a \.app bundle/
+		);
+	});
+
+	it.each(['linux', 'win32'] as const)('reads the executable itself on %s', (platform) => {
+		expect(fuseBinaryPath(BIN, platform)).toBe(BIN);
+	});
+});
+
+// The control: stock Electron ships RunAsNode and CLI inspect on, so a reader that
+// reports them off is not reading the wire.
+const STOCK_ELECTRON = resolve(
+	'node_modules',
+	'electron',
+	'dist',
+	process.platform === 'darwin'
+		? 'Electron.app'
+		: process.platform === 'win32'
+			? 'electron.exe'
+			: 'electron'
+);
+const stockBinary = fuseBinaryPath(STOCK_ELECTRON, process.platform);
+
+describe.skipIf(!existsSync(stockBinary))('stock Electron control', () => {
+	it('reports RunAsNode and EnableNodeCliInspectArguments on in every slice', async () => {
+		const wires = readFuseWires(stockBinary);
+		expect(wires.length).toBeGreaterThan(0);
+		for (const { states } of wires) {
+			expect(states[FuseV1Options.RunAsNode]).toBe(ON);
+			expect(states[FuseV1Options.EnableNodeCliInspectArguments]).toBe(ON);
+		}
+		const violations = await verifyFuses(stockBinary, { readWires: readFuseWires });
+		expect(violations.join('\n')).toMatch(/fuse RunAsNode is on, must be off/);
+		expect(violations.join('\n')).toMatch(/fuse EnableNodeCliInspectArguments is on/);
+		const library = await getCurrentFuseWire(STOCK_ELECTRON);
+		const states = library as unknown as Record<number, number>;
+		expect(wires[0].states.map((_, i) => states[i])).toEqual(wires[0].states);
+	}, 60_000);
+});
+
+describe('runCli fuses', () => {
+	let lines: string[];
+	beforeEach(() => {
+		lines = [];
+	});
+	const deps = (platform: NodeJS.Platform, wires: FuseWire[], read: string[] = []): CliDeps => ({
+		platform,
+		env: {},
+		run: fakeRunner(() => OK),
+		exists: () => true,
+		listDir: noListing,
+		readInstaller: () => '',
+		readWires: (binary) => {
+			read.push(binary);
+			return wires;
+		},
+		stdout: (line) => lines.push(`out ${line}`),
+		stderr: (line) => lines.push(`err ${line}`)
+	});
+
+	it("reads the .app's Electron Framework on darwin and exits 0 on a good wire", async () => {
+		const read: string[] = [];
+		expect(await runCli(['fuses', APP], deps('darwin', [wire(), wire()], read))).toBe(0);
+		expect(read).toEqual([fuseBinaryPath(resolve(APP), 'darwin')]);
+		expect(lines).toEqual(['out verify-packaged: fuses ok']);
+	});
+
+	it('reads the executable itself on linux and exits 1 listing a bad fuse', async () => {
+		const read: string[] = [];
+		const bad = flipped(FuseV1Options.EnableNodeCliInspectArguments, ON);
+		expect(await runCli(['fuses', BIN], deps('linux', [bad], read))).toBe(1);
+		expect(read).toEqual([resolve(BIN)]);
+		expect(lines).toEqual([
+			`err verify-packaged: ${resolve(BIN)}: fuse EnableNodeCliInspectArguments is on, must be off`,
+			'err verify-packaged: fuses: 1 violation(s)'
+		]);
+	});
+
+	it('names fuses <exe> in the usage and reads nothing without a target', async () => {
+		const read: string[] = [];
+		expect(await runCli(['fuses'], deps('linux', [wire()], read))).toBe(1);
+		expect(read).toEqual([]);
+		expect(lines).toEqual([
+			expect.stringMatching(/^err verify-packaged: usage: .*\| fuses <exe>$/)
+		]);
+	});
+
+	it('refuses a darwin target outside any .app without reading', async () => {
+		const read: string[] = [];
+		expect(await runCli(['fuses', BIN], deps('darwin', [wire()], read))).toBe(1);
+		expect(read).toEqual([]);
+		expect(lines).toEqual([expect.stringMatching(/needs a \.app bundle/)]);
+	});
 });
 
 // ---------------------------------------------------------------- win
@@ -536,6 +957,8 @@ describe('verifyWin', () => {
 		const deps: CliDeps = {
 			...fake,
 			platform: 'win32',
+			listDir: noListing,
+			readWires: () => [],
 			readInstaller: (path) => {
 				read = path;
 				return MANIFEST;
@@ -563,6 +986,8 @@ type LayoutFixture = {
 	platform: PackagedPlatform;
 	/** Stamp in the packaged package.json. */
 	packagedVersion?: string;
+	/** The packaged package.json's text, replacing the stamped one. */
+	manifest?: string;
 	/** Version written into latest*.yml. */
 	ymlVersion?: string;
 	/** @libsql native packages in node_modules (default: the platform's expected set). */
@@ -592,6 +1017,21 @@ function writeTree(root: string, files: Record<string, string>): void {
 	}
 }
 
+/**
+ * Packs `src` into the archive `dest` and returns once the whole archive is on disk.
+ * @electron/asar 3.4.1 resolves createPackageWithOptions as soon as it has called end()
+ * on its write stream (disk.js writeFileListToStream), before the archive's tail is
+ * flushed: a read straight after could find package.json as NULs. It resolves with
+ * that stream, so waiting for the stream to close waits for the last write.
+ */
+async function packAsar(
+	src: string,
+	dest: string,
+	options: Parameters<typeof createPackageWithOptions>[2]
+): Promise<void> {
+	await finished(await createPackageWithOptions(src, dest, options));
+}
+
 /** A packaged output dir for one OS: artefacts, latest*.yml, and a real app.asar. */
 async function buildOutDir(fixture: LayoutFixture): Promise<string> {
 	const { platform } = fixture;
@@ -600,10 +1040,9 @@ async function buildOutDir(fixture: LayoutFixture): Promise<string> {
 	const out = join(root, 'out');
 	const natives = fixture.natives ?? EXPECTED_LIBSQL[platform];
 	writeTree(src, {
-		'package.json': JSON.stringify({
-			name: 'price-check-app',
-			version: fixture.packagedVersion ?? VERSION
-		}),
+		'package.json':
+			fixture.manifest ??
+			JSON.stringify({ name: 'price-check-app', version: fixture.packagedVersion ?? VERSION }),
 		'dist-desktop/main.js': 'main',
 		'build/handler.js': 'handler',
 		'drizzle/0000_init.sql': 'create table x (id int);',
@@ -615,7 +1054,7 @@ async function buildOutDir(fixture: LayoutFixture): Promise<string> {
 	});
 	const resources = resourcesFor(out, platform);
 	mkdirSync(resources, { recursive: true });
-	await createPackageWithOptions(src, join(resources, 'app.asar'), {
+	await packAsar(src, join(resources, 'app.asar'), {
 		dot: true,
 		unpack: fixture.unpack ?? '{*.node,index.js}'
 	});
@@ -642,6 +1081,9 @@ async function buildOutDir(fixture: LayoutFixture): Promise<string> {
 
 const layout = (out: string, platform: PackagedPlatform, mode: LayoutMode = 'release') =>
 	verifyLayout({ outDir: out, version: VERSION, mode, platform });
+
+/** `text` as a RegExp source matching it literally. */
+const escapeRe = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 describe('verifyLayout', () => {
 	it.each(['darwin', 'win32', 'linux'] as const)('passes a clean %s build', async (platform) => {
@@ -677,9 +1119,7 @@ describe('verifyLayout', () => {
 		['README.md', /outside the app's files: README\.md/]
 	])('fails an app.asar holding %s', async (path, message) => {
 		const out = await buildOutDir({ platform: 'linux', extra: { [path]: 'x' } });
-		const violations = layout(out, 'linux');
-		expect(violations.length).toBeGreaterThan(0);
-		expect(violations.some((v) => message.test(v))).toBe(true);
+		expect(layout(out, 'linux')).toContainEqual(expect.stringMatching(message));
 	});
 
 	it('fails a build that packed the whole repo, listing every leak', async () => {
@@ -705,7 +1145,7 @@ describe('verifyLayout', () => {
 			'scripts/release-tag.spec.ts',
 			'local.db'
 		]) {
-			expect(violations.some((v) => v.endsWith(`: ${leak}`))).toBe(true);
+			expect(violations).toContainEqual(expect.stringMatching(new RegExp(`: ${escapeRe(leak)}$`)));
 		}
 	});
 
@@ -740,13 +1180,28 @@ describe('verifyLayout', () => {
 		['win32', ['linux-x64-gnu'], /win32-x64-msvc's \.node binary is not/]
 	] as const)('fails %s shipping libsql %j', async (platform, natives, message) => {
 		const violations = layout(await buildOutDir({ platform, natives }), platform);
-		expect(violations.some((v) => message.test(v))).toBe(true);
+		expect(violations).toContainEqual(expect.stringMatching(message));
 	});
 
 	it('fails a packaged package.json version other than the stamp', async () => {
 		const out = await buildOutDir({ platform: 'darwin', packagedVersion: '0.1.5' });
 		expect(layout(out, 'darwin')).toEqual([
 			`packaged package.json version is '0.1.5', stamped ${VERSION}`
+		]);
+	});
+
+	it('lists the file-set violations beside a packaged package.json that is not JSON', async () => {
+		const out = await buildOutDir({
+			platform: 'linux',
+			manifest: '\0\0\0',
+			extra: { '.env': 'x' }
+		});
+		const asar = join(resourcesFor(out, 'linux'), 'app.asar');
+		expect(layout(out, 'linux')).toEqual([
+			expect.stringMatching(/an \.env file: \.env$/),
+			expect.stringMatching(
+				new RegExp(`^packaged package\\.json in ${escapeRe(asar)} is not JSON: `)
+			)
 		]);
 	});
 
@@ -860,7 +1315,7 @@ describe('listAsar and listTree', () => {
 		const root = tempDir('verify-asar-');
 		writeTree(join(root, 'app'), { 'lib/addon.js': 'x' });
 		symlinkSync('addon.js', join(root, 'app', 'lib', 'addon.node'));
-		await createPackageWithOptions(join(root, 'app'), join(root, 'app.asar'), {});
+		await packAsar(join(root, 'app'), join(root, 'app.asar'), {});
 		const entries = listAsar(join(root, 'app.asar'));
 		expect(entries.sort((a, b) => a.path.localeCompare(b.path))).toEqual([
 			{ path: 'lib', unpacked: false, kind: 'dir' },
@@ -1139,7 +1594,9 @@ describe('runCli layout', () => {
 		env: {},
 		run: fakeRunner(() => OK),
 		exists: () => true,
+		listDir: noListing,
 		readInstaller: () => '',
+		readWires: () => [],
 		stdout: (line) => lines.push(line),
 		stderr: (line) => lines.push(line)
 	});

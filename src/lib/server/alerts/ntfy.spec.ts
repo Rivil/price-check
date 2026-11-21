@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { describeFailure, type Alert, type FailureReason, type SendResult } from './channel.ts';
 import {
+	CLEAR_TOKEN_CONFLICT_MESSAGE,
+	NEW_ORIGIN_TOKEN_MESSAGE,
 	SEND_TIMEOUT_MS,
 	ntfyDriver,
 	parseToken,
@@ -321,44 +323,158 @@ describe('ntfyDriver', () => {
 		).toEqual({ ok: false, reason: 'timeout' });
 	});
 
-	it('write-only token', () => {
+	describe('saved token bound to its origin', () => {
 		const NEW_TOKEN = 'tk_zyxwvutsrqponmlkjihgfedcba987';
-		const previous = { url: 'https://ntfy.sh/old-topic', token: TOKEN };
+		const A = 'https://ntfy.a.example/t';
+		const previous = { url: A, token: TOKEN };
 
-		// Blank or missing: the saved token is kept, even when the topic changes.
-		for (const token of ['', '   ', undefined]) {
-			expect(ntfyDriver.parseConfig({ topic: TOPIC_URL, token }, previous), String(token)).toEqual({
+		/** Neither the saved nor the typed token may show up in a refusal. */
+		function expectNoSecrets(result: unknown, label: string, typed = NEW_TOKEN) {
+			for (const secret of [TOKEN, typed]) {
+				expect(JSON.stringify(result), label).not.toContain(secret);
+			}
+		}
+
+		it('write-only token', () => {
+			// Blank or missing on the same origin: the saved token is kept, a path-only
+			// move and an explicit default port included.
+			const sameOrigin: [string, string][] = [
+				[A, A],
+				['https://ntfy.a.example/other/t2', 'https://ntfy.a.example/other/t2'],
+				['https://ntfy.a.example:443/t', A],
+				['https://NTFY.A.EXAMPLE/t', A]
+			];
+			for (const [topic, url] of sameOrigin) {
+				for (const token of ['', '   ', undefined]) {
+					const label = JSON.stringify({ topic, token });
+					expect(ntfyDriver.parseConfig({ topic, token }, previous), label).toEqual({
+						ok: true,
+						config: { url, token: TOKEN }
+					});
+				}
+			}
+			expect(ntfyDriver.parseConfig({ topic: TOPIC_URL, token: '' }, null)).toEqual({
 				ok: true,
-				config: { url: TOPIC_URL, token: TOKEN }
+				config: { url: TOPIC_URL, token: null }
 			});
-		}
-		expect(ntfyDriver.parseConfig({ topic: TOPIC_URL, token: '' }, null)).toEqual({
-			ok: true,
-			config: { url: TOPIC_URL, token: null }
-		});
 
-		// A new token replaces it.
-		expect(ntfyDriver.parseConfig({ topic: TOPIC_URL, token: NEW_TOKEN }, previous)).toEqual({
-			ok: true,
-			config: { url: TOPIC_URL, token: NEW_TOKEN }
-		});
+			// A new token replaces it, on the same origin or another.
+			for (const topic of [A, TOPIC_URL]) {
+				expect(ntfyDriver.parseConfig({ topic, token: NEW_TOKEN }, previous), topic).toEqual({
+					ok: true,
+					config: { url: topic, token: NEW_TOKEN }
+				});
+			}
 
-		// An invalid one is refused outright, and not echoed back.
-		const typed = 'tk_short-secret-value';
-		const refused = ntfyDriver.parseConfig({ topic: TOPIC_URL, token: typed }, previous);
-		expect(refused).toEqual({
-			ok: false,
-			message: 'Enter an ntfy access token like tk_… (from `ntfy token add`), or leave it empty'
-		});
-		expect(JSON.stringify(refused)).not.toContain(typed);
-
-		// So is an invalid or missing topic, with the topic parser's message.
-		for (const topic of ['http://ntfy.sh/x', undefined]) {
-			expect(ntfyDriver.parseConfig({ topic, token: NEW_TOKEN }, previous)).toEqual({
+			// An invalid one is refused outright, and not echoed back.
+			const typed = 'tk_short-secret-value';
+			const refused = ntfyDriver.parseConfig({ topic: TOPIC_URL, token: typed }, previous);
+			expect(refused).toEqual({
 				ok: false,
-				message: (parseTopicUrl('') as { message: string }).message
+				message: 'Enter an ntfy access token like tk_… (from `ntfy token add`), or leave it empty'
 			});
-		}
+			expectNoSecrets(refused, 'invalid token', typed);
+
+			// So is an invalid or missing topic, with the topic parser's message.
+			for (const topic of ['http://ntfy.sh/x', undefined]) {
+				expect(ntfyDriver.parseConfig({ topic, token: NEW_TOKEN }, previous)).toEqual({
+					ok: false,
+					message: (parseTopicUrl('') as { message: string }).message
+				});
+			}
+		});
+
+		it('new origin needs the token', () => {
+			const moves: [string, string][] = [
+				['https://ntfy.sh/t', NEW_ORIGIN_TOKEN_MESSAGE],
+				['https://ntfy.a.example:8443/t', NEW_ORIGIN_TOKEN_MESSAGE],
+				['https://sub.ntfy.a.example/t', NEW_ORIGIN_TOKEN_MESSAGE],
+				// Plain http is no topic link at all, so never a place for the token.
+				['http://ntfy.a.example/t', (parseTopicUrl('') as { message: string }).message]
+			];
+			for (const [topic, message] of moves) {
+				for (const token of ['', '   ', undefined]) {
+					const label = JSON.stringify({ topic, token });
+					const result = ntfyDriver.parseConfig({ topic, token }, previous);
+					expect(result, label).toEqual({ ok: false, message });
+					expect(result, label).not.toHaveProperty('config');
+					expectNoSecrets(result, label);
+				}
+			}
+			expect(NEW_ORIGIN_TOKEN_MESSAGE).toContain('token');
+
+			// A saved link that no longer parses is no origin to match.
+			expect(
+				ntfyDriver.parseConfig({ topic: A, token: '' }, { url: 'not a url', token: TOKEN })
+			).toEqual({ ok: false, message: NEW_ORIGIN_TOKEN_MESSAGE });
+		});
+
+		it('new origin with no saved token', () => {
+			// Nothing saved, nothing to leak: the move goes through without a token.
+			for (const topic of ['https://ntfy.sh/t', 'https://ntfy.a.example:8443/t']) {
+				expect(
+					ntfyDriver.parseConfig({ topic, token: '' }, { url: A, token: null }),
+					topic
+				).toEqual({ ok: true, config: { url: topic, token: null } });
+			}
+		});
+
+		it('blank same-origin re-save still authenticates', async () => {
+			// c-20: re-saved with the token left blank, then Send test.
+			const resaved = ntfyDriver.parseConfig(
+				{ topic: 'https://ntfy.a.example/t2', token: '' },
+				previous
+			);
+			expect(resaved).toEqual({
+				ok: true,
+				config: { url: 'https://ntfy.a.example/t2', token: TOKEN }
+			});
+			if (!resaved.ok) return;
+
+			const fetch = stubFetch(() => new Response('{}', { status: 200 }));
+			expect(await ntfyDriver.send(resaved.config, { kind: 'test', ...NOTE }, { fetch })).toEqual({
+				ok: true
+			});
+			expect(fetch).toHaveBeenCalledOnce();
+			expect(fetch.mock.calls[0][0]).toBe('https://ntfy.a.example/');
+			expect(fetch.mock.calls[0][1].headers).toEqual({
+				'content-type': 'application/json',
+				authorization: `Bearer ${TOKEN}`
+			});
+		});
+
+		it('clear token', () => {
+			// Ticked with the token blank: no token, the topic kept or moved, the channel kept.
+			for (const topic of [A, 'https://ntfy.a.example/t2', 'https://ntfy.sh/t']) {
+				for (const token of ['', '  ', undefined]) {
+					expect(
+						ntfyDriver.parseConfig({ topic, token, clear_token: 'on' }, previous),
+						JSON.stringify({ topic, token })
+					).toEqual({ ok: true, config: { url: topic, token: null } });
+				}
+			}
+			expect(ntfyDriver.parseConfig({ topic: A, clear_token: 'on' }, null)).toEqual({
+				ok: true,
+				config: { url: A, token: null }
+			});
+			// Unticked (left out of the form, or blank) keeps the saved token.
+			for (const clear_token of [undefined, '']) {
+				expect(ntfyDriver.parseConfig({ topic: A, token: '', clear_token }, previous)).toEqual({
+					ok: true,
+					config: { url: A, token: TOKEN }
+				});
+			}
+
+			// Ticked with a token typed: ambiguous, refused, and not echoed.
+			for (const typed of [NEW_TOKEN, 'tk_bad!-typed-value']) {
+				const result = ntfyDriver.parseConfig(
+					{ topic: A, token: typed, clear_token: 'on' },
+					previous
+				);
+				expect(result, typed).toEqual({ ok: false, message: CLEAR_TOKEN_CONFLICT_MESSAGE });
+				expectNoSecrets(result, typed, typed);
+			}
+		});
 	});
 
 	it('view', () => {

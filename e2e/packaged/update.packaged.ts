@@ -19,14 +19,25 @@
 // INSTALLER_POLL_MS (one cheap PowerShell, not the instance probe's two a second);
 // once it is gone, the relaunch is found by install path (Get-Process) and its port
 // (Get-NetTCPConnection): it must have started after A's process exited (c-6) and
-// serve the seeded watch. Linux: Quit installs B over the AppImage at its own path
-// and does not relaunch; then, once nothing runs from the AppImage's path, a fresh
+// refuse a request without the session cookie. Linux: Quit installs B over the
+// AppImage at its own path and does not relaunch; then, once nothing runs from the
+// AppImage's path, a fresh
 // copy of A is renamed over it and takes 'Restart to update', and B,
 // started by the updater while A is still exiting, must wait out its predecessor
-// and run. Both end with a Playwright relaunch that reports version B and lists the
+// and run. Both end with a harness relaunch that reports version B and lists the
 // watch, an intact DB (PRAGMA integrity_check) and no 'database is locked' in what
-// the Playwright launches printed once attached (their startup lines are not
-// captured; see PackagedApp.output) up to their quit.
+// the harness launches printed up to their quit.
+//
+// The harness reaches main only through its control channel (launch-packaged.ts;
+// 06-remediate-security c-22). A relaunch the installer or the updater started has no
+// launch handle. Either way it must refuse a request without the session cookie (c-3).
+// On Linux it inherited the channel's variable at the hand-over (main.ts
+// withControlHandOver), so it must also answer on the channel of the launch it
+// replaced, serving the watch to main's appGet. On Windows it cannot: the NSIS
+// installer starts the app through Explorer (StartApp's ExecShellAsUser), so the
+// relaunch gets Explorer's env, without the control variable (or the capture and
+// predecessor ones). There 'relaunch is B with its data', a harness launch, proves B
+// serves the watch.
 //
 // The Linux run launches a copy of A at an unversioned file name: electron-updater
 // replaces an AppImage in place only when its name carries no version, and writes
@@ -89,10 +100,13 @@ import {
 	type ProcessInfo
 } from '../../scripts/process-probe.ts';
 import { startUpdateFeed, type UpdateFeed } from '../../scripts/update-feed.ts';
+import { E2E_CONTROL_ENV } from '../../src/desktop/e2e-control.ts';
 import { insertWatches, makeTempDir, rawRequest, REPO_ROOT } from '../desktop/launch.ts';
 import {
 	appInstances,
 	claimUserData,
+	controlClient,
+	controlPids,
 	createPackagedRun,
 	integrityCheck,
 	launchPackaged,
@@ -150,8 +164,10 @@ const INSTALLER_POLL_MS = 5_000;
 const LINUX_RELAUNCH_MS = 30_000;
 /** Linux: how long an instance from the previous test may take to be gone before A is placed. */
 const IDLE_MS = 30_000;
-/** How long the relaunch has to answer one request in full. */
+/** How long the relaunch has to answer one request, or one control command, in full. */
 const RESPONSE_MS = 15_000;
+/** Requests and commands expectRelaunchServes sends, one after another. */
+const RELAUNCH_REQUESTS = 4;
 /**
  * What a failed relaunch step may spend recording the OS's state, all of it: its
  * probes run side by side, and one still running at the deadline is reported as such.
@@ -379,10 +395,7 @@ test.describe.serial('packaged update', () => {
 	/** Linux: where A's AppImage is copied to and run from (see the header). */
 	let appImageDir: string | undefined;
 	let current: PackagedApp | undefined;
-	/**
-	 * What each Playwright launch printed once attached (startup lines excluded, see
-	 * PackagedApp.output), for the 'database is locked' check.
-	 */
+	/** What each harness launch printed, for the 'database is locked' check. */
 	const outputs: (() => string)[] = [];
 	/** Windows: each update installer the relaunch wait saw, for a failure's diagnosis. */
 	const installersSeen = new Map<number, InstallerSeen>();
@@ -435,7 +448,7 @@ test.describe.serial('packaged update', () => {
 	const expectDownloaded = async (app: PackagedApp) => {
 		const deadline = app.launchedAt + DOWNLOAD_MS;
 		await expect
-			.poll(() => updaterStatus(app.app).then(({ state, version }) => ({ state, version })), {
+			.poll(() => updaterStatus(app.control).then(({ state, version }) => ({ state, version })), {
 				message: `update ${versionB} downloaded within ${DOWNLOAD_MS}ms`,
 				timeout: Math.max(deadline - Date.now(), 1)
 			})
@@ -444,7 +457,7 @@ test.describe.serial('packaged update', () => {
 
 	/** 'Restart to update' on `app`; resolves with the time A's process was seen exiting. */
 	const restartToUpdate = async (app: PackagedApp): Promise<number> => {
-		const callError = await updaterRestart(app.app);
+		const callError = await updaterRestart(app.control);
 		const exit = await Promise.race([
 			app.exited(),
 			new Promise<'timeout'>((done) => setTimeout(() => done('timeout'), EXIT_MS))
@@ -457,6 +470,32 @@ test.describe.serial('packaged update', () => {
 		}
 		current = undefined;
 		return exitedAt;
+	};
+
+	/**
+	 * The relaunch serving on `port` from main process `pid` refuses a request without
+	 * the session cookie (c-3). Except on Windows, where the installer's relaunch never
+	 * gets the control variable (see the header), it also answers on the channel in A's
+	 * control dir `controlDir` (the variable survived the hand-over), and serves the
+	 * seeded watch to its appGet.
+	 */
+	const expectRelaunchServes = async (controlDir: string, pid: number, port: number) => {
+		for (const path of ['/', '/account/alerts/__data.json']) {
+			const refused = await rawRequest(port, { path, timeoutMs: RESPONSE_MS });
+			expect(refused.status, `GET ${path} without the session cookie`).toBe(403);
+		}
+		if (platform === 'win32') return;
+		const control = controlClient(controlDir, pid);
+		const answered = await control.send({ cmd: 'pid' }, RESPONSE_MS).catch((error: unknown) => {
+			throw new Error(
+				`the relaunch (pid ${pid}) does not answer on ${controlDir}, which holds pid dirs [${controlPids(controlDir).join(', ')}]: ${E2E_CONTROL_ENV} lost at the hand-over?`,
+				{ cause: error }
+			);
+		});
+		expect(answered).toBe(pid);
+		const response = await control.appGet('/', RESPONSE_MS);
+		expect(response.status).toBe(200);
+		expect(response.body).toContain(WATCH.title);
 	};
 
 	/**
@@ -494,7 +533,7 @@ test.describe.serial('packaged update', () => {
 		try {
 			await step();
 		} catch (error) {
-			await keepDiagnosis('A output', app.output() || '<A printed nothing once attached>');
+			await keepDiagnosis('A output', app.output() || '<A printed nothing>');
 			// Settles within DIAGNOSIS_MS and never rejects (see osState).
 			const state = await osState(os, run.exe, installersSeen);
 			await keepDiagnosis('OS state', state);
@@ -525,7 +564,7 @@ test.describe.serial('packaged update', () => {
 			await current?.quit();
 		} finally {
 			try {
-				// An instance the installer started has no Playwright handle: end it before
+				// An instance the installer started has no launch handle: end it before
 				// userData goes (on Windows its open DB would make the removal fail).
 				if (run && platform !== null && platform !== 'darwin') {
 					for (const { pid } of await appInstances(platform, run.exe)) {
@@ -547,9 +586,7 @@ test.describe.serial('packaged update', () => {
 		await insertWatches(run.userData, [WATCH], { migrate: true });
 
 		const app = await launch();
-		expect(await app.app.evaluate(({ app: electronApp }) => electronApp.getVersion())).toBe(
-			versionA
-		);
+		expect((await app.control.info()).version).toBe(versionA);
 		const updatePath = `/${UPDATE_FILE[platform as PackagedPlatform]}`;
 		const started = feed;
 		await expect
@@ -577,7 +614,7 @@ test.describe.serial('packaged update', () => {
 		const app = current;
 		if (!app) throw new Error('A is not running');
 		const before = feed?.requests().length ?? 0;
-		await updaterCheckNow(app.app);
+		await updaterCheckNow(app.control);
 		// The second check reached the feed, so its result is what status() reports.
 		expect(feed?.requests().length ?? 0).toBeGreaterThan(before);
 		// checkNow settles with checkForUpdates, before electron-updater has re-validated
@@ -586,7 +623,7 @@ test.describe.serial('packaged update', () => {
 		// notification would show up in any read after it lands.
 		const settleUntil = Date.now() + NOTIFY_SETTLE_MS;
 		for (;;) {
-			const status = await updaterStatus(app.app);
+			const status = await updaterStatus(app.control);
 			expect(status.notified).toEqual([versionB]);
 			expect(status).toMatchObject({ state: 'downloaded', version: versionB });
 			if (Date.now() >= settleUntil) break;
@@ -599,7 +636,12 @@ test.describe.serial('packaged update', () => {
 		// The installer wait's last check (one PowerShell) and the instance probe after it
 		// (two) may run past the relaunch deadline, each PowerShell bounded at 60 s.
 		test.setTimeout(
-			EXIT_MS + WINDOWS_RELAUNCH_MS + 3 * DIAGNOSIS_MS + RESPONSE_MS + DIAGNOSIS_MS + 60_000
+			EXIT_MS +
+				WINDOWS_RELAUNCH_MS +
+				3 * DIAGNOSIS_MS +
+				RELAUNCH_REQUESTS * RESPONSE_MS +
+				DIAGNOSIS_MS +
+				60_000
 		);
 		const app = current;
 		if (!app) throw new Error('A is not running');
@@ -634,9 +676,7 @@ test.describe.serial('packaged update', () => {
 					relaunched.startTime?.getTime(),
 					`relaunch started ${relaunched.startTime?.toISOString()}, A exited ${new Date(exitedAt).toISOString()}`
 				).toBeGreaterThan(exitedAt);
-				const response = await rawRequest(relaunched.port, { timeoutMs: RESPONSE_MS });
-				expect(response.status).toBe(200);
-				expect(response.body).toContain(WATCH.title);
+				await expectRelaunchServes(app.controlDir, relaunched.pid, relaunched.port);
 			});
 		} finally {
 			if (relaunchedPid !== undefined) await stopInstance('win32', relaunchedPid);
@@ -653,9 +693,7 @@ test.describe.serial('packaged update', () => {
 		expect(sha256(run.exe), `the AppImage at ${run.exe} is not B`).toBe(sha256(buildB));
 
 		const relaunched = await launch();
-		expect(await relaunched.app.evaluate(({ app: electronApp }) => electronApp.getVersion())).toBe(
-			versionB
-		);
+		expect((await relaunched.control.info()).version).toBe(versionB);
 		await expect(relaunched.page.locator(`li[data-watch-id="${WATCH.id}"]`)).toContainText(
 			WATCH.title
 		);
@@ -665,7 +703,13 @@ test.describe.serial('packaged update', () => {
 	test('restart through the predecessor wait', async () => {
 		test.skip(platform !== 'linux', 'the AppImage update is Linux only');
 		test.setTimeout(
-			IDLE_MS + DOWNLOAD_MS + EXIT_MS + LINUX_RELAUNCH_MS + RESPONSE_MS + DIAGNOSIS_MS + 120_000
+			IDLE_MS +
+				DOWNLOAD_MS +
+				EXIT_MS +
+				LINUX_RELAUNCH_MS +
+				RELAUNCH_REQUESTS * RESPONSE_MS +
+				DIAGNOSIS_MS +
+				120_000
 		);
 		if (!feedDir) throw new Error(`${UPDATE_FEED_DIR_ENV} is not set`);
 		const buildB = join(feedDir, expectedArtefacts('linux', versionB)[0]);
@@ -680,9 +724,7 @@ test.describe.serial('packaged update', () => {
 
 			const app = await launch(false, { [OUTPUT_CAPTURE_ENV]: captureFile });
 			pidA = app.pid;
-			expect(await app.app.evaluate(({ app: electronApp }) => electronApp.getVersion())).toBe(
-				versionA
-			);
+			expect((await app.control.info()).version).toBe(versionA);
 			await expectDownloaded(app);
 			let relaunchedPid: number | undefined;
 			/** A's own 127.0.0.1 listen ports just before 'Restart to update' (see the header). */
@@ -728,9 +770,7 @@ test.describe.serial('packaged update', () => {
 						probedPort = relaunched.port;
 						expect(relaunched.pid).not.toBe(app.pid);
 						expect(sha256(run.exe), `the AppImage at ${run.exe} is not B`).toBe(sha256(buildB));
-						const response = await rawRequest(relaunched.port, { timeoutMs: RESPONSE_MS });
-						expect(response.status).toBe(200);
-						expect(response.body).toContain(WATCH.title);
+						await expectRelaunchServes(app.controlDir, relaunched.pid, relaunched.port);
 					},
 					portsNote
 				);
@@ -768,9 +808,7 @@ test.describe.serial('packaged update', () => {
 
 	test('relaunch is B with its data', async () => {
 		const app = await launch();
-		expect(await app.app.evaluate(({ app: electronApp }) => electronApp.getVersion())).toBe(
-			versionB
-		);
+		expect((await app.control.info()).version).toBe(versionB);
 		await expect(app.page.locator(`li[data-watch-id="${WATCH.id}"]`)).toContainText(WATCH.title);
 		await quitCleanly();
 
