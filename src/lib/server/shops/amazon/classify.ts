@@ -14,7 +14,12 @@ export type PageOutcome = PageSuccess | CheckFailure;
 export const VARIANT_MESSAGE =
 	'pick a size/colour on Amazon, then paste the URL of that exact variant';
 
-const BOT_WALL_TEXT = [
+/**
+ * Phrases of Amazon's robot-check wall. They mark a wall only on a page with no
+ * #productTitle: a real product page can quote them in a review or a feature
+ * bullet, and that text must not turn a priced page into 'blocked' (SEC-06).
+ */
+export const BOT_WALL_TEXT = [
 	/make sure you(?:'|&#39;|’)re not a robot/i,
 	/enter the characters you see below/i,
 	/type the characters you see in this image/i,
@@ -28,8 +33,13 @@ function root(html: string): HTMLElement {
 	return parse(html);
 }
 
+/**
+ * A validateCaptcha form marks a wall on any page. The wall's phrases count only
+ * when the page is not a product page (no #productTitle).
+ */
 function isBotWallPage(page: HTMLElement): boolean {
 	if (page.querySelector('form[action*="validateCaptcha"]') !== null) return true;
+	if (page.querySelector('#productTitle') !== null) return false;
 	const text = page.text;
 	return BOT_WALL_TEXT.some((pattern) => pattern.test(text));
 }

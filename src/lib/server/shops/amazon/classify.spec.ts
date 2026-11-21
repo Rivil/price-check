@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { VARIANT_MESSAGE, classifyProductPage, isBotWall } from './classify.ts';
+import { parse } from 'node-html-parser';
+import { BOT_WALL_TEXT, VARIANT_MESSAGE, classifyProductPage, isBotWall } from './classify.ts';
 import { FIXTURES } from './fixtures/manifest.ts';
 
 // Every fixture page, keyed by name without .html; recorded pages join automatically.
@@ -225,5 +226,68 @@ describe('isBotWall', () => {
 		}
 		expect(isBotWall('')).toBe(false);
 		expect(isBotWall('Service Unavailable')).toBe(false);
+	});
+});
+
+describe('wall phrases on product pages', () => {
+	/** One sample of each BOT_WALL_TEXT phrase, in the same order. */
+	const PHRASES = [
+		"Sorry, we just need to make sure you're not a robot.",
+		'Enter the characters you see below',
+		'Type the characters you see in this image:',
+		'Click the button below to continue shopping'
+	];
+
+	it('samples cover every phrase', () => {
+		expect(PHRASES).toHaveLength(BOT_WALL_TEXT.length);
+		PHRASES.forEach((phrase, i) => expect(BOT_WALL_TEXT[i].test(phrase), phrase).toBe(true));
+	});
+
+	/** recorded-plain.html with `phrase` appended to the first element matching `selector`. */
+	function plainWith(selector: string, phrase: string): string {
+		const root = parse(page('recorded-plain'));
+		const target = root.querySelector(selector);
+		expect(target, selector).not.toBeNull();
+		target!.insertAdjacentHTML('beforeend', `<span>${phrase}</span>`);
+		const html = root.toString();
+		expect(html).toContain(phrase);
+		return html;
+	}
+
+	const plain = FIXTURES['recorded-plain'].expect;
+
+	for (const [where, selector] of [
+		['review', '[data-hook="review"]'],
+		['bullet', '#feature-bullets li']
+	] as const) {
+		it(`${where} phrase is not a wall`, () => {
+			expect(plain.ok).toBe(true);
+			for (const phrase of PHRASES) {
+				const html = plainWith(selector, phrase);
+				expect(isBotWall(html), phrase).toBe(false);
+				expect(classifyProductPage(html), phrase).toMatchObject({
+					ok: true,
+					title: plain.ok ? plain.title : undefined,
+					pricePence: plain.ok ? plain.pricePence : undefined
+				});
+			}
+		});
+	}
+
+	it('phrase-only wall still blocked', () => {
+		const root = parse(page('synthetic-captcha'));
+		for (const form of root.querySelectorAll('form')) form.remove();
+		const html = root.toString();
+		expect(html).not.toContain('validateCaptcha');
+		expect(root.querySelector('#productTitle')).toBeNull();
+
+		expect(isBotWall(html)).toBe(true);
+		expect(classifyProductPage(html)).toMatchObject({ ok: false, reason: 'blocked' });
+	});
+
+	it('a validateCaptcha form is a wall even on a product page', () => {
+		const html = inject('recorded-plain', '<form action="/errors/validateCaptcha"></form>');
+		expect(isBotWall(html)).toBe(true);
+		expect(classifyProductPage(html)).toMatchObject({ ok: false, reason: 'blocked' });
 	});
 });
