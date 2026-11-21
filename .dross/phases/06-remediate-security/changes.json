@@ -311,6 +311,21 @@
         }
       ]
     },
+    "t-26": {
+      "files": [
+        ".gitleaks.toml"
+      ],
+      "commit": "f59e7e3",
+      "completed_at": "2026-11-21T13:07:13.074884Z",
+      "landmarks": [
+        {
+          "feature": "dependency hygiene",
+          "symbol": "gitleaks allowlist",
+          "loc": ".gitleaks.toml:54",
+          "what": "narrow allowlist for the test-only alerts key so the history scan stays a hard CI gate"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "src/lib/server/checks.ts",
@@ -1198,6 +1213,26 @@
           "severity": "NOTE",
           "criterion": "c-22",
           "text": "The test_contract line requiring CI to be observed green on linux, macos and windows, with the fuses step passing and the packaged e2e running without the inspector, can only be checked from the PR's CI run after push. Nothing in the diff can show it, and per the record it must not be claimed before then.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-26": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The task covers c-12 (SvelteKit/adapter-node lockfile versions), but the change is a gitleaks allowlist fix that keeps the PR's 3-OS matrix running. The criterion is only linked indirectly; the record says what the task claims, and the entry delivers it.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "No new test in the diff: the existing scripts/gitleaks-config.spec.ts runs its checks over every [[allowlists]] entry and the generic-api-key subset, so this entry is covered without a new test.",
           "resolution": "non-blocking, left"
         }
       ]

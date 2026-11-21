@@ -1,4 +1,4 @@
-task_seq = 25
+task_seq = 26
 [phase]
 id = "06-remediate-security"
 
@@ -421,9 +421,20 @@ test_contract = ["if ci.yml's packaged job lacks the fuses step before the packa
 status        = "done"
 
 [[task]]
+id = "t-26"
+wave = 7
+title = "Allowlist the test-only alerts key for gitleaks"
+files = [".gitleaks.toml"]
+description = "PR #16's gitleaks history scan flags generic-api-key on the base64 of 'key-for-test' (a test-only ALERTS_ENCRYPTION_KEY) in src/desktop/server.spec.ts, introduced by t-9 and already pushed, so the 3-OS test matrix is skipped. Add one narrow allowlist entry in the file's existing style: targetRules generic-api-key, condition AND, path exactly ^src/desktop/server\\.spec\\.ts$, regexTarget match, regex exactly that value. User-approved 2026-11-21. GitGuardian (not required) is cleared by Michal in its dashboard."
+covers = ["c-12"]
+test_contract = ["if gitleaks git --log-opts=HEAD --config .gitleaks.toml reports any finding on the branch head, the task fails (observed locally and in PR CI)", "if the new entry lacks targetRules, an exact path, or an exact regex, or uses a glob or stopword, gitleaks-config.spec fails"]
+status = "done"
+depends_on = ["t-24"]
+
+[[task]]
 id            = "t-25"
 wave          = 7
-depends_on    = ["t-1", "t-2", "t-3", "t-4", "t-5", "t-6", "t-7", "t-8", "t-9", "t-10", "t-11", "t-12", "t-13", "t-14", "t-15", "t-16", "t-17", "t-18", "t-19", "t-20", "t-21", "t-22", "t-23", "t-24"]
+depends_on    = ["t-1", "t-2", "t-3", "t-4", "t-5", "t-6", "t-7", "t-8", "t-9", "t-10", "t-11", "t-12", "t-13", "t-14", "t-15", "t-16", "t-17", "t-18", "t-19", "t-20", "t-21", "t-22", "t-23", "t-24", "t-26"]
 title         = "Re-audit and close SEC-01..17"
 files         = [".dross/security/state.toml"]
 description   = '''
