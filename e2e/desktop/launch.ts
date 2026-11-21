@@ -68,6 +68,16 @@ export function electronArgs(extra: string[] = []): string[] {
 }
 
 /**
+ * Chromium switches every launch and relaunch adds after electronArgs. On macOS,
+ * --use-mock-keychain gives safeStorage a test keychain (06-remediate-security
+ * c-24): the alerts key is still wrapped, but the login keychain is never touched
+ * and no access prompt can hang a run.
+ */
+export function platformSwitches(platform: NodeJS.Platform = process.platform): string[] {
+	return platform === 'darwin' ? ['--use-mock-keychain'] : [];
+}
+
+/**
  * The tree kill for `pid` on `platform`, or undefined where a plain SIGKILL to the
  * process is enough. On win32 the launched process is a cmd wrapper around Electron.
  */
@@ -238,7 +248,7 @@ export type DesktopApp = {
 	port: number;
 	/** The environment the app was launched with. */
 	env: Record<string, string>;
-	/** The arguments handed to electron.launch. */
+	/** The arguments handed to electron.launch, before platformSwitches. */
 	args: string[];
 	/** Everything the app wrote to stdout and stderr so far. */
 	output(): string;
@@ -352,7 +362,7 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 		const args = electronArgs(options.args);
 
 		app = await _electron.launch({
-			args,
+			args: [...args, ...platformSwitches()],
 			cwd,
 			env,
 			// Keep Chromium's sandbox on Linux too: Playwright would otherwise add --no-sandbox.
@@ -470,7 +480,7 @@ export type SecondInstance = {
 export function spawnSecondInstance(first: DesktopApp, args: string[] = []): SecondInstance {
 	assertBuilt();
 	const binary = createRequire(import.meta.url)('electron') as string;
-	const child = spawn(binary, electronArgs(args), {
+	const child = spawn(binary, [...electronArgs(args), ...platformSwitches()], {
 		cwd: first.cwd,
 		env: first.env,
 		stdio: ['ignore', 'pipe', 'pipe']

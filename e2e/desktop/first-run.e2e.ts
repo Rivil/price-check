@@ -6,10 +6,13 @@
 // start at login.
 //
 // The key is never printed: it is checked by decoded length and compared by hash.
+// Where safeStorage has a real backend the key file is wrapped (06-remediate-security
+// c-24), and the key is decrypted by the app's own safeStorage to check it.
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
+import { WRAPPED_PREFIX } from '../../src/desktop/alerts-key.ts';
 import { LOGIN_LAUNCH_ARG, MARKER_FILE_NAME } from '../../src/desktop/login-item.ts';
 import {
 	DB_FILE_NAME,
@@ -54,12 +57,36 @@ test('first launch on an empty userData', async () => {
 			timeout: 30_000
 		});
 
-		// The key and DB were created in userData, the key as base64 of 32 bytes.
+		// The key and DB were created in userData. Where safeStorage has a real backend
+		// (the macOS mock keychain, Windows DPAPI, a Linux keyring) the key file is
+		// wrapped by it; on Linux basic_text it is base64 of 32 bytes (c-24).
 		const keyFile = join(userData, KEY_FILE_NAME);
 		expect(existsSync(keyFile)).toBe(true);
 		expect(existsSync(join(userData, DB_FILE_NAME))).toBe(true);
-		const keyText = readFileSync(keyFile, 'utf8').trim();
-		expect(Buffer.from(keyText, 'base64')).toHaveLength(32);
+		const fileText = readFileSync(keyFile, 'utf8').trim();
+		const storage = await app.evaluate(
+			({ safeStorage }, platform) => ({
+				available: safeStorage.isEncryptionAvailable(),
+				backend: platform === 'linux' ? safeStorage.getSelectedStorageBackend() : null
+			}),
+			process.platform
+		);
+		if (process.platform !== 'linux') expect(storage.available).toBe(true);
+		const realBackend =
+			storage.available &&
+			(process.platform !== 'linux' ||
+				/^(gnome_libsecret|kwallet\d*)$/.test(storage.backend ?? ''));
+		expect(fileText.startsWith(WRAPPED_PREFIX), `wrapped on backend ${storage.backend}`).toBe(
+			realBackend
+		);
+		const keyText = realBackend
+			? await app.evaluate(
+					({ safeStorage }, payload) => safeStorage.decryptString(Buffer.from(payload, 'base64')),
+					fileText.slice(WRAPPED_PREFIX.length)
+				)
+			: fileText;
+		expect(/^[A-Za-z0-9+/]{43}=$/.test(keyText), 'key is base64').toBe(true);
+		expect(Buffer.from(keyText, 'base64').length).toBe(32);
 		expect(sha256(keyText) === sha256(POISONED_KEY), 'key came from the .env').toBe(false);
 
 		// Nothing followed the .env: its DB path is untouched and cwd holds only the .env.

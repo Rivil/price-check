@@ -28,6 +28,10 @@
 // runDesktop gets process.platform and Electron's native autoUpdater (Squirrel.Mac):
 // on macOS, quit waits for it to stage a handed-over update before exiting.
 //
+// The alerts key file is wrapped by Electron's safeStorage where it has a real OS
+// backend (alerts-key.ts; 06-remediate-security c-24, c-25), so every launch hands
+// it to loadOrCreateAlertsKey.
+//
 // '[desktop] listening on http://127.0.0.1:<port>' is printed once the server is up:
 // the desktop e2e harness reads it to find the per-launch port.
 //
@@ -50,6 +54,7 @@ import {
 	Menu,
 	Notification,
 	powerMonitor,
+	safeStorage,
 	shell,
 	Tray
 } from 'electron';
@@ -271,7 +276,8 @@ runDesktop({
 	powerMonitor,
 	dialog,
 	paths,
-	loadKey: loadOrCreateAlertsKey,
+	// Called after app ready, when safeStorage can report its backend (SEC-15).
+	loadKey: (keyFile) => loadOrCreateAlertsKey(keyFile, { safeStorage, platform: process.platform }),
 	async startServer(key) {
 		const env = serverEnv(process.env, { dbFile: paths.dbFile, key });
 		const handler = await loadAdapterHandler(env, HANDLER_URL, SERVER_CWD, {
