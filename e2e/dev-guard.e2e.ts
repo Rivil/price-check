@@ -18,6 +18,7 @@ import { createDb } from '../src/lib/server/db/client.ts';
 import { checkFailure, notifyChannel, pricePoint, watch } from '../src/lib/server/db/schema.ts';
 import { E2E_ALERTS_KEY, SEEDED_WATCHES } from './accounts.ts';
 import { ACTION_ENDPOINTS, actionUrl } from './action-endpoints.ts';
+import { CSP_LISTENER, recordCspConsole, type CspRecord } from './desktop/launch.ts';
 import { freePort, startDevServer, type NodeServer } from './node-server.ts';
 
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -94,6 +95,15 @@ test.describe('vite dev guard', () => {
 			encoding: 'utf8'
 		});
 		expect(seeded.status, `${seeded.stdout}\n${seeded.stderr}`).toBe(0);
+		// The shared seed's product images sit on .invalid hosts (r-01), which img-src
+		// blocks as it should; this copy drops them so 'dev runs under the CSP' can
+		// demand zero violations from dev itself.
+		const db = createDb(dbUrl);
+		try {
+			await db.update(watch).set({ imageUrl: null });
+		} finally {
+			db.$client.close();
+		}
 		server = await startDevServer({
 			port: await freePort(),
 			dbFile,
@@ -148,5 +158,60 @@ test.describe('vite dev guard', () => {
 		expect(await added.request().headerValue('origin')).toBe(server!.url);
 		expect(added.status()).toBe(400);
 		expect(await added.text()).not.toBe(FORBIDDEN);
+	});
+
+	// c-23 + c-19: the CSP from kit.csp applies under `vite dev` too, and dev still
+	// works under it: both pages load and hydrate, Vite's HMR websocket connects, and
+	// an enhanced form saves, with no CSP violation anywhere.
+	test('dev runs under the CSP', async ({ page }) => {
+		test.setTimeout(120_000);
+		const csp: CspRecord = { violations: [], native: [] };
+		await page.addInitScript({ content: CSP_LISTENER });
+		recordCspConsole(page, csp);
+		const hmr: string[] = [];
+		page.on('websocket', (socket) => hmr.push(socket.url()));
+
+		// The first visit may make Vite optimise dependencies and reload; settle first.
+		await page.goto(`${server!.url}/`);
+		await page.waitForLoadState('networkidle');
+
+		for (const path of ['/', '/account/alerts']) {
+			const res = await page.goto(`${server!.url}${path}`);
+			expect(res?.status(), path).toBe(200);
+			expect(res?.headers()['content-security-policy'], path).toContain("frame-ancestors 'none'");
+		}
+
+		// Hydrated: an enhanced save goes out as a SvelteKit action request and the
+		// result shows in place. Same origin as the seeded topic, so its token stays.
+		const card = page.getByTestId('channel-ntfy');
+		await card.getByLabel('ntfy topic link').fill('https://ntfy.e2e.invalid/dev-guard-topic');
+		const [saved] = await Promise.all([
+			page.waitForResponse(
+				(res) => res.request().method() === 'POST' && res.url().endsWith('/account/alerts?/save')
+			),
+			card.getByRole('button', { name: 'Save topic' }).click()
+		]);
+		expect(await saved.request().headerValue('x-sveltekit-action')).toBe('true');
+		expect(saved.status()).toBe(200);
+		await expect(card.getByRole('status')).toHaveText('Saved.');
+
+		// The watchlist hydrates too: its add form posts through enhance.
+		await page.goto(`${server!.url}/`);
+		const addForm = page.locator('form[action="?/add"]');
+		await addForm.getByLabel('Product link').fill(FIELDS.url);
+		const [added] = await Promise.all([
+			page.waitForResponse(
+				(res) => res.request().method() === 'POST' && res.url().endsWith('/?/add')
+			),
+			addForm.getByRole('button', { name: 'Add to watchlist' }).click()
+		]);
+		expect(await added.request().headerValue('x-sveltekit-action')).toBe('true');
+		await expect(page.getByRole('alert')).toBeVisible();
+
+		// Vite's HMR client connected over its websocket, and nothing was blocked.
+		await expect.poll(() => hmr.length, { timeout: 10_000 }).toBeGreaterThan(0);
+		await page.waitForTimeout(500);
+		expect(csp.violations).toEqual([]);
+		expect(csp.native).toEqual([]);
 	});
 });

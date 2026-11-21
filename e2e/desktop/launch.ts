@@ -29,7 +29,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { _electron, type ElectronApplication } from '@playwright/test';
+import { _electron, type ElectronApplication, type Page } from '@playwright/test';
 import { defaultRegistry } from '../../src/lib/server/shops/index.ts';
 import { DB_FILE_NAME, KEY_FILE_NAME } from '../../src/desktop/app-paths.ts';
 import {
@@ -274,10 +274,16 @@ export type DesktopApp = {
 	args: string[];
 	/** Everything the app wrote to stdout and stderr so far. */
 	output(): string;
+	/** CSP violations every window has reported so far, as '<directive> <blocked URI>'. */
+	cspViolations(): string[];
+	/** Forgets the violations seen so far: for a spec that causes them on purpose. */
+	clearCspViolations(): void;
 	/**
 	 * Quits through the app (Playwright's close calls app.quit()), waits for the
 	 * process to exit and removes the temp dirs this launch created. Kills the
-	 * process and throws if it outlives the deadline. Safe to call twice.
+	 * process and throws if it outlives the deadline. Then throws if any window
+	 * reported a CSP violation, so every desktop test gates on zero (c-23). Safe to
+	 * call twice.
 	 */
 	close(): Promise<void>;
 };
@@ -359,6 +365,67 @@ function assertBuilt(): void {
 	}
 }
 
+/** What a window's CSP listener logs: this marker, the directive and the blocked URI. */
+export const CSP_VIOLATION_MARKER = '[e2e-csp-violation]';
+/** Chromium's own console line for a CSP violation. */
+const NATIVE_CSP = /Content Security Policy|Refused to (?:load|execute|apply|connect|frame|run)/;
+
+/**
+ * Logs every securitypolicyviolation in the document through the console, once per
+ * document however often it is installed (the init script and the live-window
+ * install below can both reach the first page).
+ */
+export const CSP_LISTENER = `(() => {
+	if (window.__e2eCspListener) return;
+	window.__e2eCspListener = true;
+	document.addEventListener('securitypolicyviolation', (event) => {
+		console.warn(${JSON.stringify(CSP_VIOLATION_MARKER)} + ' ' + event.effectiveDirective + ' ' + event.blockedURI);
+	}, true);
+})();`;
+
+export type CspRecord = { violations: string[]; native: string[] };
+
+/**
+ * Records CSP violations from every window, from the first page on: an init script
+ * for each new document, the listener added to any window already open, and a
+ * console matcher for Chromium's own violation lines in case a listener missed one.
+ */
+async function recordCsp(app: ElectronApplication): Promise<CspRecord> {
+	const record: CspRecord = { violations: [], native: [] };
+	await app.context().addInitScript({ content: CSP_LISTENER });
+	const attach = (page: Page) => {
+		recordCspConsole(page, record);
+		// A window that loaded before the init script was registered.
+		page.evaluate(CSP_LISTENER).catch(() => {
+			// The page closed or navigated mid-install: its next document gets the init script.
+		});
+	};
+	app.on('window', attach);
+	for (const page of app.windows()) attach(page);
+	return record;
+}
+
+/** Adds `page`'s CSP console lines (the listener's and Chromium's own) to `record`. */
+export function recordCspConsole(page: Page, record: CspRecord): void {
+	page.on('console', (message) => {
+		const text = message.text();
+		if (text.startsWith(CSP_VIOLATION_MARKER)) {
+			record.violations.push(text.slice(CSP_VIOLATION_MARKER.length).trim());
+		} else if (NATIVE_CSP.test(text)) {
+			record.native.push(text);
+		}
+	});
+}
+
+/** Throws naming every CSP violation a launch recorded. */
+function assertNoCspViolations(record: CspRecord): void {
+	// A native line with no listener record means the listener missed it: still a failure.
+	const seen = record.violations.length > 0 ? record.violations : record.native;
+	if (seen.length > 0) {
+		throw new Error(`launchDesktop: CSP violation(s) in the app's windows:\n${seen.join('\n')}`);
+	}
+}
+
 /** Launches the app and waits until its server is listening. */
 export async function launchDesktop(options: LaunchOptions = {}): Promise<DesktopApp> {
 	assertBuilt();
@@ -399,6 +466,7 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 		});
 		const child = app.process();
 		const output = collectOutput(child);
+		const csp = await recordCsp(app);
 		const { origin, port } = await waitForListening(
 			child,
 			output,
@@ -414,10 +482,26 @@ export async function launchDesktop(options: LaunchOptions = {}): Promise<Deskto
 				} finally {
 					removeOwned();
 				}
+				assertNoCspViolations(csp);
 			})();
 			return closing;
 		};
-		return { app: launched, userData, cwd, origin, port, env, args, output, close };
+		return {
+			app: launched,
+			userData,
+			cwd,
+			origin,
+			port,
+			env,
+			args,
+			output,
+			close,
+			cspViolations: () => [...csp.violations],
+			clearCspViolations: () => {
+				csp.violations.length = 0;
+				csp.native.length = 0;
+			}
+		};
 	} catch (error) {
 		if (app) await killTree(app.process());
 		removeOwned();
