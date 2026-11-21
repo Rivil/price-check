@@ -119,6 +119,9 @@ export type ServerBridges = {
 	notifier: DesktopNotifier;
 };
 
+/** The server's alerts key variable: main drops it once the handler has loaded. */
+const ALERTS_KEY_ENV = 'ALERTS_ENCRYPTION_KEY';
+
 /**
  * Imports adapter-node's handler module (build/handler.js) under the server's own
  * environment. adapter-node reads PROTOCOL_HEADER and friends at module load, and
@@ -129,6 +132,11 @@ export type ServerBridges = {
  * The notifier is published before the import too (decision notify_bridge): the
  * server's startup decides whether to register the desktop driver by whether one is
  * there, so one published after the import would never be seen.
+ *
+ * Once the import settles, whether it resolved or threw, ALERTS_ENCRYPTION_KEY is
+ * deleted from process.env (SEC-11): Kit's init hook has taken the key by then, and
+ * main has no further use for it, so nothing later in main (a child process, a crash
+ * report, an inherited env) can carry it.
  */
 export async function loadAdapterHandler(
 	env: Record<string, string>,
@@ -142,7 +150,12 @@ export async function loadAdapterHandler(
 	Object.assign(process.env, env);
 	process.chdir(appRoot);
 	publishNotifier(notifier);
-	const mod = (await import(/* @vite-ignore */ moduleUrl)) as { handler?: unknown };
+	let mod: { handler?: unknown };
+	try {
+		mod = (await import(/* @vite-ignore */ moduleUrl)) as { handler?: unknown };
+	} finally {
+		delete process.env[ALERTS_KEY_ENV];
+	}
 	if (typeof mod.handler !== 'function') {
 		throw new Error(`${moduleUrl} does not export a handler function`);
 	}

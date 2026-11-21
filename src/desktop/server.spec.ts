@@ -1,8 +1,9 @@
-import { mkdtempSync, realpathSync } from 'node:fs';
+import { mkdtempSync, realpathSync, writeFileSync } from 'node:fs';
 import { Agent, request, type IncomingHttpHeaders, type OutgoingHttpHeaders } from 'node:http';
 import { connect } from 'node:net';
 import { networkInterfaces, tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readNotifier, type DesktopNotifier } from '#lib/server/notify-bridge.ts';
 import { removeTempDir } from '#lib/server/testing/temp-dir.ts';
@@ -405,6 +406,61 @@ describe('loadAdapterHandler: env, cwd and notifier before import', () => {
 		// The server's startup registers the desktop driver only if it sees a notifier.
 		expect((await recordedBy(handler)).notifierPublished).toBe(true);
 		expect(readNotifier()).toBe(notifier);
+	});
+
+	it('key gone after load', async () => {
+		// A handler module that records, at import time, the key it saw.
+		const keyModule = join(appRoot, 'key-handler.mjs');
+		writeFileSync(
+			keyModule,
+			`globalThis.__keySeenAtImport = process.env.ALERTS_ENCRYPTION_KEY ?? null;
+export function handler(_req, res) { res.end('ok'); }
+`
+		);
+		const seen = globalThis as { __keySeenAtImport?: string | null };
+		delete seen.__keySeenAtImport;
+
+		const handler = await loadAdapterHandler(
+			{ ALERTS_ENCRYPTION_KEY: 'a2V5LWZvci10ZXN0', PATH: process.env.PATH ?? '' },
+			pathToFileURL(keyModule).href,
+			appRoot,
+			{ notifier }
+		);
+
+		expect(typeof handler).toBe('function');
+		expect(seen.__keySeenAtImport).toBe('a2V5LWZvci10ZXN0');
+		expect('ALERTS_ENCRYPTION_KEY' in process.env).toBe(false);
+		// Only the key goes: the rest of the server's env stays for adapter-node.
+		expect(process.env.PATH).toBe(originalEnv.PATH ?? '');
+		delete seen.__keySeenAtImport;
+	});
+
+	it('key gone after a handler module that throws on import', async () => {
+		const throwing = join(appRoot, 'throwing-handler.mjs');
+		writeFileSync(throwing, `throw new Error('init failed');\n`);
+
+		await expect(
+			loadAdapterHandler(
+				{ ALERTS_ENCRYPTION_KEY: 'a2V5LWZvci10ZXN0', PATH: process.env.PATH ?? '' },
+				pathToFileURL(throwing).href,
+				appRoot,
+				{ notifier }
+			)
+		).rejects.toThrow('init failed');
+		expect('ALERTS_ENCRYPTION_KEY' in process.env).toBe(false);
+	});
+
+	it('key gone after a module without a handler export', async () => {
+		const noHandlerUrl = new URL('./app-paths.ts', import.meta.url).href;
+		await expect(
+			loadAdapterHandler(
+				{ ALERTS_ENCRYPTION_KEY: 'a2V5LWZvci10ZXN0', PATH: process.env.PATH ?? '' },
+				noHandlerUrl,
+				appRoot,
+				{ notifier }
+			)
+		).rejects.toThrow('does not export a handler function');
+		expect('ALERTS_ENCRYPTION_KEY' in process.env).toBe(false);
 	});
 
 	it('rejects a module without a handler export', async () => {
