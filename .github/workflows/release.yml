@@ -1,18 +1,24 @@
 # Release pipeline (spec 05-release: c-1, c-2, c-4; decisions release_pipeline and
-# release_secrets). Pinned by scripts/release-workflow.spec.ts; `pnpm ci:policy`
-# checks SHA pins and permissions.
+# release_secrets, amended by 06-remediate-security signing_job_split: c-8, c-15,
+# c-26). Pinned by scripts/release-workflow.spec.ts; `pnpm ci:policy` checks SHA pins,
+# permissions, what a secret-bearing job may run and the .p8 cleanup.
 #
 # A pushed v* tag runs: tag (is it vX.Y.Z[-rc.N] on main, matching package.json?)
-# -> one build per OS (package, verify, packaged smoke, upload) -> publish (one
-# GitHub Release with every file at once). Any failed job publishes nothing.
+# -> one build per OS -> publish (one GitHub Release with every file at once). Windows
+# and Linux each package, verify (layout, fuses), run the packaged smoke and upload.
+# macOS takes three jobs: build-macos packages the app unsigned, sign-macos signs and
+# notarises that exact .app, verify-macos verifies and smokes the signed release and
+# uploads it. Any failed job publishes nothing.
 #
 # Hardening (supply chain): every action is pinned to a full commit SHA; every job
 # reads only, except publish, which holds the one contents: write and runs no repo or
 # dependency code (gh plus the first-party download-artifact action). No actions/cache
 # and no setup-node cache: a PR-populated cache is a route into a release build.
-# Frozen lockfile; pnpm 10 keeps dependency build scripts denied. Only build-macos
-# takes the 'release' environment, and only its package step reads the signing
-# credentials.
+# Frozen lockfile; pnpm 10 keeps dependency build scripts denied. Only sign-macos takes
+# the 'release' environment, and only its sign step reads the signing credentials. It
+# installs signing/ alone (electron-builder, its own frozen lockfile, no scripts) and
+# runs scripts/sign-mac.ts: no project install, build or test code runs where the
+# Developer ID certificate or the notary key can be read (SEC-09).
 name: release
 
 on:
@@ -58,12 +64,12 @@ jobs:
         id: check
         run: node scripts/release-tag.ts
 
+  # No environment and no secrets: the project install and build run here.
   build-macos:
     name: build (macos)
     needs: [tag]
     runs-on: macos-15
-    timeout-minutes: 90
-    environment: release
+    timeout-minutes: 60
     permissions:
       contents: read
     env:
@@ -85,23 +91,109 @@ jobs:
           # The vite build validates src/env.ts, which requires DATABASE_URL. The
           # packaged app sets the real one in userData at launch (server-env.ts).
           DATABASE_URL: file:build-only.db
-      - name: package (signed and notarised)
+      # Unsigned: sign-macos signs and notarises this exact .app.
+      - name: package (unsigned)
+        run: pnpm package:desktop --version "$RELEASE_VERSION"
+      # A tar, not the bare .app: upload-artifact drops the framework symlinks and the
+      # exec bits a signed bundle needs.
+      - name: pack the unsigned app
+        run: tar -cf mac-unsigned.tar -C dist-packaged mac-universal
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos-unsigned
+          path: mac-unsigned.tar
+          if-no-files-found: error
+          retention-days: 7
+
+  # The only job holding the five release secrets: it runs no project install, build
+  # or test, only signing/'s install and scripts/sign-mac.ts (`pnpm ci:policy` enforces
+  # it).
+  sign-macos:
+    name: sign (macos)
+    needs: [tag, build-macos]
+    runs-on: macos-15
+    timeout-minutes: 60
+    environment: release
+    permissions:
+      contents: read
+    env:
+      RELEASE_VERSION: ${{ needs.tag.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: macos-unsigned
+      - name: unpack the unsigned app
+        run: |
+          mkdir -p dist-packaged
+          tar -xf mac-unsigned.tar -C dist-packaged
+      - name: install the signing toolchain
+        run: pnpm install --dir signing --ignore-workspace --frozen-lockfile --ignore-scripts
+      # The trap is set before the key is written, so the decoded .p8 leaves
+      # RUNNER_TEMP when this step exits, passed or failed (c-15).
+      - name: sign and notarise
         run: |
           set -euo pipefail
           umask 077
+          trap 'rm -f "$RUNNER_TEMP/AuthKey.p8"' EXIT
           printf '%s' "$APPLE_API_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/AuthKey.p8"
           export APPLE_API_KEY="$RUNNER_TEMP/AuthKey.p8"
-          pnpm package:desktop --version "$RELEASE_VERSION" --sign
+          node scripts/sign-mac.ts --version "$RELEASE_VERSION" --app "dist-packaged/mac-universal/Price Check.app"
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           APPLE_API_KEY_P8_BASE64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+      # The signed .app and the release files it was wrapped in, for verify-macos.
+      - name: pack the signed release
+        run: tar -cf mac-signed.tar -C dist-packaged .
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos-signed
+          path: mac-signed.tar
+          if-no-files-found: error
+          retention-days: 7
+
+  # No environment and no secrets: verifies and smokes the signed release, then
+  # uploads the files publish ships.
+  verify-macos:
+    name: verify (macos)
+    needs: [tag, sign-macos]
+    runs-on: macos-15
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      RELEASE_VERSION: ${{ needs.tag.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: macos-signed
+      - name: unpack the signed release
+        run: |
+          mkdir -p dist-packaged
+          tar -xf mac-signed.tar -C dist-packaged
       - name: verify layout
         run: node scripts/verify-packaged.ts layout dist-packaged --version "$RELEASE_VERSION" --mode release
       - name: verify universal, signed, notarised
         run: node scripts/verify-packaged.ts mac "dist-packaged/mac-universal/Price Check.app" --signed
+      - name: verify fuses
+        run: node scripts/verify-packaged.ts fuses "dist-packaged/mac-universal/Price Check.app"
       - name: locate the packaged app
         run: |
           exe="$(node scripts/packaged-app.ts exe dist-packaged)"
@@ -157,6 +249,9 @@ jobs:
           exe="$(node scripts/packaged-app.ts install dist-packaged)"
           node scripts/verify-packaged.ts win dist-packaged
           echo "PRICE_CHECK_PACKAGED_EXE=$exe" >> "$GITHUB_ENV"
+      # The installed exe: the binary the installer ships.
+      - name: verify fuses
+        run: node scripts/verify-packaged.ts fuses "$PRICE_CHECK_PACKAGED_EXE"
       - name: packaged smoke
         run: pnpm test:e2e:packaged
         env:
@@ -201,6 +296,10 @@ jobs:
         run: pnpm package:desktop --version "$RELEASE_VERSION"
       - name: verify layout
         run: node scripts/verify-packaged.ts layout dist-packaged --version "$RELEASE_VERSION" --mode release
+      # The unpacked binary the AppImage wraps: the AppImage's own squashfs is
+      # compressed, so its fuse wire cannot be read in place.
+      - name: verify fuses
+        run: node scripts/verify-packaged.ts fuses dist-packaged/linux-unpacked/price-check-app
       - name: locate the packaged app
         run: |
           exe="$(node scripts/packaged-app.ts exe dist-packaged)"
@@ -227,7 +326,8 @@ jobs:
 
   publish:
     name: publish
-    needs: [tag, build-macos, build-windows, build-linux]
+    # verify-macos, not sign-macos: a signed build that failed verification never ships.
+    needs: [tag, verify-macos, build-windows, build-linux]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:

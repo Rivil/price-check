@@ -7,6 +7,23 @@
 // - Job-level `permissions:` is `{}`, `contents: read` or `contents: none`. The only
 //   way past that is WRITE_SCOPE_ALLOWLIST: a listed workflow file may grant its
 //   listed scopes `write`, at job level only (today: release.yml, contents).
+// - A secret-bearing job (it names a SIGNING_SECRETS variable, reads secrets
+//   dynamically, or takes an environment) runs only what an allowlist admits, so no
+//   project install, build or test code runs beside the signing credentials (c-26,
+//   decision signing_job_split): actions from SECRET_JOB_ACTIONS, bash, and run
+//   commands that are plain shell (set, umask, export, echo, printf, base64, mkdir, rm,
+//   test, true, false, exit), `tar -xf|-cf <file> [-C <dir>] [members]`, the p8 trap,
+//   `pnpm install --dir signing --frozen-lockfile --ignore-scripts
+//   [--ignore-workspace]` and `node scripts/sign-mac.ts …`. Anything else, including a
+//   command substitution, a heredoc, a folded run or a command it cannot split, is a
+//   violation. So is setting a LOADER_VARIABLES name (NODE_OPTIONS, PATH, DYLD_*…) by a
+//   NAME=x word, export, printf -v or an env: key there or at workflow level, and any
+//   mention of $GITHUB_ENV or $GITHUB_PATH in its runs: each would make an allowed
+//   command load other code. A signing secret named outside any job is a violation
+//   too: it cannot be confined to a job.
+// - Any step that names a .p8 file first sets P8_TRAP, so the decoded key leaves
+//   RUNNER_TEMP when the step exits, passed or failed, and names no .p8 but the one
+//   the trap removes (c-15).
 //
 // No YAML library (no new supply-chain dependency): a line-based reader that fails
 // closed. Any `permissions` or `uses` it cannot classify is a violation.
@@ -159,6 +176,417 @@ function checkPermissions(
 	return out;
 }
 
+// ---------------------------------------------------------------- secret-bearing jobs
+
+/** The release signing secrets (05-release decision release_secrets). */
+export const SIGNING_SECRETS = [
+	'CSC_LINK',
+	'CSC_KEY_PASSWORD',
+	'APPLE_API_KEY_P8_BASE64',
+	'APPLE_API_KEY_ID',
+	'APPLE_API_ISSUER'
+] as const;
+
+/** Actions a secret-bearing job may use: none of them runs project code. */
+export const SECRET_JOB_ACTIONS: readonly string[] = [
+	'actions/checkout',
+	'actions/setup-node',
+	'pnpm/action-setup',
+	'actions/download-artifact',
+	'actions/upload-artifact'
+];
+
+/** The cleanup every step that handles a .p8 key sets before touching it (c-15). */
+export const P8_TRAP = `trap 'rm -f "$RUNNER_TEMP/AuthKey.p8"' EXIT`;
+const P8_FILE = '$RUNNER_TEMP/AuthKey.p8';
+
+const SECRET_NAME = new RegExp(`\\b(${SIGNING_SECRETS.join('|')})\\b`);
+// secrets[…], toJSON(secrets) and `secrets: inherit` reach any secret by a computed name.
+const DYNAMIC_SECRETS = /\bsecrets\s*\[|\(\s*secrets\s*\)|\bsecrets\s*:\s*inherit\b/;
+const keyAnywhere = (key: string) => new RegExp(`(^|[\\s{,-])["']?${key}["']?\\s*:`);
+const ENVIRONMENT_KEY = keyAnywhere('environment');
+const RUN_KEY = keyAnywhere('run');
+const SHELL_KEY = keyAnywhere('shell');
+const P8_MENTION = /\.p8\b/i;
+const P8_PATHS = /[^\s'"=<>|;&()]*\.p8\b/gi;
+
+/**
+ * Variables that change what node, bash or the dynamic loader loads (DYLD_* too). A
+ * secret-bearing job never sets them, by any route, or an allowed command loads
+ * other code beside the secrets: NODE_OPTIONS=--import=./x.ts node scripts/sign-mac.ts.
+ */
+export const LOADER_VARIABLES: readonly string[] = [
+	'NODE_OPTIONS',
+	'NODE_PATH',
+	'NODE_EXTRA_CA_CERTS',
+	'BASH_ENV',
+	'ENV',
+	'PATH',
+	'LD_PRELOAD',
+	'LD_LIBRARY_PATH'
+];
+const isLoaderVariable = (name: string) =>
+	LOADER_VARIABLES.includes(name) || name.startsWith('DYLD_');
+const setsLoader = (name: string) =>
+	`may not set ${name}: it changes what node, bash or the loader loads`;
+/** A loader variable as a YAML key, block or flow (an env: entry, wherever it sits). */
+const LOADER_KEY = new RegExp(
+	`(?:^|[\\s{,-])["']?(${LOADER_VARIABLES.join('|')}|DYLD_[A-Za-z0-9_]*)["']?\\s*:`
+);
+/** The runner files whose lines become later steps' environment and PATH. */
+const RUNNER_ENV_FILES = /\bGITHUB_(ENV|PATH)\b/;
+/** A shell assignment word, `NAME=` or `NAME+=`; group 1 is the name. */
+const ASSIGNMENT = /^([A-Za-z_][A-Za-z0-9_]*)\+?=/;
+
+/** Commands a secret-bearing job may run with any arguments. */
+const PLAIN_SHELL = new Set([
+	'set',
+	'umask',
+	'export',
+	'echo',
+	'printf',
+	'base64',
+	'mkdir',
+	'rm',
+	'test',
+	'[',
+	'true',
+	'false',
+	'exit'
+]);
+
+type Pathed = { entry: Entry; path: string[]; key: string | null };
+type ScriptLine = { line: number; text: string };
+type Script = { style: 'inline' | 'literal' | 'folded'; escaped: boolean; lines: ScriptLine[] };
+
+const valueOf = (entry: Entry) => KEY.exec(entry.text.replace(/^-\s*/, ''))?.[2] ?? '';
+const isComment = (text: string) => text.trim().startsWith('#');
+
+/** A step's `run:` script: its inline value, or its block scalar's body lines. */
+function runScript(raw: string[], entry: Entry): Script {
+	const bare = entry.text.replace(/^-\s*/, '');
+	const value = (KEY.exec(bare)?.[2] ?? '').trim();
+	if (!BLOCK_SCALAR.test(entry.text)) {
+		// A double-quoted YAML value turns \n into a line break the shell then sees.
+		const escaped = value.startsWith('"') && value.includes('\\');
+		return { style: 'inline', escaped, lines: [{ line: entry.line, text: unquote(value) }] };
+	}
+	// Same rule as entries(): the body is indented past the key's column.
+	const column = entry.indent + (entry.text.length - bare.length);
+	const lines: ScriptLine[] = [];
+	for (let i = entry.line; i < raw.length; i++) {
+		if (raw[i].trim() === '') continue;
+		if (raw[i].length - raw[i].trimStart().length <= column) break;
+		lines.push({ line: i + 1, text: raw[i].trim() });
+	}
+	return { style: value.startsWith('>') ? 'folded' : 'literal', escaped: false, lines };
+}
+
+/** Joins backslash-continued lines (an odd run of trailing backslashes). */
+function logicalLines(lines: ScriptLine[]): ScriptLine[] {
+	const out: ScriptLine[] = [];
+	let pending: ScriptLine | null = null;
+	for (const l of lines) {
+		const current: ScriptLine = pending
+			? { line: pending.line, text: pending.text + l.text }
+			: { ...l };
+		const tail = /\\+$/.exec(current.text)?.[0].length ?? 0;
+		if (tail % 2 === 1) pending = { line: current.line, text: current.text.slice(0, -1) };
+		else {
+			pending = null;
+			out.push(current);
+		}
+	}
+	// A continuation on the last line: keep the backslash, so the line cannot be split.
+	if (pending) out.push({ line: pending.line, text: `${pending.text}\\` });
+	return out;
+}
+
+/**
+ * One shell line as its simple commands' words, quotes removed and redirections
+ * dropped. Null when it cannot tell what runs: a command substitution, process
+ * substitution, heredoc, unbalanced quote or dangling redirection.
+ */
+function shellCommands(line: string): string[][] | null {
+	if (/\$\(|`|<\(|>\(|<</.test(line)) return null;
+	const commands: string[][] = [];
+	let words: string[] = [];
+	let word: string | null = null;
+	let target = false; // the next word is a redirection target, not an argument
+	const endWord = () => {
+		if (word === null) return;
+		if (target) target = false;
+		else words.push(word);
+		word = null;
+	};
+	const endCommand = () => {
+		endWord();
+		if (words.length) commands.push(words);
+		words = [];
+	};
+	for (let i = 0; i < line.length; i++) {
+		const c = line[i];
+		if (c === "'") {
+			const end = line.indexOf("'", i + 1);
+			if (end < 0) return null;
+			word = (word ?? '') + line.slice(i + 1, end);
+			i = end;
+		} else if (c === '"') {
+			let text = '';
+			let j = i + 1;
+			for (; j < line.length && line[j] !== '"'; j++) {
+				// Inside double quotes a backslash escapes only $ ` " \.
+				if (line[j] === '\\' && '$`"\\'.includes(line[j + 1] ?? '')) j++;
+				text += line[j];
+			}
+			if (j >= line.length) return null;
+			word = (word ?? '') + text;
+			i = j;
+		} else if (c === '\\') {
+			if (i + 1 >= line.length) return null;
+			word = (word ?? '') + line[++i];
+		} else if (c === ' ' || c === '\t') {
+			endWord();
+		} else if (c === '#' && word === null) {
+			break;
+		} else if (c === ';' || c === '&' || c === '|') {
+			if (target && word === null) return null;
+			endCommand();
+		} else if (c === '<' || c === '>') {
+			// An all-digit word right before the operator is its fd (2>), not an argument.
+			if (word !== null && /^\d+$/.test(word)) word = null;
+			else endWord();
+			if (target) return null;
+			let j = i + 1;
+			while (j < line.length && '<>|'.includes(line[j])) j++;
+			if (line[j] === '&') {
+				const fd = /^(\d+|-)/.exec(line.slice(j + 1));
+				if (!fd) return null;
+				j += 1 + fd[0].length;
+			} else target = true;
+			i = j - 1;
+		} else {
+			word = (word ?? '') + c;
+		}
+	}
+	if (target && word === null) return null;
+	endCommand();
+	return commands;
+}
+
+const notFlag = (arg: string | undefined) => arg !== undefined && !arg.startsWith('-');
+
+/**
+ * The variable names a simple command assigns: its leading NAME=x words, `export`'s
+ * NAME[=x] arguments and `printf -v NAME`.
+ */
+function assignedNames(words: string[]): string[] {
+	const at = words.findIndex((w) => !ASSIGNMENT.test(w));
+	const leading = (at < 0 ? words : words.slice(0, at)).map((w) => ASSIGNMENT.exec(w)![1]);
+	if (at < 0) return leading;
+	const [program, ...args] = words.slice(at);
+	if (program === 'export')
+		return [...leading, ...args.filter(notFlag).map((a) => a.split(/\+?=/)[0])];
+	if (program === 'printf') {
+		const v = args.findIndex((a) => a.startsWith('-v'));
+		const name = v < 0 ? undefined : args[v] === '-v' ? args[v + 1] : args[v].slice(2);
+		if (name !== undefined) return [...leading, name];
+	}
+	return leading;
+}
+
+/** Whether a secret-bearing job may run this simple command (leading NAME=x dropped). */
+function allowedInSecretJob(words: string[]): boolean {
+	const at = words.findIndex((w) => !ASSIGNMENT.test(w));
+	if (at < 0) return true;
+	const [program, ...args] = words.slice(at);
+	if (PLAIN_SHELL.has(program)) return true;
+	// A trap's action is a script run later: only the p8 cleanup.
+	if (program === 'trap')
+		return args.length === 2 && args[0] === `rm -f "${P8_FILE}"` && args[1] === 'EXIT';
+	// No other option: tar's --to-command and --use-compress-program run programs.
+	if (program === 'tar') {
+		const [mode, archive, ...rest] = args;
+		const withDir = rest[0] === '-C';
+		const members = withDir ? rest.slice(2) : rest;
+		return (
+			(mode === '-xf' || mode === '-cf') &&
+			notFlag(archive) &&
+			(!withDir || notFlag(rest[1])) &&
+			members.every(notFlag)
+		);
+	}
+	if (program === 'pnpm') {
+		if (args[0] !== 'install') return false;
+		const seen = new Set<string>();
+		for (let i = 1; i < args.length; i++) {
+			const arg = args[i];
+			if (arg === '--dir' && args[i + 1] === 'signing') {
+				seen.add('--dir=signing');
+				i++;
+			} else if (
+				['--dir=signing', '--frozen-lockfile', '--ignore-scripts', '--ignore-workspace'].includes(
+					arg
+				)
+			) {
+				seen.add(arg);
+			} else return false;
+		}
+		return ['--dir=signing', '--frozen-lockfile', '--ignore-scripts'].every((f) => seen.has(f));
+	}
+	if (program === 'node') return args[0] === 'scripts/sign-mac.ts';
+	return false;
+}
+
+/** Job id → its entries (header included) and the raw line range it spans. */
+function jobRanges(
+	pathed: Pathed[],
+	rawLength: number
+): { id: string; items: Pathed[]; first: number; last: number }[] {
+	const out: { id: string; items: Pathed[]; first: number; last: number }[] = [];
+	pathed.forEach((p, i) => {
+		if (p.key === null || p.path.length !== 1 || p.path[0] !== 'jobs') return;
+		let end = i + 1;
+		while (end < pathed.length && pathed[end].path.length > 1) end++;
+		out.push({
+			id: p.key,
+			items: pathed.slice(i, end),
+			first: p.entry.line,
+			last: end < pathed.length ? pathed[end].entry.line - 1 : rawLength
+		});
+	});
+	return out;
+}
+
+/** Violations of the secret-bearing job allowlist (c-26). */
+function checkSecretJobs(file: string, raw: string[], pathed: Pathed[]): Violation[] {
+	const out: Violation[] = [];
+	const at = (line: number, message: string): Violation => ({ file, line, message });
+	const jobs = jobRanges(pathed, raw.length);
+	const inJob = (line: number) => jobs.some((j) => line >= j.first && line <= j.last);
+
+	raw.forEach((text, i) => {
+		if (inJob(i + 1) || isComment(text)) return;
+		if (SECRET_NAME.test(text) || DYNAMIC_SECRETS.test(text))
+			out.push(at(i + 1, 'a signing secret outside a job cannot be confined to one job'));
+	});
+
+	const secretJobs = jobs.filter(
+		(j) =>
+			raw
+				.slice(j.first - 1, j.last)
+				.some((t) => !isComment(t) && (SECRET_NAME.test(t) || DYNAMIC_SECRETS.test(t))) ||
+			j.items.some((p) => ENVIRONMENT_KEY.test(p.entry.text))
+	);
+
+	for (const job of secretJobs) {
+		const where = `secret-bearing job '${job.id}'`;
+		const header = job.items[0];
+		if (valueOf(header.entry).trim() !== '')
+			out.push(at(header.entry.line, `${where} in flow style cannot be classified`));
+		for (const { entry, path, key } of job.items.slice(1)) {
+			const last = path[path.length - 1];
+			if (/\brun_install\b/.test(entry.text))
+				out.push(at(entry.line, `${where} may not set run_install: it runs a root install`));
+			const loader = LOADER_KEY.exec(entry.text)?.[1];
+			if (loader !== undefined) out.push(at(entry.line, `${where} ${setsLoader(loader)}`));
+
+			if (key === 'uses') {
+				const ref = unquote(valueOf(entry));
+				if (path.length === 2)
+					out.push(at(entry.line, `${where} may not call a reusable workflow`));
+				else if (!SECRET_JOB_ACTIONS.includes(ref.split('@')[0]))
+					out.push(at(entry.line, `${where} may not use '${ref}'`));
+			}
+
+			if (key === 'shell') {
+				if (unquote(valueOf(entry)) !== 'bash')
+					out.push(at(entry.line, `${where} runs only under bash`));
+			} else if (SHELL_KEY.test(entry.text)) {
+				out.push(at(entry.line, `${where}: a shell the policy cannot classify`));
+			}
+
+			if (last === 'run' && path[path.length - 2] === '-') {
+				out.push(at(entry.line, `${where}: a multi-line plain run cannot be classified`));
+			} else if (key === 'run' && last === '-') {
+				out.push(...checkSecretRun(file, where, entry.line, runScript(raw, entry)));
+			} else if (key === 'run' && last === 'defaults' && valueOf(entry).trim() === '') {
+				// Job-level defaults.run: a map, its shell checked above.
+			} else if (RUN_KEY.test(entry.text)) {
+				out.push(at(entry.line, `${where}: a run the policy cannot classify`));
+			}
+		}
+	}
+
+	// Workflow-level defaults.run.shell and env apply to every job, the secret-bearing
+	// ones too.
+	if (secretJobs.length > 0) {
+		for (const { entry, path, key } of pathed) {
+			if (path[0] === 'jobs' || inJob(entry.line)) continue;
+			if (key === 'shell' ? unquote(valueOf(entry)) !== 'bash' : SHELL_KEY.test(entry.text))
+				out.push(at(entry.line, 'a workflow with a secret-bearing job runs only under bash'));
+			const loader = LOADER_KEY.exec(entry.text)?.[1];
+			if (loader !== undefined)
+				out.push(at(entry.line, `a workflow with a secret-bearing job ${setsLoader(loader)}`));
+		}
+	}
+	return out;
+}
+
+/** Every command of one step's run in a secret-bearing job, against the allowlist. */
+function checkSecretRun(file: string, where: string, runLine: number, script: Script): Violation[] {
+	const at = (line: number, message: string): Violation => ({ file, line, message });
+	// Folding joins lines into one command line: what runs is not what the lines say.
+	if (script.style === 'folded')
+		return [at(runLine, `${where}: a folded run (>) cannot be classified`)];
+	if (script.escaped)
+		return [at(runLine, `${where}: an escaped double-quoted run cannot be classified`)];
+	const out: Violation[] = [];
+	for (const { line, text } of logicalLines(script.lines)) {
+		// Any mention, not just a parsed redirect: tee, cp and $VAR indirection write too.
+		if (RUNNER_ENV_FILES.test(text))
+			out.push(at(line, `${where} may not write $GITHUB_ENV or $GITHUB_PATH`));
+		const commands = shellCommands(text);
+		if (commands === null) {
+			out.push(at(line, `${where}: cannot classify '${text}'`));
+			continue;
+		}
+		for (const words of commands) {
+			for (const name of assignedNames(words).filter(isLoaderVariable))
+				out.push(at(line, `${where} ${setsLoader(name)}`));
+			if (!allowedInSecretJob(words))
+				out.push(at(line, `${where} may not run '${words.join(' ')}'`));
+		}
+	}
+	return out;
+}
+
+/** Violations of the .p8 cleanup rule, in every step of every job (c-15). */
+function checkP8Cleanup(file: string, raw: string[], pathed: Pathed[]): Violation[] {
+	const out: Violation[] = [];
+	const at = (line: number, message: string): Violation => ({ file, line, message });
+	for (const { entry, path, key } of pathed) {
+		if (key !== 'run' || path[path.length - 1] !== '-') continue;
+		const lines = runScript(raw, entry).lines;
+		const mentions = lines.filter((l) => P8_MENTION.test(l.text));
+		if (mentions.length === 0) continue;
+		const trap = lines.findIndex((l) => l.text === P8_TRAP);
+		if (trap < 0)
+			out.push(at(mentions[0].line, `a step that writes a .p8 key needs ${P8_TRAP} first`));
+		else if (mentions[0] !== lines[trap])
+			out.push(at(mentions[0].line, `${P8_TRAP} must come before the step's first .p8 use`));
+		for (const l of mentions)
+			for (const path of l.text.match(P8_PATHS) ?? [])
+				if (path !== P8_FILE)
+					out.push(at(l.line, `the .p8 cleanup trap removes ${P8_FILE} only, not ${path}`));
+		lines.forEach((l, i) => {
+			if (i > trap && trap >= 0 && /(^|[;&|]\s*)trap\b/.test(l.text))
+				out.push(at(l.line, `a later trap replaces the .p8 cleanup`));
+		});
+	}
+	return out;
+}
+
 /** Every policy violation in one workflow file. */
 export function checkWorkflow(
 	file: string,
@@ -173,8 +601,9 @@ export function checkWorkflow(
 	}));
 	const writable = allowlist[basename(file)] ?? [];
 	let topPermissions = 0;
+	const pathed = withPaths(list);
 
-	withPaths(list).forEach(({ entry, path, key }, idx) => {
+	pathed.forEach(({ entry, path, key }, idx) => {
 		const at = (message: string): Violation => ({ file, line: entry.line, message });
 		const bare = entry.text.replace(/^-\s*/, '');
 
@@ -209,6 +638,8 @@ export function checkWorkflow(
 		});
 	if (topPermissions > 1)
 		out.push({ file, line: 1, message: 'more than one workflow-level permissions block' });
+	const raw = text.split(/\r?\n/);
+	out.push(...checkSecretJobs(file, raw, pathed), ...checkP8Cleanup(file, raw, pathed));
 	return out.sort((a, b) => a.line - b.line);
 }
 
