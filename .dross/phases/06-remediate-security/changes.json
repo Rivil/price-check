@@ -342,6 +342,43 @@
         }
       ]
     },
+    "t-28": {
+      "files": [
+        ".github/workflows/release.yml",
+        "scripts/workflow-policy.ts",
+        "scripts/workflow-policy.spec.ts",
+        "scripts/release-workflow.spec.ts"
+      ],
+      "commit": "86ae77a",
+      "completed_at": "2026-11-21T13:57:04.730645Z",
+      "landmarks": [
+        {
+          "feature": "release signing",
+          "symbol": "sign-macos verified download",
+          "loc": ".github/workflows/release.yml:144",
+          "what": "signing job unpacks only a single sha256-verified tar from RUNNER_TEMP; ci:policy requires secret-job downloads under runner.temp"
+        }
+      ]
+    },
+    "t-29": {
+      "files": [
+        "scripts/verify-packaged.ts",
+        "scripts/verify-packaged.spec.ts",
+        "e2e/packaged/update.packaged.ts",
+        "e2e/packaged/launch-packaged.ts",
+        "src/desktop/main.ts"
+      ],
+      "commit": "4419e92",
+      "completed_at": "2026-11-21T14:06:07.940517Z",
+      "landmarks": [
+        {
+          "feature": "packaged build verification",
+          "symbol": "packAsar",
+          "loc": "scripts/verify-packaged.spec.ts:1027",
+          "what": "layout tests wait for the asar write to finish; verifyLayout reports a bad manifest beside file-set violations; Windows relaunch checks skip the control channel"
+        }
+      ]
+    },
     "t-3": {
       "files": [
         "src/lib/server/checks.ts",
@@ -1277,6 +1314,62 @@
           "kind": "quality",
           "severity": "NOTE",
           "text": "In scripts/sign-mac.spec.ts, repoPath uses relative(ROOT, file), which also replaces the old fragile slice(ROOT.length + 1) in the violation messages.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-28": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-26",
+          "text": "RUNNER_TEMP_PATH (scripts/workflow-policy.ts) accepts any named subdir of runner.temp, so 'fresh' is not enforced: two downloads in one secret-bearing job could share a dir, or a path could name ${{ runner.temp }}/AuthKey.p8. Neither happens in the shipped release.yml.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "LOADER_VARIABLES gains PERL5OPT/PERL5LIB/PERLLIB because shasum is a perl script; other perl env hooks (e.g. PERL5DB, which needs -d) are left out, which seems reasonable since shasum is never run with -d.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "The bash-driven tests in release-workflow.spec run the actual check step from release.yml against planted, renamed, symlinked and wrong-sha downloads, so a weaker check would make them fail.",
+          "resolution": "non-blocking, left"
+        }
+      ]
+    },
+    "t-29": {
+      "outcome": "pass",
+      "rounds": 1,
+      "findings": [
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "criterion": "c-22",
+          "text": "Both test_contract lines (PR CI 'test' green on linux/macos/windows; 20 consecutive local runs of verify-packaged.spec) are observed outcomes, not tests a reviewer can check in the diff; they depend on the CI and local runs actually having been observed.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "No test exercises the asar flush race that packAsar fixes; only the run-20-times observation covers it. The new 'lists the file-set violations beside a packaged package.json that is not JSON' case covers the verifyLayout split well, and the switch to toContainEqual(expect.stringMatching(...)) makes failures print the violations.",
+          "resolution": "non-blocking, left"
+        },
+        {
+          "round": 1,
+          "kind": "quality",
+          "severity": "NOTE",
+          "text": "e2e/packaged/update.packaged.ts header lines 22-24 have an odd re-wrap ('a fresh' alone on a line before '// copy of A ...'); cosmetic only.",
           "resolution": "non-blocking, left"
         }
       ]

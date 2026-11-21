@@ -1,4 +1,4 @@
-task_seq = 27
+task_seq = 29
 [phase]
 id = "06-remediate-security"
 
@@ -443,9 +443,31 @@ status = "done"
 depends_on = ["t-26"]
 
 [[task]]
+id = "t-28"
+wave = 7
+title = "Close SEC-18: download the unsigned build into RUNNER_TEMP and verify it"
+files = [".github/workflows/release.yml", "scripts/workflow-policy.ts", "scripts/workflow-policy.spec.ts", "scripts/release-workflow.spec.ts"]
+description = "Re-audit SEC-18 (medium): in sign-macos, actions/download-artifact (macos-unsigned) has no path, so it extracts over the checked-out scripts/ and signing/, and build-job code could plant scripts/sign-mac.ts that then runs with the five signing secrets. build-macos publishes the sha256 of mac-unsigned.tar as a job output; sign-macos downloads into a fresh dir under RUNNER_TEMP, asserts it holds exactly one regular file named mac-unsigned.tar whose sha256 matches, and only then extracts it outside the workspace's scripts/ and signing/. The same hardening applies to every artifact download in a job that holds secrets. workflow-policy.ts refuses download-artifact in a secret-bearing job unless its path is under $RUNNER_TEMP. User-approved 2026-11-21."
+covers = ["c-26"]
+test_contract = ["if download-artifact in a secret-bearing job has no path:, or a path not under $RUNNER_TEMP, checkWorkflow reports a violation (workflow-policy.spec)", "if sign-macos runs sign-mac.ts without first checking the artifact is exactly one file whose sha256 equals build-macos's output, release-workflow.spec fails", "pnpm ci:policy on the shipped tree stays 0"]
+status = "done"
+depends_on = ["t-27"]
+
+[[task]]
+id = "t-29"
+wave = 7
+title = "Fix 3-OS CI: verify-packaged.spec flake, Windows update control hand-over"
+files = ["scripts/verify-packaged.spec.ts", "scripts/verify-packaged.ts", "e2e/packaged/update.packaged.ts", "e2e/packaged/launch-packaged.ts", "src/desktop/main.ts"]
+description = "Diagnosed 2026-11-21. (1) macOS/local flake: @electron/asar 3.4.1 createPackageWithOptions resolves before the archive tail is flushed (disk.js:61-66,88), so buildOutDir (verify-packaged.spec.ts ~1040, ~1285) can return an app.asar whose package.json reads back as NULs; verifyLayout's one attempt (verify-packaged.ts:711-723) then replaces the expected violations with a JSON error. Fix: buildOutDir waits until the archive is fully on disk (size == 8 + header + packed sizes, or pack in a child process); verify-packaged.ts reads the manifest in its own attempt so a bad package.json cannot hide file-set violations; assertions print the violations. (2) Windows packaged update 'relaunch after exit': NSIS StartApp launches B via ExecShellAsUser (Explorer), so B inherits Explorer's env and never gets PRICE_CHECK_E2E_CONTROL_DIR (nor PREDECESSOR_PID / OUTPUT_CAPTURE). Fix test-side: expectRelaunchServes keeps the 403-without-cookie checks but skips the control pid/appGet part on win32 ('relaunch is B with its data' already proves B through a harness launch); correct the hand-over comments in launch-packaged.ts:18-19, update.packaged.ts:30-34 and main.ts:61-67 for Windows. No product behaviour change."
+covers = ["c-22", "c-19"]
+test_contract = ["PR CI 'test' green on linux, macos and windows, observed", "verify-packaged.spec passes 20 consecutive local runs of the file"]
+status = "done"
+depends_on = ["t-28"]
+
+[[task]]
 id            = "t-25"
 wave          = 7
-depends_on    = ["t-1", "t-2", "t-3", "t-4", "t-5", "t-6", "t-7", "t-8", "t-9", "t-10", "t-11", "t-12", "t-13", "t-14", "t-15", "t-16", "t-17", "t-18", "t-19", "t-20", "t-21", "t-22", "t-23", "t-24", "t-26", "t-27"]
+depends_on    = ["t-1", "t-2", "t-3", "t-4", "t-5", "t-6", "t-7", "t-8", "t-9", "t-10", "t-11", "t-12", "t-13", "t-14", "t-15", "t-16", "t-17", "t-18", "t-19", "t-20", "t-21", "t-22", "t-23", "t-24", "t-26", "t-27", "t-28", "t-29"]
 title         = "Re-audit and close SEC-01..17"
 files         = [".dross/security/state.toml"]
 description   = '''
