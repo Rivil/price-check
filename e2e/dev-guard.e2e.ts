@@ -179,6 +179,9 @@ test.describe('vite dev guard', () => {
 			const res = await page.goto(`${server!.url}${path}`);
 			expect(res?.status(), path).toBe(200);
 			expect(res?.headers()['content-security-policy'], path).toContain("frame-ancestors 'none'");
+			// vite dev serves the client as many modules: once they have all loaded the
+			// page has hydrated, so a click below goes through enhance, not a native post.
+			await page.waitForLoadState('networkidle');
 		}
 
 		// Hydrated: an enhanced save goes out as a SvelteKit action request and the
@@ -197,6 +200,7 @@ test.describe('vite dev guard', () => {
 
 		// The watchlist hydrates too: its add form posts through enhance.
 		await page.goto(`${server!.url}/`);
+		await page.waitForLoadState('networkidle');
 		const addForm = page.locator('form[action="?/add"]');
 		await addForm.getByLabel('Product link').fill(FIELDS.url);
 		const [added] = await Promise.all([

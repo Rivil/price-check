@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import ts from 'typescript';
 import { describe, expect, it, vi } from 'vitest';
 import { ROOT, SIGNING_VARIABLES, builderConfig } from './package-desktop.ts';
@@ -124,6 +124,9 @@ function staticImports(file: string): { specifier: string; typeOnly: boolean }[]
 	return found;
 }
 
+/** A repo-relative path with '/' separators on every OS (Windows gives '\\'). */
+const repoPath = (file: string) => relative(ROOT, file).split(sep).join('/');
+
 describe('runs without the project install', () => {
 	it('statically imports only node:*, relative files and types, all the way down', () => {
 		const seen = new Set<string>();
@@ -137,11 +140,11 @@ describe('runs without the project install', () => {
 					visit(resolve(dirname(file), specifier));
 					continue;
 				}
-				violations.push(`${file.slice(ROOT.length + 1)} imports ${specifier}`);
+				violations.push(`${repoPath(file)} imports ${specifier}`);
 			}
 		};
 		visit(SIGN_MAC);
-		expect([...seen].map((f) => f.slice(ROOT.length + 1)).sort()).toEqual([
+		expect([...seen].map(repoPath).sort()).toEqual([
 			'scripts/package-desktop.ts',
 			'scripts/sign-mac.ts',
 			'src/desktop/app-id.ts'
