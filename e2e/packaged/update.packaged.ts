@@ -19,8 +19,9 @@
 // INSTALLER_POLL_MS (one cheap PowerShell, not the instance probe's two a second);
 // once it is gone, the relaunch is found by install path (Get-Process) and its port
 // (Get-NetTCPConnection): it must have started after A's process exited (c-6) and
-// serve the seeded watch. Linux: Quit installs B over the AppImage at its own path
-// and does not relaunch; then, once nothing runs from the AppImage's path, a fresh
+// refuse a request without the session cookie. Linux: Quit installs B over the
+// AppImage at its own path and does not relaunch; then, once nothing runs from the
+// AppImage's path, a fresh
 // copy of A is renamed over it and takes 'Restart to update', and B,
 // started by the updater while A is still exiting, must wait out its predecessor
 // and run. Both end with a harness relaunch that reports version B and lists the
@@ -29,9 +30,14 @@
 //
 // The harness reaches main only through its control channel (launch-packaged.ts;
 // 06-remediate-security c-22). A relaunch the installer or the updater started has no
-// launch handle, but it inherited the channel's variable at the hand-over (main.ts
-// withControlHandOver): it must refuse a request without the session cookie (c-3) and
-// answer on the channel of the launch it replaced, serving the watch to main's appGet.
+// launch handle. Either way it must refuse a request without the session cookie (c-3).
+// On Linux it inherited the channel's variable at the hand-over (main.ts
+// withControlHandOver), so it must also answer on the channel of the launch it
+// replaced, serving the watch to main's appGet. On Windows it cannot: the NSIS
+// installer starts the app through Explorer (StartApp's ExecShellAsUser), so the
+// relaunch gets Explorer's env, without the control variable (or the capture and
+// predecessor ones). There 'relaunch is B with its data', a harness launch, proves B
+// serves the watch.
 //
 // The Linux run launches a copy of A at an unversioned file name: electron-updater
 // replaces an AppImage in place only when its name carries no version, and writes
@@ -468,14 +474,17 @@ test.describe.serial('packaged update', () => {
 
 	/**
 	 * The relaunch serving on `port` from main process `pid` refuses a request without
-	 * the session cookie (c-3), answers on the channel in A's control dir `controlDir`
-	 * (the variable survived the hand-over), and serves the seeded watch to its appGet.
+	 * the session cookie (c-3). Except on Windows, where the installer's relaunch never
+	 * gets the control variable (see the header), it also answers on the channel in A's
+	 * control dir `controlDir` (the variable survived the hand-over), and serves the
+	 * seeded watch to its appGet.
 	 */
 	const expectRelaunchServes = async (controlDir: string, pid: number, port: number) => {
 		for (const path of ['/', '/account/alerts/__data.json']) {
 			const refused = await rawRequest(port, { path, timeoutMs: RESPONSE_MS });
 			expect(refused.status, `GET ${path} without the session cookie`).toBe(403);
 		}
+		if (platform === 'win32') return;
 		const control = controlClient(controlDir, pid);
 		const answered = await control.send({ cmd: 'pid' }, RESPONSE_MS).catch((error: unknown) => {
 			throw new Error(

@@ -15,8 +15,9 @@
 //     commands dropped as files (ControlClient). A launch finds the app through it: it
 //     waits for the <pid> dir main's channel creates and for main's reply to 'pid'. An
 //     app whose main never wires the channel fails every launch there.
-// A version an update starts inherits the variable at the hand-over (main.ts
-// withControlHandOver), so it answers in the dir of the launch it replaced.
+// On Linux a version an update starts inherits the variable at the hand-over (main.ts
+// withControlHandOver), so it answers in the dir of the launch it replaced. On Windows
+// it does not: the NSIS installer starts the app through Explorer, whose env it gets.
 //
 // A packaged app never reads PRICE_CHECK_USER_DATA (src/desktop/app-paths.ts), so a
 // run's data lives where a real install keeps it: packagedUserDataDir() of the OS's

@@ -708,19 +708,31 @@ export function verifyLayout({ outDir, version, mode, platform }: LayoutInput): 
 
 	const resources = resourcesDir(outDir, platform);
 	const asarPath = join(resources, 'app.asar');
+	const hasAsar = existsSync(asarPath);
 	attempt(() => {
-		if (!existsSync(asarPath)) return [`no app.asar at ${asarPath}`];
-		const unpackedDir = join(resources, 'app.asar.unpacked');
-		const checks = verifyAppFiles(listAsar(asarPath), listTree(unpackedDir), platform);
-		const manifest = JSON.parse(extractFile(asarPath, 'package.json').toString('utf8')) as {
-			version?: unknown;
-		};
-		if (manifest.version !== version) {
-			checks.push(
-				`packaged package.json version is '${String(manifest.version)}', stamped ${version}`
-			);
+		if (!hasAsar) return [`no app.asar at ${asarPath}`];
+		return verifyAppFiles(
+			listAsar(asarPath),
+			listTree(join(resources, 'app.asar.unpacked')),
+			platform
+		);
+	});
+	// Its own attempt: a package.json that does not parse is one violation, and never
+	// hides the file-set violations above.
+	attempt(() => {
+		if (!hasAsar) return [];
+		const text = extractFile(asarPath, 'package.json').toString('utf8');
+		let manifest: { version?: unknown };
+		try {
+			manifest = JSON.parse(text) as { version?: unknown };
+		} catch (error) {
+			return [
+				`packaged package.json in ${asarPath} is not JSON: ${error instanceof Error ? error.message : String(error)}`
+			];
 		}
-		return checks;
+		return manifest.version === version
+			? []
+			: [`packaged package.json version is '${String(manifest.version)}', stamped ${version}`];
 	});
 
 	attempt(() => {

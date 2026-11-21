@@ -10,6 +10,7 @@ import { SENTINEL } from '@electron/fuses/dist/constants.js';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
+import { finished } from 'node:stream/promises';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { APP_ID } from '../src/desktop/app-id.ts';
 import { GITHUB_RELEASES, PRODUCT_NAME } from './package-desktop.ts';
@@ -985,6 +986,8 @@ type LayoutFixture = {
 	platform: PackagedPlatform;
 	/** Stamp in the packaged package.json. */
 	packagedVersion?: string;
+	/** The packaged package.json's text, replacing the stamped one. */
+	manifest?: string;
 	/** Version written into latest*.yml. */
 	ymlVersion?: string;
 	/** @libsql native packages in node_modules (default: the platform's expected set). */
@@ -1014,6 +1017,21 @@ function writeTree(root: string, files: Record<string, string>): void {
 	}
 }
 
+/**
+ * Packs `src` into the archive `dest` and returns once the whole archive is on disk.
+ * @electron/asar 3.4.1 resolves createPackageWithOptions as soon as it has called end()
+ * on its write stream (disk.js writeFileListToStream), before the archive's tail is
+ * flushed: a read straight after could find package.json as NULs. It resolves with
+ * that stream, so waiting for the stream to close waits for the last write.
+ */
+async function packAsar(
+	src: string,
+	dest: string,
+	options: Parameters<typeof createPackageWithOptions>[2]
+): Promise<void> {
+	await finished(await createPackageWithOptions(src, dest, options));
+}
+
 /** A packaged output dir for one OS: artefacts, latest*.yml, and a real app.asar. */
 async function buildOutDir(fixture: LayoutFixture): Promise<string> {
 	const { platform } = fixture;
@@ -1022,10 +1040,9 @@ async function buildOutDir(fixture: LayoutFixture): Promise<string> {
 	const out = join(root, 'out');
 	const natives = fixture.natives ?? EXPECTED_LIBSQL[platform];
 	writeTree(src, {
-		'package.json': JSON.stringify({
-			name: 'price-check-app',
-			version: fixture.packagedVersion ?? VERSION
-		}),
+		'package.json':
+			fixture.manifest ??
+			JSON.stringify({ name: 'price-check-app', version: fixture.packagedVersion ?? VERSION }),
 		'dist-desktop/main.js': 'main',
 		'build/handler.js': 'handler',
 		'drizzle/0000_init.sql': 'create table x (id int);',
@@ -1037,7 +1054,7 @@ async function buildOutDir(fixture: LayoutFixture): Promise<string> {
 	});
 	const resources = resourcesFor(out, platform);
 	mkdirSync(resources, { recursive: true });
-	await createPackageWithOptions(src, join(resources, 'app.asar'), {
+	await packAsar(src, join(resources, 'app.asar'), {
 		dot: true,
 		unpack: fixture.unpack ?? '{*.node,index.js}'
 	});
@@ -1064,6 +1081,9 @@ async function buildOutDir(fixture: LayoutFixture): Promise<string> {
 
 const layout = (out: string, platform: PackagedPlatform, mode: LayoutMode = 'release') =>
 	verifyLayout({ outDir: out, version: VERSION, mode, platform });
+
+/** `text` as a RegExp source matching it literally. */
+const escapeRe = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 describe('verifyLayout', () => {
 	it.each(['darwin', 'win32', 'linux'] as const)('passes a clean %s build', async (platform) => {
@@ -1099,9 +1119,7 @@ describe('verifyLayout', () => {
 		['README.md', /outside the app's files: README\.md/]
 	])('fails an app.asar holding %s', async (path, message) => {
 		const out = await buildOutDir({ platform: 'linux', extra: { [path]: 'x' } });
-		const violations = layout(out, 'linux');
-		expect(violations.length).toBeGreaterThan(0);
-		expect(violations.some((v) => message.test(v))).toBe(true);
+		expect(layout(out, 'linux')).toContainEqual(expect.stringMatching(message));
 	});
 
 	it('fails a build that packed the whole repo, listing every leak', async () => {
@@ -1127,7 +1145,7 @@ describe('verifyLayout', () => {
 			'scripts/release-tag.spec.ts',
 			'local.db'
 		]) {
-			expect(violations.some((v) => v.endsWith(`: ${leak}`))).toBe(true);
+			expect(violations).toContainEqual(expect.stringMatching(new RegExp(`: ${escapeRe(leak)}$`)));
 		}
 	});
 
@@ -1162,13 +1180,28 @@ describe('verifyLayout', () => {
 		['win32', ['linux-x64-gnu'], /win32-x64-msvc's \.node binary is not/]
 	] as const)('fails %s shipping libsql %j', async (platform, natives, message) => {
 		const violations = layout(await buildOutDir({ platform, natives }), platform);
-		expect(violations.some((v) => message.test(v))).toBe(true);
+		expect(violations).toContainEqual(expect.stringMatching(message));
 	});
 
 	it('fails a packaged package.json version other than the stamp', async () => {
 		const out = await buildOutDir({ platform: 'darwin', packagedVersion: '0.1.5' });
 		expect(layout(out, 'darwin')).toEqual([
 			`packaged package.json version is '0.1.5', stamped ${VERSION}`
+		]);
+	});
+
+	it('lists the file-set violations beside a packaged package.json that is not JSON', async () => {
+		const out = await buildOutDir({
+			platform: 'linux',
+			manifest: '\0\0\0',
+			extra: { '.env': 'x' }
+		});
+		const asar = join(resourcesFor(out, 'linux'), 'app.asar');
+		expect(layout(out, 'linux')).toEqual([
+			expect.stringMatching(/an \.env file: \.env$/),
+			expect.stringMatching(
+				new RegExp(`^packaged package\\.json in ${escapeRe(asar)} is not JSON: `)
+			)
 		]);
 	});
 
@@ -1282,7 +1315,7 @@ describe('listAsar and listTree', () => {
 		const root = tempDir('verify-asar-');
 		writeTree(join(root, 'app'), { 'lib/addon.js': 'x' });
 		symlinkSync('addon.js', join(root, 'app', 'lib', 'addon.node'));
-		await createPackageWithOptions(join(root, 'app'), join(root, 'app.asar'), {});
+		await packAsar(join(root, 'app'), join(root, 'app.asar'), {});
 		const entries = listAsar(join(root, 'app.asar'));
 		expect(entries.sort((a, b) => a.path.localeCompare(b.path))).toEqual([
 			{ path: 'lib', unpacked: false, kind: 'dir' },

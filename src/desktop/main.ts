@@ -62,9 +62,14 @@
 // read and removed with the capture variable, before loadAdapterHandler swaps
 // process.env for the server's; set, the channel starts answering from this launch's
 // objects (controlHandlers), and the variable is put back only for the hand-over to the
-// installer (withControlHandOver), so the version an update starts answers too. Its
-// appGet reaches this launch's server with the session cookie, so the secret never
-// leaves this process. Unset (every real launch), no channel starts at all.
+// installer (withControlHandOver). Its appGet reaches this launch's server with the
+// session cookie, so the secret never leaves this process. Unset (every real launch),
+// no channel starts at all.
+// The version an update starts answers too on Linux, where electron-updater spawns it
+// with this env. On Windows it does not: the NSIS installer inherits the variable but
+// starts the app through Explorer (StartApp's ExecShellAsUser), so that version gets
+// Explorer's env and starts no channel. The same holds for the capture and predecessor
+// variables, which an installer-started version never sees on Windows.
 import {
 	app,
 	autoUpdater,
@@ -192,8 +197,8 @@ export function startOutputCapture(
 
 /**
  * `updates` as is without a capture file; with one, each hand-over to the installer
- * first puts OUTPUT_CAPTURE_ENV back into `env`, which the installer and the version
- * it starts inherit.
+ * first puts OUTPUT_CAPTURE_ENV back into `env`, which the installer inherits, and the
+ * version it starts too except on Windows (see the header).
  */
 export function withCaptureHandOver(
 	updates: LifecycleUpdates,
@@ -212,8 +217,9 @@ export function withCaptureHandOver(
 
 /**
  * `updates` as is without a control dir; with one, each hand-over to the installer
- * first puts E2E_CONTROL_ENV back into `env`, which the installer and the version it
- * starts inherit, so that version answers on the same channel.
+ * first puts E2E_CONTROL_ENV back into `env`, which the installer inherits. The version
+ * it starts inherits it too, and answers on the same channel, except on Windows (see
+ * the header).
  */
 export function withControlHandOver<T extends LifecycleUpdates>(
 	updates: T,
