@@ -151,4 +151,20 @@ describe('normaliseAmazonUrl', () => {
 		expectUnsupported('https://amzn.eu.evil.com/d/AbC123');
 		expectUnsupported('ftp://amzn.to/3xYz');
 	});
+
+	it('http short links are upgraded to https', () => {
+		expect(normaliseAmazonUrl('http://amzn.to/abc')).toEqual({
+			kind: 'short',
+			url: 'https://amzn.to/abc'
+		});
+		expect(normaliseAmazonUrl('http://amzn.eu/d/xyz')).toEqual({
+			kind: 'short',
+			url: 'https://amzn.eu/d/xyz'
+		});
+		expect(normaliseAmazonUrl(`http://www.amazon.co.uk/dp/${X}`)).toEqual({
+			kind: 'product',
+			asin: X,
+			canonicalUrl: CANONICAL
+		});
+	});
 });

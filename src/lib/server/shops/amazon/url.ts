@@ -64,7 +64,12 @@ export function normaliseAmazonUrl(input: string): NormalisedAmazonUrl {
 			: { kind: 'product', asin, canonicalUrl: canonicalAmazonUrl(asin) };
 	}
 
-	if (isShortLink(url)) return { kind: 'short', url: url.href };
+	// Always https: resolveShortLink requests this URL and every Location hop through
+	// here, so an http:// short link or redirect never goes out in plaintext (SEC-13).
+	if (isShortLink(url)) {
+		url.protocol = 'https:';
+		return { kind: 'short', url: url.href };
+	}
 
 	return UNSUPPORTED;
 }
