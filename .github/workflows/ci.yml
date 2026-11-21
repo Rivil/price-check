@@ -213,6 +213,28 @@ jobs:
               ;;
           esac
           echo "PRICE_CHECK_PACKAGED_EXE=$exe" >> "$GITHUB_ENV"
+      # 06-remediate-security c-8, c-22: the fuses the build flipped hold in the binary
+      # the packaged suites launch (RunAsNode, NODE_OPTIONS, CLI inspect and file-protocol
+      # privileges off; asar integrity and OnlyLoadAppFromAsar on). Linux reads the
+      # unpacked executable the AppImage is made from: the AppImage's squashfs is
+      # compressed, so its fuse wire cannot be read in place.
+      - name: verify fuses
+        run: |
+          case "$RUNNER_OS" in
+            Linux)
+              node scripts/verify-packaged.ts fuses dist-packaged/linux-unpacked/price-check-app
+              ;;
+            macOS)
+              node scripts/verify-packaged.ts fuses "$PRICE_CHECK_PACKAGED_EXE"
+              ;;
+            Windows)
+              node scripts/verify-packaged.ts fuses "$PRICE_CHECK_PACKAGED_EXE"
+              ;;
+            *)
+              echo "::error::no packaged build for $RUNNER_OS"
+              exit 1
+              ;;
+          esac
       # Build B, the next patch, for the update test (c-5, c-6): Windows and Linux only,
       # into the dir the loopback feed serves. macOS updates are device UAT (two notarised
       # builds), so update.packaged.ts skips there.

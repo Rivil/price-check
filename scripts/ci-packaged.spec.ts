@@ -46,7 +46,13 @@ const layout = (mode: 'ci' | 'release') =>
 	`node scripts/verify-packaged.ts layout dist-packaged --version "$PACKAGED_VERSION" --mode ${mode}`;
 
 /** The packaged steps, in the order they must run. */
-const STEP_NAMES = ['package', 'verify packaged', 'package update build', 'packaged e2e'] as const;
+const STEP_NAMES = [
+	'package',
+	'verify packaged',
+	'verify fuses',
+	'package update build',
+	'packaged e2e'
+] as const;
 type StepName = (typeof STEP_NAMES)[number];
 
 type OsScript = {
@@ -217,7 +223,7 @@ describe('ci.yml runs the packaged steps in the test job on every OS (c-1)', () 
 		}
 	});
 
-	it('runs after the desktop e2e, in order: package, verify, update build, packaged e2e', () => {
+	it('runs after the desktop e2e, in order: package, verify, fuses, update build, packaged e2e', () => {
 		const desktop = indexOfRun((l) => l.includes(DESKTOP_RUN));
 		expect(desktop).toBeGreaterThanOrEqual(0);
 		const order = STEP_NAMES.map((name) => step(name).index);
@@ -253,6 +259,27 @@ describe('ci.yml runs the packaged steps in the test job on every OS (c-1)', () 
 		expect(runs).toHaveLength(1);
 		const reporters = [...runs[0].matchAll(/--reporter[= ](\S+)/g)].map((m) => m[1]);
 		expect(reporters, runs[0]).toEqual(['list']);
+	});
+});
+
+// 06-remediate-security c-8, c-22: the fuses hold in the binary the packaged suites
+// launch, checked before they run; Linux reads the unpacked executable, since the
+// AppImage's compressed squashfs hides the wire.
+describe('the fuses are checked on every OS before the packaged suites', () => {
+	const FUSES = 'node scripts/verify-packaged.ts fuses';
+
+	it.each(OSES)('%s verifies the fuses of the binary it launches', (os) => {
+		const run = everyOs('verify fuses', os).filter((l) => l.startsWith(FUSES));
+		expect(run).toEqual([
+			os === 'Linux'
+				? `${FUSES} dist-packaged/linux-unpacked/price-check-app`
+				: `${FUSES} "$PRICE_CHECK_PACKAGED_EXE"`
+		]);
+	});
+
+	it('checks the fuses after the exe is located and before the packaged e2e', () => {
+		expect(step('verify fuses').index).toBeGreaterThan(step('verify packaged').index);
+		expect(step('verify fuses').index).toBeLessThan(step('packaged e2e').index);
 	});
 });
 
@@ -402,6 +429,46 @@ describe('Linux runs the packaged suites under xvfb with the sandbox on', () => 
 
 	it('ci.yml never passes --no-sandbox', () => {
 		expect(ci).not.toContain('--no-sandbox');
+	});
+
+	/**
+	 * The only code lines in e2e/packaged that may name a Node inspector switch: the
+	 * smoke's detector for one in argv, and the switch its 'inspector refused' probe
+	 * passes to prove the CLI inspect fuse ignores it (06-remediate-security c-22).
+	 */
+	const INSPECT_ALLOWED: Record<string, string[]> = {
+		'e2e/packaged/smoke.packaged.ts': [
+			'const INSPECT = /^--inspect/;',
+			"const INSPECT_ANY_PORT = '--inspect=0';"
+		]
+	};
+
+	it.each(packagedFiles)('%s neither uses _electron nor passes --inspect', (file) => {
+		const code = readFileSync(join(ROOT, file), 'utf8')
+			.split(/\r?\n/)
+			.filter((l) => !/^\s*(\/\/|\/?\*)/.test(l))
+			.map((l) => l.trim());
+		expect(code.filter((l) => /\b_electron\b/.test(l))).toEqual([]);
+		const allowed = INSPECT_ALLOWED[file.split(sep).join('/')] ?? [];
+		expect(code.filter((l) => /--inspect/.test(l) && !allowed.includes(l))).toEqual([]);
+	});
+
+	it("passes --inspect=0 only inside smoke's 'inspector refused' test", () => {
+		const smoke = readFileSync(join(ROOT, 'e2e/packaged/smoke.packaged.ts'), 'utf8').split(/\r?\n/);
+		const start = smoke.findIndex((l) => /^\s*test\('inspector refused'/.test(l));
+		expect(start).toBeGreaterThan(-1);
+		const next = smoke.findIndex((l, i) => i > start && /^\s*test\(/.test(l));
+		const uses = smoke
+			.map((l, i) => ({ l, i }))
+			.filter(({ l }) => /\bINSPECT_ANY_PORT\b/.test(l) && !/^\s*const INSPECT_ANY_PORT\b/.test(l));
+		expect(uses.length).toBeGreaterThan(0);
+		for (const { l, i } of uses) {
+			expect(i > start && (next === -1 || i < next), `line ${i + 1}: ${l.trim()}`).toBe(true);
+		}
+		// No other file names it at all.
+		for (const file of packagedFiles.filter((f) => !f.endsWith('smoke.packaged.ts'))) {
+			expect(readFileSync(join(ROOT, file), 'utf8'), file).not.toMatch(/\bINSPECT_ANY_PORT\b/);
+		}
 	});
 
 	it.each(packagedFiles)('%s never passes --no-sandbox outside a comment', (file) => {
