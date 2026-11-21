@@ -22,6 +22,7 @@ import { existsSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import { LOGIN_LAUNCH_ARG, MARKER_FILE_NAME } from '../../src/desktop/login-item.ts';
+import { SESSION_COOKIE } from '../../src/desktop/session-gate.ts';
 import {
 	ageLastChecks as ageLastChecksTo,
 	insertWatches,
@@ -101,11 +102,28 @@ const isRunning = (desktop: DesktopApp) => {
 const health = (desktop: DesktopApp) =>
 	rawRequest(desktop.port, { path: '/health', headers: { host: `127.0.0.1:${desktop.port}` } });
 
-/** The failed-check rows /watches/<id> shows for one watch. */
+/**
+ * The window's own session cookie (06-remediate-security c-3), as a Cookie header
+ * value, read from the default session in the main process. Without it the server
+ * answers 403. Set before the window first opens, so it is there with none open.
+ */
+async function sessionCookie(desktop: DesktopApp): Promise<string> {
+	const value = await desktop.app.evaluate(
+		async ({ session }, { url, name }) => {
+			const [cookie] = await session.defaultSession.cookies.get({ url, name });
+			return cookie?.value ?? null;
+		},
+		{ url: desktop.origin, name: SESSION_COOKIE }
+	);
+	if (!value) throw new Error(`no ${SESSION_COOKIE} cookie for ${desktop.origin}`);
+	return `${SESSION_COOKIE}=${value}`;
+}
+
+/** The failed-check rows /watches/<id> shows for one watch, read with the window's cookie. */
 async function failureRows(desktop: DesktopApp, id: string): Promise<number> {
 	const page = await rawRequest(desktop.port, {
 		path: `/watches/${id}`,
-		headers: { host: `127.0.0.1:${desktop.port}` }
+		headers: { host: `127.0.0.1:${desktop.port}`, cookie: await sessionCookie(desktop) }
 	});
 	expect(page.status, `/watches/${id}`).toBe(200);
 	return page.body.match(/<td class="failure\b[^"]*">Failed: /g)?.length ?? 0;

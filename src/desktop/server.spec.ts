@@ -7,7 +7,13 @@ import { pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readNotifier, type DesktopNotifier } from '#lib/server/notify-bridge.ts';
 import { removeTempDir } from '#lib/server/testing/temp-dir.ts';
-import { loadAdapterHandler, startDesktopServer, type DesktopServer } from './server.ts';
+import {
+	loadAdapterHandler,
+	startDesktopServer,
+	type DesktopServer,
+	type DesktopServerOptions
+} from './server.ts';
+import { SESSION_COOKIE, createSessionSecret } from './session-gate.ts';
 
 type Seen = {
 	url: string;
@@ -18,6 +24,10 @@ type Seen = {
 
 const started: DesktopServer[] = [];
 
+/** The secret every server here is started with, and the cookie that carries it. */
+const SECRET = createSessionSecret();
+const COOKIE = `${SESSION_COOKIE}=${SECRET}`;
+
 afterEach(async () => {
 	await Promise.all(started.splice(0).map((s) => s.close()));
 });
@@ -26,6 +36,7 @@ afterEach(async () => {
 async function startRecording(): Promise<{ server: DesktopServer; seen: Seen[] }> {
 	const seen: Seen[] = [];
 	const server = await startDesktopServer({
+		secret: SECRET,
 		handler: (req, res) => {
 			seen.push({
 				url: req.url ?? '',
@@ -40,22 +51,40 @@ async function startRecording(): Promise<{ server: DesktopServer; seen: Seen[] }
 	return { server, seen };
 }
 
-type Sent = { path?: string; headers?: OutgoingHttpHeaders; setHost?: boolean; agent?: Agent };
+type Sent = {
+	method?: string;
+	path?: string;
+	headers?: OutgoingHttpHeaders;
+	setHost?: boolean;
+	agent?: Agent;
+	/** The Cookie header sent; COOKIE (this launch's secret) by default, null for none. */
+	cookie?: string | null;
+};
 
-function send(
+/** One request; the response's status, body and headers. */
+function exchange(
 	port: number,
-	{ path = '/', headers = {}, setHost = true, agent }: Sent = {}
-): Promise<{ status: number; body: string }> {
+	{ method = 'GET', path = '/', headers = {}, setHost = true, agent, cookie = COOKIE }: Sent = {}
+): Promise<{ status: number; body: string; headers: IncomingHttpHeaders }> {
+	const sent = cookie === null ? headers : { cookie, ...headers };
 	return new Promise((resolve, reject) => {
-		const req = request({ host: '127.0.0.1', port, path, headers, setHost, agent }, (res) => {
-			let body = '';
-			res.setEncoding('utf8');
-			res.on('data', (chunk: string) => (body += chunk));
-			res.on('end', () => resolve({ status: res.statusCode ?? 0, body }));
-		});
+		const req = request(
+			{ host: '127.0.0.1', port, method, path, headers: sent, setHost, agent },
+			(res) => {
+				let body = '';
+				res.setEncoding('utf8');
+				res.on('data', (chunk: string) => (body += chunk));
+				res.on('end', () => resolve({ status: res.statusCode ?? 0, body, headers: res.headers }));
+			}
+		);
 		req.on('error', reject);
 		req.end();
 	});
+}
+
+async function send(port: number, sent: Sent = {}): Promise<{ status: number; body: string }> {
+	const { status, body } = await exchange(port, sent);
+	return { status, body };
 }
 
 /** Resolves with the connect error code, or 'connected' if the connection was accepted. */
@@ -140,6 +169,79 @@ describe('startDesktopServer: Host check', () => {
 
 		expect(res).toEqual({ status: 200, body: 'ok' });
 		expect(seen.map((s) => s.url)).toEqual(['/_app/immutable/chunks/x.js']);
+	});
+});
+
+describe('startDesktopServer: session gate', () => {
+	const gated: [string, string][] = [
+		['GET', '/'],
+		['GET', '/account/alerts/__data.json'],
+		['GET', '/_app/immutable/chunks/x.js'],
+		['POST', '/account/alerts?/save'],
+		['POST', '/?/add'],
+		['HEAD', '/health'],
+		['GET', '/health/']
+	];
+
+	it.each(gated)(
+		'answers %s %s without the cookie with 403 and never calls the handler',
+		async (method, path) => {
+			const { server, seen } = await startRecording();
+
+			for (const cookie of [null, '', `${SESSION_COOKIE}=${createSessionSecret()}`]) {
+				const res = await send(server.port, { method, path, cookie });
+				// HEAD carries no body; the status is the refusal.
+				const body = method === 'HEAD' ? '' : 'Forbidden';
+				expect(res, `cookie ${cookie}`).toEqual({ status: 403, body });
+			}
+			expect(seen).toEqual([]);
+
+			// Control: the same request with the launch's cookie reaches the handler.
+			expect((await send(server.port, { method, path })).status).toBe(200);
+			expect(seen.map((s) => s.url)).toEqual([path]);
+		}
+	);
+
+	it('refuses exactly like the Host check, so a 403 tells nothing (no oracle)', async () => {
+		const { server } = await startRecording();
+
+		const host = await exchange(server.port, { headers: { host: 'evil.example' } });
+		const gate = await exchange(server.port, { cookie: null });
+
+		const shape = ({ status, body, headers }: Awaited<ReturnType<typeof exchange>>) => ({
+			status,
+			body,
+			type: headers['content-type'],
+			length: headers['content-length'],
+			names: Object.keys(headers)
+				.filter((name) => name !== 'date')
+				.sort()
+		});
+		expect(shape(gate)).toEqual(shape(host));
+		expect(gate.status).toBe(403);
+	});
+
+	it.each(['/health', '/health?x=1'])(
+		"hands GET %s without the cookie to the handler, and gives back the handler's response",
+		async (path) => {
+			const { server, seen } = await startRecording();
+
+			expect(await send(server.port, { path, cookie: null })).toEqual({ status: 200, body: 'ok' });
+			expect(seen.map((s) => s.url)).toEqual([path]);
+		}
+	);
+
+	it('fails closed: refuses to start with a missing or empty secret', async () => {
+		const handler = vi.fn((_req: unknown, res: { end(body: string): void }) => res.end('ok'));
+		const missing = { handler } as unknown as DesktopServerOptions;
+		const undefinedSecret = { handler, secret: undefined } as unknown as DesktopServerOptions;
+
+		await expect(startDesktopServer(missing)).rejects.toThrow('session secret is required');
+		await expect(startDesktopServer(undefinedSecret)).rejects.toThrow('session secret is required');
+		await expect(startDesktopServer({ handler, secret: '' })).rejects.toThrow(
+			'session secret is required'
+		);
+		expect(handler).not.toHaveBeenCalled();
 	});
 });
 
@@ -229,6 +331,7 @@ describe('startDesktopServer: forwarded headers', () => {
 describe('startDesktopServer: handler failures', () => {
 	it('answers 500 when the handler throws', async () => {
 		const server = await startDesktopServer({
+			secret: SECRET,
 			handler: () => {
 				throw new Error('boom');
 			}
@@ -240,6 +343,7 @@ describe('startDesktopServer: handler failures', () => {
 
 	it('answers 500 when the handler returns a rejecting promise', async () => {
 		const server = await startDesktopServer({
+			secret: SECRET,
 			handler: async () => {
 				throw new Error('boom');
 			}
@@ -251,6 +355,7 @@ describe('startDesktopServer: handler failures', () => {
 
 	it('leaves a handler that returns no promise to answer on its own, later', async () => {
 		const server = await startDesktopServer({
+			secret: SECRET,
 			handler: (_req, res) => {
 				setTimeout(() => res.end('late'), 20);
 				return 'not a promise';
@@ -263,6 +368,7 @@ describe('startDesktopServer: handler failures', () => {
 
 	it('destroys the response when the handler throws after sending headers', async () => {
 		const server = await startDesktopServer({
+			secret: SECRET,
 			handler: (req, res) => {
 				if (req.url === '/next') {
 					res.end('ok');
@@ -278,7 +384,13 @@ describe('startDesktopServer: handler failures', () => {
 		// The socket may close before or after the client parses the head: either a request
 		// error (socket hang up) or a response that closes without completing is an abort.
 		const first = await new Promise<string>((resolve) => {
-			const req = request({ host: '127.0.0.1', port: server.port, agent: false }, (res) => {
+			const options = {
+				host: '127.0.0.1',
+				port: server.port,
+				agent: false,
+				headers: { cookie: COOKIE }
+			};
+			const req = request(options, (res) => {
 				res.on('error', () => {});
 				res.on('close', () => resolve(res.complete ? 'complete' : 'aborted'));
 				res.resume();
@@ -292,7 +404,10 @@ describe('startDesktopServer: handler failures', () => {
 	});
 
 	it('answers 404 when the handler calls next()', async () => {
-		const server = await startDesktopServer({ handler: (_req, _res, next) => next?.() });
+		const server = await startDesktopServer({
+			secret: SECRET,
+			handler: (_req, _res, next) => next?.()
+		});
 		started.push(server);
 
 		expect(await send(server.port)).toEqual({ status: 404, body: 'Not Found' });
@@ -301,7 +416,10 @@ describe('startDesktopServer: handler failures', () => {
 
 describe('startDesktopServer: close with keep-alive', () => {
 	it('closes within 1s with an idle keep-alive connection, then refuses connections', async () => {
-		const server = await startDesktopServer({ handler: (_req, res) => res.end('ok') });
+		const server = await startDesktopServer({
+			secret: SECRET,
+			handler: (_req, res) => res.end('ok')
+		});
 		const agent = new Agent({ keepAlive: true });
 		try {
 			await send(server.port, { agent });
@@ -322,6 +440,7 @@ describe('startDesktopServer: close with keep-alive', () => {
 		let opened!: () => void;
 		const streaming = new Promise<void>((resolve) => (opened = resolve));
 		const server = await startDesktopServer({
+			secret: SECRET,
 			handler: (_req, res) => {
 				res.writeHead(200, { 'content-type': 'text/event-stream' });
 				res.write(': open\n\n');
@@ -330,7 +449,8 @@ describe('startDesktopServer: close with keep-alive', () => {
 		});
 		// An aborted response never emits 'end', so wait for the client socket's 'close'.
 		const clientClosed = new Promise<void>((resolve) => {
-			const req = request({ host: '127.0.0.1', port: server.port }, (res) => res.resume());
+			const options = { host: '127.0.0.1', port: server.port, headers: { cookie: COOKIE } };
+			const req = request(options, (res) => res.resume());
 			req.on('error', () => {});
 			req.on('close', () => resolve());
 			req.end();
@@ -373,7 +493,7 @@ describe('loadAdapterHandler: env, cwd and notifier before import', () => {
 
 	/** What fake-handler read at its import, fetched through a server running it. */
 	async function recordedBy(handler: Awaited<ReturnType<typeof loadAdapterHandler>>) {
-		const server = await startDesktopServer({ handler });
+		const server = await startDesktopServer({ secret: SECRET, handler });
 		started.push(server);
 		return JSON.parse((await send(server.port)).body) as Recorded;
 	}

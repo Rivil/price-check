@@ -32,8 +32,17 @@
 // backend (alerts-key.ts; 06-remediate-security c-24, c-25), so every launch hands
 // it to loadOrCreateAlertsKey.
 //
-// '[desktop] listening on http://127.0.0.1:<port>' is printed once the server is up:
-// the desktop e2e harness reads it to find the per-launch port.
+// The session gate (06-remediate-security c-3; decision session_secret): one secret
+// is made per launch and held only in this module's memory, never in process.env or
+// argv, where the server's env, a child process or a crash report could carry it. The
+// server is started with it, and startServer awaits session.defaultSession.cookies.set
+// for its cookie before resolving. runDesktop shows the window only once startServer
+// has resolved, and every window uses the default session, so the window's first
+// request already carries the cookie. A rejected cookies.set closes the server and
+// fails startup: no window opens without the cookie.
+//
+// '[desktop] listening on http://127.0.0.1:<port>' is printed once the server is up
+// and the cookie set: the desktop e2e harness reads it to find the per-launch port.
 //
 // Test-only output capture (05-release t-30): electron-updater starts the updated
 // AppImage with stdio 'ignore', so the packaged update test cannot see what it printed
@@ -55,6 +64,7 @@ import {
 	Notification,
 	powerMonitor,
 	safeStorage,
+	session,
 	shell,
 	Tray
 } from 'electron';
@@ -78,6 +88,7 @@ import { createNotifier } from './notifier.ts';
 import { notificationClassFor } from './notify-seam.ts';
 import { serverEnv } from './server-env.ts';
 import { loadAdapterHandler, startDesktopServer } from './server.ts';
+import { cookieDetails, createSessionSecret } from './session-gate.ts';
 import { createTray, type TrayHandle } from './tray.ts';
 import { createUpdater, publishUpdaterHandle, type UpdaterController } from './updater.ts';
 import { createWindowState, showWindow, type WindowState } from './window.ts';
@@ -179,6 +190,9 @@ export function withCaptureHandOver(
 /** Read and started before anything else here prints. */
 const outputCapture = takeOutputCaptureFile(process.env);
 if (outputCapture !== null) startOutputCapture(outputCapture, process);
+
+/** This launch's session secret (see the header): in memory only. */
+const sessionSecret = createSessionSecret();
 
 const paths = desktopPaths(
 	resolveUserDataDir({
@@ -283,7 +297,16 @@ runDesktop({
 		const handler = await loadAdapterHandler(env, HANDLER_URL, SERVER_CWD, {
 			notifier: notifications.notifier
 		});
-		const server = await startDesktopServer({ handler });
+		const server = await startDesktopServer({ handler, secret: sessionSecret });
+		try {
+			// Before resolving: runDesktop creates the first window only after this.
+			await session.defaultSession.cookies.set(cookieDetails(server.origin, sessionSecret));
+		} catch (error) {
+			await server.close().catch((closeError: unknown) => {
+				console.error('desktop startup: closing the server failed', closeError);
+			});
+			throw error;
+		}
 		console.log(`[desktop] listening on ${server.origin}`);
 		return server;
 	},
