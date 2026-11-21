@@ -658,14 +658,32 @@ describe('secret-bearing jobs', () => {
 		'export APPLE_API_KEY="$RUNNER_TEMP/AuthKey.p8"',
 		'node scripts/sign-mac.ts --version "$RELEASE_VERSION" --app "dist-packaged/mac-universal/Price Check.app"'
 	];
+	/** release.yml's check of the downloaded tar before it unpacks it (SEC-18). */
+	const UNPACK_LINES = [
+		'set -euo pipefail',
+		'shopt -s nullglob dotglob',
+		'set -- "$RUNNER_TEMP/macos-unsigned"/*',
+		'test "$#" -eq 1',
+		'test "$1" = "$RUNNER_TEMP/macos-unsigned/mac-unsigned.tar"',
+		'test -f "$1"',
+		'test ! -L "$1"',
+		`printf '%s  %s\\n' "$UNSIGNED_SHA256" "$1" | shasum -a 256 -c --strict -`,
+		'mkdir -p dist-packaged',
+		'tar -xf "$RUNNER_TEMP/macos-unsigned/mac-unsigned.tar" -C dist-packaged'
+	];
+	const DOWNLOAD = (withLines: string) =>
+		`      - uses: ${PINNED('actions/download-artifact')}\n        with:\n${withLines}`;
+	const UNSIGNED_DOWNLOAD = DOWNLOAD(
+		'          name: macos-unsigned\n          path: ${{ runner.temp }}/macos-unsigned\n'
+	);
 	/** release.yml's sign-macos steps, `insert` spliced in after the sign step. */
-	const signSteps = (insert = '', signLines = SIGN_LINES) =>
+	const signSteps = (insert = '', signLines = SIGN_LINES, download = UNSIGNED_DOWNLOAD) =>
 		[
 			`      - uses: ${PINNED('actions/checkout')}\n        with:\n          persist-credentials: false\n`,
 			`      - uses: ${PINNED('pnpm/action-setup')}\n`,
 			`      - uses: ${PINNED('actions/setup-node')}\n        with:\n          node-version-file: .node-version\n`,
-			`      - uses: ${PINNED('actions/download-artifact')}\n        with:\n          name: macos-unsigned\n`,
-			`      - run: |\n${block(['mkdir -p dist-packaged', 'tar -xf mac-unsigned.tar -C dist-packaged'])}`,
+			download,
+			`      - run: |\n${block(UNPACK_LINES)}        env:\n          UNSIGNED_SHA256: \${{ needs.build-macos.outputs.unsigned-sha256 }}\n`,
 			'      - run: pnpm install --dir signing --ignore-workspace --frozen-lockfile --ignore-scripts\n',
 			`      - name: sign and notarise\n        run: |\n${block(signLines)}        env:\n${SECRET_ENV}`,
 			insert,
@@ -737,6 +755,15 @@ describe('secret-bearing jobs', () => {
 			"trap 'pnpm build' EXIT",
 			'tar -xf a.tar --to-command=node',
 			'tar -xf a.tar -C d --use-compress-program=node',
+			// shopt for globbing only, shasum in check mode only.
+			'shopt -s extdebug',
+			'shopt -s nullglob extdebug',
+			'shopt -u dotglob',
+			'shopt -s',
+			'shasum -a 256 mac-unsigned.tar',
+			'shasum -c -',
+			'shasum -a 1 -c -',
+			'shasum -a 256 -c --tag -',
 			'if true; then pnpm build; fi',
 			'"pnpm" build',
 			'$PNPM build',
@@ -807,7 +834,11 @@ describe('secret-bearing jobs', () => {
 			['an escaped quote', 'echo "a \\" b"'],
 			['an fd redirection', 'echo hi >&2'],
 			['a redirection with no space', 'echo hi >out.log'],
-			['an assignment alone', 'FOO=bar']
+			['an assignment alone', 'FOO=bar'],
+			['shopt -s nullglob dotglob', 'shopt -s nullglob dotglob'],
+			['shopt -s dotglob', 'shopt -s dotglob'],
+			['shasum -c on stdin', `printf '%s  x\\n' "$S" | shasum -a 256 -c --strict -`],
+			['shasum -c on a list file', 'shasum -a 256 -c sums.txt']
 		])('allows %s', (_name, cmd) => {
 			expect(report(job(signSteps(`      - run: ${cmd}\n`)))).toEqual([]);
 		});
@@ -973,7 +1004,7 @@ describe('secret-bearing jobs', () => {
 	// is set beside it, by any route.
 	describe('loader variables and runner env files', () => {
 		const SETS = (name: string) =>
-			`secret-bearing job 'sign' may not set ${name}: it changes what node, bash or the loader loads`;
+			`secret-bearing job 'sign' may not set ${name}: it changes what node, bash, perl or the loader loads`;
 		const WRITES = "secret-bearing job 'sign' may not write $GITHUB_ENV or $GITHUB_PATH";
 
 		it.each([
@@ -999,6 +1030,9 @@ describe('secret-bearing jobs', () => {
 			['DYLD_INSERT_LIBRARIES=./x.dylib node scripts/sign-mac.ts', 'DYLD_INSERT_LIBRARIES'],
 			["printf -v PATH '%s' ./bin", 'PATH'],
 			["printf -vNODE_OPTIONS '%s' x", 'NODE_OPTIONS'],
+			['PERL5OPT=-Mx shasum -a 256 -c -', 'PERL5OPT'],
+			['export PERL5LIB=./lib', 'PERL5LIB'],
+			['PERLLIB=./lib shasum -a 256 -c -', 'PERLLIB'],
 			['set -e; export NODE_OPTIONS', 'NODE_OPTIONS']
 		])('reports %s as setting %s', (cmd, name) => {
 			const text = job(signSteps(`      - run: ${cmd}\n`));
@@ -1039,7 +1073,7 @@ describe('secret-bearing jobs', () => {
 			expect(report(text)).toEqual([
 				[
 					lineOf(text, 'NODE_OPTIONS'),
-					'a workflow with a secret-bearing job may not set NODE_OPTIONS: it changes what node, bash or the loader loads'
+					'a workflow with a secret-bearing job may not set NODE_OPTIONS: it changes what node, bash, perl or the loader loads'
 				]
 			]);
 			expect(report(job('      - run: pnpm build\n', '', top))).toEqual([]);
@@ -1060,6 +1094,92 @@ describe('secret-bearing jobs', () => {
 			['an export of another name', '      - run: export APPLE_API_KEY_FILE="$RUNNER_TEMP/k"\n']
 		])('allows %s', (_name, step) => {
 			expect(report(job(signSteps(step)))).toEqual([]);
+		});
+	});
+
+	// SEC-18: a download with no path extracts over the checkout, where the artefact
+	// could replace scripts/sign-mac.ts before it runs with the secrets.
+	describe('artifact downloads', () => {
+		const NO_PATH =
+			"secret-bearing job 'sign': download-artifact with no path extracts into the workspace; give it a path under ${{ runner.temp }}";
+		const NOT_UNDER = (path: string) =>
+			`secret-bearing job 'sign': download-artifact path '${path}' is not a fresh dir under \${{ runner.temp }}`;
+
+		it('reports a download with no path at its uses: line', () => {
+			const text = job(signSteps('', SIGN_LINES, DOWNLOAD('          name: macos-unsigned\n')));
+			expect(report(text)).toEqual([[lineOf(text, 'download-artifact@'), NO_PATH]]);
+		});
+
+		it('reports a download with no with: at all', () => {
+			const text = job(
+				signSteps('', SIGN_LINES, `      - uses: ${PINNED('actions/download-artifact')}\n`)
+			);
+			expect(report(text)).toEqual([[lineOf(text, 'download-artifact@'), NO_PATH]]);
+		});
+
+		it('reports a flow-style with:, whose path it cannot read', () => {
+			const step = `      - uses: ${PINNED('actions/download-artifact')}\n        with: { name: x, path: \${{ runner.temp }}/x }\n`;
+			const text = job(signSteps('', SIGN_LINES, step));
+			expect(report(text)).toEqual([[lineOf(text, 'download-artifact@'), NO_PATH]]);
+		});
+
+		it("does not take the next step's path for the download's", () => {
+			const next = `      - uses: ${PINNED('actions/upload-artifact')}\n        with:\n          path: \${{ runner.temp }}/x\n`;
+			const text = job(signSteps('', SIGN_LINES, DOWNLOAD('          name: x\n') + next));
+			expect(report(text)).toEqual([[lineOf(text, 'download-artifact@'), NO_PATH]]);
+		});
+
+		it.each([
+			['the workspace', 'dist-packaged'],
+			['the workspace root', '.'],
+			['a literal $RUNNER_TEMP, which the action does not expand', '$RUNNER_TEMP/x'],
+			['a literal ${RUNNER_TEMP}', '${RUNNER_TEMP}/x'],
+			['runner.temp itself', '${{ runner.temp }}'],
+			['runner.temp with a trailing slash only', '${{ runner.temp }}/'],
+			['a .. segment', '${{ runner.temp }}/../work'],
+			['a trailing .. segment', '${{ runner.temp }}/x/..'],
+			['a . segment', '${{ runner.temp }}/.'],
+			['another context', '${{ github.workspace }}/x'],
+			['an expression in the dir name', '${{ runner.temp }}/${{ github.head_ref }}'],
+			['an absolute path', '/tmp/x'],
+			['a block scalar', '|']
+		])('reports a path in %s', (_name, path) => {
+			const text = job(
+				signSteps('', SIGN_LINES, DOWNLOAD(`          name: x\n          path: ${path}\n`))
+			);
+			expect(report(text)).toEqual([[lineOf(text, `path: ${path}`), NOT_UNDER(path)]]);
+		});
+
+		it.each([
+			['a dir under runner.temp', '${{ runner.temp }}/macos-unsigned'],
+			['a nested dir', '${{ runner.temp }}/a/b_c.d'],
+			['no spaces in the braces', '${{runner.temp}}/x'],
+			['a quoted path', '"${{ runner.temp }}/x"']
+		])('accepts %s', (_name, path) => {
+			const text = job(
+				signSteps('', SIGN_LINES, DOWNLOAD(`          name: x\n          path: ${path}\n`))
+			);
+			expect(report(text)).toEqual([]);
+		});
+
+		it('reads the path when uses: is not the first key of the step', () => {
+			const step = (path: string) =>
+				`      - name: fetch\n        uses: ${PINNED('actions/download-artifact')}\n        with:\n          pattern: x-*\n          path: ${path}\n`;
+			expect(report(job(signSteps('', SIGN_LINES, step('${{ runner.temp }}/x'))))).toEqual([]);
+			const text = job(signSteps('', SIGN_LINES, step('out')));
+			expect(report(text)).toEqual([[lineOf(text, 'path: out'), NOT_UNDER('out')]]);
+		});
+
+		it('holds every download in the job to it', () => {
+			const text = job(signSteps(DOWNLOAD('          name: other\n')));
+			const second =
+				text.split('\n').lastIndexOf(`      - uses: ${PINNED('actions/download-artifact')}`) + 1;
+			expect(report(text)).toEqual([[second, NO_PATH]]);
+		});
+
+		it('lets a job with no signing secret download anywhere', () => {
+			const steps = `${DOWNLOAD('          name: x\n')}      - run: pnpm build\n`;
+			expect(report(job(steps))).toEqual([]);
 		});
 	});
 

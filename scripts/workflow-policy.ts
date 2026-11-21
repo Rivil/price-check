@@ -12,15 +12,19 @@
 //   project install, build or test code runs beside the signing credentials (c-26,
 //   decision signing_job_split): actions from SECRET_JOB_ACTIONS, bash, and run
 //   commands that are plain shell (set, umask, export, echo, printf, base64, mkdir, rm,
-//   test, true, false, exit), `tar -xf|-cf <file> [-C <dir>] [members]`, the p8 trap,
-//   `pnpm install --dir signing --frozen-lockfile --ignore-scripts
-//   [--ignore-workspace]` and `node scripts/sign-mac.ts …`. Anything else, including a
-//   command substitution, a heredoc, a folded run or a command it cannot split, is a
-//   violation. So is setting a LOADER_VARIABLES name (NODE_OPTIONS, PATH, DYLD_*…) by a
-//   NAME=x word, export, printf -v or an env: key there or at workflow level, and any
-//   mention of $GITHUB_ENV or $GITHUB_PATH in its runs: each would make an allowed
-//   command load other code. A signing secret named outside any job is a violation
-//   too: it cannot be confined to a job.
+//   test, true, false, exit), `shopt -s nullglob|dotglob`, `shasum -a 256 -c …`,
+//   `tar -xf|-cf <file> [-C <dir>] [members]`, the p8 trap, `pnpm install --dir signing
+//   --frozen-lockfile --ignore-scripts [--ignore-workspace]` and
+//   `node scripts/sign-mac.ts …`. Anything else, including a command substitution, a
+//   heredoc, a folded run or a command it cannot split, is a violation. So is setting a
+//   LOADER_VARIABLES name (NODE_OPTIONS, PATH, PERL5OPT, DYLD_*…) by a NAME=x word,
+//   export, printf -v or an env: key there or at workflow level, and any mention of
+//   $GITHUB_ENV or $GITHUB_PATH in its runs: each would make an allowed command load
+//   other code. A signing secret named outside any job is a violation too: it cannot
+//   be confined to a job.
+// - A secret-bearing job's download-artifact has a `path:` in a fresh dir under
+//   ${{ runner.temp }}: without one it extracts over the checkout, where the artefact
+//   could replace the scripts the job then runs with the secrets (SEC-18).
 // - Any step that names a .p8 file first sets P8_TRAP, so the decoded key leaves
 //   RUNNER_TEMP when the step exits, passed or failed, and names no .p8 but the one
 //   the trap removes (c-15).
@@ -211,9 +215,10 @@ const P8_MENTION = /\.p8\b/i;
 const P8_PATHS = /[^\s'"=<>|;&()]*\.p8\b/gi;
 
 /**
- * Variables that change what node, bash or the dynamic loader loads (DYLD_* too). A
- * secret-bearing job never sets them, by any route, or an allowed command loads
- * other code beside the secrets: NODE_OPTIONS=--import=./x.ts node scripts/sign-mac.ts.
+ * Variables that change what node, bash, perl (shasum is a perl script) or the dynamic
+ * loader loads (DYLD_* too). A secret-bearing job never sets them, by any route, or an
+ * allowed command loads other code beside the secrets:
+ * NODE_OPTIONS=--import=./x.ts node scripts/sign-mac.ts.
  */
 export const LOADER_VARIABLES: readonly string[] = [
 	'NODE_OPTIONS',
@@ -222,17 +227,27 @@ export const LOADER_VARIABLES: readonly string[] = [
 	'BASH_ENV',
 	'ENV',
 	'PATH',
+	'PERL5OPT',
+	'PERL5LIB',
+	'PERLLIB',
 	'LD_PRELOAD',
 	'LD_LIBRARY_PATH'
 ];
 const isLoaderVariable = (name: string) =>
 	LOADER_VARIABLES.includes(name) || name.startsWith('DYLD_');
 const setsLoader = (name: string) =>
-	`may not set ${name}: it changes what node, bash or the loader loads`;
+	`may not set ${name}: it changes what node, bash, perl or the loader loads`;
 /** A loader variable as a YAML key, block or flow (an env: entry, wherever it sits). */
 const LOADER_KEY = new RegExp(
 	`(?:^|[\\s{,-])["']?(${LOADER_VARIABLES.join('|')}|DYLD_[A-Za-z0-9_]*)["']?\\s*:`
 );
+/**
+ * A download-artifact `path:` a secret-bearing job may use: a fresh dir under
+ * ${{ runner.temp }}, never RUNNER_TEMP itself (the .p8 key is written there) and no
+ * `.` / `..` segment. A literal $RUNNER_TEMP does not count: the action does not
+ * expand it, so it would name a dir in the workspace.
+ */
+const RUNNER_TEMP_PATH = /^\$\{\{\s*runner\.temp\s*\}\}(\/[A-Za-z0-9_][A-Za-z0-9_.-]*)+$/;
 /** The runner files whose lines become later steps' environment and PATH. */
 const RUNNER_ENV_FILES = /\bGITHUB_(ENV|PATH)\b/;
 /** A shell assignment word, `NAME=` or `NAME+=`; group 1 is the name. */
@@ -435,7 +450,37 @@ function allowedInSecretJob(words: string[]): boolean {
 		return ['--dir=signing', '--frozen-lockfile', '--ignore-scripts'].every((f) => seen.has(f));
 	}
 	if (program === 'node') return args[0] === 'scripts/sign-mac.ts';
+	// Globbing only: the unsigned-artefact check counts the files in its dir.
+	if (program === 'shopt')
+		return (
+			args[0] === '-s' &&
+			args.length > 1 &&
+			args.slice(1).every((o) => o === 'nullglob' || o === 'dotglob')
+		);
+	// Check mode only: compares files against a sha256 list.
+	if (program === 'shasum') {
+		if (args[0] !== '-a' || args[1] !== '256' || args[2] !== '-c') return false;
+		return args.slice(3).every((a) => a === '--strict' || a === '-' || notFlag(a));
+	}
 	return false;
+}
+
+/** The `with: path:` entries of the step whose `uses:` is items[at]. */
+function stepWithPaths(items: Pathed[], at: number): Pathed[] {
+	const depth = items[at].path.length;
+	let dash = at;
+	while (
+		dash > 0 &&
+		!(/^-(\s|$)/.test(items[dash].entry.text) && items[dash].path.length === depth)
+	)
+		dash--;
+	const indent = items[dash].entry.indent;
+	const out: Pathed[] = [];
+	for (let i = dash + 1; i < items.length && items[i].entry.indent > indent; i++) {
+		const p = items[i];
+		if (p.key === 'path' && p.path.length === depth + 1 && p.path[depth] === 'with') out.push(p);
+	}
+	return out;
 }
 
 /** Job id → its entries (header included) and the raw line range it spans. */
@@ -484,7 +529,8 @@ function checkSecretJobs(file: string, raw: string[], pathed: Pathed[]): Violati
 		const header = job.items[0];
 		if (valueOf(header.entry).trim() !== '')
 			out.push(at(header.entry.line, `${where} in flow style cannot be classified`));
-		for (const { entry, path, key } of job.items.slice(1)) {
+		job.items.forEach(({ entry, path, key }, index) => {
+			if (index === 0) return;
 			const last = path[path.length - 1];
 			if (/\brun_install\b/.test(entry.text))
 				out.push(at(entry.line, `${where} may not set run_install: it runs a root install`));
@@ -497,6 +543,8 @@ function checkSecretJobs(file: string, raw: string[], pathed: Pathed[]): Violati
 					out.push(at(entry.line, `${where} may not call a reusable workflow`));
 				else if (!SECRET_JOB_ACTIONS.includes(ref.split('@')[0]))
 					out.push(at(entry.line, `${where} may not use '${ref}'`));
+				else if (ref.split('@')[0] === 'actions/download-artifact')
+					out.push(...checkDownloadPath(file, where, entry.line, stepWithPaths(job.items, index)));
 			}
 
 			if (key === 'shell') {
@@ -515,7 +563,7 @@ function checkSecretJobs(file: string, raw: string[], pathed: Pathed[]): Violati
 			} else if (RUN_KEY.test(entry.text)) {
 				out.push(at(entry.line, `${where}: a run the policy cannot classify`));
 			}
-		}
+		});
 	}
 
 	// Workflow-level defaults.run.shell and env apply to every job, the secret-bearing
@@ -531,6 +579,36 @@ function checkSecretJobs(file: string, raw: string[], pathed: Pathed[]): Violati
 		}
 	}
 	return out;
+}
+
+/** A secret-bearing job's download-artifact step: its path, under runner.temp (SEC-18). */
+function checkDownloadPath(
+	file: string,
+	where: string,
+	usesLine: number,
+	paths: Pathed[]
+): Violation[] {
+	if (paths.length === 0)
+		return [
+			{
+				file,
+				line: usesLine,
+				message: `${where}: download-artifact with no path extracts into the workspace; give it a path under \${{ runner.temp }}`
+			}
+		];
+	return paths
+		.map(({ entry }) => unquote(valueOf(entry)))
+		.flatMap((value, i) =>
+			RUNNER_TEMP_PATH.test(value)
+				? []
+				: [
+						{
+							file,
+							line: paths[i].entry.line,
+							message: `${where}: download-artifact path '${value}' is not a fresh dir under \${{ runner.temp }}`
+						}
+					]
+		);
 }
 
 /** Every command of one step's run in a secret-bearing job, against the allowlist. */

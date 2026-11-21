@@ -11,9 +11,20 @@
 // job may run are `pnpm ci:policy`'s (scripts/workflow-policy.ts).
 //
 // The publish script is also run under bash with a stub gh on PATH (the c-4 empty and
-// idempotency edges). The workflow is read by scripts/workflow-reader.ts.
+// idempotency edges), and sign-macos's check of the unsigned tar against planted and
+// swapped downloads (SEC-18). The workflow is read by scripts/workflow-reader.ts.
 import { spawnSync } from 'node:child_process';
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import {
+	chmodSync,
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	symlinkSync,
+	writeFileSync
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -71,6 +82,12 @@ const MAC_APP = '"dist-packaged/mac-universal/Price Check.app"';
 const LAYOUT =
 	'node scripts/verify-packaged.ts layout dist-packaged --version "$RELEASE_VERSION" --mode release';
 const SMOKE = 'pnpm test:e2e:packaged';
+/** SEC-18: where sign-macos downloads the unsigned tar, and how it unpacks it. */
+const UNSIGNED_DIR = '${{ runner.temp }}/macos-unsigned';
+const UNSIGNED_UNPACK = 'tar -xf "$RUNNER_TEMP/macos-unsigned/mac-unsigned.tar" -C dist-packaged';
+const UNSIGNED_SHA_REF = '${{ needs.build-macos.outputs.unsigned-sha256 }}';
+const UNSIGNED_DIGEST =
+	'echo "sha256=$(shasum -a 256 mac-unsigned.tar | cut -d \' \' -f 1)" >> "$GITHUB_OUTPUT"';
 const SHA_PINNED = (action: string) => new RegExp(`^${action}@[0-9a-f]{40}$`);
 
 /** Job ids directly under `jobs:`, in file order. */
@@ -97,6 +114,7 @@ let wf: Workflow;
 let jobSteps: Record<string, Step[]>;
 let allSteps: Step[];
 let signStep: Step;
+let unsignedCheck: Step;
 let publishStep: Step;
 beforeEach(() => {
 	text = read('.github/workflows/release.yml');
@@ -104,6 +122,7 @@ beforeEach(() => {
 	jobSteps = Object.fromEntries(JOBS.map((id) => [id, steps(wf.job(id))]));
 	allSteps = Object.values(jobSteps).flat();
 	signStep = jobSteps[SIGN_JOB].find((s) => runs(s, 'node scripts/sign-mac.ts'))!;
+	unsignedCheck = jobSteps[SIGN_JOB].find((s) => runs(s, 'shasum -a 256 -c'))!;
 	publishStep = jobSteps.publish.find((s) => runs(s, 'gh release create'))!;
 });
 
@@ -325,15 +344,23 @@ describe('macOS: build unsigned, sign, verify the signed release', () => {
 		return { name: uploads[0].get('name')!, tar, at: uploads[0].index };
 	}
 
-	/** Where `id` downloads `name` and unpacks `tar` into dist-packaged, after its checkout. */
-	function tarDownload(id: string, name: string, tar: string): number {
+	/**
+	 * Where `id` downloads `name` (into `path`, or the workspace when undefined) and
+	 * unpacks it with `unpackLine` into dist-packaged, after its checkout.
+	 */
+	function tarDownload(
+		id: string,
+		name: string,
+		path: string | undefined,
+		unpackLine: string
+	): number {
 		const list = jobSteps[id];
 		const downloads = list.filter((s) => uses(s, 'actions/download-artifact'));
 		expect(downloads, id).toHaveLength(1);
 		expect(downloads[0].get('name')).toBe(name);
-		expect(downloads[0].get('path')).toBeUndefined();
+		expect(downloads[0].get('path')).toBe(path);
 		const checkout = indexWhere(list, (s) => uses(s, 'actions/checkout'));
-		const unpack = indexWhere(list, (s) => s.run.includes(`tar -xf ${tar} -C dist-packaged`));
+		const unpack = indexWhere(list, (s) => s.run.includes(unpackLine));
 		expect(downloads[0].index).toBeGreaterThan(checkout);
 		expect(unpack).toBeGreaterThan(downloads[0].index);
 		return unpack;
@@ -345,11 +372,43 @@ describe('macOS: build unsigned, sign, verify the signed release', () => {
 		expect(at).toBeGreaterThan(pack);
 	});
 
-	it('sign-macos needs build-macos and downloads its tar before signing', () => {
+	it('sign-macos needs build-macos and downloads its tar into RUNNER_TEMP before signing', () => {
 		expect(wf.jobKey(SIGN_JOB, 'needs')).toEqual(['tag', 'build-macos']);
 		const { name, tar } = tarUpload('build-macos', 'mac-universal');
-		const unpack = tarDownload(SIGN_JOB, name, tar);
+		expect(UNSIGNED_UNPACK).toContain(`/${tar}"`);
+		const unpack = tarDownload(SIGN_JOB, name, UNSIGNED_DIR, UNSIGNED_UNPACK);
 		expect(signStep.index).toBeGreaterThan(unpack);
+	});
+
+	it("build-macos publishes the packed tar's sha256 as a job output", () => {
+		const pack = jobSteps['build-macos'].find((s) => s.get('id') === 'pack')!;
+		expect(pack).toBeDefined();
+		expect(pack.run).toEqual([
+			'set -euo pipefail',
+			'tar -cf mac-unsigned.tar -C dist-packaged mac-universal',
+			UNSIGNED_DIGEST
+		]);
+		expect(wf.jobKey('build-macos', 'outputs')).toEqual({
+			'unsigned-sha256': '${{ steps.pack.outputs.sha256 }}'
+		});
+	});
+
+	it("sign-macos checks the download against build-macos's sha256, then unpacks it, then signs", () => {
+		expect(unsignedCheck).toBeDefined();
+		expect(stepEnv(unsignedCheck)).toEqual({ UNSIGNED_SHA256: UNSIGNED_SHA_REF });
+		const run = unsignedCheck.run;
+		expect(run[0]).toBe('set -euo pipefail');
+		expect(run.at(-1)).toBe(UNSIGNED_UNPACK);
+		const check = run.findIndex((l) => l.includes('shasum -a 256 -c'));
+		expect(check).toBeLessThan(run.length - 1);
+		const download = indexWhere(jobSteps[SIGN_JOB], (s) => uses(s, 'actions/download-artifact'));
+		expect(unsignedCheck.index).toBeGreaterThan(download);
+		expect(signStep.index).toBeGreaterThan(unsignedCheck.index);
+		// The one unpack in the job is the checked one.
+		const unpacks = jobSteps[SIGN_JOB].flatMap((s) => s.run).filter((l) => /\btar -x/.test(l));
+		expect(unpacks).toEqual([UNSIGNED_UNPACK]);
+		// The sha256 reaches the script by env, never spliced into it.
+		expect(run.join('\n')).not.toContain('${{');
 	});
 
 	it('sign-macos installs only signing/ and runs only sign-mac.ts', () => {
@@ -381,7 +440,7 @@ describe('macOS: build unsigned, sign, verify the signed release', () => {
 		expect(wf.jobKey('verify-macos', 'needs')).toEqual(['tag', 'sign-macos']);
 		const { name, tar, at } = tarUpload(SIGN_JOB, '.');
 		expect(at).toBeGreaterThan(signStep.index);
-		const unpack = tarDownload('verify-macos', name, tar);
+		const unpack = tarDownload('verify-macos', name, undefined, `tar -xf ${tar} -C dist-packaged`);
 		const list = jobSteps['verify-macos'];
 		const layout = indexWhere(list, (s) => s.run.includes(LAYOUT));
 		const signed = indexWhere(list, (s) =>
@@ -703,5 +762,117 @@ exit 2
 		const r = runPublish({ prerelease: '' });
 		expect(r.status).toBe(1);
 		expect(r.calls).toEqual([]);
+	});
+});
+
+// sign-macos's check of the unsigned tar under bash (SEC-18): only exactly one regular
+// file, mac-unsigned.tar, with build-macos's sha256 is unpacked. build-macos's pack
+// step runs too, so the output it publishes is the sha256 the check compares. Bash,
+// shasum and tar are POSIX-only here.
+describe.skipIf(process.platform === 'win32')('the unsigned tar under bash', () => {
+	let dir = '';
+	afterEach(() => {
+		if (dir) rmSync(dir, { recursive: true, force: true });
+		dir = '';
+	});
+
+	const sha256 = (path: string) => createHash('sha256').update(readFileSync(path)).digest('hex');
+	const bash = (script: string[], cwd: string, env: Record<string, string>) =>
+		spawnSync('bash', ['-c', script.join('\n')], {
+			cwd,
+			encoding: 'utf8',
+			env: { PATH: process.env.PATH ?? '', ...env }
+		});
+
+	/** A tar of a stand-in mac-universal/Price Check.app, packed by build-macos's step. */
+	function packed(): { tar: string; sha: string } {
+		const build = join(dir, 'build');
+		mkdirSync(join(build, 'dist-packaged', 'mac-universal', 'Price Check.app'), {
+			recursive: true
+		});
+		writeFileSync(join(build, 'dist-packaged', 'mac-universal', 'Price Check.app', 'app'), 'app\n');
+		const output = join(dir, 'github-output');
+		writeFileSync(output, '');
+		const pack = jobSteps['build-macos'].find((s) => s.get('id') === 'pack')!;
+		const res = bash(pack.run, build, { GITHUB_OUTPUT: output });
+		expect(res.status, res.stderr).toBe(0);
+		const tar = join(build, 'mac-unsigned.tar');
+		expect(readFileSync(output, 'utf8')).toBe(`sha256=${sha256(tar)}\n`);
+		return { tar, sha: sha256(tar) };
+	}
+
+	type Layout = (download: string, tar: string) => void;
+
+	/** Runs the check step with the download laid out by `layout`. */
+	function check(layout: Layout, sha?: string) {
+		dir = mkdtempSync(join(tmpdir(), 'release-unsigned-'));
+		const { tar, sha: real } = packed();
+		const temp = join(dir, 'temp');
+		const download = join(temp, 'macos-unsigned');
+		const work = join(dir, 'work');
+		mkdirSync(download, { recursive: true });
+		mkdirSync(work);
+		layout(download, tar);
+		const res = bash(unsignedCheck.run, work, {
+			RUNNER_TEMP: temp,
+			UNSIGNED_SHA256: sha ?? real
+		});
+		const unpacked = existsSync(
+			join(work, 'dist-packaged', 'mac-universal', 'Price Check.app', 'app')
+		);
+		return { status: res.status, unpacked, stderr: res.stderr };
+	}
+
+	const copy: Layout = (download, tar) =>
+		writeFileSync(join(download, 'mac-unsigned.tar'), readFileSync(tar));
+
+	it('unpacks the one tar build-macos packed into dist-packaged', () => {
+		const r = check(copy);
+		expect(r.status, r.stderr).toBe(0);
+		expect(r.unpacked).toBe(true);
+	});
+
+	it.each<[string, Layout, string?]>([
+		["a sha256 other than build-macos's", copy, '0'.repeat(64)],
+		['an empty sha256', copy, ''],
+		[
+			'a planted scripts/sign-mac.ts beside the tar',
+			(download, tar) => {
+				copy(download, tar);
+				mkdirSync(join(download, 'scripts'));
+				writeFileSync(join(download, 'scripts', 'sign-mac.ts'), 'evil\n');
+			}
+		],
+		[
+			'a second file',
+			(download, tar) => {
+				copy(download, tar);
+				writeFileSync(join(download, 'other.tar'), 'x');
+			}
+		],
+		[
+			'a hidden file',
+			(download, tar) => {
+				copy(download, tar);
+				writeFileSync(join(download, '.hidden'), 'x');
+			}
+		],
+		[
+			'the tar under another name',
+			(download, tar) => writeFileSync(join(download, 'other.tar'), readFileSync(tar))
+		],
+		['an empty download', () => {}],
+		[
+			'a directory named mac-unsigned.tar',
+			(download) => mkdirSync(join(download, 'mac-unsigned.tar'))
+		],
+		[
+			'a symlink to the right tar',
+			(download, tar) => symlinkSync(tar, join(download, 'mac-unsigned.tar'))
+		]
+	])('refuses %s and unpacks nothing', (_name, layout, sha) => {
+		const r = check(layout, sha);
+		expect(r.status).not.toBe(0);
+		expect(r.unpacked).toBe(false);
 	});
 });
