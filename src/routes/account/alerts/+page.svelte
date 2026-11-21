@@ -191,6 +191,13 @@
 			<p data-testid="token-state">
 				{ntfy?.tokenSet ? 'Access token: set.' : 'Access token: none.'}
 			</p>
+			<!-- Only a saved token can be removed; the channel itself stays (c-2). -->
+			{#if ntfy?.tokenSet}
+				<label class="check">
+					<input type="checkbox" name="clear_token" />
+					Remove access token
+				</label>
+			{/if}
 			{@render sendMe(ntfyTicks)}
 			{@render saveMessage('ntfy')}
 			<button>Save topic</button>

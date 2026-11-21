@@ -293,12 +293,14 @@ for (const scheme of schemes) {
 			});
 
 			// The send-test failure message, on a refused loopback topic; the install's
-			// channels are restored from the database afterwards.
+			// channels are restored from the database afterwards. The seeded token cannot
+			// follow the topic to another server (c-1), so it is removed in the same save.
 			await keepingChannels(() =>
 				withPage(browser, scheme, async (page) => {
 					const card = page.getByTestId('channel-ntfy');
 					await page.goto('/account/alerts');
 					await card.getByLabel('ntfy topic link').fill('https://127.0.0.1:1/e2e-contrast');
+					await card.getByLabel('Remove access token').check();
 					await card.getByRole('button', { name: 'Save topic' }).click();
 					await expect(card.getByRole('status')).toHaveText('Saved.');
 					await card.getByRole('button', { name: 'Send test' }).click();

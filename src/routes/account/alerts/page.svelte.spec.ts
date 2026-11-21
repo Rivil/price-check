@@ -120,6 +120,31 @@ describe('account alerts page', () => {
 		expect(page.getByRole('button', { name: 'Remove' }).elements()).toHaveLength(0);
 	});
 
+	it('clear token control', async () => {
+		// A saved token: one Remove access token tick, unticked, posted as clear_token.
+		const withToken = render(Page, props(saved));
+		const card = ntfyCard();
+		const clear = card.getByLabelText('Remove access token');
+		await expect.element(clear).not.toBeChecked();
+		const boxes = card.element().querySelectorAll('input[name="clear_token"]');
+		expect(boxes).toHaveLength(1);
+		expect((boxes[0] as HTMLInputElement).type).toBe('checkbox');
+		const form = card.element().querySelector<HTMLFormElement>('form[action="?/save"]')!;
+		expect(new FormData(form).has('clear_token')).toBe(false);
+		await clear.click();
+		expect(new FormData(form).get('clear_token')).toBe('on');
+		withToken.unmount();
+
+		// No token saved, or no channel at all: nothing to remove.
+		for (const ntfy of [{ ...saved, tokenSet: false }, null]) {
+			const { unmount } = render(Page, props(ntfy));
+			await expect.element(ntfyCard().getByTestId('token-state')).toHaveTextContent('none.');
+			expect(ntfyCard().element().querySelectorAll('[name="clear_token"]')).toHaveLength(0);
+			expect(ntfyCard().getByLabelText('Remove access token').elements()).toHaveLength(0);
+			unmount();
+		}
+	});
+
 	it('resend new', async () => {
 		render(Page, props(saved));
 		const card = resendCard();
