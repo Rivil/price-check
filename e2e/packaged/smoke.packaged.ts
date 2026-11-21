@@ -15,8 +15,12 @@
 // on Linux that channel adds no listener (c-27); the alerts key is wrapped where
 // safeStorage has a real OS backend (c-24). Launch 3 and the x86_64 slice refuse a
 // request without the session cookie, and serve the watch to main's own appGet (c-3).
+// A fourth launch passes --inspect=0, which the CLI inspect fuse makes the app ignore:
+// Node never says its debugger is listening and main listens on no port beyond the
+// server's and Chromium's remote debugging (c-8).
 //
 // The tests share one run and run in order: each picks up where the previous left.
+import { execFile, spawn } from 'node:child_process';
 import {
 	existsSync,
 	mkdirSync,
@@ -29,6 +33,7 @@ import {
 } from 'node:fs';
 import { dirname, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 import { expect, test } from '@playwright/test';
 import { WRAPPED_PREFIX } from '../../src/desktop/alerts-key.ts';
 import { insertWatches, KEY_FILE_NAME, rawRequest } from '../desktop/launch.ts';
@@ -42,6 +47,7 @@ import {
 	updaterStatus,
 	X64_LAUNCH_TIMEOUT_MS,
 	type ControlClient,
+	type LaunchPackagedOptions,
 	type PackagedApp,
 	type PackagedRun
 } from './launch-packaged.ts';
@@ -61,6 +67,12 @@ const OFFLINE_WINDOW_MS = 15_000;
 /** A Node inspector switch: --inspect, --inspect-brk, --inspect-port, ... */
 const INSPECT = /^--inspect/;
 
+/** The switch that, with the CLI inspect fuse on, starts main's inspector on any port. */
+const INSPECT_ANY_PORT = '--inspect=0';
+
+/** What Node prints once its inspector listens. */
+const DEBUGGER_LISTENING = /Debugger listening/;
+
 const LAUNCHER = join(dirname(fileURLToPath(import.meta.url)), 'launch-packaged.ts');
 
 /**
@@ -75,6 +87,38 @@ async function expectSessionGate(port: number, control: ControlClient, output: (
 	const served = await control.appGet('/');
 	expect(served.status, output()).toBe(200);
 	expect(served.body).toContain(WATCH.title);
+}
+
+/**
+ * Every TCP port the app's main process `pid` listens on, on any address, ascending:
+ * on linux its whole tree (linuxTreeListenPorts), elsewhere main alone, which is where
+ * Node's inspector would listen.
+ */
+async function mainListenPorts(platform: PackagedRun['platform'], pid: number): Promise<number[]> {
+	if (platform === 'linux') return linuxTreeListenPorts(pid);
+	const [file, args]: [string, string[]] =
+		platform === 'darwin'
+			? ['lsof', ['-a', '-p', String(pid), '-iTCP', '-sTCP:LISTEN', '-P', '-n', '-F', 'n']]
+			: [
+					'powershell.exe',
+					[
+						'-NoProfile',
+						'-NonInteractive',
+						'-Command',
+						`Get-NetTCPConnection -State Listen -OwningProcess ${pid} -ErrorAction Stop | ForEach-Object { $_.LocalPort }`
+					]
+				];
+	const { stdout } = await promisify(execFile)(file, args, { encoding: 'utf8', windowsHide: true });
+	// lsof -F n: one 'n<address>:<port>' line per socket; PowerShell: one port per line.
+	const ports = stdout
+		.split(/\r?\n/)
+		.map((line) => {
+			if (platform !== 'darwin') return line.trim();
+			return line.startsWith('n') ? line.slice(line.lastIndexOf(':') + 1) : '';
+		})
+		.filter((port) => /^\d+$/.test(port))
+		.map(Number);
+	return [...new Set(ports)].sort((a, b) => a - b);
 }
 
 test.describe.serial('packaged app', () => {
@@ -94,8 +138,8 @@ test.describe.serial('packaged app', () => {
 		}
 	});
 
-	const launch = async (fresh = false) => {
-		current = await launchPackaged(run, { fresh });
+	const launch = async (fresh = false, options: LaunchPackagedOptions = {}) => {
+		current = await launchPackaged(run, { ...options, fresh });
 		current.page.on('pageerror', (error) => pageErrors.push(error.message));
 		return current;
 	};
@@ -230,6 +274,22 @@ test.describe.serial('packaged app', () => {
 		await expect(relaunched).toContainText(WATCH.title);
 		await expect(relaunched.locator('p.target')).toHaveText('Target £12.34');
 		await expectSessionGate(Number(new URL(third.origin).port), third.control, third.output);
+		expect(pageErrors).toEqual([]);
+		await quitCleanly();
+	});
+
+	test('inspector refused', async () => {
+		// The switch reaches the app on top of the harness's own arguments.
+		const app = await launch(false, {
+			spawn: (file, args, options) => spawn(file, [...args, INSPECT_ANY_PORT], options)
+		});
+		const { argv } = await app.control.info();
+		expect(argv, 'the app was not started with the switch').toContain(INSPECT_ANY_PORT);
+		await expect(app.page.locator(`li[data-watch-id="${WATCH.id}"]`)).toContainText(WATCH.title);
+		// The CLI inspect fuse is off (c-8): no inspector started, and none listens.
+		expect(app.output()).not.toMatch(DEBUGGER_LISTENING);
+		const expected = [Number(new URL(app.origin).port), app.devtoolsPort].sort((a, b) => a - b);
+		expect(await mainListenPorts(run.platform, app.pid), app.output()).toEqual(expected);
 		expect(pageErrors).toEqual([]);
 		await quitCleanly();
 	});

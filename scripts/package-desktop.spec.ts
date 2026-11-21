@@ -2,7 +2,8 @@
 // an x64 AppImage with the sandbox kept, libsql unpacked and never rebuilt, appId
 // read from APP_ID, artefact names GitHub keeps as-is, and a CLI that only ever
 // packages the host OS, never publishes, and refuses a --sign run that is missing a
-// credential while naming only the missing variables.
+// credential while naming only the missing variables. 06-remediate-security c-8 adds
+// the Electron fuses and the allow-jit-only macOS entitlements, signed or not.
 //
 // File patterns are matched the way electron-builder 26 does (app-builder-lib's
 // util/filter.js and fileMatcher.js): minimatch with dot:true, patterns applied in
@@ -12,8 +13,9 @@ import { spawnSync } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { FuseV1Options } from '@electron/fuses';
 import type { CliOptions, Configuration } from 'electron-builder';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { APP_ID } from '../src/desktop/app-id.ts';
@@ -22,6 +24,8 @@ import {
 	BUILD_RESOURCES,
 	builderConfig,
 	DEFAULT_OUT,
+	ELECTRON_FUSES,
+	ENTITLEMENTS_PLIST,
 	fileSize,
 	ICON_PNG,
 	ICON_SIZE,
@@ -38,6 +42,7 @@ import {
 	type BuilderConfigInput,
 	type CliDeps
 } from './package-desktop.ts';
+import { REQUIRED_FUSES } from './verify-packaged.ts';
 
 type MinimatchClass = new (
 	pattern: string,
@@ -56,6 +61,13 @@ const { Minimatch, minimatch } = requireLib('minimatch') as {
 	Minimatch: MinimatchClass;
 	minimatch: (path: string, pattern: string, options?: { matchBase?: boolean }) => boolean;
 };
+const plist = requireLib('plist') as { parse(xml: string): unknown };
+
+/** electron-builder's fallback entitlements, used for any path the config leaves unset. */
+const DEFAULT_ENTITLEMENTS = join(
+	dirname(requireBuilder.resolve('app-builder-lib/package.json')),
+	'templates/entitlements.mac.plist'
+);
 
 const asArray = <T>(v: T | T[] | null | undefined): T[] =>
 	v == null ? [] : Array.isArray(v) ? v : [v];
@@ -312,7 +324,11 @@ describe('builderConfig: what goes into the app', () => {
 				'scripts/package-desktop.ts',
 				'test-results/x',
 				'pnpm-lock.yaml',
-				'dist-packaged/latest-mac.yml'
+				'dist-packaged/latest-mac.yml',
+				ENTITLEMENTS_PLIST,
+				'build-resources/icon.png',
+				'signing/x',
+				'signing/package.json'
 			]) {
 				expect(packed(config, platform, path), path).toBe(false);
 			}
@@ -510,6 +526,69 @@ describe('builderConfig: signing', () => {
 		for (const config of [unsigned(), signed()]) {
 			const keys = Object.keys(config.win ?? {});
 			expect(keys.filter((k) => /^(certificate|signtool|azureSign|csc)/i.test(k))).toEqual([]);
+		}
+	});
+});
+
+// 06-remediate-security c-8 (SEC-03): the fuses and entitlements every build ships with.
+describe('builderConfig: hardening', () => {
+	const OFF = [
+		'runAsNode',
+		'enableNodeOptionsEnvironmentVariable',
+		'enableNodeCliInspectArguments',
+		'grantFileProtocolExtraPrivileges'
+	] as const;
+	const ON = ['enableEmbeddedAsarIntegrityValidation', 'onlyLoadAppFromAsar'] as const;
+	const entitlementsPath = join(ROOT, ENTITLEMENTS_PLIST);
+	const DLV = 'com.apple.security.cs.disable-library-validation';
+
+	it.each([false, true])('fuses: four off, two on, ad-hoc re-signed (sign: %s)', (sign) => {
+		const fuses = builderConfig({ version: '0.1.5', sign }).electronFuses;
+		for (const name of OFF) expect(fuses?.[name], name).toBe(false);
+		for (const name of ON) expect(fuses?.[name], name).toBe(true);
+		// An unsigned arm64 slice whose flipped binary keeps its old signature never starts.
+		expect(fuses?.resetAdHocDarwinSignature).toBe(true);
+		expect(Object.keys(fuses ?? {}).sort()).toEqual(
+			[...OFF, ...ON, 'resetAdHocDarwinSignature'].sort()
+		);
+		expect(fuses).toEqual(ELECTRON_FUSES);
+	});
+
+	it('fuses: flips exactly what verify-packaged reads back from the binary', () => {
+		const fuses = unsigned().electronFuses as Record<string, unknown>;
+		expect(REQUIRED_FUSES).toHaveLength(OFF.length + ON.length);
+		for (const [fuse, on] of REQUIRED_FUSES) {
+			// FuseV1Options.RunAsNode is the config's runAsNode, and so on.
+			const name = FuseV1Options[fuse];
+			const key = `${name[0].toLowerCase()}${name.slice(1)}`;
+			expect(fuses[key], key).toBe(on);
+		}
+	});
+
+	it.each([false, true])(
+		'signs the app and every helper with the build-resources plist (sign: %s)',
+		(sign) => {
+			const mac = builderConfig({ version: '0.1.5', sign }).mac;
+			expect(ENTITLEMENTS_PLIST).toBe('build-resources/entitlements.mac.plist');
+			expect(mac?.entitlements).toBe(entitlementsPath);
+			expect(mac?.entitlementsInherit).toBe(entitlementsPath);
+			expect(existsSync(entitlementsPath)).toBe(true);
+		}
+	);
+
+	it("must name both: electron-builder's fallback grants disable-library-validation", () => {
+		expect(plist.parse(readFileSync(DEFAULT_ENTITLEMENTS, 'utf8'))).toHaveProperty([DLV], true);
+	});
+
+	it('grants allow-jit and nothing else', () => {
+		const xml = readFileSync(entitlementsPath, 'utf8');
+		expect(plist.parse(xml)).toEqual({ 'com.apple.security.cs.allow-jit': true });
+		for (const name of [
+			DLV,
+			'com.apple.security.cs.allow-dyld-environment-variables',
+			'com.apple.security.cs.allow-unsigned-executable-memory'
+		]) {
+			expect(xml).not.toContain(name);
 		}
 	});
 });
